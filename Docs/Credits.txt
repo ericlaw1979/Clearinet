@@ -1,0 +1,3 @@
+Clearinet is built upon the work of a number of other entities. 
+
+The list of those entities will be found here.
