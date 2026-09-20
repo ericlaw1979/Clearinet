@@ -16,3 +16,7 @@ Stretch goals in order of cost
 - Support for HTTP/2
 - Support for traffic capture without proxy (e.g. use WFP to intercept/redirect)
 - Support for non-Windows OS (e.g. .NET Standard cross-platform proxy engine and  MAUI-based UI)
+
+Sugar (Not strictly required but very useful)
+- Mezer-Tools style color-picker and UI sizer
+- Extensible TextWizard applet
