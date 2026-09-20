@@ -66,7 +66,7 @@ ClearErrors
 SetOverwrite on
 
 ;File "..\app\bin\Release\Cin.exe"		; TODO: Need the app
-;File "..\app\bin\Release\Cin.exe.config"	; TODO: Need the config
+File "..\app\bin\Release\Cin.exe.config"
 File "..\Docs\Credits.txt"
 ; File "..\Media\SazFile.ico"			; TODO: Create icon
 
