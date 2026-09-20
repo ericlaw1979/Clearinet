@@ -19,6 +19,9 @@ import Clearinet;
 // help you understand them.
 
 // TODO: Add URLs to Wiki of Script Examples
+// Many examples can be found within https://gist.github.com/ericlaw1979, but they will
+// require light customization to work in Clearinet (e.g. replace mention of "fiddler" with
+// "clearinet".
 
 // JScript.NET Reference:
 // https://learn.microsoft.com/en-us/dotnet/api/microsoft.jscript?view=netframework-4.8.1
