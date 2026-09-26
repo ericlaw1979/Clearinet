@@ -10,11 +10,22 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
-    public partial class frmTextWizard : Form
+    internal partial class frmTextWizard : Form
     {
-        public frmTextWizard()
+        internal frmTextWizard(string sInput)
         {
             InitializeComponent();
+            if (!String.IsNullOrEmpty(sInput))
+            {
+                txtInput.Text = sInput.Replace("\n", "\r\n");
+                this.ActiveControl = txtOutput;
+            }
+        }
+
+        private void txtInput_TextChanged(object sender, EventArgs e)
+        {
+            txtOutput.Text = txtInput.Text;
+            this.Text = $"TextWizard [ {txtInput.TextLength} => {txtOutput.TextLength} characters]";
         }
     }
 }
