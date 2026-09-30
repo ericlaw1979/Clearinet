@@ -1,6 +1,6 @@
 @title Clearinet Builder
-@filever c:\src\cin\clearinet\bin\release\clearinet.exe > clearinet.ver
-@pushd c:\src\cin\bin\release
+@powershell -Command "(Get-Item '..\Clearinet\bin\release\clearinet.exe').VersionInfo.FileVersion | Set-Content 'Clearinet.ver'"
+@pushd c:\src\cin\Clearinet\bin\release
 @pause
 @:signing
 @echo Sign Clearinet
