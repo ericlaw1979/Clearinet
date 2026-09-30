@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -11,11 +12,13 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
-    internal static class Utilities
+    public static class Utilities
     {
         [DllImport("Kernel32.dll", EntryPoint = "GetTickCount64", CharSet = CharSet.Unicode)]
         private static extern UInt64 GetTickCount64();
 
+        // Legacy compat. Can't imagine this actually improves performance.
+        public static byte[] emptyByteArray = new byte[0];
         public static UInt64 GetTickCount()
         {
             try
@@ -268,6 +271,16 @@ namespace Clearinet
             }
         }
 
+        public static string UNSTABLE_DescribeClientHello(MemoryStream _)
+        {
+            return "TODO: don't call this!";
+        }
+
+        public static string UNSTABLE_DescribeServerHello(MemoryStream _)
+        {
+            return "TODO: don't call this!";
+        }
+
         public static int GetRegistryInt(RegistryKey rk, string sName, int iDefault)
         {
             int retVal = iDefault;
@@ -305,11 +318,47 @@ namespace Clearinet
             return sFilename;
         }
 
+        public static string ObtainOpenFilename(string sDialogTitle, string sFilter, string sInitialDirectory = null)
+        {
+            string sFilename = null;
+
+            using (FileDialog oFileDialog = new OpenFileDialog())
+            {
+                oFileDialog.Title = sDialogTitle;
+                oFileDialog.Filter = sFilter;
+                oFileDialog.CheckFileExists = true;
+                if (!String.IsNullOrEmpty(sInitialDirectory))
+                {
+                    oFileDialog.InitialDirectory = sInitialDirectory;
+                    oFileDialog.RestoreDirectory = true;
+                }
+
+                if (DialogResult.OK == oFileDialog.ShowDialog(CApp.UI))
+                {
+                    sFilename = oFileDialog.FileName;
+                }
+            }
+
+            return sFilename;
+        }
+
         public static string[] Parameterize(string sInput)
         {
             return Parameterize(sInput, false);
         }
 
+        public static byte[] GzipExpand(byte[] arrIn)
+        {
+            using (var msInput = new MemoryStream(arrIn))
+            using (var msOutput = new MemoryStream())
+            {
+                using (var gzip = new System.IO.Compression.GZipStream(msInput, System.IO.Compression.CompressionMode.Decompress))
+                {
+                    gzip.CopyTo(msOutput);
+                }
+                return msOutput.ToArray();
+            }
+        }
 
         /// <summary>
         /// Tokenizes a string into an array of parameters, respecting quoted strings.

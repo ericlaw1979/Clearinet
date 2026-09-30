@@ -21,5 +21,13 @@ namespace Clearinet
         {
             Utilities.LaunchHyperlink("https://clearinet.app/r/?ClearinetHelpOptions");
         }
+
+        private void tcOptions_Selecting(object sender, TabControlCancelEventArgs e)
+        {
+            if (e.TabPage == pageExtensions) 
+            {
+                txtExtensionList.Text = CApp.oExtensions.ToString(true);
+            }
+        }
     }
 }

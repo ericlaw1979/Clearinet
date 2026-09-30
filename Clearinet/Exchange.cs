@@ -12,6 +12,14 @@ namespace Clearinet
     /// </summary>
     public class Exchange
     {
+        public string fullUrl { get; private set; }
+
+        public string this[string sFlagName]
+        {
+            get { return "TODO"; }
+            set { }
+        }
+
         /// <summary>
         /// Indicates if the client is local. If not, beware the SECURITY IMPLICATIONS of
         /// allowing a remote client to proxy through us.
@@ -40,6 +48,16 @@ namespace Clearinet
         // to store arbitrary data for the core engine, and then have
         // the UI layer use that to store a ListViewItem.
         public ListViewItem ViewItem { get; internal set; }
+
+        public static Exchange BuildFromData(bool b, HTTPRequestHeaders rqh, byte[] arrReq, HTTPResponseHeaders rsp, byte[] arrResp, ExchangeFlags ef)
+        {
+            return new Exchange();
+        }
+            
+        public void utilSetResponseBody(string responseBody)
+        {
+            // TODO: Implement this method to set the response body.
+        }
 
     }
 }

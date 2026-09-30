@@ -7,6 +7,8 @@
 - Replace timers' `FiddlerBeginRequest` with `ClearinetBeginRequest`
 - Replace timers' `ServerGotRequest` with `ClearinetEndRequest`
 - Replace timers' `FiddlerGotResponseHeaders` with `ClearinetGotResponseHeaders`
+- Replace `ProgressCallbackEventArgs` with `ProgressEventArgs`
+- Replace `Log.LogString` with `Log.Log`
 - Remove `SessionTimers.EnableHighResolutionTimers` (the app now checks CApp.Prefs.GetBoolPref("app.high_resolution_clock", true) at boot time)
 - IHandleExecAction is not yet implemented.
 - `IAutoTamper2` and `IAutoTamper3` were merged into the `IAutoTamper` interface. Implementers should leave the Peek methods unimplemented if they aren't needed.

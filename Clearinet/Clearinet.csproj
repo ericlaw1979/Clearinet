@@ -58,6 +58,7 @@
     <Compile Include="CApp.cs" />
     <Compile Include="CONFIG.cs" />
     <Compile Include="Exchange.cs" />
+    <Compile Include="ExchangeFlags.cs" />
     <Compile Include="ExchangeTimers.cs" />
     <Compile Include="ExtensionAPI.cs" />
     <Compile Include="Extensions.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="frmViewer.Designer.cs">
       <DependentUpon>frmViewer.cs</DependentUpon>
     </Compile>
+    <Compile Include="HTTPMessages.cs" />
     <Compile Include="PlatformAPI.cs" />
     <Compile Include="Preferences.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

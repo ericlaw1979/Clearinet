@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace Clearinet
 {
@@ -11,9 +12,34 @@ namespace Clearinet
         private Dictionary<Guid, IAppExtension> m_Extensions = new Dictionary<Guid, IAppExtension>();
         private Dictionary<Guid, IAutoTamper> m_AutoTamperers = new Dictionary<Guid, IAutoTamper>();
 
+        // TODO: What about Transcoders, which are loaded on-demand?
+
         internal Extensions()
         {
             ScanAndLoad();
+        }
+        public override string ToString()
+        {
+            return ToString(false);
+        }
+
+        public string ToString(bool bVerbose)
+        {
+            StringBuilder sbResult = new StringBuilder(128);
+            sbResult.AppendFormat("Extensions: {0} loaded, {1} AutoTamperers", m_Extensions.Count, m_AutoTamperers.Count);
+
+            if (bVerbose)
+            {
+                foreach (IAppExtension extension in m_Extensions.Values)
+                {
+                    Type type = extension.GetType();
+                    Assembly assembly = type.Assembly;
+                    string filename = String.IsNullOrEmpty(assembly.Location) ? "<unknown>" : Path.GetFileName(assembly.Location);
+                    sbResult.AppendFormat("\r\n{0}, v{1}, {2}", type.FullName, assembly.GetName().Version, filename);
+                }
+            }
+
+            return sbResult.ToString();
         }
 
         internal void CallAllOnLoads()
