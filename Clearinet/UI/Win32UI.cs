@@ -6,6 +6,9 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
+    /// <summary>
+    /// This class holds helper methods related to Win32 UI features that are not exposed in .NET.
+    /// </summary>
     internal class Win32UI
     {
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
@@ -43,14 +46,14 @@ namespace Clearinet
         }
         #endregion
 
-
-        internal static void activateTitledTab(string sTitle, TabControl tabSet)
+        // Note: This method doesn't use any PInvoke APIs, but this class is a handy place to put it.
+        internal static void activateTitledTab(string title, TabControl tabSet)
         {
-            foreach (TabPage t in tabSet.TabPages)
+            for (int i = 0; i < tabSet.TabPages.Count; i++)
             {
-                if (t.Text.OICEquals(sTitle))
+                if (tabSet.TabPages[i].Text.OICEquals(title))
                 {
-                    tabSet.SelectedTab = t;
+                    tabSet.SelectedTab = tabSet.TabPages[i];
                     return;
                 }
             }

@@ -26,7 +26,7 @@ namespace Clearinet
         {
             if (e.TabPage == pageExtensions) 
             {
-                txtExtensionList.Text = CApp.oExtensions.ToString(true);
+                // TODO: Hook this up txtExtensionList.Text = CApp.oExtensions.ToString(true);
             }
         }
     }

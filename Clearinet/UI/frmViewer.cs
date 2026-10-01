@@ -276,7 +276,8 @@ namespace Clearinet
             frmSplashScreen.CloseSplashScreen();
             CApp.OnAppBoot();
 
-            if (!Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
+            if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true) 
+                && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
         }
 
         private void HandleProxyAttached()
