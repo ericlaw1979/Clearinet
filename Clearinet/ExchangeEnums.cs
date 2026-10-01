@@ -76,7 +76,7 @@ namespace Clearinet
     }
 
     // TODO: Consider whether we should add more states.
-    public enum ExchangeStates : byte
+    public enum ExchangeState : byte
     {
         Created,
 

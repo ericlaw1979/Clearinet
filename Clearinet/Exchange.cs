@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,18 +15,28 @@ namespace Clearinet
     /// </summary>
     public class Exchange
     {
+        private ExchangeState _State;
+        public ConcurrentDictionary<string, string> oFlags = 
+            new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private UInt32 m_sequenceID; // should we use a 64bit counter instead?
+        
+        /// <summary>
+        /// Process ID of the client, if not a remote request.
+        /// </summary>
+        private UInt32 _ClientProcessID;
+
         public string fullUrl { get; private set; }
-        public ExchangeStates state { get;
+        public ExchangeState state { get;
             set; /* TODO: Full state machine goes in here!!! */ 
-        } = ExchangeStates.Created;
+        } = ExchangeState.Created;
 
         byte[] _requestBodyBytes = Array.Empty<byte>();
         byte[] _responseBodyBytes = Array.Empty<byte>();
 
         public string this[string sFlagName]
         {
-            get { return "TODO"; }
-            set { }
+            get => oFlags.TryGetValue(sFlagName, out var value) ? value : null;
+            set => oFlags[sFlagName] = value;
         }
 
         /// <summary>
@@ -52,8 +63,8 @@ namespace Clearinet
         public string url { get; set; }
 
         // ISSUE: For the core engine, we won't have a ListViewItem;
-        // We probably need to have a "Data" pointer that can be used
-        // to store arbitrary data for the core engine, and then have
+        // We probably need to have a "Tag" pointer that can be used
+        // to hold arbitrary data for the core engine, and then have
         // the UI layer use that to store a ListViewItem.
         public ListViewItem ViewItem { get; internal set; }
 
@@ -120,7 +131,7 @@ namespace Clearinet
             //exchBuilt.SetBitFlag(ef, true);
             //exchBuilt.oResponse.headers = rph;
             exchBuilt._responseBodyBytes = arrRespBody;
-            exchBuilt.state = ExchangeStates.Done;
+            exchBuilt.state = ExchangeState.Done;
 
             return exchBuilt;
         }
