@@ -18,7 +18,7 @@ namespace Clearinet
         private static extern UInt64 GetTickCount64();
 
         // Legacy compat. Can't imagine this actually improves performance.
-        public static byte[] emptyByteArray = new byte[0];
+        public static byte[] emptyByteArray = Array.Empty<byte>();
         public static UInt64 GetTickCount()
         {
             try

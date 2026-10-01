@@ -115,6 +115,7 @@ namespace Clearinet
                     try
                     {
                         CApp.Prefs.SetStringPref(sParams[2], sParams[3]);
+                        UI.SetStatusText($"Set '{sParams[2]}' to '{sParams[3]}'");
                     }
                     catch (Exception eX)
                     {
@@ -138,6 +139,7 @@ namespace Clearinet
                         return;
                     }
                     CApp.Prefs.RemovePref(sParams[2]);
+                    UI.SetStatusText($"Removed preference '{sParams[2]}'");
                     break;
                 case "dump":
                     CApp.Log.Log(CApp.Prefs.ToString(true));

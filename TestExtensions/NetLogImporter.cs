@@ -147,15 +147,14 @@ namespace ImportNetlog
                 if (!(htFile["traceEvents"] is ArrayList alTraceEvents))
                 {
                     CApp.DoNotifyUser("This JSON file does not seem to contain NetLog data.", "Unexpected Data");
-                    Exchange sessFile = new Exchange();/* Exchange.BuildFromData(false,
+                    Exchange sessFile = Exchange.BuildFromData(false,
                             new HTTPRequestHeaders(
-                                String.Format("/file.json"),
+                                "/file.json",
                                 new[] { "Host: IMPORTED", "Date: " + DateTime.UtcNow.ToString() }),
-                            Utilities.emptyByteArray,
+                            Array.Empty<byte>(),
                             new HTTPResponseHeaders(200, "File Data", new[] { "Content-Type: application/json; charset=utf-8" }),
                             Encoding.UTF8.GetBytes(JSON.JsonEncode(htFile)),
-                            SessionFlags.ImportedFromOtherTool | SessionFlags.RequestGeneratedByFiddler | SessionFlags.ResponseGeneratedByFiddler | SessionFlags.ServedFromCache);
-                   */ 
+                            ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet | ExchangeFlags.ServedFromCache);
                     listExchanges.Insert(0, sessFile);
                 }
                 else
@@ -410,27 +409,27 @@ namespace ImportNetlog
             #endregion
 
             // Create a Summary Session, the response body of which we'll fill in later.
-            Exchange exchangeSummary = new Exchange();/*Exchange.BuildFromData(false,
+            Exchange exchangeSummary = Exchange.BuildFromData(false,
                     new HTTPRequestHeaders(
                         String.Format("/CAPTURE_INFO"),
                         new[] { "Host: NETLOG" , "Date: " + _dtBaseTime.ToString("r") }),
-                    Utilities.emptyByteArray,
+                    Array.Empty<byte>(),
                     new HTTPResponseHeaders(200, "Analyzed Data", new[] { "Content-Type: text/plain; charset=utf-8" }),
-                    Utilities.emptyByteArray,
-                    SessionFlags.ImportedFromOtherTool | SessionFlags.RequestGeneratedByFiddler | SessionFlags.ResponseGeneratedByFiddler | SessionFlags.ServedFromCache);
-            setAllTimers(sessSummary, _baseTime);*/
+                    Array.Empty<byte>(),
+                    ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet | ExchangeFlags.ServedFromCache);
+            setAllTimers(exchangeSummary, _baseTime);
             _listExchanges.Add(exchangeSummary);
 
             { // Create a RAW data session with all of the JSON text for debugging purposes.
-                Exchange exchangeRaw = new Exchange(); /*Exchange.BuildFromData(false,
+                Exchange exchangeRaw = Exchange.BuildFromData(false,
                         new HTTPRequestHeaders(
                             String.Format("/RAW_JSON"),
                             new[] { "Host: NETLOG" }),
-                        Utilities.emptyByteArray,
+                        Array.Empty<byte>(),
                         new HTTPResponseHeaders(200, "Analyzed Data", new[] { "Content-Type: application/json; charset=utf-8" }),
                         Encoding.UTF8.GetBytes(JSON.JsonEncode(htFile)),
-                        SessionFlags.ImportedFromOtherTool | SessionFlags.RequestGeneratedByFiddler | SessionFlags.ResponseGeneratedByFiddler | SessionFlags.ServedFromCache);
-                setAllTimers(sessRaw, _baseTime);*/
+                        ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet | ExchangeFlags.ServedFromCache);
+                setAllTimers(exchangeRaw, _baseTime);
                 _listExchanges.Add(exchangeRaw);
             }
 
@@ -439,15 +438,15 @@ namespace ImportNetlog
             {
                 ArrayList alExtensions = FilterExtensions(htPolledData["extensionInfo"] as ArrayList);
 
-                Exchange exchangeExtensions = new Exchange();/*Exchange.BuildFromData(false,
+                Exchange exchangeExtensions = Exchange.BuildFromData(false,
                         new HTTPRequestHeaders(
                             String.Format("/ENABLED_EXTENSIONS"),
                             new[] { "Host: NETLOG" }),
-                        Utilities.emptyByteArray,
+                        Array.Empty<byte>(),
                         new HTTPResponseHeaders(200, "Analyzed Data", new[] { "Content-Type: application/json; charset=utf-8" }),
                         Encoding.UTF8.GetBytes(JSON.JsonEncode(alExtensions)),
-                        SessionFlags.ImportedFromOtherTool | SessionFlags.RequestGeneratedByFiddler | SessionFlags.ResponseGeneratedByFiddler | SessionFlags.ServedFromCache);
-                setAllTimers(sessExtensions, _baseTime);*/
+                        ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet | ExchangeFlags.ServedFromCache);
+                setAllTimers(exchangeExtensions, _baseTime);
                 _listExchanges.Add(exchangeExtensions);
             }
 
@@ -670,15 +669,15 @@ namespace ImportNetlog
 
                 if (htDebug.Count > 0)
                 {
-                    Exchange exchangeURLRequests = new Exchange();/* Session.BuildFromData(false,
+                    Exchange exchangeURLRequests = Exchange.BuildFromData(false,
                             new HTTPRequestHeaders(
                                 String.Format("/URL_REQUESTS"),
                                 new[] { "Host: NETLOG" }),
-                            Utilities.emptyByteArray,
+                            Array.Empty<byte>(),
                             new HTTPResponseHeaders(200, "Analyzed Data", new[] { "Content-Type: application/json; charset=utf-8" }),
                             Encoding.UTF8.GetBytes(JSON.JsonEncode(htDebug)),
-                            SessionFlags.ImportedFromOtherTool | SessionFlags.RequestGeneratedByFiddler | SessionFlags.ResponseGeneratedByFiddler | SessionFlags.ServedFromCache);
-                    setAllTimers(sessURLRequests, _baseTime);*/
+                            ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet | ExchangeFlags.ServedFromCache);
+                    setAllTimers(exchangeURLRequests, _baseTime);
                     _listExchanges.Add(exchangeURLRequests);
                 }
             }
@@ -991,15 +990,15 @@ namespace ImportNetlog
                 // Don't add a node if there were no sockets.
                 if (htAllSockets.Count > 0)
                 {
-                    Exchange exchangeAllSockets = new Exchange();/* Session.BuildFromData(false,
+                    Exchange exchangeAllSockets = Exchange.BuildFromData(false,
                             new HTTPRequestHeaders(
                                 String.Format("/SOCKETS"),
                                 new[] { "Host: NETLOG" }),
-                            Utilities.emptyByteArray,
+                            Array.Empty<byte>(),
                             new HTTPResponseHeaders(200, "Analyzed Data", new[] { "Content-Type: application/json; charset=utf-8" }),
                             Encoding.UTF8.GetBytes(JSON.JsonEncode(htAllSockets)),
-                            SessionFlags.ImportedFromOtherTool | SessionFlags.RequestGeneratedByFiddler | SessionFlags.ResponseGeneratedByFiddler | SessionFlags.ServedFromCache);
-                    setAllTimers(sessAllSockets, _baseTime);*/
+                            ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet | ExchangeFlags.ServedFromCache);
+                    setAllTimers(exchangeAllSockets, _baseTime);
                     _listExchanges.Add(exchangeAllSockets);
                 }
             }
@@ -1139,15 +1138,15 @@ namespace ImportNetlog
                     htAllResolutions.Add(sHost, htData);
                 }
 
-                Exchange exchangeDNS = new Exchange();/* Exchange.BuildFromData(false,
+                Exchange exchangeDNS = Exchange.BuildFromData(false,
                         new HTTPRequestHeaders(
                             String.Format("/DNS_LOOKUPS"),
                             new[] { "Host: NETLOG" }),
-                        Utilities.emptyByteArray,
+                        Array.Empty<byte>(),
                         new HTTPResponseHeaders(200, "Analyzed Data", new[] { "Content-Type: application/json; charset=utf-8" }),
                         Encoding.UTF8.GetBytes(JSON.JsonEncode(htAllResolutions)),
-                        SessionFlags.ImportedFromOtherTool | SessionFlags.RequestGeneratedByFiddler | SessionFlags.ResponseGeneratedByFiddler | SessionFlags.ServedFromCache);
-                setAllTimers(sessDNS, _baseTime);*/
+                        ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet | ExchangeFlags.ServedFromCache);
+                setAllTimers(exchangeDNS, _baseTime);
                 _listExchanges.Add(exchangeDNS);
             }
             catch (Exception e) { CApp.Log.LogFormat("GenerateDNSResolutionListSession failed: " + DescribeExceptionWithStack(e)); }
@@ -1626,7 +1625,7 @@ namespace ImportNetlog
 
             Exchange oS = Exchange.BuildFromData(false,
                 oRQH,
-                Utilities.emptyByteArray,
+                Array.Empty<byte>(),
                 oRPH,
                 msResponseBody.ToArray(),
                 oSF);
@@ -1637,7 +1636,7 @@ namespace ImportNetlog
                 oS["X-Netlog-URLRequest-URL"] = sURL;
             }
 
-            // Attach the SessionFlags to the new Session.
+            // Attach the ExchangeFlags to the new Session.
             foreach (KeyValuePair<string, string> sFlag in dictExchangeFlags)
             {
                 oS[sFlag.Key] = sFlag.Value;
