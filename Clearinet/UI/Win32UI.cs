@@ -35,6 +35,21 @@ namespace Clearinet
             return SetForegroundWindow(hWnd);
         }
 
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+        public static void UseDarkTitleBar(IntPtr h)
+        {
+            if (Environment.OSVersion.Version.Major >= 10)
+            {
+                int useDarkMode = 1; // 1 = Dark Mode, 0 = Light Mode
+                                     // DWMWA_USE_IMMERSIVE_DARK_MODE attribute (20 for Windows 11 / 10 20H1+, 19 for older Win10 builds)
+                int attribute = 20;
+                DwmSetWindowAttribute(h, attribute, ref useDarkMode, sizeof(int));
+            }
+        }
+
         #region CueText
         // CueText is the "ghost text" that appears in a textbox or combobox when it is empty.
         // This is a Win32 feature that is not exposed in .NET, so we have to call SendMessage() to set it.
@@ -133,5 +148,6 @@ namespace Clearinet
             base.OnHandleCreated(e);
             Win32ListViewAPI.DontOverlayImage(this);
         }
+
     }
 }

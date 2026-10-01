@@ -259,16 +259,13 @@ namespace Clearinet
 
             // TODO: Add event handlers for allow back/forward mouse buttons to change between active tabs
             // TODO: Load Inspectors
-            // TODO: Load Extensions
             // TODO: Grab system network config
             // TODO: Start the core Proxy listener
 
             InitializeUIFromPrefs();
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
-            // TODO: HACK HACK HACK: Hook this up in the designer.
-            miEditFind.Click += (s, ea) => frmFind.BeginFinding();
-
+            if (CApp.Prefs.GetBoolPref("app.ui.darkmode", false)) ThemeManager.ApplyDarkMode(this);
 
             CApp.ProxyAttach += HandleProxyAttached;
             CApp.ProxyDetach += HandleProxyDetached;
