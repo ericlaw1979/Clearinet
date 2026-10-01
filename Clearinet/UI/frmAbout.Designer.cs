@@ -46,7 +46,7 @@
             this.lnkFeedback.Size = new System.Drawing.Size(136, 23);
             this.lnkFeedback.TabIndex = 0;
             this.lnkFeedback.TabStop = true;
-            this.lnkFeedback.Text = "Send Feedback...";
+            this.lnkFeedback.Text = "remove me";
             this.lnkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkFeedback_LinkClicked);
             // 
             // txtAbout
@@ -62,7 +62,7 @@
             this.txtAbout.Name = "txtAbout";
             this.txtAbout.Size = new System.Drawing.Size(391, 281);
             this.txtAbout.TabIndex = 1;
-            this.txtAbout.Text = "Please see https://clearinet.app\r\n\r\nCopyright ©2026 Clearinet Contributors";
+            this.txtAbout.Text = "";
             // 
             // pbIcon
             // 
@@ -91,7 +91,6 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "About Clearinet";
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmAbout_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.pbIcon)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

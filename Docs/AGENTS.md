@@ -13,7 +13,7 @@
 - Remove `SessionTimers.EnableHighResolutionTimers` (the app now checks CApp.Prefs.GetBoolPref("app.high_resolution_clock", true) at boot time)
 - IHandleExecAction is not yet implemented.
 - `IAutoTamper2` and `IAutoTamper3` were merged into the `IAutoTamper` interface. Implementers should leave the Peek methods unimplemented if they aren't needed.
-- 
+
 
 ### Paths
 - Replace `Fiddler.exe` with `Clearinet.exe`.

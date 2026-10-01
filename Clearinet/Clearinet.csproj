@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyBuiltDateAttribute.cs" />
     <Compile Include="ExtensionMethods\ByteArrayExtensions.cs" />
     <Compile Include="CApp.cs" />
     <Compile Include="CONFIG.cs" />
@@ -165,5 +166,19 @@
   <ItemGroup>
     <Content Include="app.ico" />
   </ItemGroup>
+  <!-- Auto-generate build date attribute before compilation -->
+  <Target Name="GenerateAssemblyBuiltDate" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <GeneratedText>
+				using System%3B
+				[assembly: Clearinet.AssemblyBuiltDate("$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))")]
+			</GeneratedText>
+      <GeneratedFilePath>$(IntermediateOutputPath)GeneratedAssemblyBuiltDate.g.cs</GeneratedFilePath>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(GeneratedFilePath)" Lines="$(GeneratedText)" Overwrite="true" />
+    <ItemGroup>
+      <Compile Include="$(GeneratedFilePath)" />
+    </ItemGroup>
+  </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
