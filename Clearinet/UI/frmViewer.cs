@@ -274,6 +274,7 @@ namespace Clearinet
 
             if (CApp.Prefs.GetBoolPref("app.ui.darkmode", false)) ThemeManager.ApplyDarkMode(this);
 
+            rtbStatistics.BackColor = rtbLog.BackColor = CONFIG.colorDisabledEdit;
             CApp.ProxyAttach += HandleProxyAttached;
             CApp.ProxyDetach += HandleProxyDetached;
 
@@ -282,7 +283,6 @@ namespace Clearinet
 
             if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true)
                 && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
-
 
             this.blvExchanges.DragDrop += BlvExchanges_DragDrop;
             this.blvExchanges.DragEnter += BlvExchanges_DragEnter;
@@ -472,6 +472,11 @@ namespace Clearinet
         {
             miFileAttach.Checked = !miFileAttach.Checked;
             if (miFileAttach.Checked) { CApp.actAttachProxy(); } else { CApp.actDetachProxy(); }
+        }
+
+        private void miEditFind_Click(object sender, EventArgs e)
+        {
+            frmFind.BeginFinding();
         }
     }
 }

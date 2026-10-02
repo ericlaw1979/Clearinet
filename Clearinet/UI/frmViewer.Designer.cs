@@ -39,8 +39,8 @@
             System.Windows.Forms.ToolStripSeparator miToolsSplitter1;
             System.Windows.Forms.ToolStripSeparator miViewSplitter1;
             System.Windows.Forms.ToolStripSeparator miHelpSplitter1;
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
             System.Windows.Forms.ToolStripSeparator tsmiFileSaveSplitter1;
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileAttach = new System.Windows.Forms.ToolStripMenuItem();
@@ -49,6 +49,8 @@
             this.recentArchivesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSAZ = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.importExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileExport = new System.Windows.Forms.ToolStripMenuItem();
             this.allExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -105,6 +107,7 @@
             this.tslMemory = new System.Windows.Forms.ToolStripStatusLabel();
             this.tslInfo = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsToolbar = new System.Windows.Forms.ToolStrip();
+            this.tsmiNameViewer = new System.Windows.Forms.ToolStripButton();
             this.tsbComment = new System.Windows.Forms.ToolStripButton();
             this.tsddbRemove = new System.Windows.Forms.ToolStripDropDownButton();
             this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -113,6 +116,12 @@
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
+            this.blvExchanges = new Clearinet.BetterListView();
+            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
@@ -122,15 +131,7 @@
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.tsmiNameViewer = new System.Windows.Forms.ToolStripButton();
-            this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
-            this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
-            this.blvExchanges = new Clearinet.BetterListView();
-            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.txtQuickExec = new Clearinet.QuickExecBox();
+            this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -150,6 +151,7 @@
             this.pnlLeft.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.tabsViews.SuspendLayout();
+            this.pageStatistics.SuspendLayout();
             this.pageLog.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -207,6 +209,11 @@
             // 
             miHelpSplitter1.Name = "miHelpSplitter1";
             miHelpSplitter1.Size = new System.Drawing.Size(140, 6);
+            // 
+            // tsmiFileSaveSplitter1
+            // 
+            tsmiFileSaveSplitter1.Name = "tsmiFileSaveSplitter1";
+            tsmiFileSaveSplitter1.Size = new System.Drawing.Size(187, 6);
             // 
             // mnuMain
             // 
@@ -287,6 +294,20 @@
             this.miFileSaveSAZ.Name = "miFileSaveSAZ";
             this.miFileSaveSAZ.Size = new System.Drawing.Size(190, 22);
             this.miFileSaveSAZ.Text = "&All Exchanges...";
+            // 
+            // miFileSaveSelected
+            // 
+            this.miFileSaveSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFileSaveSelectedSAZ});
+            this.miFileSaveSelected.Name = "miFileSaveSelected";
+            this.miFileSaveSelected.Size = new System.Drawing.Size(190, 22);
+            this.miFileSaveSelected.Text = "&Selected Exchanges";
+            // 
+            // miFileSaveSelectedSAZ
+            // 
+            this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
+            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(154, 22);
+            this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
             // 
             // importExchangesToolStripMenuItem
             // 
@@ -484,6 +505,7 @@
             this.miEditFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
             this.miEditFind.Size = new System.Drawing.Size(208, 22);
             this.miEditFind.Text = "&Find Exchanges";
+            this.miEditFind.Click += new System.EventHandler(this.miEditFind_Click);
             // 
             // rulesToolStripMenuItem
             // 
@@ -743,6 +765,19 @@
             this.tsToolbar.Size = new System.Drawing.Size(1043, 25);
             this.tsToolbar.TabIndex = 4;
             // 
+            // tsmiNameViewer
+            // 
+            this.tsmiNameViewer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsmiNameViewer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tsmiNameViewer.Image = ((System.Drawing.Image)(resources.GetObject("tsmiNameViewer.Image")));
+            this.tsmiNameViewer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsmiNameViewer.Name = "tsmiNameViewer";
+            this.tsmiNameViewer.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
+            this.tsmiNameViewer.Size = new System.Drawing.Size(74, 22);
+            this.tsmiNameViewer.Text = "Viewer";
+            this.tsmiNameViewer.Visible = false;
+            this.tsmiNameViewer.Click += new System.EventHandler(this.tsmiNameViewer_Click);
+            // 
             // tsbComment
             // 
             this.tsbComment.Image = ((System.Drawing.Image)(resources.GetObject("tsbComment.Image")));
@@ -817,6 +852,62 @@
             this.pnlLeft.Size = new System.Drawing.Size(357, 512);
             this.pnlLeft.TabIndex = 6;
             // 
+            // blvExchanges
+            // 
+            this.blvExchanges.Activation = System.Windows.Forms.ItemActivation.OneClick;
+            this.blvExchanges.AllowColumnReorder = true;
+            this.blvExchanges.AutoArrange = false;
+            this.blvExchanges.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.blvExchanges.CausesValidation = false;
+            this.blvExchanges.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.colID,
+            this.colResult,
+            this.colHost,
+            this.colPath});
+            this.blvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.blvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
+            this.blvExchanges.FullRowSelect = true;
+            this.blvExchanges.HideSelection = false;
+            this.blvExchanges.LabelWrap = false;
+            this.blvExchanges.Location = new System.Drawing.Point(0, 0);
+            this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
+            this.blvExchanges.Name = "blvExchanges";
+            this.blvExchanges.Size = new System.Drawing.Size(357, 485);
+            this.blvExchanges.TabIndex = 4;
+            this.blvExchanges.UseCompatibleStateImageBehavior = false;
+            this.blvExchanges.View = System.Windows.Forms.View.Details;
+            // 
+            // colID
+            // 
+            this.colID.Text = "ID";
+            this.colID.Width = 30;
+            // 
+            // colResult
+            // 
+            this.colResult.Text = "Result";
+            // 
+            // colHost
+            // 
+            this.colHost.Text = "Host";
+            // 
+            // colPath
+            // 
+            this.colPath.Text = "Path";
+            // 
+            // txtQuickExec
+            // 
+            this.txtQuickExec.BackColor = System.Drawing.Color.Black;
+            this.txtQuickExec.CueText = "[Alt+Q] Type a command or HELP";
+            this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
+            this.txtQuickExec.Location = new System.Drawing.Point(0, 485);
+            this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
+            this.txtQuickExec.Name = "txtQuickExec";
+            this.txtQuickExec.Size = new System.Drawing.Size(357, 27);
+            this.txtQuickExec.TabIndex = 3;
+            this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
+            // 
             // pnlMain
             // 
             this.pnlMain.Controls.Add(this.tabsViews);
@@ -844,6 +935,7 @@
             // 
             // pageStatistics
             // 
+            this.pageStatistics.Controls.Add(this.rtbStatistics);
             this.pageStatistics.Location = new System.Drawing.Point(4, 25);
             this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
             this.pageStatistics.Name = "pageStatistics";
@@ -902,6 +994,7 @@
             this.rtbLog.Location = new System.Drawing.Point(0, 0);
             this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
             this.rtbLog.Name = "rtbLog";
+            this.rtbLog.ReadOnly = true;
             this.rtbLog.Size = new System.Drawing.Size(678, 483);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
@@ -916,93 +1009,17 @@
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             // 
-            // tsmiNameViewer
+            // rtbStatistics
             // 
-            this.tsmiNameViewer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsmiNameViewer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tsmiNameViewer.Image = ((System.Drawing.Image)(resources.GetObject("tsmiNameViewer.Image")));
-            this.tsmiNameViewer.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsmiNameViewer.Name = "tsmiNameViewer";
-            this.tsmiNameViewer.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
-            this.tsmiNameViewer.Size = new System.Drawing.Size(74, 22);
-            this.tsmiNameViewer.Text = "Viewer";
-            this.tsmiNameViewer.Visible = false;
-            this.tsmiNameViewer.Click += new System.EventHandler(this.tsmiNameViewer_Click);
-            // 
-            // tsmiFileSaveSplitter1
-            // 
-            tsmiFileSaveSplitter1.Name = "tsmiFileSaveSplitter1";
-            tsmiFileSaveSplitter1.Size = new System.Drawing.Size(187, 6);
-            // 
-            // miFileSaveSelected
-            // 
-            this.miFileSaveSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miFileSaveSelectedSAZ});
-            this.miFileSaveSelected.Name = "miFileSaveSelected";
-            this.miFileSaveSelected.Size = new System.Drawing.Size(190, 22);
-            this.miFileSaveSelected.Text = "&Selected Exchanges";
-            // 
-            // miFileSaveSelectedSAZ
-            // 
-            this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
-            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(154, 22);
-            this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
-            // 
-            // blvExchanges
-            // 
-            this.blvExchanges.Activation = System.Windows.Forms.ItemActivation.OneClick;
-            this.blvExchanges.AllowColumnReorder = true;
-            this.blvExchanges.AutoArrange = false;
-            this.blvExchanges.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.blvExchanges.CausesValidation = false;
-            this.blvExchanges.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colID,
-            this.colResult,
-            this.colHost,
-            this.colPath});
-            this.blvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.blvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
-            this.blvExchanges.FullRowSelect = true;
-            this.blvExchanges.HideSelection = false;
-            this.blvExchanges.LabelWrap = false;
-            this.blvExchanges.Location = new System.Drawing.Point(0, 0);
-            this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
-            this.blvExchanges.Name = "blvExchanges";
-            this.blvExchanges.Size = new System.Drawing.Size(357, 485);
-            this.blvExchanges.TabIndex = 4;
-            this.blvExchanges.UseCompatibleStateImageBehavior = false;
-            this.blvExchanges.View = System.Windows.Forms.View.Details;
-            // 
-            // colID
-            // 
-            this.colID.Text = "ID";
-            this.colID.Width = 30;
-            // 
-            // colResult
-            // 
-            this.colResult.Text = "Result";
-            // 
-            // colHost
-            // 
-            this.colHost.Text = "Host";
-            // 
-            // colPath
-            // 
-            this.colPath.Text = "Path";
-            // 
-            // txtQuickExec
-            // 
-            this.txtQuickExec.BackColor = System.Drawing.Color.Black;
-            this.txtQuickExec.CueText = "[Alt+Q] Type a command or HELP";
-            this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
-            this.txtQuickExec.Location = new System.Drawing.Point(0, 485);
-            this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
-            this.txtQuickExec.Name = "txtQuickExec";
-            this.txtQuickExec.Size = new System.Drawing.Size(357, 27);
-            this.txtQuickExec.TabIndex = 3;
-            this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
+            this.rtbStatistics.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbStatistics.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbStatistics.Location = new System.Drawing.Point(4, 4);
+            this.rtbStatistics.Margin = new System.Windows.Forms.Padding(4);
+            this.rtbStatistics.Name = "rtbStatistics";
+            this.rtbStatistics.ReadOnly = true;
+            this.rtbStatistics.Size = new System.Drawing.Size(670, 475);
+            this.rtbStatistics.TabIndex = 2;
+            this.rtbStatistics.Text = "";
             // 
             // frmViewer
             // 
@@ -1037,6 +1054,7 @@
             this.pnlLeft.PerformLayout();
             this.pnlMain.ResumeLayout(false);
             this.tabsViews.ResumeLayout(false);
+            this.pageStatistics.ResumeLayout(false);
             this.pageLog.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1135,6 +1153,7 @@
         private System.Windows.Forms.ToolStripButton tsmiNameViewer;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelected;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelectedSAZ;
+        private System.Windows.Forms.RichTextBox rtbStatistics;
     }
 }
 
