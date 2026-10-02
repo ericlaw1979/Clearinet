@@ -43,7 +43,7 @@ namespace ImportNetlog
             {
                 try
                 {
-                    List<Exchange> listSessions = new List<Exchange>();
+                    List<Exchange> listExchanges = new List<Exchange>();
                     StreamReader oSR;
 
                     if (null != strmContent)
@@ -92,9 +92,9 @@ namespace ImportNetlog
 
                     using (oSR)
                     {
-                        new NetlogImporter(oSR, listSessions, evtProgressNotifications);
+                        new NetlogImporter(oSR, listExchanges, evtProgressNotifications);
                     }
-                    return listSessions.ToArray();
+                    return listExchanges.ToArray();
                 }
                 catch (Exception eX)
                 {

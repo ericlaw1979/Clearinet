@@ -274,6 +274,7 @@ namespace Clearinet
 
             if (CApp.Prefs.GetBoolPref("app.ui.darkmode", false)) ThemeManager.ApplyDarkMode(this);
 
+            rtbStatistics.BackColor = rtbLog.BackColor = CONFIG.colorDisabledEdit;
             CApp.ProxyAttach += HandleProxyAttached;
             CApp.ProxyDetach += HandleProxyDetached;
 
@@ -283,26 +284,44 @@ namespace Clearinet
             if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true)
                 && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
 
-
             this.blvExchanges.DragDrop += BlvExchanges_DragDrop;
             this.blvExchanges.DragEnter += BlvExchanges_DragEnter;
             this.blvExchanges.AllowDrop = true;
 
-            // TODO: Rename and change hotkey to "O" and set a reasonable default load folder.
-            this.loadArchiveToolStripMenuItem.Click += (s, ea) => actLoadSessionArchive(Utilities.ObtainOpenFilename("Open SAZ", "SAZ Files (*.saz)|*.saz"));
-            this.miFileSaveSelectedSAZ.Click += MiFileSaveSelectedSAZ_Click;
+            Win32UI.SetCueText(tstxtSearch.Control, "Search MDN...");
             ImportAnyStartupArchives();
         }
 
-        private void MiFileSaveSelectedSAZ_Click(object sender, EventArgs e)
+        private void miFileLoadSAZ_Click(object sender, EventArgs e)
+        {
+            actLoadSessionArchive(Utilities.ObtainOpenFilename("Open SAZ", "SAZ Files (*.saz)|*.saz"));
+        }
+
+        private void miFileImport_Click(object sender, EventArgs e)
         {
             try
             {
-                string sFilename = Utilities.ObtainSaveFilename("Save All Sessions...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                string sFilename = Utilities.ObtainOpenFilename("Import Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
                 if (!sFilename.HasText()) return;
                 CApp.alert("nyi");
             }
             catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
+        }
+
+        private void miFileSaveSAZ_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string sFilename = Utilities.ObtainSaveFilename("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                if (!sFilename.HasText()) return;
+                CApp.alert("nyi");
+            }
+            catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
+        }
+
+        private void MiFileSaveSelectedSAZ_Click(object sender, EventArgs e)
+        {
+            //nyi
         }
 
         private void BlvExchanges_DragEnter(object sender, DragEventArgs e)
@@ -472,6 +491,49 @@ namespace Clearinet
         {
             miFileAttach.Checked = !miFileAttach.Checked;
             if (miFileAttach.Checked) { CApp.actAttachProxy(); } else { CApp.actDetachProxy(); }
+        }
+
+        private void miEditFind_Click(object sender, EventArgs e)
+        {
+            frmFind.BeginFinding();
+        }
+
+        private void tstxtSearch_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                Utilities.LaunchHyperlink(CApp.Prefs.GetStringPref("app.ui.toolbar.searchurl",
+                   "https://developer.mozilla.org/en-US/search?q=$W$").Replace("$W$", tstxtSearch.Text.Trim()));
+                tstxtSearch.Clear();
+            }
+        }
+
+        private void tstxtSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Prevent the beep.
+            if (e.KeyCode == Keys.Enter) { e.Handled = e.SuppressKeyPress = true; }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // This ridiculousness is needed because otherwise the toolstrip control
+            // uses ESC to mean "unfocus this text box"
+            if (keyData == Keys.Escape && tstxtSearch.Focused)
+            {
+                tstxtSearch.Clear();
+                return true; // indicate key was handled.
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void miEdit_DropDownOpening(object sender, EventArgs e)
+        {
+            // Disable controls if inapplicable
+        }
+
+        private void miFile_DropDownOpening(object sender, EventArgs e)
+        {
+            // Disable controls if inapplicable
         }
     }
 }

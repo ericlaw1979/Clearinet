@@ -15,6 +15,7 @@ namespace Clearinet
         public frmOptions()
         {
             InitializeComponent();
+            cbAttachOnStartup.Checked = CApp.Prefs.GetBoolPref("app.attach_on_startup", true);
         }
 
         private void lnkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -22,12 +23,26 @@ namespace Clearinet
             Utilities.LaunchHyperlink("https://clearinet.app/r/?ClearinetHelpOptions");
         }
 
+        private void btnOk_Click(object sender, EventArgs e)
+        {
+            // Don't clutter the prefs with default values.
+            if (!cbAttachOnStartup.Checked) 
+                CApp.Prefs.SetBoolPref("app.attach_on_startup", false);
+            else
+                CApp.Prefs.RemovePref("app.attach_on_startup");
+        }
+
         private void tcOptions_Selecting(object sender, TabControlCancelEventArgs e)
         {
-            if (e.TabPage == pageExtensions) 
+            if (e.TabPage == pageExtensions)
             {
-                // TODO: Hook this up txtExtensionList.Text = CApp.oExtensions.ToString(true);
+                txtExtensionsList.Text = CApp.oExtensions.ToString(true);
             }
+        }
+
+        private void frmOptions_Load(object sender, EventArgs e)
+        {
+            txtExtensionsList.BackColor = CONFIG.colorDisabledEdit;
         }
     }
 }

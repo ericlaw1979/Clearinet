@@ -39,17 +39,19 @@
             System.Windows.Forms.ToolStripSeparator miToolsSplitter1;
             System.Windows.Forms.ToolStripSeparator miViewSplitter1;
             System.Windows.Forms.ToolStripSeparator miHelpSplitter1;
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
             System.Windows.Forms.ToolStripSeparator tsmiFileSaveSplitter1;
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
             this.mnuMain = new System.Windows.Forms.MenuStrip();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFile = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileAttach = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileNewViewer = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadArchiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileLoadSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.recentArchivesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSAZ = new System.Windows.Forms.ToolStripMenuItem();
-            this.importExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileImport = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileExport = new System.Windows.Forms.ToolStripMenuItem();
             this.allExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectedExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -65,7 +67,7 @@
             this.miEditRemoveSelected = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveUnselected = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveAll = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditPasteAsExchanges = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditUndelete = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditUnlock = new System.Windows.Forms.ToolStripMenuItem();
@@ -76,8 +78,8 @@
             this.miEditMarkGold = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditMarkUnmark = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditFind = new System.Windows.Forms.ToolStripMenuItem();
-            this.rulesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRules = new System.Windows.Forms.ToolStripMenuItem();
+            this.miTools = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsOptions = new System.Windows.Forms.ToolStripMenuItem();
             this.miTextWizard = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsMezer = new System.Windows.Forms.ToolStripMenuItem();
@@ -91,7 +93,7 @@
             this.miViewAutoScroll = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewSquish = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewRefresh = new System.Windows.Forms.ToolStripMenuItem();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpDiscuss = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpBug = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
@@ -105,26 +107,26 @@
             this.tslMemory = new System.Windows.Forms.ToolStripStatusLabel();
             this.tslInfo = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsToolbar = new System.Windows.Forms.ToolStrip();
+            this.tsmiNameViewer = new System.Windows.Forms.ToolStripButton();
             this.tsbComment = new System.Windows.Forms.ToolStripButton();
             this.tsddbRemove = new System.Windows.Forms.ToolStripDropDownButton();
             this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.duplicateResponseBodiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tsbTearoff = new System.Windows.Forms.ToolStripButton();
+            this.tstxtSearch = new System.Windows.Forms.ToolStripTextBox();
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
+            this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.pageInspectors = new System.Windows.Forms.TabPage();
             this.pageAutoResponder = new System.Windows.Forms.TabPage();
             this.pageComposer = new System.Windows.Forms.TabPage();
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.tsmiNameViewer = new System.Windows.Forms.ToolStripButton();
-            this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
-            this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.blvExchanges = new Clearinet.BetterListView();
             this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -150,6 +152,7 @@
             this.pnlLeft.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.tabsViews.SuspendLayout();
+            this.pageStatistics.SuspendLayout();
             this.pageLog.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -206,18 +209,23 @@
             // miHelpSplitter1
             // 
             miHelpSplitter1.Name = "miHelpSplitter1";
-            miHelpSplitter1.Size = new System.Drawing.Size(140, 6);
+            miHelpSplitter1.Size = new System.Drawing.Size(177, 6);
+            // 
+            // tsmiFileSaveSplitter1
+            // 
+            tsmiFileSaveSplitter1.Name = "tsmiFileSaveSplitter1";
+            tsmiFileSaveSplitter1.Size = new System.Drawing.Size(187, 6);
             // 
             // mnuMain
             // 
             this.mnuMain.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.mnuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
+            this.miFile,
             this.miEdit,
-            this.rulesToolStripMenuItem,
-            this.toolsToolStripMenuItem,
+            this.miRules,
+            this.miTools,
             this.miView,
-            this.helpToolStripMenuItem});
+            this.miHelp});
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
             this.mnuMain.Padding = new System.Windows.Forms.Padding(8, 3, 0, 3);
@@ -225,23 +233,24 @@
             this.mnuMain.TabIndex = 0;
             this.mnuMain.Text = "mnuMain";
             // 
-            // fileToolStripMenuItem
+            // miFile
             // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miFileAttach,
             miFileSplit1,
             this.miFileNewViewer,
-            this.loadArchiveToolStripMenuItem,
+            this.miFileLoadSAZ,
             this.recentArchivesToolStripMenuItem,
             this.saveToolStripMenuItem,
             miFileSplit2,
-            this.importExchangesToolStripMenuItem,
+            this.miFileImport,
             this.miFileExport,
             miFileSplit3,
             this.miFileExit});
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 21);
-            this.fileToolStripMenuItem.Text = "&File";
+            this.miFile.Name = "miFile";
+            this.miFile.Size = new System.Drawing.Size(39, 21);
+            this.miFile.Text = "&File";
+            this.miFile.DropDownOpening += new System.EventHandler(this.miFile_DropDownOpening);
             // 
             // miFileAttach
             // 
@@ -259,11 +268,12 @@
             this.miFileNewViewer.ToolTipText = "Spawn a new Viewer-mode instance";
             this.miFileNewViewer.Click += new System.EventHandler(this.miFileNewViewer_Click);
             // 
-            // loadArchiveToolStripMenuItem
+            // miFileLoadSAZ
             // 
-            this.loadArchiveToolStripMenuItem.Name = "loadArchiveToolStripMenuItem";
-            this.loadArchiveToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
-            this.loadArchiveToolStripMenuItem.Text = "&Load Archive...";
+            this.miFileLoadSAZ.Name = "miFileLoadSAZ";
+            this.miFileLoadSAZ.Size = new System.Drawing.Size(189, 22);
+            this.miFileLoadSAZ.Text = "L&oad Archive...";
+            this.miFileLoadSAZ.Click += new System.EventHandler(this.miFileLoadSAZ_Click);
             // 
             // recentArchivesToolStripMenuItem
             // 
@@ -287,12 +297,28 @@
             this.miFileSaveSAZ.Name = "miFileSaveSAZ";
             this.miFileSaveSAZ.Size = new System.Drawing.Size(190, 22);
             this.miFileSaveSAZ.Text = "&All Exchanges...";
+            this.miFileSaveSAZ.Click += new System.EventHandler(this.miFileSaveSAZ_Click);
             // 
-            // importExchangesToolStripMenuItem
+            // miFileSaveSelected
             // 
-            this.importExchangesToolStripMenuItem.Name = "importExchangesToolStripMenuItem";
-            this.importExchangesToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
-            this.importExchangesToolStripMenuItem.Text = "&Import Exchanges";
+            this.miFileSaveSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFileSaveSelectedSAZ});
+            this.miFileSaveSelected.Name = "miFileSaveSelected";
+            this.miFileSaveSelected.Size = new System.Drawing.Size(190, 22);
+            this.miFileSaveSelected.Text = "&Selected Exchanges";
+            // 
+            // miFileSaveSelectedSAZ
+            // 
+            this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
+            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(154, 22);
+            this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
+            // 
+            // miFileImport
+            // 
+            this.miFileImport.Name = "miFileImport";
+            this.miFileImport.Size = new System.Drawing.Size(189, 22);
+            this.miFileImport.Text = "&Import Exchanges";
+            this.miFileImport.Click += new System.EventHandler(this.miFileImport_Click);
             // 
             // miFileExport
             // 
@@ -326,10 +352,10 @@
             // 
             this.miEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miEditCopy,
-            this.miEditRemove,
-            this.selectAllToolStripMenuItem,
             this.miEditPasteAsExchanges,
+            this.miEditRemove,
             this.miEditUndelete,
+            this.miEditSelectAll,
             miEditSplitter1,
             this.miEditUnlock,
             this.miEditMark,
@@ -338,6 +364,7 @@
             this.miEdit.Name = "miEdit";
             this.miEdit.Size = new System.Drawing.Size(42, 21);
             this.miEdit.Text = "&Edit";
+            this.miEdit.DropDownOpening += new System.EventHandler(this.miEdit_DropDownOpening);
             // 
             // miEditCopy
             // 
@@ -409,11 +436,12 @@
             this.miEditRemoveAll.Size = new System.Drawing.Size(205, 22);
             this.miEditRemoveAll.Text = "&All Exchanges";
             // 
-            // selectAllToolStripMenuItem
+            // miEditSelectAll
             // 
-            this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
-            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
-            this.selectAllToolStripMenuItem.Text = "&Select all...";
+            this.miEditSelectAll.Name = "miEditSelectAll";
+            this.miEditSelectAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
+            this.miEditSelectAll.Size = new System.Drawing.Size(208, 22);
+            this.miEditSelectAll.Text = "Select &all...";
             // 
             // miEditPasteAsExchanges
             // 
@@ -484,23 +512,24 @@
             this.miEditFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
             this.miEditFind.Size = new System.Drawing.Size(208, 22);
             this.miEditFind.Text = "&Find Exchanges";
+            this.miEditFind.Click += new System.EventHandler(this.miEditFind_Click);
             // 
-            // rulesToolStripMenuItem
+            // miRules
             // 
-            this.rulesToolStripMenuItem.Name = "rulesToolStripMenuItem";
-            this.rulesToolStripMenuItem.Size = new System.Drawing.Size(51, 21);
-            this.rulesToolStripMenuItem.Text = "&Rules";
+            this.miRules.Name = "miRules";
+            this.miRules.Size = new System.Drawing.Size(51, 21);
+            this.miRules.Text = "&Rules";
             // 
-            // toolsToolStripMenuItem
+            // miTools
             // 
-            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miToolsOptions,
             miToolsSplitter1,
             this.miTextWizard,
             this.miToolsMezer});
-            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(51, 21);
-            this.toolsToolStripMenuItem.Text = "&Tools";
+            this.miTools.Name = "miTools";
+            this.miTools.Size = new System.Drawing.Size(51, 21);
+            this.miTools.Text = "&Tools";
             // 
             // miToolsOptions
             // 
@@ -515,7 +544,7 @@
             this.miTextWizard.Name = "miTextWizard";
             this.miTextWizard.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
             this.miTextWizard.Size = new System.Drawing.Size(184, 22);
-            this.miTextWizard.Text = "&TextWizard";
+            this.miTextWizard.Text = "T&extWizard";
             this.miTextWizard.ToolTipText = "The TextWizard encodes and decodes text.";
             this.miTextWizard.Click += new System.EventHandler(this.miTextWizard_Click);
             // 
@@ -618,35 +647,35 @@
             this.miViewRefresh.Text = "&Refresh";
             this.miViewRefresh.Click += new System.EventHandler(this.miViewRefresh_Click);
             // 
-            // helpToolStripMenuItem
+            // miHelp
             // 
-            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miHelpDiscuss,
             this.miHelpBug,
             miHelpSplitter1,
             this.miHelpAbout});
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(47, 21);
-            this.helpToolStripMenuItem.Text = "&Help";
+            this.miHelp.Name = "miHelp";
+            this.miHelp.Size = new System.Drawing.Size(47, 21);
+            this.miHelp.Text = "&Help";
             // 
             // miHelpDiscuss
             // 
             this.miHelpDiscuss.Name = "miHelpDiscuss";
-            this.miHelpDiscuss.Size = new System.Drawing.Size(143, 22);
-            this.miHelpDiscuss.Text = "&Discussions";
+            this.miHelpDiscuss.Size = new System.Drawing.Size(180, 22);
+            this.miHelpDiscuss.Text = "Dis&cuss";
             this.miHelpDiscuss.Click += new System.EventHandler(this.miHelpDiscuss_Click);
             // 
             // miHelpBug
             // 
             this.miHelpBug.Name = "miHelpBug";
-            this.miHelpBug.Size = new System.Drawing.Size(143, 22);
+            this.miHelpBug.Size = new System.Drawing.Size(180, 22);
             this.miHelpBug.Text = "File a &bug";
             this.miHelpBug.Click += new System.EventHandler(this.miHelpBug_Click);
             // 
             // miHelpAbout
             // 
             this.miHelpAbout.Name = "miHelpAbout";
-            this.miHelpAbout.Size = new System.Drawing.Size(143, 22);
+            this.miHelpAbout.Size = new System.Drawing.Size(180, 22);
             this.miHelpAbout.Text = "&About";
             this.miHelpAbout.Click += new System.EventHandler(this.miHelpAbout_Click);
             // 
@@ -737,11 +766,25 @@
             this.tsmiNameViewer,
             this.tsbComment,
             this.tsddbRemove,
-            this.tsbTearoff});
+            this.tsbTearoff,
+            this.tstxtSearch});
             this.tsToolbar.Location = new System.Drawing.Point(0, 27);
             this.tsToolbar.Name = "tsToolbar";
             this.tsToolbar.Size = new System.Drawing.Size(1043, 25);
             this.tsToolbar.TabIndex = 4;
+            // 
+            // tsmiNameViewer
+            // 
+            this.tsmiNameViewer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsmiNameViewer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tsmiNameViewer.Image = ((System.Drawing.Image)(resources.GetObject("tsmiNameViewer.Image")));
+            this.tsmiNameViewer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsmiNameViewer.Name = "tsmiNameViewer";
+            this.tsmiNameViewer.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
+            this.tsmiNameViewer.Size = new System.Drawing.Size(74, 22);
+            this.tsmiNameViewer.Text = "Viewer";
+            this.tsmiNameViewer.Visible = false;
+            this.tsmiNameViewer.Click += new System.EventHandler(this.tsmiNameViewer_Click);
             // 
             // tsbComment
             // 
@@ -782,6 +825,15 @@
             this.tsbTearoff.Name = "tsbTearoff";
             this.tsbTearoff.Size = new System.Drawing.Size(69, 22);
             this.tsbTearoff.Text = "Tearoff";
+            // 
+            // tstxtSearch
+            // 
+            this.tstxtSearch.Font = new System.Drawing.Font("Segoe UI", 9.75F);
+            this.tstxtSearch.Name = "tstxtSearch";
+            this.tstxtSearch.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
+            this.tstxtSearch.Size = new System.Drawing.Size(100, 25);
+            this.tstxtSearch.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyDown);
+            this.tstxtSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyUp);
             // 
             // pnlTopGoldbar
             // 
@@ -844,6 +896,7 @@
             // 
             // pageStatistics
             // 
+            this.pageStatistics.Controls.Add(this.rtbStatistics);
             this.pageStatistics.Location = new System.Drawing.Point(4, 25);
             this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
             this.pageStatistics.Name = "pageStatistics";
@@ -852,6 +905,18 @@
             this.pageStatistics.TabIndex = 0;
             this.pageStatistics.Text = "Statistics";
             this.pageStatistics.UseVisualStyleBackColor = true;
+            // 
+            // rtbStatistics
+            // 
+            this.rtbStatistics.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbStatistics.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbStatistics.Location = new System.Drawing.Point(4, 4);
+            this.rtbStatistics.Margin = new System.Windows.Forms.Padding(4);
+            this.rtbStatistics.Name = "rtbStatistics";
+            this.rtbStatistics.ReadOnly = true;
+            this.rtbStatistics.Size = new System.Drawing.Size(670, 475);
+            this.rtbStatistics.TabIndex = 2;
+            this.rtbStatistics.Text = "";
             // 
             // pageInspectors
             // 
@@ -902,7 +967,8 @@
             this.rtbLog.Location = new System.Drawing.Point(0, 0);
             this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
             this.rtbLog.Name = "rtbLog";
-            this.rtbLog.Size = new System.Drawing.Size(678, 483);
+            this.rtbLog.ReadOnly = true;
+            this.rtbLog.Size = new System.Drawing.Size(678, 486);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
             // 
@@ -915,38 +981,6 @@
             this.splitterMain.Size = new System.Drawing.Size(4, 512);
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
-            // 
-            // tsmiNameViewer
-            // 
-            this.tsmiNameViewer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsmiNameViewer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tsmiNameViewer.Image = ((System.Drawing.Image)(resources.GetObject("tsmiNameViewer.Image")));
-            this.tsmiNameViewer.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsmiNameViewer.Name = "tsmiNameViewer";
-            this.tsmiNameViewer.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
-            this.tsmiNameViewer.Size = new System.Drawing.Size(74, 22);
-            this.tsmiNameViewer.Text = "Viewer";
-            this.tsmiNameViewer.Visible = false;
-            this.tsmiNameViewer.Click += new System.EventHandler(this.tsmiNameViewer_Click);
-            // 
-            // tsmiFileSaveSplitter1
-            // 
-            tsmiFileSaveSplitter1.Name = "tsmiFileSaveSplitter1";
-            tsmiFileSaveSplitter1.Size = new System.Drawing.Size(187, 6);
-            // 
-            // miFileSaveSelected
-            // 
-            this.miFileSaveSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miFileSaveSelectedSAZ});
-            this.miFileSaveSelected.Name = "miFileSaveSelected";
-            this.miFileSaveSelected.Size = new System.Drawing.Size(190, 22);
-            this.miFileSaveSelected.Text = "&Selected Exchanges";
-            // 
-            // miFileSaveSelectedSAZ
-            // 
-            this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
-            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(154, 22);
-            this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
             // 
             // blvExchanges
             // 
@@ -1037,6 +1071,7 @@
             this.pnlLeft.PerformLayout();
             this.pnlMain.ResumeLayout(false);
             this.tabsViews.ResumeLayout(false);
+            this.pageStatistics.ResumeLayout(false);
             this.pageLog.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1046,27 +1081,27 @@
         #endregion
 
         private System.Windows.Forms.MenuStrip mnuMain;
-        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miFile;
         private System.Windows.Forms.ToolStripMenuItem miEdit;
         private System.Windows.Forms.ToolStripMenuItem miEditCopy;
         private System.Windows.Forms.ToolStripMenuItem miEditRemove;
-        private System.Windows.Forms.ToolStripMenuItem selectAllToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miEditSelectAll;
         private System.Windows.Forms.ToolStripMenuItem miEditPasteAsExchanges;
         private System.Windows.Forms.ToolStripMenuItem miEditUndelete;
         private System.Windows.Forms.ToolStripMenuItem miEditMark;
         private System.Windows.Forms.ToolStripMenuItem miEditFind;
-        private System.Windows.Forms.ToolStripMenuItem rulesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miRules;
+        private System.Windows.Forms.ToolStripMenuItem miTools;
         private System.Windows.Forms.ToolStripMenuItem miToolsOptions;
         private System.Windows.Forms.ToolStripMenuItem miTextWizard;
         private System.Windows.Forms.ToolStripMenuItem miView;
-        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miHelp;
         private System.Windows.Forms.ToolStripMenuItem miHelpDiscuss;
         private System.Windows.Forms.ToolStripMenuItem miHelpBug;
         private System.Windows.Forms.ToolStripMenuItem miHelpAbout;
         private System.Windows.Forms.ToolStripMenuItem miFileAttach;
         private System.Windows.Forms.ToolStripMenuItem miFileNewViewer;
-        private System.Windows.Forms.ToolStripMenuItem loadArchiveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miFileLoadSAZ;
         private System.Windows.Forms.ToolStripMenuItem recentArchivesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSAZ;
@@ -1076,7 +1111,7 @@
         private System.Windows.Forms.ToolStripMenuItem miEditMarkBlue;
         private System.Windows.Forms.ToolStripMenuItem miEditMarkGold;
         private System.Windows.Forms.ToolStripMenuItem miEditMarkUnmark;
-        private System.Windows.Forms.ToolStripMenuItem importExchangesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miFileImport;
         private System.Windows.Forms.ToolStripMenuItem miFileExport;
         private System.Windows.Forms.ToolStripMenuItem allExchangesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectedExchangesToolStripMenuItem;
@@ -1135,6 +1170,8 @@
         private System.Windows.Forms.ToolStripButton tsmiNameViewer;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelected;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelectedSAZ;
+        private System.Windows.Forms.RichTextBox rtbStatistics;
+        private System.Windows.Forms.ToolStripTextBox tstxtSearch;
     }
 }
 
