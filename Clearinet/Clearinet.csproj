@@ -43,6 +43,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ionic.Zip.Reduced, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <HintPath>packages\DotNetZip.Reduced.1.9.1.8\lib\net20\Ionic.Zip.Reduced.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.JScript" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -67,6 +70,7 @@
     <Compile Include="ExchangeTimers.cs" />
     <Compile Include="ExtensionAPI.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="SAZFile.cs" />
     <Compile Include="UI\frmAbout.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -147,6 +151,7 @@
     </Compile>
     <None Include=".editorconfig" />
     <None Include="app.manifest" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

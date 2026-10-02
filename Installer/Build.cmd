@@ -16,7 +16,7 @@
 @echo Build installer
 @if %ERRORLEVEL%==-1 goto singing
 @cd c:\src\cin\installer\
-@c:\src\nsis\MakeNSIS.EXE /DSRCPATH=Release Clearinet.nsi
+@c:\src\nsis\MakeNSIS.EXE Clearinet.nsi
 @if %ERRORLEVEL%==1 goto done
 @:signsetup
 @CHOICE /M "Sign setup.exe?"

@@ -82,6 +82,8 @@ File "..\Docs\Credits.txt"
 ; File "..\Media\SazFile.ico"	; TODO: Create icon
 
 ; Install any 3P dependencies
+File "..\Clearinet\bin\Release\Ionic.Zip.Reduced.dll"
+
 ; Install any default extensions
 ; Install any template scripts/responses/etc
 
@@ -205,6 +207,8 @@ DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet
 
 Delete "$INSTDIR\clearinet.exe"
 Delete "$INSTDIR\clearinet.exe.config"
+Delete "$INSTDIR\Ionic.Zip.Reduced.dll"
+
 Delete "$INSTDIR\Credits.txt"
 
 ; Remove uninstaller

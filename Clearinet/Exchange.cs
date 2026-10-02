@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -8,23 +9,26 @@ namespace Clearinet
     /// <summary>
     /// The Exchange class represents a single HTTP exchange: the request, response, and metadata.
     /// </summary>
+    [DebuggerDisplay("Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]")]
     public class Exchange
     {
         #region 'id' property
         // Monotonically increasing counter. Note that this can be reset e.g. when the user
         // clears the list of exchanges. Fiddler used a 32bit signed integer, so if you want
         // more than 2 billion exchanges, Clearinet wins! ;-)
+        // (It's not a UInt because .NET doesn't have an Interlocked.Increment UInt.)
         private static Int64 __cTotalExchanges;
 
         private ExchangeState _state;
 
-
-        
+        // Having an "ID" is important to the user and simply indicate ordering, but they cause
+        // lots of problems because they are basically unstable-- loading a SAZ file or importing
+        // exchanges from another tool will change the displayed ID.
         private Int64 _id;
         public Int64 id { get => _id; }
-        // TODO: Can we just assign the ID in the constructor? Is there any
-        // circumstance where we don't want to, e.g. if we have temporaries that
-        // are never put into the Web Exchange list?
+        // TODO: Can't we just assign the ID in the constructor? Are there any codepaths
+        // where we don't want to, e.g. if we have temporaries that are never put into
+        // the Web Exchange list?
         internal void EnsureID()
         {
             if (_id == 0) _id = Interlocked.Increment(ref __cTotalExchanges);

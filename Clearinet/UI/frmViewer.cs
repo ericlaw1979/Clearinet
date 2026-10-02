@@ -1,8 +1,11 @@
-﻿using System;
+﻿using Ionic.Zip;
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Forms;
+
 
 namespace Clearinet
 {
@@ -237,7 +240,7 @@ namespace Clearinet
                 case "app.ui.stayontop":
                     CApp.UIInvokeAsync(() => miViewStayOnTop.Checked = TopMost = pceaChange.ValueBool);
                     break;
-                // case "app.ui.exchangelist.autoscroll"
+                    // case "app.ui.exchangelist.autoscroll"
             }
         }
 
@@ -273,8 +276,81 @@ namespace Clearinet
             frmSplashScreen.CloseSplashScreen();
             CApp.OnAppBoot();
 
-            if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true) 
+            if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true)
                 && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
+
+
+            this.blvExchanges.DragDrop += BlvExchanges_DragDrop;
+            this.blvExchanges.DragEnter += BlvExchanges_DragEnter;
+            this.blvExchanges.AllowDrop = true;
+
+            // TODO: Rename and change hotkey to "O" and set a reasonable default load folder.
+            this.loadArchiveToolStripMenuItem.Click += (s, ea) => actLoadSessionArchive(Utilities.ObtainOpenFilename("Open SAZ", "SAZ Files (*.saz)|*.saz"));
+
+            ImportAnyStartupArchives();
+        }
+
+        private void BlvExchanges_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Link | DragDropEffects.Copy; return;
+            }
+            // TODO: support dropping text, other files, Exchanges, etc.
+            e.Effect = DragDropEffects.None;
+        }
+
+        private void BlvExchanges_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] arrFiles = (string[])e.Data.GetData("FileDrop", false);
+                if (null == arrFiles) return;
+                foreach (string sPath in arrFiles)
+                {
+                    if (sPath.OICEndsWith(".saz"))
+                        actLoadSessionArchive(sPath);
+                    else
+                        actImportFile(sPath);
+                    e.Effect = DragDropEffects.Copy;
+                    return;
+                }
+            }
+        }
+
+        private void ImportAnyStartupArchives()
+        {
+            string[] arrTokens = Environment.GetCommandLineArgs();
+            for (int i = 1; i < arrTokens.Length; ++i)
+            {
+                // Filenames have a dot.
+                if (!arrTokens[i].Contains(".")) continue;
+                if (arrTokens[i].OICEndsWith(".saz"))
+                {
+                    actLoadSessionArchive(arrTokens[i]);
+                    break;
+                }
+                else
+                {
+                    actImportFile(arrTokens[i]);
+                }
+            }
+        }
+        private void actImportFile(string sPath)
+        {
+            CApp.DoNotifyUser("Asked to load file: " + sPath, "NYI");
+        }
+
+        /// <summary>
+        /// LEGACY API. Do not rename. Load a .SAZ file.
+        /// </summary>
+        /// <param name="sPath"></param>
+        public void actLoadSessionArchive(string sPath)
+        {
+            CApp.DoNotifyUser("Asked to import file: " + sPath, "NYI");
+            using (SAZFile sazFile = new SAZFile(sPath)){
+                CApp.DoNotifyUser($"SAZ file: {sPath} contained {sazFile.Exchanges.Count} exchanges", "NYI");
+            }
         }
 
         private void HandleProxyAttached()
@@ -297,7 +373,7 @@ namespace Clearinet
         internal void UpdateLog(string sLog)
         {
             Debug.Assert(!this.InvokeRequired);
-            rtbLog.AppendText(sLog+"\r\n");
+            rtbLog.AppendText(sLog + "\r\n");
 
             // TODO: Support formatting commands for bold, italics, and underline:  !, /, _
             // TODO: Scroll view to bottom on message add if LOG tab is foremost
