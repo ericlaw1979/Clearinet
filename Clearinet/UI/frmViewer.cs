@@ -301,9 +301,10 @@ namespace Clearinet
         {
             try
             {
-                string sFilename = Utilities.ObtainOpenFilename("Import Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                // TODO
+                string sFilename = Utilities.ObtainOpenFilename("Import Exchanges...", "Any file|*.*|Password Protected SAZ|*.saz");
                 if (!sFilename.HasText()) return;
-                CApp.alert("nyi");
+                actImportFile(sFilename);
             }
             catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
         }
@@ -373,6 +374,10 @@ namespace Clearinet
         private void actImportFile(string sPath)
         {
             CApp.DoNotifyUser("Asked to load file: " + sPath, "NYI");
+            if (sPath.OICEndsWith(".json"))
+            {
+                
+            }
         }
 
         /// <summary>

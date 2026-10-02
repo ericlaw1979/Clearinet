@@ -20,6 +20,7 @@
 - Replace `Fiddler.exe` with `Clearinet.exe`.
 - Extensions are loaded from the \Extensions\ subfolders of the app's folder and the user's Documents\Clearinet folder (Fiddler used a `Scripts` subfolder)
 - Extension DLLs filenames must start with "CAE-" (ClearinetAppExtension) to load.
+- Transcoder DLLs filenames must start with "CAT-" (ClearinetAppTranscoder) to load.
 
 ### Namespace Mappings
 - Replace `using Fiddler;` with `using Clearinet`
