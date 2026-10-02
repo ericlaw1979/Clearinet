@@ -79,7 +79,7 @@ SetOverwrite on
 File "..\Clearinet\bin\Release\Clearinet.exe"
 File "..\Clearinet\bin\Release\Clearinet.exe.config"
 File "..\Docs\Credits.txt"
-; File "..\Media\SazFile.ico"	; TODO: Create icon
+File "..\Content\SAZFile.ico"
 
 ; Install any 3P dependencies
 File "..\Clearinet\bin\Release\Ionic.Zip.Reduced.dll"
@@ -107,7 +107,7 @@ WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.
 
 ; take SAZ File Association
 WriteRegStr HKCR ".saz" "" "Clearinet.ArchiveZip"
-WriteRegStr HKCR "Clearinet.ArchiveZip\DefaultIcon" "" "$INSTDIR\SazFile.ico"
+WriteRegStr HKCR "Clearinet.ArchiveZip\DefaultIcon" "" "$INSTDIR\SAZFile.ico"
 WriteRegStr HKCR "Clearinet.ArchiveZip" "" "Clearinet Session Archive"
 WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open\command" "" '"$INSTDIR\clearinet.exe" -noattach "%1"'
 WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open V&iewer Mode\command" "" '"$INSTDIR\clearinet.exe" -viewer "%1"'
@@ -207,6 +207,7 @@ DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet
 
 Delete "$INSTDIR\clearinet.exe"
 Delete "$INSTDIR\clearinet.exe.config"
+Delete "$INSTDIR\SAZFile.ico"
 Delete "$INSTDIR\Ionic.Zip.Reduced.dll"
 
 Delete "$INSTDIR\Credits.txt"
