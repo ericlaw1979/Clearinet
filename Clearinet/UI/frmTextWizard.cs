@@ -319,7 +319,7 @@ namespace Clearinet
                     arrLatestOutput = encodingOutput.GetBytes(txtOutput.Text);
                 }
                 string sFilename = Utilities.ObtainSaveFilename("Save output...", "All files|*.*");
-                if (String.IsNullOrEmpty(sFilename)) return;
+                if (!sFilename.HasText()) return;
                 File.WriteAllBytes(sFilename, arrLatestOutput);
             }
             catch (Exception eX) { CApp.ReportException(eX, "Export failed"); }

@@ -290,8 +290,19 @@ namespace Clearinet
 
             // TODO: Rename and change hotkey to "O" and set a reasonable default load folder.
             this.loadArchiveToolStripMenuItem.Click += (s, ea) => actLoadSessionArchive(Utilities.ObtainOpenFilename("Open SAZ", "SAZ Files (*.saz)|*.saz"));
-
+            this.miFileSaveSelectedSAZ.Click += MiFileSaveSelectedSAZ_Click;
             ImportAnyStartupArchives();
+        }
+
+        private void MiFileSaveSelectedSAZ_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string sFilename = Utilities.ObtainSaveFilename("Save All Sessions...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                if (!sFilename.HasText()) return;
+                CApp.alert("nyi");
+            }
+            catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
         }
 
         private void BlvExchanges_DragEnter(object sender, DragEventArgs e)
