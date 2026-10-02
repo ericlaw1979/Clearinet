@@ -18,6 +18,10 @@ namespace Clearinet
             {
                 this.Text = $"Clearinet Viewer";
                 tsmiNameViewer.Visible = true;
+                this.blvExchanges.EmptyText = "No Exchanges are loaded";
+                // TODO: Automatically name this viewer if another is already running.
+                tssbCapture.Enabled = false;
+                miFileAttach.Enabled = false;
             }
         }
 
@@ -348,8 +352,9 @@ namespace Clearinet
         public void actLoadSessionArchive(string sPath)
         {
             CApp.DoNotifyUser("Asked to import file: " + sPath, "NYI");
-            using (SAZFile sazFile = new SAZFile(sPath)){
+            using (SAZFile sazFile = SAZFile.LoadFrom(sPath)) {
                 CApp.DoNotifyUser($"SAZ file: {sPath} contained {sazFile.Exchanges.Count} exchanges", "NYI");
+                if (sazFile.sComment.HasText()) CApp.DoNotifyUser($"Comment: {sazFile.sComment}", "File Comment");
             }
         }
 
@@ -434,7 +439,8 @@ namespace Clearinet
 
         private void tsmiNameViewer_Click(object sender, EventArgs e)
         {
-            // TODO: Name the viewer.
+            string sNewName = frmPrompt.GetUserString("Name this Viewer", "Enter a name for this viewer:", string.Empty);
+            if (sNewName.HasText()) tsmiNameViewer.Text = sNewName;
         }
 
         private void tssbCapture_ButtonClick(object sender, EventArgs e)

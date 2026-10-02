@@ -302,9 +302,13 @@ namespace Clearinet
 
         internal static void OnAppBoot()
         {
-            // Currently, Clearinet does not make good use of async IO, so we need to boost the thread pool sizes.
-            int cProcessors = Environment.ProcessorCount;
-            ThreadPool.SetMinThreads(Math.Max(16, 5 * cProcessors), cProcessors);
+            if (!CONFIG.isViewerMode)
+            {
+                // Currently, Clearinet does not make proper use of async IO, so we
+                // need to boost the thread pool sizes to avoid contention.
+                int cProcessors = Environment.ProcessorCount;
+                ThreadPool.SetMinThreads(Math.Max(16, 5 * cProcessors), cProcessors);
+            }
 
             scriptRules?.DoOnBoot();
             if (null != AppBoot)

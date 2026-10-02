@@ -89,6 +89,12 @@
     <Compile Include="UI\frmFind.Designer.cs">
       <DependentUpon>frmFind.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\frmPrompt.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmPrompt.Designer.cs">
+      <DependentUpon>frmPrompt.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\frmSplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -130,6 +136,9 @@
     <EmbeddedResource Include="UI\frmFind.resx">
       <DependentUpon>frmFind.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\frmPrompt.resx">
+      <DependentUpon>frmPrompt.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\frmSplashScreen.resx">
       <DependentUpon>frmSplashScreen.cs</DependentUpon>
     </EmbeddedResource>
@@ -170,6 +179,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.ico" />
+    <None Include="Resources\PromptQuery.png" />
   </ItemGroup>
   <!-- Auto-generate build date attribute before compilation -->
   <Target Name="GenerateAssemblyBuiltDate" BeforeTargets="CoreCompile">
