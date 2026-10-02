@@ -114,6 +114,10 @@ WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open V&iewer Mode\command" "" '"$IN
 ; TODO: Do we want to use the legacy MIME here?
 WriteRegStr HKCR "Clearinet.ArchiveZip" "Content Type" "application/x-zip-compressed+SessionArchive"
 
+
+# Tell Windows Explorer to refresh associated file icons
+System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
+
 DetailPrint "Writing Win64 Registry"
 SetRegView 64 
 WriteRegStr HKLM "SOFTWARE\Clearinet" "InstallPath" "$INSTDIR\"
