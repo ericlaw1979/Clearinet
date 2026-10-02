@@ -439,7 +439,14 @@ namespace Clearinet
 
         private void tsmiNameViewer_Click(object sender, EventArgs e)
         {
-            string sNewName = frmPrompt.GetUserString("Name this Viewer", "Enter a name for this viewer:", string.Empty);
+            string sNewName = frmPrompt.GetUserString(new frmPrompt.PromptOptions
+            {
+                Title = "Name this Viewer",
+                PromptText = "Enter a name for this viewer:",
+                DefaultValue = tsmiNameViewer.Text,
+                ReturnNullOnCancel = true,
+                Kind = frmPrompt.PromptKind.Password
+            });
             if (sNewName.HasText()) tsmiNameViewer.Text = sNewName;
         }
 

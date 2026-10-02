@@ -172,7 +172,7 @@ namespace Clearinet
                     //RulesCompileFailed?.Invoke(ex.Message, error.Line, error.Column, error.Column + 1); // TODO: Determine end column if possible
                 }
 
-                throw new InvalidOperationException(errorMsg);
+                throw new InvalidOperationException(errorMsg); // TODO: Somebody needs to catch this!
             }
 
             _compiledAssembly = results.CompiledAssembly;

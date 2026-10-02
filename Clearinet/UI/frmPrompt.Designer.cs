@@ -109,8 +109,10 @@
             this.Controls.Add(this.txtResponse);
             this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "frmPrompt";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Clearinet has a question";
             ((System.ComponentModel.ISupportInitialize)(this.pbPromptIcon)).EndInit();
             this.ResumeLayout(false);

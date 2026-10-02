@@ -10,8 +10,8 @@ class Handlers {
     static function Main() {
         var today: Date = new Date();
         sMyInfo = today.toString();
-        CApp.PlaySound("C:\\Windows\\Media\\notify.wav");
-        CApp.alert(sMyInfo+"\n"+CApp.VersionString);
+      if (!CONFIG.isViewerMode) CApp.PlaySound("C:\\Windows\\Media\\notify.wav");
+        if (!CONFIG.isViewerMode) CApp.alert(sMyInfo+"\n"+CApp.VersionString);
         CApp.UI.SetStatusText("Your script has compiled and loaded!");
     }
 
@@ -29,7 +29,7 @@ class Handlers {
     
     static function OnShutdown() {
       CApp.Log.Log("[Script] OnShutdown");
-      CApp.alert("Bye! Thanks for playing\n" + sMyInfo);
+      if (!CONFIG.isViewerMode) CApp.alert("Bye! Thanks for playing\n" + sMyInfo);
     }
     
     static function OnBeforeShutdown(): boolean {
