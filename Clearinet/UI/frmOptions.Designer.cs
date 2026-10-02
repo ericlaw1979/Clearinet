@@ -30,8 +30,18 @@
         {
             this.tcOptions = new System.Windows.Forms.TabControl();
             this.pageGeneral = new System.Windows.Forms.TabPage();
+            this.gbWebServices = new System.Windows.Forms.GroupBox();
+            this.cbxBigSwitch = new System.Windows.Forms.ComboBox();
+            this.cbCheckForUpdates = new System.Windows.Forms.CheckBox();
+            this.cbAutoStream = new System.Windows.Forms.CheckBox();
+            this.cbEnableIPv6 = new System.Windows.Forms.CheckBox();
             this.cbAttachOnStartup = new System.Windows.Forms.CheckBox();
             this.pageHTTPS = new System.Windows.Forms.TabPage();
+            this.txtDecryptHosts = new System.Windows.Forms.TextBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.cbxDecryptFor = new System.Windows.Forms.ComboBox();
+            this.cbCaptureCONNECT = new System.Windows.Forms.CheckBox();
+            this.cbDecryptHTTPS = new System.Windows.Forms.CheckBox();
             this.pageConnections = new System.Windows.Forms.TabPage();
             this.pageGateway = new System.Windows.Forms.TabPage();
             this.pageAppearance = new System.Windows.Forms.TabPage();
@@ -43,22 +53,12 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
-            this.cbDecryptHTTPS = new System.Windows.Forms.CheckBox();
-            this.cbEnableIPv6 = new System.Windows.Forms.CheckBox();
-            this.cbAutoStream = new System.Windows.Forms.CheckBox();
-            this.gbWebServices = new System.Windows.Forms.GroupBox();
-            this.cbCheckForUpdates = new System.Windows.Forms.CheckBox();
-            this.cbxBigSwitch = new System.Windows.Forms.ComboBox();
-            this.cbCaptureCONNECT = new System.Windows.Forms.CheckBox();
-            this.cbxDecryptFor = new System.Windows.Forms.ComboBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.txtDecryptHosts = new System.Windows.Forms.TextBox();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
+            this.gbWebServices.SuspendLayout();
             this.pageHTTPS.SuspendLayout();
             this.pageExtensions.SuspendLayout();
             this.pnlFooter.SuspendLayout();
-            this.gbWebServices.SuspendLayout();
             this.SuspendLayout();
             // 
             // tcOptions
@@ -95,6 +95,61 @@
             this.pageGeneral.Text = "General";
             this.pageGeneral.UseVisualStyleBackColor = true;
             // 
+            // gbWebServices
+            // 
+            this.gbWebServices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbWebServices.Controls.Add(this.cbxBigSwitch);
+            this.gbWebServices.Controls.Add(this.cbCheckForUpdates);
+            this.gbWebServices.Location = new System.Drawing.Point(378, 23);
+            this.gbWebServices.Name = "gbWebServices";
+            this.gbWebServices.Size = new System.Drawing.Size(284, 154);
+            this.gbWebServices.TabIndex = 7;
+            this.gbWebServices.TabStop = false;
+            this.gbWebServices.Text = "Clearinet Cloud Services";
+            // 
+            // cbxBigSwitch
+            // 
+            this.cbxBigSwitch.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxBigSwitch.FormattingEnabled = true;
+            this.cbxBigSwitch.Items.AddRange(new object[] {
+            "Allow Web Service requests",
+            "Prompt on every Web Service call",
+            "Disallow all Web Service calls"});
+            this.cbxBigSwitch.Location = new System.Drawing.Point(17, 35);
+            this.cbxBigSwitch.Name = "cbxBigSwitch";
+            this.cbxBigSwitch.Size = new System.Drawing.Size(252, 25);
+            this.cbxBigSwitch.TabIndex = 1;
+            // 
+            // cbCheckForUpdates
+            // 
+            this.cbCheckForUpdates.AutoSize = true;
+            this.cbCheckForUpdates.Location = new System.Drawing.Point(17, 66);
+            this.cbCheckForUpdates.Name = "cbCheckForUpdates";
+            this.cbCheckForUpdates.Size = new System.Drawing.Size(210, 21);
+            this.cbCheckForUpdates.TabIndex = 0;
+            this.cbCheckForUpdates.Text = "Check for Updates on Startup";
+            this.cbCheckForUpdates.UseVisualStyleBackColor = true;
+            // 
+            // cbAutoStream
+            // 
+            this.cbAutoStream.AutoSize = true;
+            this.cbAutoStream.Location = new System.Drawing.Point(23, 77);
+            this.cbAutoStream.Name = "cbAutoStream";
+            this.cbAutoStream.Size = new System.Drawing.Size(194, 21);
+            this.cbAutoStream.TabIndex = 6;
+            this.cbAutoStream.Text = "Automatically &stream media";
+            this.cbAutoStream.UseVisualStyleBackColor = true;
+            // 
+            // cbEnableIPv6
+            // 
+            this.cbEnableIPv6.AutoSize = true;
+            this.cbEnableIPv6.Location = new System.Drawing.Point(23, 50);
+            this.cbEnableIPv6.Name = "cbEnableIPv6";
+            this.cbEnableIPv6.Size = new System.Drawing.Size(186, 21);
+            this.cbEnableIPv6.TabIndex = 4;
+            this.cbEnableIPv6.Text = "Enable IPv6 (if supported)";
+            this.cbEnableIPv6.UseVisualStyleBackColor = true;
+            // 
             // cbAttachOnStartup
             // 
             this.cbAttachOnStartup.AutoSize = true;
@@ -120,6 +175,61 @@
             this.pageHTTPS.TabIndex = 1;
             this.pageHTTPS.Text = "HTTPS";
             this.pageHTTPS.UseVisualStyleBackColor = true;
+            // 
+            // txtDecryptHosts
+            // 
+            this.txtDecryptHosts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDecryptHosts.Location = new System.Drawing.Point(54, 209);
+            this.txtDecryptHosts.Multiline = true;
+            this.txtDecryptHosts.Name = "txtDecryptHosts";
+            this.txtDecryptHosts.Size = new System.Drawing.Size(581, 0);
+            this.txtDecryptHosts.TabIndex = 7;
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(54, 140);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(265, 21);
+            this.checkBox1.TabIndex = 6;
+            this.checkBox1.Text = "&Ignore server certificate errors (unsafe)";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // cbxDecryptFor
+            // 
+            this.cbxDecryptFor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxDecryptFor.FormattingEnabled = true;
+            this.cbxDecryptFor.Items.AddRange(new object[] {
+            "...from all processes",
+            "...from browsers",
+            "...from non-browsers",
+            "...only from remote clients"});
+            this.cbxDecryptFor.Location = new System.Drawing.Point(54, 91);
+            this.cbxDecryptFor.Name = "cbxDecryptFor";
+            this.cbxDecryptFor.Size = new System.Drawing.Size(225, 25);
+            this.cbxDecryptFor.TabIndex = 5;
+            // 
+            // cbCaptureCONNECT
+            // 
+            this.cbCaptureCONNECT.AutoSize = true;
+            this.cbCaptureCONNECT.Location = new System.Drawing.Point(11, 21);
+            this.cbCaptureCONNECT.Name = "cbCaptureCONNECT";
+            this.cbCaptureCONNECT.Size = new System.Drawing.Size(193, 21);
+            this.cbCaptureCONNECT.TabIndex = 4;
+            this.cbCaptureCONNECT.Text = "Capture &HTTPS CONNECTs";
+            this.cbCaptureCONNECT.UseVisualStyleBackColor = true;
+            // 
+            // cbDecryptHTTPS
+            // 
+            this.cbDecryptHTTPS.AutoSize = true;
+            this.cbDecryptHTTPS.Location = new System.Drawing.Point(31, 48);
+            this.cbDecryptHTTPS.Name = "cbDecryptHTTPS";
+            this.cbDecryptHTTPS.Size = new System.Drawing.Size(192, 21);
+            this.cbDecryptHTTPS.TabIndex = 0;
+            this.cbDecryptHTTPS.Text = "&Decrypt HTTPS exchanges";
+            this.cbDecryptHTTPS.UseVisualStyleBackColor = true;
             // 
             // pageConnections
             // 
@@ -239,116 +349,6 @@
             this.lnkHelp.Text = "Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
-            // cbDecryptHTTPS
-            // 
-            this.cbDecryptHTTPS.AutoSize = true;
-            this.cbDecryptHTTPS.Location = new System.Drawing.Point(31, 48);
-            this.cbDecryptHTTPS.Name = "cbDecryptHTTPS";
-            this.cbDecryptHTTPS.Size = new System.Drawing.Size(192, 21);
-            this.cbDecryptHTTPS.TabIndex = 0;
-            this.cbDecryptHTTPS.Text = "&Decrypt HTTPS exchanges";
-            this.cbDecryptHTTPS.UseVisualStyleBackColor = true;
-            // 
-            // cbEnableIPv6
-            // 
-            this.cbEnableIPv6.AutoSize = true;
-            this.cbEnableIPv6.Location = new System.Drawing.Point(23, 50);
-            this.cbEnableIPv6.Name = "cbEnableIPv6";
-            this.cbEnableIPv6.Size = new System.Drawing.Size(186, 21);
-            this.cbEnableIPv6.TabIndex = 4;
-            this.cbEnableIPv6.Text = "Enable IPv6 (if supported)";
-            this.cbEnableIPv6.UseVisualStyleBackColor = true;
-            // 
-            // cbAutoStream
-            // 
-            this.cbAutoStream.AutoSize = true;
-            this.cbAutoStream.Location = new System.Drawing.Point(23, 77);
-            this.cbAutoStream.Name = "cbAutoStream";
-            this.cbAutoStream.Size = new System.Drawing.Size(194, 21);
-            this.cbAutoStream.TabIndex = 6;
-            this.cbAutoStream.Text = "Automatically &stream media";
-            this.cbAutoStream.UseVisualStyleBackColor = true;
-            // 
-            // gbWebServices
-            // 
-            this.gbWebServices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbWebServices.Controls.Add(this.cbxBigSwitch);
-            this.gbWebServices.Controls.Add(this.cbCheckForUpdates);
-            this.gbWebServices.Location = new System.Drawing.Point(378, 23);
-            this.gbWebServices.Name = "gbWebServices";
-            this.gbWebServices.Size = new System.Drawing.Size(284, 154);
-            this.gbWebServices.TabIndex = 7;
-            this.gbWebServices.TabStop = false;
-            this.gbWebServices.Text = "Clearinet Cloud Services";
-            // 
-            // cbCheckForUpdates
-            // 
-            this.cbCheckForUpdates.AutoSize = true;
-            this.cbCheckForUpdates.Location = new System.Drawing.Point(17, 66);
-            this.cbCheckForUpdates.Name = "cbCheckForUpdates";
-            this.cbCheckForUpdates.Size = new System.Drawing.Size(210, 21);
-            this.cbCheckForUpdates.TabIndex = 0;
-            this.cbCheckForUpdates.Text = "Check for Updates on Startup";
-            this.cbCheckForUpdates.UseVisualStyleBackColor = true;
-            // 
-            // cbxBigSwitch
-            // 
-            this.cbxBigSwitch.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbxBigSwitch.FormattingEnabled = true;
-            this.cbxBigSwitch.Items.AddRange(new object[] {
-            "Allow Web Service requests",
-            "Prompt on every Web Service call",
-            "Disallow all Web Service calls"});
-            this.cbxBigSwitch.Location = new System.Drawing.Point(17, 35);
-            this.cbxBigSwitch.Name = "cbxBigSwitch";
-            this.cbxBigSwitch.Size = new System.Drawing.Size(252, 25);
-            this.cbxBigSwitch.TabIndex = 1;
-            // 
-            // cbCaptureCONNECT
-            // 
-            this.cbCaptureCONNECT.AutoSize = true;
-            this.cbCaptureCONNECT.Location = new System.Drawing.Point(11, 21);
-            this.cbCaptureCONNECT.Name = "cbCaptureCONNECT";
-            this.cbCaptureCONNECT.Size = new System.Drawing.Size(193, 21);
-            this.cbCaptureCONNECT.TabIndex = 4;
-            this.cbCaptureCONNECT.Text = "Capture &HTTPS CONNECTs";
-            this.cbCaptureCONNECT.UseVisualStyleBackColor = true;
-            // 
-            // cbxDecryptFor
-            // 
-            this.cbxDecryptFor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbxDecryptFor.FormattingEnabled = true;
-            this.cbxDecryptFor.Items.AddRange(new object[] {
-            "...from all processes",
-            "...from browsers",
-            "...from non-browsers",
-            "...only from remote clients"});
-            this.cbxDecryptFor.Location = new System.Drawing.Point(54, 91);
-            this.cbxDecryptFor.Name = "cbxDecryptFor";
-            this.cbxDecryptFor.Size = new System.Drawing.Size(225, 25);
-            this.cbxDecryptFor.TabIndex = 5;
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(54, 140);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(265, 21);
-            this.checkBox1.TabIndex = 6;
-            this.checkBox1.Text = "&Ignore server certificate errors (unsafe)";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
-            // txtDecryptHosts
-            // 
-            this.txtDecryptHosts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDecryptHosts.Location = new System.Drawing.Point(54, 209);
-            this.txtDecryptHosts.Multiline = true;
-            this.txtDecryptHosts.Name = "txtDecryptHosts";
-            this.txtDecryptHosts.Size = new System.Drawing.Size(581, 0);
-            this.txtDecryptHosts.TabIndex = 7;
-            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
@@ -362,19 +362,20 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "frmOptions";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Clearinet Options";
             this.Load += new System.EventHandler(this.frmOptions_Load);
             this.tcOptions.ResumeLayout(false);
             this.pageGeneral.ResumeLayout(false);
             this.pageGeneral.PerformLayout();
+            this.gbWebServices.ResumeLayout(false);
+            this.gbWebServices.PerformLayout();
             this.pageHTTPS.ResumeLayout(false);
             this.pageHTTPS.PerformLayout();
             this.pageExtensions.ResumeLayout(false);
             this.pageExtensions.PerformLayout();
             this.pnlFooter.ResumeLayout(false);
             this.pnlFooter.PerformLayout();
-            this.gbWebServices.ResumeLayout(false);
-            this.gbWebServices.PerformLayout();
             this.ResumeLayout(false);
 
         }

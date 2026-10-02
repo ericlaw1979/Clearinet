@@ -52,7 +52,7 @@
             lblTransform.AutoSize = true;
             lblTransform.Location = new System.Drawing.Point(3, 10);
             lblTransform.Name = "lblTransform";
-            lblTransform.Size = new System.Drawing.Size(71, 17);
+            lblTransform.Size = new System.Drawing.Size(56, 13);
             lblTransform.TabIndex = 0;
             lblTransform.Text = "&Transform";
             // 
@@ -62,7 +62,7 @@
             lblSave.AutoSize = true;
             lblSave.Location = new System.Drawing.Point(501, 10);
             lblSave.Name = "lblSave";
-            lblSave.Size = new System.Drawing.Size(91, 17);
+            lblSave.Size = new System.Drawing.Size(72, 13);
             lblSave.TabIndex = 5;
             lblSave.Text = "Save Output:";
             // 
@@ -114,7 +114,7 @@
             this.lnkSaveAsFile.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.lnkSaveAsFile.Location = new System.Drawing.Point(690, 10);
             this.lnkSaveAsFile.Name = "lnkSaveAsFile";
-            this.lnkSaveAsFile.Size = new System.Drawing.Size(43, 17);
+            this.lnkSaveAsFile.Size = new System.Drawing.Size(37, 13);
             this.lnkSaveAsFile.TabIndex = 6;
             this.lnkSaveAsFile.TabStop = true;
             this.lnkSaveAsFile.Text = "as File";
@@ -127,7 +127,7 @@
             this.lnkSaveAsExchange.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.lnkSaveAsExchange.Location = new System.Drawing.Point(598, 10);
             this.lnkSaveAsExchange.Name = "lnkSaveAsExchange";
-            this.lnkSaveAsExchange.Size = new System.Drawing.Size(86, 17);
+            this.lnkSaveAsExchange.Size = new System.Drawing.Size(68, 13);
             this.lnkSaveAsExchange.TabIndex = 4;
             this.lnkSaveAsExchange.TabStop = true;
             this.lnkSaveAsExchange.Text = "as Exchange";
@@ -150,7 +150,7 @@
             this.lnkEncodings.AutoSize = true;
             this.lnkEncodings.Location = new System.Drawing.Point(414, 10);
             this.lnkEncodings.Name = "lnkEncodings";
-            this.lnkEncodings.Size = new System.Drawing.Size(71, 17);
+            this.lnkEncodings.Size = new System.Drawing.Size(55, 13);
             this.lnkEncodings.TabIndex = 2;
             this.lnkEncodings.TabStop = true;
             this.lnkEncodings.Text = "Encodings";
@@ -161,7 +161,7 @@
             this.cbViewBytes.Location = new System.Drawing.Point(313, 8);
             this.cbViewBytes.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbViewBytes.Name = "cbViewBytes";
-            this.cbViewBytes.Size = new System.Drawing.Size(95, 21);
+            this.cbViewBytes.Size = new System.Drawing.Size(78, 17);
             this.cbViewBytes.TabIndex = 1;
             this.cbViewBytes.Text = "&View Bytes";
             this.cbViewBytes.UseVisualStyleBackColor = true;
@@ -196,7 +196,7 @@
             this.cbxTransforms.Location = new System.Drawing.Point(79, 7);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";
-            this.cbxTransforms.Size = new System.Drawing.Size(228, 25);
+            this.cbxTransforms.Size = new System.Drawing.Size(228, 21);
             this.cbxTransforms.TabIndex = 0;
             this.cbxTransforms.SelectedIndexChanged += new System.EventHandler(this.cbxTransforms_SelectedIndexChanged);
             // 
@@ -228,7 +228,7 @@
             // 
             // frmTextWizard
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(979, 478);
             this.Controls.Add(this.pnlFill);
@@ -241,6 +241,7 @@
             this.MinimumSize = new System.Drawing.Size(600, 400);
             this.Name = "frmTextWizard";
             this.Padding = new System.Windows.Forms.Padding(5);
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "TextWizard";
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.frmTextWizard_KeyUp);
             this.pnlFill.ResumeLayout(false);
