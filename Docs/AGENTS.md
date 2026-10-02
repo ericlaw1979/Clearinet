@@ -3,6 +3,7 @@
 - Replace `Session` with `Exchange`.
 - Replace `IFiddlerExtension` with `IAppExtension`.
 - Replace `ProfferFormat` with `OfferFormat`
+- Replace `uriContains` with `urlContains`
 - Replace timers `FiddlerGotRequestHeaders` with `ClearinetGotRequestHeaders`
 - Replace timers' `FiddlerBeginRequest` with `ClearinetBeginRequest`
 - Replace timers' `ServerGotRequest` with `ClearinetEndRequest`

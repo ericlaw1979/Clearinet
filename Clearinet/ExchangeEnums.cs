@@ -116,4 +116,16 @@ namespace Clearinet
         // Exchange was aborted due to an error or closed connection
         Aborted
     };
+
+    public class StateChangeEventArgs : EventArgs
+    {
+        public readonly ExchangeState oldState;
+        public readonly ExchangeState newState;
+
+        internal StateChangeEventArgs(ExchangeState esPrior, ExchangeState esCurrent)
+        {
+            oldState = esPrior;
+            newState = esCurrent;
+        }
+    }
 }
