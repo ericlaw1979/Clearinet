@@ -1,5 +1,6 @@
 ﻿using Microsoft.JScript;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -61,8 +62,11 @@ namespace Clearinet
 
         protected List<HTTPHeaderItem> storage = new List<HTTPHeaderItem>();
     }
-    public class HTTPRequestHeaders : HTTPHeaders
+    public class HTTPRequestHeaders : HTTPHeaders, IEnumerable<HTTPHeaderItem>
     {
+        public IEnumerator<HTTPHeaderItem> GetEnumerator() => storage.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         public string HTTPMethod { get; set; } = String.Empty;
         private string _UrlScheme = "http";
         public string UriScheme
@@ -164,7 +168,7 @@ namespace Clearinet
         }
     }
 
-    public class HTTPResponseHeaders : HTTPHeaders
+    public class HTTPResponseHeaders : HTTPHeaders, IEnumerable<HTTPHeaderItem>
     {
         // Status code from HTTP Response. Call SetStatus() to update StatusText at the same time.
         public int StatusCode { get; set; }
@@ -174,6 +178,10 @@ namespace Clearinet
             StatusCode = iCode;
             StatusText = sText;
         }
+
+        public IEnumerator<HTTPHeaderItem> GetEnumerator() => storage.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
 
         public HTTPResponseHeaders() { }
 

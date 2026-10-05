@@ -25,6 +25,11 @@ namespace TestExtensions
             rtbRaw.Clear();
             rtbRaw.ReadOnly = true;
         }
+        internal void SetFontSize(float flSizeInPoints)
+        {
+            rtbRaw.Font = new Font(rtbRaw.Font.FontFamily, flSizeInPoints);
+            txtFind.Font = new Font(txtFind.Font.FontFamily, flSizeInPoints, txtFind.Font.Style);
+        }
 
         private void SetWordWrapping(bool bWrap)
         {

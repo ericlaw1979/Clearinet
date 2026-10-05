@@ -557,32 +557,42 @@ namespace Clearinet
         private void blvExchanges_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (blvExchanges.SelectedItems.Count < 1) return;
+            actUpdateInspector(true, true);
+        }
 
-            RequestInspectorBase ibRequest = tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase;
-            ResponseInspectorBase ibResponse = tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase;
+        private void tabsRequest_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            actUpdateInspector(true, false);
+        }
 
-            HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{blvExchanges.SelectedItems[0].Text}", new string[]{ "FirstHeader: 11111", "SecondHeader: 222", $"Host: {blvExchanges.SelectedItems[0].Text}" });
+        private void actUpdateInspector(bool bUpdateRequest, bool bUpdateResponse)
+        {
+            if (CApp.isClosing) return;
+
+            // TODO: HACKERY! In reality, grab the Exchange off the ViewItem/Tag property of the listview item
+            HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{blvExchanges.SelectedItems[0].Text}", new string[] { "FirstHeader: 11111", "SecondHeader: 222", $"Host: {blvExchanges.SelectedItems[0].Text}" });
             Exchange x = new Exchange(hrh, Encoding.UTF8.GetBytes("This is the request body."))
             {
                 ResponseBody = Encoding.UTF8.GetBytes($"This is the response body for Exchange #{blvExchanges.SelectedItems[0].Text}"),
                 ResponseHeaders = new HTTPResponseHeaders(200, "OK, I guess", new string[] { "FirstHeader: one", "SecondHeader: two" }),
             };
-            ibRequest.AssignExchange(x);
-            ibResponse.AssignExchange(x);
-        }
 
-        private void tabsRequest_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (CApp.isClosing || (tabsRequest.SelectedIndex < 0))
-                return;
-            // actUpdateInspector(true, false);
+            if (bUpdateRequest && (tabsRequest.SelectedIndex > -1))
+            {
+                RequestInspectorBase ibRequest = tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase;
+                ibRequest.AssignExchange(x);
+            }
+
+            if (bUpdateResponse && (tabsResponse.SelectedIndex > -1))
+            {
+                ResponseInspectorBase ibResponse = tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase;
+                ibResponse.AssignExchange(x);
+            }
         }
 
         private void tabsResponse_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (CApp.isClosing || (tabsResponse.SelectedIndex < 0))
-                return;
-            // actUpdateInspector(false, true);
+            actUpdateInspector(false, true);
         }
 
         private void miInspectorScreenshot_Click(object sender, EventArgs e)

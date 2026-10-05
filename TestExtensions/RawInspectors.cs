@@ -16,6 +16,8 @@ namespace TestExtensions
             tab.Controls.Add(rtViewer);
             rtViewer.Dock = DockStyle.Fill;
         }
+        public override void SetFontSize(float flSizeInPoints) => rtViewer?.SetFontSize(flSizeInPoints);
+
 
         public override int GetOrder()
         {
@@ -48,6 +50,7 @@ namespace TestExtensions
             tab.Controls.Add(rtViewer);
             rtViewer.Dock = DockStyle.Fill;
         }
+        public override void SetFontSize(float flSizeInPoints) => rtViewer?.SetFontSize(flSizeInPoints);
 
         public override int GetOrder()
         {
