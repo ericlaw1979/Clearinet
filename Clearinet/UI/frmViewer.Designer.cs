@@ -41,6 +41,8 @@
             System.Windows.Forms.ToolStripSeparator miHelpSplitter1;
             System.Windows.Forms.ToolStripSeparator tsmiFileSaveSplitter1;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("1");
+            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("2");
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.miFile = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileAttach = new System.Windows.Forms.ToolStripMenuItem();
@@ -890,6 +892,9 @@
             this.blvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
             this.blvExchanges.FullRowSelect = true;
             this.blvExchanges.HideSelection = false;
+            this.blvExchanges.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
+            listViewItem1,
+            listViewItem2});
             this.blvExchanges.LabelWrap = false;
             this.blvExchanges.Location = new System.Drawing.Point(0, 0);
             this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
@@ -898,6 +903,7 @@
             this.blvExchanges.TabIndex = 4;
             this.blvExchanges.UseCompatibleStateImageBehavior = false;
             this.blvExchanges.View = System.Windows.Forms.View.Details;
+            this.blvExchanges.SelectedIndexChanged += new System.EventHandler(this.blvExchanges_SelectedIndexChanged);
             // 
             // colID
             // 

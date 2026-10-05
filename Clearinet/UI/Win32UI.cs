@@ -1,5 +1,6 @@
 ﻿using Clearinet;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -9,7 +10,7 @@ namespace Clearinet
     /// <summary>
     /// This class holds helper methods related to Win32 UI features that are not exposed in .NET.
     /// </summary>
-    internal class Win32UI
+    public class Win32UI
     {
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
@@ -111,6 +112,100 @@ namespace Clearinet
             SendMessage(lvTarget.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, (IntPtr)LVS_EX_BORDERSELECT, (IntPtr)LVS_EX_BORDERSELECT);
         }
     }
+
+    public class RichTextBoxV5 : RichTextBox
+    {
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        static extern IntPtr LoadLibrary(string lpFileName);
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cparams = base.CreateParams;
+                if (LoadLibrary("msftedit.dll") != IntPtr.Zero)
+                {
+                    cparams.ClassName = "RICHEDIT50W";
+                }
+                return cparams;
+            }
+        }
+
+        [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
+        internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+        private const int WM_VSCROLL = 0x0115;
+        public void ScrollUp()
+        {
+            SendMessage(Handle, WM_VSCROLL, 0, 0);
+        }
+
+        public void ScrollDown()
+        {
+            SendMessage(Handle, WM_VSCROLL, 1, 0);
+        }
+
+
+        [DllImport("user32.dll")]
+        private static extern bool LockWindowUpdate(IntPtr hWndLock);
+        public void Search(string sFind, bool bMarkAll)
+        {
+            if (TextLength < 1) return;
+
+            RichTextBoxFinds rtbFindOption = RichTextBoxFinds.None;
+            if (sFind.OICStartsWith("exact:"))
+            {
+                sFind = sFind.Substring(6);
+                rtbFindOption = RichTextBoxFinds.MatchCase;
+            }
+
+            if (!bMarkAll)
+            {
+                // Easy mode: Find the next match
+                Find(sFind, 
+                    Math.Min(SelectionStart + 1, TextLength),  // Start offset
+                    RichTextBoxFinds.None);
+            }
+
+            // Hard mode: Highlight all matches
+            try
+            {
+                LockWindowUpdate(Handle);
+
+                // Clear old matches
+                SelectAll();
+                SelectionBackColor = BackColor;
+                SelectionStart = SelectionLength = 0;
+
+                if (!sFind.HasText()) return;
+
+                int ixLastFound = Find(sFind, 0, rtbFindOption);
+
+                int ixFirstSeen = ixLastFound;
+                while (ixLastFound > -1)
+                {
+                    ixLastFound++;
+                    SelectionBackColor = Color.Yellow;  // TODO: Control via Preferences
+
+                    if (ixLastFound >= TextLength) break;
+
+                    ixLastFound = Find(sFind, ixLastFound, rtbFindOption);
+                }
+
+                // If we found any, go to the first one.
+                if (ixFirstSeen >= 0)
+                {
+                    SelectionLength = 0;
+                    SelectionStart = ixFirstSeen;
+                }
+            }
+            finally
+            {
+                LockWindowUpdate(IntPtr.Zero);
+            }
+        }
+    }
+
     public class BetterListView : System.Windows.Forms.ListView
     {
         /// <summary>

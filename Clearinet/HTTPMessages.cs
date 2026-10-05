@@ -64,7 +64,6 @@ namespace Clearinet
     public class HTTPRequestHeaders : HTTPHeaders
     {
         public string HTTPMethod { get; set; } = String.Empty;
-
         private string _UrlScheme = "http";
         public string UriScheme
         {
@@ -82,7 +81,8 @@ namespace Clearinet
         public string RequestPath
         {
             get => _RequestPath ?? String.Empty;
-            set {
+            set
+            {
                 if (null == value)
                 {
                     Debug.Assert(false);
@@ -136,7 +136,34 @@ namespace Clearinet
             }
             return oClone;
         }
+
+        public override string ToString()
+        {
+            return ToString(true, true);
+        }
+
+        public string ToString(bool include_request_line, bool include_endline)
+        {
+            StringBuilder sbOut = new StringBuilder();
+            if (include_request_line) sbOut.Append($"{HTTPMethod} {RequestPath} {HTTPVersion}\r\n");
+            try
+            {
+                // TODO: Lock 
+                for (int x = 0; x < storage.Count; x++)
+                {
+                    sbOut.Append($"{storage[x].Name}: {storage[x].Value}\r\n");
+                }
+            }
+            finally
+            {
+                //unlock
+            }
+
+            if (include_endline) sbOut.Append("\r\n");
+            return sbOut.ToString();
+        }
     }
+
     public class HTTPResponseHeaders : HTTPHeaders
     {
         // Status code from HTTP Response. Call SetStatus() to update StatusText at the same time.
@@ -206,6 +233,31 @@ namespace Clearinet
             }
         }
 
+        public override string ToString()
+        {
+            return ToString(true, true);
+        }
+        public string ToString(bool include_status, bool include_endline)
+        {
+            StringBuilder sbOut = new StringBuilder();
+
+            if (include_status) sbOut.Append($"{HTTPVersion} {StatusCode} {StatusText}\r\n");
+            try
+            {
+                // TODO: Lock 
+                for (int x = 0; x < storage.Count; x++)
+                {
+                    sbOut.Append($"{storage[x].Name}: {storage[x].Value}\r\n");
+                }
+            }
+            finally
+            {
+                //unlock
+            }
+
+            if (include_endline) sbOut.Append("\r\n");
+            return sbOut.ToString();
+        }
     }
 
     public class HTTPParser

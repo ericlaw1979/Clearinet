@@ -1,11 +1,8 @@
-﻿using Ionic.Zip;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-
 
 namespace Clearinet
 {
@@ -218,12 +215,15 @@ namespace Clearinet
                 {
                     TabPage oPage = new TabPage();
                     oRI.AddToTab(oPage);
+                    oPage.Tag = oRI;
                     CApp.UI.tabsRequest.TabPages.Add(oPage);
+
                 }
                 foreach (ResponseInspectorBase oRI in CApp.oExtensions.m_ResponseInspectors.Values)
                 {
                     TabPage oPage = new TabPage();
                     oRI.AddToTab(oPage);
+                    oPage.Tag = oRI;
                     CApp.UI.tabsResponse.TabPages.Add(oPage);
                 }
 
@@ -552,6 +552,23 @@ namespace Clearinet
         private void miFile_DropDownOpening(object sender, EventArgs e)
         {
             // Disable controls if inapplicable
+        }
+
+        private void blvExchanges_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (blvExchanges.SelectedItems.Count < 1) return;
+
+            RequestInspectorBase ibRequest = tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase;
+            ResponseInspectorBase ibResponse = tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase;
+
+            HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{blvExchanges.SelectedItems[0].Text}", new string[]{ "FirstHeader: 11111", "SecondHeader: 222", $"Host: {blvExchanges.SelectedItems[0].Text}" });
+            Exchange x = new Exchange(hrh, Encoding.UTF8.GetBytes("This is the request body."))
+            {
+                ResponseBody = Encoding.UTF8.GetBytes($"This is the response body for Exchange #{blvExchanges.SelectedItems[0].Text}"),
+                ResponseHeaders = new HTTPResponseHeaders(200, "OK, I guess", new string[] { "FirstHeader: one", "SecondHeader: two" }),
+            };
+            ibRequest.AssignExchange(x);
+            ibResponse.AssignExchange(x);
         }
     }
 }

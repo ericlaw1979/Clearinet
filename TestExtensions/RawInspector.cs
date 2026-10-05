@@ -1,58 +1,71 @@
-﻿using System;
+﻿using Clearinet;
+using System.Text;
 using System.Windows.Forms;
-using Clearinet;
 
 namespace TestExtensions
 {
     public class RawRequestInspector: RequestInspectorBase
     {
-        public override void OnLoad()
-        {
-            MessageBox.Show("RawRequestInspector.OnLoad() called");
-        }
+        RawText rtViewer;
+        Encoding encBody;
 
-        public override void Clear()
+        public override void AddToTab(TabPage tab)
         {
-            /* */
-        }
-
-        public override void AddToTab(TabPage o)
-        {
-            //Control = new RawView(this);
-            o.Text = "Raw";
-            //o.Controls.Add(myControl);
-            //o.Controls[0].Dock = DockStyle.Fill;
+            tab.Text = "Raw";
+            rtViewer = new RawText(this);
+            tab.Controls.Add(rtViewer);
+            rtViewer.Dock = DockStyle.Fill;
         }
 
         public override int GetOrder()
         {
             return 0;
+        }
+
+        public override void Assign(HTTPRequestHeaders hrh, byte[] arrBody, bool bReadOnly)
+        {
+            headers = hrh;
+            body = arrBody;
+            encBody = Encoding.UTF8; // TODO: Get encoding from headers.
+            rtViewer.rtbRaw.Text = hrh.ToString() + encBody.GetString(arrBody);
+        }
+
+        public override void Clear()
+        {
+            rtViewer.Clear();
         }
     }
 
     public class RawResponseInspector : ResponseInspectorBase
     {
-        public override void OnLoad()
-        {
-            MessageBox.Show("RawResponseInspector.OnLoad() called");
-        }
+        RawText rtViewer;
+        Encoding encBody;
      
-        public override void Clear()
+        public override void AddToTab(TabPage tab)
         {
-            /* */
-        }
-
-        public override void AddToTab(TabPage o)
-        {
-            //Control = new RawView(this);
-            o.Text = "Raw";
-            //o.Controls.Add(myControl);
-            //o.Controls[0].Dock = DockStyle.Fill;
+            tab.Text = "Raw";
+            rtViewer = new RawText(this);
+            tab.Controls.Add(rtViewer);
+            rtViewer.Dock = DockStyle.Fill;
         }
 
         public override int GetOrder()
         {
             return 0;
+        }
+
+        public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)
+        {
+            headers = hrh;
+            body = arrBody;
+            encBody = Encoding.UTF8; // TODO: Get encoding from headers.
+            rtViewer.rtbRaw.Text = hrh.ToString() + encBody.GetString(arrBody);
+            rtViewer.rtbRaw.ReadOnly = bReadOnly;
+        }
+
+        public override void Clear()
+        {
+            rtViewer.Clear();
         }
     }
 }

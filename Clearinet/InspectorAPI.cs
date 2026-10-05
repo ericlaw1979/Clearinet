@@ -15,6 +15,10 @@ namespace Clearinet
         /// </summary>
         AlwaysCommitUpdates,
 
+        /// <summary>
+        /// Only relevant for ResponseInspectors.
+        /// The AutoResponder allows editing responses, but not all Inspectors support useful editing.
+        /// </summary>
         HideInAutoResponder,
 
         HideInNewWindow
@@ -22,7 +26,10 @@ namespace Clearinet
 
     public abstract class RequestInspectorBase : InspectorBase
     {
-        public HTTPRequestHeaders headers { get; set; }
+        public abstract void Assign(HTTPRequestHeaders headersRequest, byte[] arrBody, bool bReadOnly);
+
+        public HTTPRequestHeaders headers { get; protected set; }
+
         internal override bool CommitIsAllowed(Exchange oX)
         {
             // If the Exchange isn't at a breakpoint or unlocked, bail on changes.
@@ -39,7 +46,8 @@ namespace Clearinet
 
     public abstract class ResponseInspectorBase : InspectorBase
     {
-        public HTTPResponseHeaders headers { get; set; }
+        public abstract void Assign(HTTPResponseHeaders headersResponse, byte[] arrBody, bool bReadOnly);
+        public HTTPResponseHeaders headers { get; protected set; }
         internal override bool CommitIsAllowed(Exchange oX)
         {
             // If the Exchange isn't at a breakpoint or unlocked, bail on changes.
@@ -74,7 +82,7 @@ namespace Clearinet
         /// <summary>
         /// Request or Response body.
         /// </summary>
-        byte[] body { get; set; }
+        public byte[] body { get; protected set; }
 
         public abstract void Clear();
 
@@ -164,20 +172,17 @@ namespace Clearinet
             RequestInspectorBase reqThis = (this as RequestInspectorBase);
             if (null != reqThis)
             {
-                reqThis.headers = oX.RequestHeaders;
-                reqThis.body = oX.RequestBody;
-                reqThis.bReadOnly = (oX.state != ExchangeState.HandTamperRequest) &&
-                                    !oX.oFlags.ContainsKey("x-Unlocked");
+                reqThis.Assign(oX.RequestHeaders, oX.RequestBody, 
+                    (oX.state != ExchangeState.HandTamperRequest) &&
+                            !oX.oFlags.ContainsKey("x-Unlocked"));
                 return;
             }
 
             ResponseInspectorBase respThis = (this as ResponseInspectorBase);
             if (null != respThis)
             {
-                respThis.headers = oX.ResponseHeaders;
-                respThis.body = oX.ResponseBody;
-                respThis.bReadOnly = (oX.state != ExchangeState.HandTamperResponse) &&
-                    !oX.oFlags.ContainsKey("x-Unlocked");
+                respThis.Assign(oX.ResponseHeaders, oX.ResponseBody, (oX.state != ExchangeState.HandTamperResponse) &&
+                    !oX.oFlags.ContainsKey("x-Unlocked"));
                 return;
             }
             Debug.Assert(false);

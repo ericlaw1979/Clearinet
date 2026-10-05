@@ -274,13 +274,20 @@ namespace Clearinet
 
         public Exchange(HTTPRequestHeaders rqh, byte[] arrReqBody)
         {
+            this.RequestHeaders = rqh; // CLONE?
             this._arrRequestBody = arrReqBody; // CLONE?
-            //TODO: Set headers
         }
 
         public string RequestMethod
         {
-            get;set; // TODO: Implement;
+            get
+            {
+                return this.RequestHeaders.HTTPMethod;
+            }
+            set {
+                // todo: if headers not present...
+                this.RequestHeaders.HTTPMethod = value;
+            }
         }
 
         /// <summary>

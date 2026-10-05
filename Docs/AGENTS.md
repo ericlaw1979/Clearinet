@@ -36,3 +36,7 @@
 Fiddler's UI would set `CheckForIllegalCrossThreadCalls=false` which would allow any thread to manipulate UI elements, potentially causing corruption. Clearinet's UI does not set this, meaning that any cross-thread call will result in an immediate exception. 
 To fix this, code should call UIInvokeAsync if Winforms UI interaction is needed.
 
+
+
+### Other deltas
+- Raw Inspector allows searching in case-sensitive manner with "exact:" prefix

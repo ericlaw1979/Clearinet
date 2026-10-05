@@ -259,7 +259,7 @@ namespace Clearinet
 
         #endregion
 
-        static internal void LaunchHyperlink(string sURL)
+        public static void LaunchHyperlink(string sURL)
         {
             try
             {
