@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.Windows.Forms.ToolStripSeparator miViewSplitter3;
             System.Windows.Forms.ToolStripSeparator miViewSplitter2;
             System.Windows.Forms.ToolStripSeparator miFileSplit1;
@@ -41,8 +42,9 @@
             System.Windows.Forms.ToolStripSeparator miHelpSplitter1;
             System.Windows.Forms.ToolStripSeparator tsmiFileSaveSplitter1;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
-            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("1");
-            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("2");
+            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("1");
+            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("2");
+            System.Windows.Forms.ToolStripSeparator miInspectorSplitter;
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.miFile = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileAttach = new System.Windows.Forms.ToolStripMenuItem();
@@ -139,6 +141,9 @@
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
+            this.mnuInspectors = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miInspectorAbout = new System.Windows.Forms.ToolStripMenuItem();
+            this.miInspectorScreenshot = new System.Windows.Forms.ToolStripMenuItem();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -151,6 +156,7 @@
             miViewSplitter1 = new System.Windows.Forms.ToolStripSeparator();
             miHelpSplitter1 = new System.Windows.Forms.ToolStripSeparator();
             tsmiFileSaveSplitter1 = new System.Windows.Forms.ToolStripSeparator();
+            miInspectorSplitter = new System.Windows.Forms.ToolStripSeparator();
             this.mnuMain.SuspendLayout();
             this.ssStatus.SuspendLayout();
             this.tsToolbar.SuspendLayout();
@@ -160,6 +166,7 @@
             this.tabsViews.SuspendLayout();
             this.pageInspectors.SuspendLayout();
             this.pageLog.SuspendLayout();
+            this.mnuInspectors.SuspendLayout();
             this.SuspendLayout();
             // 
             // miViewSplitter3
@@ -893,8 +900,8 @@
             this.blvExchanges.FullRowSelect = true;
             this.blvExchanges.HideSelection = false;
             this.blvExchanges.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem1,
-            listViewItem2});
+            listViewItem5,
+            listViewItem6});
             this.blvExchanges.LabelWrap = false;
             this.blvExchanges.Location = new System.Drawing.Point(0, 0);
             this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
@@ -989,12 +996,14 @@
             // 
             // tabsResponse
             // 
+            this.tabsResponse.ContextMenuStrip = this.mnuInspectors;
             this.tabsResponse.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabsResponse.Location = new System.Drawing.Point(4, 220);
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
             this.tabsResponse.Size = new System.Drawing.Size(670, 248);
             this.tabsResponse.TabIndex = 1;
+            this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
             // 
             // pnlTamper
             // 
@@ -1016,12 +1025,14 @@
             // 
             // tabsRequest
             // 
+            this.tabsRequest.ContextMenuStrip = this.mnuInspectors;
             this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
             this.tabsRequest.Location = new System.Drawing.Point(4, 4);
             this.tabsRequest.Name = "tabsRequest";
             this.tabsRequest.SelectedIndex = 0;
             this.tabsRequest.Size = new System.Drawing.Size(670, 194);
             this.tabsRequest.TabIndex = 0;
+            this.tabsRequest.SelectedIndexChanged += new System.EventHandler(this.tabsRequest_SelectedIndexChanged);
             // 
             // pageAutoResponder
             // 
@@ -1083,6 +1094,35 @@
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             // 
+            // mnuInspectors
+            // 
+            this.mnuInspectors.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.mnuInspectors.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miInspectorScreenshot,
+            miInspectorSplitter,
+            this.miInspectorAbout});
+            this.mnuInspectors.Name = "mnuInspectors";
+            this.mnuInspectors.Size = new System.Drawing.Size(151, 58);
+            // 
+            // miInspectorAbout
+            // 
+            this.miInspectorAbout.Name = "miInspectorAbout";
+            this.miInspectorAbout.Size = new System.Drawing.Size(210, 24);
+            this.miInspectorAbout.Text = "&About";
+            this.miInspectorAbout.Click += new System.EventHandler(this.miInspectorAbout_Click);
+            // 
+            // miInspectorScreenshot
+            // 
+            this.miInspectorScreenshot.Name = "miInspectorScreenshot";
+            this.miInspectorScreenshot.Size = new System.Drawing.Size(210, 24);
+            this.miInspectorScreenshot.Text = "&Screenshot";
+            this.miInspectorScreenshot.Click += new System.EventHandler(this.miInspectorScreenshot_Click);
+            // 
+            // miInspectorSplitter
+            // 
+            miInspectorSplitter.Name = "miInspectorSplitter";
+            miInspectorSplitter.Size = new System.Drawing.Size(207, 6);
+            // 
             // frmViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
@@ -1118,6 +1158,7 @@
             this.tabsViews.ResumeLayout(false);
             this.pageInspectors.ResumeLayout(false);
             this.pageLog.ResumeLayout(false);
+            this.mnuInspectors.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1221,6 +1262,9 @@
         private System.Windows.Forms.Splitter splitter1;
         private System.Windows.Forms.RichTextBox rtbStatistics;
         private System.Windows.Forms.ToolStripTextBox tstxtSearch;
+        private System.Windows.Forms.ContextMenuStrip mnuInspectors;
+        private System.Windows.Forms.ToolStripMenuItem miInspectorAbout;
+        private System.Windows.Forms.ToolStripMenuItem miInspectorScreenshot;
     }
 }
 

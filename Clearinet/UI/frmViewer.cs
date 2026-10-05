@@ -570,5 +570,37 @@ namespace Clearinet
             ibRequest.AssignExchange(x);
             ibResponse.AssignExchange(x);
         }
+
+        private void tabsRequest_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (CApp.isClosing || (tabsRequest.SelectedIndex < 0))
+                return;
+            // actUpdateInspector(true, false);
+        }
+
+        private void tabsResponse_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (CApp.isClosing || (tabsResponse.SelectedIndex < 0))
+                return;
+            // actUpdateInspector(false, true);
+        }
+
+        private void miInspectorScreenshot_Click(object sender, EventArgs e)
+        {
+            if (mnuInspectors.SourceControl is TabControl tabControl &&
+                tabControl.SelectedTab?.Tag is InspectorBase inspector)
+            {
+                inspector.CopyAsImage(tabControl.SelectedTab);
+            }
+        }
+
+        private void miInspectorAbout_Click(object sender, EventArgs e)
+        {
+            if (mnuInspectors.SourceControl is TabControl tabControl &&
+                tabControl.SelectedTab?.Tag is InspectorBase inspector)
+            {
+                inspector.ShowAboutBox();
+            }
+        }
     }
 }
