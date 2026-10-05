@@ -10,11 +10,15 @@
 - Replace timers' `FiddlerGotResponseHeaders` with `ClearinetGotResponseHeaders`
 - Replace `ProgressCallbackEventArgs` with `ProgressEventArgs`
 - Replace `Log.LogString` with `Log.Log`
+- Replace `Utilities.IsNullOrEmpty()` with `HasText()` and `HasData()` extension methods on string and byte[] respectively.
 - Replace `Array.Empty<byte>()` with `Array.Empty<byte>()`
 - Remove `SessionTimers.EnableHighResolutionTimers` (the app now checks CApp.Prefs.GetBoolPref("app.high_resolution_clock", true) at boot time)
 - IHandleExecAction is not yet implemented.
 - `IAutoTamper2` and `IAutoTamper3` were merged into the `IAutoTamper` interface. Implementers should leave the Peek methods unimplemented if they aren't needed.
 
+- In Fiddler, each Inspector inherited from Inspector2 (an abstract base class) AND then implemented either 
+  IRequestInspector2 or IResponseInspector2 to add an accessor for the proper type of Headers. In Clearinet,
+  your Inspector extension simply inherits from either RequestInspectorBase or ResponseInspectorBase. 
 
 ### Paths
 - Replace `Fiddler.exe` with `Clearinet.exe`.

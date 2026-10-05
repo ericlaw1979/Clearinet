@@ -19,6 +19,8 @@ namespace Clearinet
             get { return _Log; }
         }
 
+        public static bool isTracing { get; internal set; } = false;
+
         public static Extensions oExtensions;
 
         internal static JScriptEngine scriptRules;

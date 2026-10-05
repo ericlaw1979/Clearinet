@@ -214,6 +214,13 @@ namespace Clearinet
                 frmSplashScreen.SetStatusText("Loading extensions...");
                 CApp.oExtensions = new Extensions();
 
+                foreach (RequestInspectorBase oRI in CApp.oExtensions.m_RequestInspectors.Values)
+                {
+                    TabPage oPage = new TabPage();
+                    oRI.AddToTab(oPage);
+                    CApp.UI.tabsRequest.TabPages.Add(oPage);
+                }
+
                 frmSplashScreen.SetStatusText("Loading script engine...");
                 CApp.CreateScriptEngine();
 
@@ -472,6 +479,11 @@ namespace Clearinet
         {
             miFileAttach.Checked = !miFileAttach.Checked;
             if (miFileAttach.Checked) { CApp.actAttachProxy(); } else { CApp.actDetachProxy(); }
+        }
+
+        private void pageInspectors_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

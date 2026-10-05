@@ -42,6 +42,11 @@ namespace Clearinet
         public void RenameHeaderItems(string fromHeaderName, string toHeaderName)
         {
         }
+
+        public bool Exists(string sHeaderName)
+        {
+            return storage.Exists(h => h.Name.OICEquals(sHeaderName));
+        }
         public string this[string sHeaderName]
         {
             get { return "TODO"; }

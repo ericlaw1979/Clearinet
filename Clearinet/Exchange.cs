@@ -130,8 +130,16 @@ namespace Clearinet
         // 
         public event EventHandler<StateChangeEventArgs> OnStateChanged;
 
-        byte[] _requestBodyBytes = Array.Empty<byte>();
-        byte[] _responseBodyBytes = Array.Empty<byte>();
+        byte[] _arrRequestBody = Array.Empty<byte>();
+        byte[] _arrResponseBody = Array.Empty<byte>();
+
+        // TODO: Figure out cloning
+        public byte[] RequestBody { get => _arrRequestBody; set => _arrRequestBody = value; }
+        public byte[] ResponseBody { get => _arrResponseBody; set => _arrResponseBody = value; }
+
+        // TODO: These are supposed to point into the underlying object...
+        public HTTPRequestHeaders RequestHeaders { get; set; }
+        public HTTPResponseHeaders ResponseHeaders { get; set; }
 
         #region FlagHandling
         public ConcurrentDictionary<string, string> oFlags =
@@ -256,9 +264,9 @@ namespace Clearinet
 
             Exchange exchBuilt = new Exchange(rqh, arrReqBody);
             //exchBuilt._AssignID();
-            //exchBuilt.SetBitFlag(ef, true);
+            exchBuilt.SetBitFlag(ef, true);
             //exchBuilt.oResponse.headers = rph;
-            exchBuilt._responseBodyBytes = arrRespBody;
+            exchBuilt._arrResponseBody = arrRespBody;
             exchBuilt.state = ExchangeState.Done;
 
             return exchBuilt;
@@ -266,7 +274,7 @@ namespace Clearinet
 
         public Exchange(HTTPRequestHeaders rqh, byte[] arrReqBody)
         {
-            this._requestBodyBytes = arrReqBody;
+            this._arrRequestBody = arrReqBody; // CLONE?
             //TODO: Set headers
         }
 
@@ -276,7 +284,7 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// Public (Legacy) API. Direct Clearinet to ignore this exchange
+        /// Public (Legacy) API. Instruct Clearinet to ignore this exchange
         /// to the extent possible.
         /// </summary>
         public void Ignore()
@@ -296,7 +304,7 @@ namespace Clearinet
         }
 
 
-
+        public bool isTunnel { get => HTTPMethodIs("CONNECT"); }
 
         public bool HTTPMethodIs(string sTestFor)
         {

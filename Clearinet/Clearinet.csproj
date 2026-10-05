@@ -70,6 +70,7 @@
     <Compile Include="ExchangeTimers.cs" />
     <Compile Include="ExtensionAPI.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="InspectorAPI.cs" />
     <Compile Include="SAZFile.cs" />
     <Compile Include="UI\frmAbout.cs">
       <SubType>Form</SubType>

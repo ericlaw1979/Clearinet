@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 
 namespace Clearinet
 {
@@ -12,7 +13,9 @@ namespace Clearinet
         private Dictionary<Guid, IAppExtension> m_Extensions = new Dictionary<Guid, IAppExtension>();
         private Dictionary<Guid, IAutoTamper> m_AutoTamperers = new Dictionary<Guid, IAutoTamper>();
 
-        // TODO: What about Transcoders, which are loaded on-demand?
+        //TODO: Fix accessiblity of these dictionaries. They should be private, but the UI needs to access them to add tabs for each Inspector.
+        internal Dictionary<Guid, RequestInspectorBase> m_RequestInspectors = new Dictionary<Guid, RequestInspectorBase>();
+        internal Dictionary<Guid, ResponseInspectorBase> m_ResponseInspectors = new Dictionary<Guid, ResponseInspectorBase>();
 
         internal Extensions()
         {
@@ -26,7 +29,10 @@ namespace Clearinet
         public string ToString(bool bVerbose)
         {
             StringBuilder sbResult = new StringBuilder(128);
-            sbResult.AppendFormat("Extensions: {0} loaded, {1} AutoTamperers", m_Extensions.Count, m_AutoTamperers.Count);
+            sbResult.Append($"Extensions: {m_Extensions.Count} loaded: " +
+                $"{m_RequestInspectors.Count} Request Inspectors; " +
+                $"{ m_ResponseInspectors.Count} Response Inspectors; " +
+                $"{ m_AutoTamperers.Count} AutoTamperers");
 
             if (bVerbose)
             {
@@ -130,6 +136,7 @@ namespace Clearinet
                 if (!AppMeetsVersionDemand(a, "AppExtensions")) return;
                 foreach (Type t in a.GetExportedTypes())
                 {
+                    CApp.alert(t.ToString());
                     if (!t.IsAbstract && t.IsPublic && t.IsClass)
                     {
                         if (typeof(IAppExtension).IsAssignableFrom(t))
@@ -154,11 +161,14 @@ namespace Clearinet
 
         private void InstantiateExtension(Type t)
         {
+            MessageBox.Show(t.ToString());
             if (m_Extensions.ContainsKey(t.GUID)) return;
 
             IAppExtension iae = (IAppExtension)Activator.CreateInstance(t);
             m_Extensions.Add(t.GUID, iae);
             if (iae is IAutoTamper) m_AutoTamperers.Add(t.GUID, (IAutoTamper)iae);
+            if (iae is RequestInspectorBase) m_RequestInspectors.Add(t.GUID, (RequestInspectorBase)iae);
+            if (iae is ResponseInspectorBase) m_ResponseInspectors.Add(t.GUID, (ResponseInspectorBase)iae);
 
             // If extension has loaded and the app is already booted, call OnLoad() immediately.
             // Otherwise, it will be called when the app boots.

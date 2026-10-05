@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Clearinet
 {
@@ -16,5 +17,7 @@ namespace Clearinet
             Buffer.BlockCopy(source, 0, dest, 0, source.Length);
             return dest;
         }
+
+        public static bool HasData(this byte[] source) => source?.Length > 0;
     }
 }

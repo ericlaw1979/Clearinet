@@ -39,8 +39,8 @@
             System.Windows.Forms.ToolStripSeparator miToolsSplitter1;
             System.Windows.Forms.ToolStripSeparator miViewSplitter1;
             System.Windows.Forms.ToolStripSeparator miHelpSplitter1;
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
             System.Windows.Forms.ToolStripSeparator tsmiFileSaveSplitter1;
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileAttach = new System.Windows.Forms.ToolStripMenuItem();
@@ -49,6 +49,8 @@
             this.recentArchivesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSAZ = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.importExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileExport = new System.Windows.Forms.ToolStripMenuItem();
             this.allExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -105,6 +107,7 @@
             this.tslMemory = new System.Windows.Forms.ToolStripStatusLabel();
             this.tslInfo = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsToolbar = new System.Windows.Forms.ToolStrip();
+            this.tsmiNameViewer = new System.Windows.Forms.ToolStripButton();
             this.tsbComment = new System.Windows.Forms.ToolStripButton();
             this.tsddbRemove = new System.Windows.Forms.ToolStripDropDownButton();
             this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -113,6 +116,12 @@
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
+            this.blvExchanges = new Clearinet.BetterListView();
+            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
@@ -122,15 +131,14 @@
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.tsmiNameViewer = new System.Windows.Forms.ToolStripButton();
-            this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
-            this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
-            this.blvExchanges = new Clearinet.BetterListView();
-            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.txtQuickExec = new Clearinet.QuickExecBox();
+            this.tabsRequest = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.tabsResponse = new System.Windows.Forms.TabControl();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.pnlTamper = new System.Windows.Forms.Panel();
+            this.splitter1 = new System.Windows.Forms.Splitter();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -150,63 +158,71 @@
             this.pnlLeft.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.tabsViews.SuspendLayout();
+            this.pageInspectors.SuspendLayout();
             this.pageLog.SuspendLayout();
+            this.tabsRequest.SuspendLayout();
+            this.tabsResponse.SuspendLayout();
             this.SuspendLayout();
             // 
             // miViewSplitter3
             // 
             miViewSplitter3.Name = "miViewSplitter3";
-            miViewSplitter3.Size = new System.Drawing.Size(221, 6);
+            miViewSplitter3.Size = new System.Drawing.Size(258, 6);
             // 
             // miViewSplitter2
             // 
             miViewSplitter2.Name = "miViewSplitter2";
-            miViewSplitter2.Size = new System.Drawing.Size(221, 6);
+            miViewSplitter2.Size = new System.Drawing.Size(258, 6);
             // 
             // miFileSplit1
             // 
             miFileSplit1.Name = "miFileSplit1";
-            miFileSplit1.Size = new System.Drawing.Size(186, 6);
+            miFileSplit1.Size = new System.Drawing.Size(218, 6);
             // 
             // miFileSplit2
             // 
             miFileSplit2.Name = "miFileSplit2";
-            miFileSplit2.Size = new System.Drawing.Size(186, 6);
+            miFileSplit2.Size = new System.Drawing.Size(218, 6);
             // 
             // miFileSplit3
             // 
             miFileSplit3.Name = "miFileSplit3";
-            miFileSplit3.Size = new System.Drawing.Size(186, 6);
+            miFileSplit3.Size = new System.Drawing.Size(218, 6);
             // 
             // miEditSplitter1
             // 
             miEditSplitter1.Name = "miEditSplitter1";
-            miEditSplitter1.Size = new System.Drawing.Size(205, 6);
+            miEditSplitter1.Size = new System.Drawing.Size(239, 6);
             // 
             // miEditMarkSplit1
             // 
             miEditMarkSplit1.Name = "miEditMarkSplit1";
-            miEditMarkSplit1.Size = new System.Drawing.Size(124, 6);
+            miEditMarkSplit1.Size = new System.Drawing.Size(148, 6);
             // 
             // miEditSplitter2
             // 
             miEditSplitter2.Name = "miEditSplitter2";
-            miEditSplitter2.Size = new System.Drawing.Size(205, 6);
+            miEditSplitter2.Size = new System.Drawing.Size(239, 6);
             // 
             // miToolsSplitter1
             // 
             miToolsSplitter1.Name = "miToolsSplitter1";
-            miToolsSplitter1.Size = new System.Drawing.Size(181, 6);
+            miToolsSplitter1.Size = new System.Drawing.Size(213, 6);
             // 
             // miViewSplitter1
             // 
             miViewSplitter1.Name = "miViewSplitter1";
-            miViewSplitter1.Size = new System.Drawing.Size(221, 6);
+            miViewSplitter1.Size = new System.Drawing.Size(258, 6);
             // 
             // miHelpSplitter1
             // 
             miHelpSplitter1.Name = "miHelpSplitter1";
-            miHelpSplitter1.Size = new System.Drawing.Size(140, 6);
+            miHelpSplitter1.Size = new System.Drawing.Size(164, 6);
+            // 
+            // tsmiFileSaveSplitter1
+            // 
+            tsmiFileSaveSplitter1.Name = "tsmiFileSaveSplitter1";
+            tsmiFileSaveSplitter1.Size = new System.Drawing.Size(219, 6);
             // 
             // mnuMain
             // 
@@ -221,7 +237,7 @@
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
             this.mnuMain.Padding = new System.Windows.Forms.Padding(8, 3, 0, 3);
-            this.mnuMain.Size = new System.Drawing.Size(1043, 27);
+            this.mnuMain.Size = new System.Drawing.Size(1043, 30);
             this.mnuMain.TabIndex = 0;
             this.mnuMain.Text = "mnuMain";
             // 
@@ -240,21 +256,21 @@
             miFileSplit3,
             this.miFileExit});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 21);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
             this.fileToolStripMenuItem.Text = "&File";
             // 
             // miFileAttach
             // 
             this.miFileAttach.Name = "miFileAttach";
             this.miFileAttach.ShortcutKeys = System.Windows.Forms.Keys.F12;
-            this.miFileAttach.Size = new System.Drawing.Size(189, 22);
+            this.miFileAttach.Size = new System.Drawing.Size(221, 26);
             this.miFileAttach.Text = "&Capture Traffic";
             this.miFileAttach.ToolTipText = "Should Clearinet tell the OS to send it traffic?";
             // 
             // miFileNewViewer
             // 
             this.miFileNewViewer.Name = "miFileNewViewer";
-            this.miFileNewViewer.Size = new System.Drawing.Size(189, 22);
+            this.miFileNewViewer.Size = new System.Drawing.Size(221, 26);
             this.miFileNewViewer.Text = "&New Viewer";
             this.miFileNewViewer.ToolTipText = "Spawn a new Viewer-mode instance";
             this.miFileNewViewer.Click += new System.EventHandler(this.miFileNewViewer_Click);
@@ -262,14 +278,14 @@
             // loadArchiveToolStripMenuItem
             // 
             this.loadArchiveToolStripMenuItem.Name = "loadArchiveToolStripMenuItem";
-            this.loadArchiveToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.loadArchiveToolStripMenuItem.Size = new System.Drawing.Size(221, 26);
             this.loadArchiveToolStripMenuItem.Text = "&Load Archive...";
             // 
             // recentArchivesToolStripMenuItem
             // 
             this.recentArchivesToolStripMenuItem.Enabled = false;
             this.recentArchivesToolStripMenuItem.Name = "recentArchivesToolStripMenuItem";
-            this.recentArchivesToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.recentArchivesToolStripMenuItem.Size = new System.Drawing.Size(221, 26);
             this.recentArchivesToolStripMenuItem.Text = "&Recent Archives";
             // 
             // saveToolStripMenuItem
@@ -279,19 +295,33 @@
             tsmiFileSaveSplitter1,
             this.miFileSaveSelected});
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(221, 26);
             this.saveToolStripMenuItem.Text = "&Save";
             // 
             // miFileSaveSAZ
             // 
             this.miFileSaveSAZ.Name = "miFileSaveSAZ";
-            this.miFileSaveSAZ.Size = new System.Drawing.Size(190, 22);
+            this.miFileSaveSAZ.Size = new System.Drawing.Size(222, 26);
             this.miFileSaveSAZ.Text = "&All Exchanges...";
+            // 
+            // miFileSaveSelected
+            // 
+            this.miFileSaveSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFileSaveSelectedSAZ});
+            this.miFileSaveSelected.Name = "miFileSaveSelected";
+            this.miFileSaveSelected.Size = new System.Drawing.Size(222, 26);
+            this.miFileSaveSelected.Text = "&Selected Exchanges";
+            // 
+            // miFileSaveSelectedSAZ
+            // 
+            this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
+            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(183, 26);
+            this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
             // 
             // importExchangesToolStripMenuItem
             // 
             this.importExchangesToolStripMenuItem.Name = "importExchangesToolStripMenuItem";
-            this.importExchangesToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.importExchangesToolStripMenuItem.Size = new System.Drawing.Size(221, 26);
             this.importExchangesToolStripMenuItem.Text = "&Import Exchanges";
             // 
             // miFileExport
@@ -300,25 +330,25 @@
             this.allExchangesToolStripMenuItem,
             this.selectedExchangesToolStripMenuItem});
             this.miFileExport.Name = "miFileExport";
-            this.miFileExport.Size = new System.Drawing.Size(189, 22);
+            this.miFileExport.Size = new System.Drawing.Size(221, 26);
             this.miFileExport.Text = "&Export Exchanges";
             // 
             // allExchangesToolStripMenuItem
             // 
             this.allExchangesToolStripMenuItem.Name = "allExchangesToolStripMenuItem";
-            this.allExchangesToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.allExchangesToolStripMenuItem.Size = new System.Drawing.Size(231, 26);
             this.allExchangesToolStripMenuItem.Text = "&All Exchanges...";
             // 
             // selectedExchangesToolStripMenuItem
             // 
             this.selectedExchangesToolStripMenuItem.Name = "selectedExchangesToolStripMenuItem";
-            this.selectedExchangesToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.selectedExchangesToolStripMenuItem.Size = new System.Drawing.Size(231, 26);
             this.selectedExchangesToolStripMenuItem.Text = "&Selected Exchanges...";
             // 
             // miFileExit
             // 
             this.miFileExit.Name = "miFileExit";
-            this.miFileExit.Size = new System.Drawing.Size(189, 22);
+            this.miFileExit.Size = new System.Drawing.Size(221, 26);
             this.miFileExit.Text = "E&xit";
             this.miFileExit.Click += new System.EventHandler(this.miFileExit_Click);
             // 
@@ -336,7 +366,7 @@
             miEditSplitter2,
             this.miEditFind});
             this.miEdit.Name = "miEdit";
-            this.miEdit.Size = new System.Drawing.Size(42, 21);
+            this.miEdit.Size = new System.Drawing.Size(49, 24);
             this.miEdit.Text = "&Edit";
             // 
             // miEditCopy
@@ -348,37 +378,37 @@
             this.miCopySummary,
             this.miCopyTerseSummary});
             this.miEditCopy.Name = "miEditCopy";
-            this.miEditCopy.Size = new System.Drawing.Size(208, 22);
+            this.miEditCopy.Size = new System.Drawing.Size(242, 26);
             this.miEditCopy.Text = "&Copy";
             // 
             // miCopyExchange
             // 
             this.miCopyExchange.Name = "miCopyExchange";
-            this.miCopyExchange.Size = new System.Drawing.Size(165, 22);
+            this.miCopyExchange.Size = new System.Drawing.Size(192, 26);
             this.miCopyExchange.Text = "&Exchange";
             // 
             // miCopyURL
             // 
             this.miCopyURL.Name = "miCopyURL";
-            this.miCopyURL.Size = new System.Drawing.Size(165, 22);
+            this.miCopyURL.Size = new System.Drawing.Size(192, 26);
             this.miCopyURL.Text = "Just &Url";
             // 
             // miCopyHeaders
             // 
             this.miCopyHeaders.Name = "miCopyHeaders";
-            this.miCopyHeaders.Size = new System.Drawing.Size(165, 22);
+            this.miCopyHeaders.Size = new System.Drawing.Size(192, 26);
             this.miCopyHeaders.Text = "&Headers only";
             // 
             // miCopySummary
             // 
             this.miCopySummary.Name = "miCopySummary";
-            this.miCopySummary.Size = new System.Drawing.Size(165, 22);
+            this.miCopySummary.Size = new System.Drawing.Size(192, 26);
             this.miCopySummary.Text = "&Full Summary";
             // 
             // miCopyTerseSummary
             // 
             this.miCopyTerseSummary.Name = "miCopyTerseSummary";
-            this.miCopyTerseSummary.Size = new System.Drawing.Size(165, 22);
+            this.miCopyTerseSummary.Size = new System.Drawing.Size(192, 26);
             this.miCopyTerseSummary.Text = "&Terse Summary";
             // 
             // miEditRemove
@@ -388,51 +418,51 @@
             this.miEditRemoveUnselected,
             this.miEditRemoveAll});
             this.miEditRemove.Name = "miEditRemove";
-            this.miEditRemove.Size = new System.Drawing.Size(208, 22);
+            this.miEditRemove.Size = new System.Drawing.Size(242, 26);
             this.miEditRemove.Text = "&Remove";
             // 
             // miEditRemoveSelected
             // 
             this.miEditRemoveSelected.Name = "miEditRemoveSelected";
-            this.miEditRemoveSelected.Size = new System.Drawing.Size(205, 22);
+            this.miEditRemoveSelected.Size = new System.Drawing.Size(238, 26);
             this.miEditRemoveSelected.Text = "&Selected Exchanges";
             // 
             // miEditRemoveUnselected
             // 
             this.miEditRemoveUnselected.Name = "miEditRemoveUnselected";
-            this.miEditRemoveUnselected.Size = new System.Drawing.Size(205, 22);
+            this.miEditRemoveUnselected.Size = new System.Drawing.Size(238, 26);
             this.miEditRemoveUnselected.Text = "&Unselected Exchanges";
             // 
             // miEditRemoveAll
             // 
             this.miEditRemoveAll.Name = "miEditRemoveAll";
-            this.miEditRemoveAll.Size = new System.Drawing.Size(205, 22);
+            this.miEditRemoveAll.Size = new System.Drawing.Size(238, 26);
             this.miEditRemoveAll.Text = "&All Exchanges";
             // 
             // selectAllToolStripMenuItem
             // 
             this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
-            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
+            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(242, 26);
             this.selectAllToolStripMenuItem.Text = "&Select all...";
             // 
             // miEditPasteAsExchanges
             // 
             this.miEditPasteAsExchanges.Name = "miEditPasteAsExchanges";
-            this.miEditPasteAsExchanges.Size = new System.Drawing.Size(208, 22);
+            this.miEditPasteAsExchanges.Size = new System.Drawing.Size(242, 26);
             this.miEditPasteAsExchanges.Text = "&Paste as Exchanges";
             // 
             // miEditUndelete
             // 
             this.miEditUndelete.Enabled = false;
             this.miEditUndelete.Name = "miEditUndelete";
-            this.miEditUndelete.Size = new System.Drawing.Size(208, 22);
+            this.miEditUndelete.Size = new System.Drawing.Size(242, 26);
             this.miEditUndelete.Text = "&Undelete";
             // 
             // miEditUnlock
             // 
             this.miEditUnlock.Name = "miEditUnlock";
             this.miEditUnlock.ShortcutKeys = System.Windows.Forms.Keys.F2;
-            this.miEditUnlock.Size = new System.Drawing.Size(208, 22);
+            this.miEditUnlock.Size = new System.Drawing.Size(242, 26);
             this.miEditUnlock.Text = "Unlock for &Editing";
             // 
             // miEditMark
@@ -445,50 +475,50 @@
             miEditMarkSplit1,
             this.miEditMarkUnmark});
             this.miEditMark.Name = "miEditMark";
-            this.miEditMark.Size = new System.Drawing.Size(208, 22);
+            this.miEditMark.Size = new System.Drawing.Size(242, 26);
             this.miEditMark.Text = "&Mark";
             // 
             // miEditMarkStrikeout
             // 
             this.miEditMarkStrikeout.Name = "miEditMarkStrikeout";
-            this.miEditMarkStrikeout.Size = new System.Drawing.Size(127, 22);
+            this.miEditMarkStrikeout.Size = new System.Drawing.Size(151, 26);
             this.miEditMarkStrikeout.Text = "&Strikeout";
             // 
             // miEditMarkRed
             // 
             this.miEditMarkRed.Name = "miEditMarkRed";
-            this.miEditMarkRed.Size = new System.Drawing.Size(127, 22);
+            this.miEditMarkRed.Size = new System.Drawing.Size(151, 26);
             this.miEditMarkRed.Text = "&Red";
             // 
             // miEditMarkBlue
             // 
             this.miEditMarkBlue.Name = "miEditMarkBlue";
-            this.miEditMarkBlue.Size = new System.Drawing.Size(127, 22);
+            this.miEditMarkBlue.Size = new System.Drawing.Size(151, 26);
             this.miEditMarkBlue.Text = "&Blue";
             // 
             // miEditMarkGold
             // 
             this.miEditMarkGold.Name = "miEditMarkGold";
-            this.miEditMarkGold.Size = new System.Drawing.Size(127, 22);
+            this.miEditMarkGold.Size = new System.Drawing.Size(151, 26);
             this.miEditMarkGold.Text = "&Gold";
             // 
             // miEditMarkUnmark
             // 
             this.miEditMarkUnmark.Name = "miEditMarkUnmark";
-            this.miEditMarkUnmark.Size = new System.Drawing.Size(127, 22);
+            this.miEditMarkUnmark.Size = new System.Drawing.Size(151, 26);
             this.miEditMarkUnmark.Text = "&Unmark";
             // 
             // miEditFind
             // 
             this.miEditFind.Name = "miEditFind";
             this.miEditFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-            this.miEditFind.Size = new System.Drawing.Size(208, 22);
+            this.miEditFind.Size = new System.Drawing.Size(242, 26);
             this.miEditFind.Text = "&Find Exchanges";
             // 
             // rulesToolStripMenuItem
             // 
             this.rulesToolStripMenuItem.Name = "rulesToolStripMenuItem";
-            this.rulesToolStripMenuItem.Size = new System.Drawing.Size(51, 21);
+            this.rulesToolStripMenuItem.Size = new System.Drawing.Size(58, 24);
             this.rulesToolStripMenuItem.Text = "&Rules";
             // 
             // toolsToolStripMenuItem
@@ -499,13 +529,13 @@
             this.miTextWizard,
             this.miToolsMezer});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(51, 21);
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(58, 24);
             this.toolsToolStripMenuItem.Text = "&Tools";
             // 
             // miToolsOptions
             // 
             this.miToolsOptions.Name = "miToolsOptions";
-            this.miToolsOptions.Size = new System.Drawing.Size(184, 22);
+            this.miToolsOptions.Size = new System.Drawing.Size(216, 26);
             this.miToolsOptions.Text = "Clearinet &Options";
             this.miToolsOptions.ToolTipText = "Change Clearinet\'s Configuration Options";
             this.miToolsOptions.Click += new System.EventHandler(this.miToolsOptions_Click);
@@ -514,7 +544,7 @@
             // 
             this.miTextWizard.Name = "miTextWizard";
             this.miTextWizard.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.miTextWizard.Size = new System.Drawing.Size(184, 22);
+            this.miTextWizard.Size = new System.Drawing.Size(216, 26);
             this.miTextWizard.Text = "&TextWizard";
             this.miTextWizard.ToolTipText = "The TextWizard encodes and decodes text.";
             this.miTextWizard.Click += new System.EventHandler(this.miTextWizard_Click);
@@ -522,7 +552,7 @@
             // miToolsMezer
             // 
             this.miToolsMezer.Name = "miToolsMezer";
-            this.miToolsMezer.Size = new System.Drawing.Size(184, 22);
+            this.miToolsMezer.Size = new System.Drawing.Size(216, 26);
             this.miToolsMezer.Text = "Me&zerTools";
             this.miToolsMezer.ToolTipText = "NYI: Simple tools for graphical designers";
             this.miToolsMezer.Click += new System.EventHandler(this.miToolsMezer_Click);
@@ -543,21 +573,21 @@
             miViewSplitter3,
             this.miViewRefresh});
             this.miView.Name = "miView";
-            this.miView.Size = new System.Drawing.Size(47, 21);
+            this.miView.Size = new System.Drawing.Size(55, 24);
             this.miView.Text = "&View";
             // 
             // miViewStayOnTop
             // 
             this.miViewStayOnTop.CheckOnClick = true;
             this.miViewStayOnTop.Name = "miViewStayOnTop";
-            this.miViewStayOnTop.Size = new System.Drawing.Size(224, 22);
+            this.miViewStayOnTop.Size = new System.Drawing.Size(261, 26);
             this.miViewStayOnTop.Text = "&Stay on Top";
             this.miViewStayOnTop.CheckedChanged += new System.EventHandler(this.miViewStayOnTop_CheckedChanged);
             // 
             // miViewMinimize
             // 
             this.miViewMinimize.Name = "miViewMinimize";
-            this.miViewMinimize.Size = new System.Drawing.Size(224, 22);
+            this.miViewMinimize.Size = new System.Drawing.Size(261, 26);
             this.miViewMinimize.Text = "&Minimize to Tray";
             this.miViewMinimize.Click += new System.EventHandler(this.miViewMinimize_Click);
             // 
@@ -565,7 +595,7 @@
             // 
             this.miViewStatistics.Name = "miViewStatistics";
             this.miViewStatistics.ShortcutKeys = System.Windows.Forms.Keys.F7;
-            this.miViewStatistics.Size = new System.Drawing.Size(224, 22);
+            this.miViewStatistics.Size = new System.Drawing.Size(261, 26);
             this.miViewStatistics.Text = "&Statistics";
             this.miViewStatistics.Click += new System.EventHandler(this.miViewStatistics_Click);
             // 
@@ -573,7 +603,7 @@
             // 
             this.miViewInspectors.Name = "miViewInspectors";
             this.miViewInspectors.ShortcutKeys = System.Windows.Forms.Keys.F8;
-            this.miViewInspectors.Size = new System.Drawing.Size(224, 22);
+            this.miViewInspectors.Size = new System.Drawing.Size(261, 26);
             this.miViewInspectors.Text = "&Inspectors";
             this.miViewInspectors.Click += new System.EventHandler(this.miViewInspectors_Click);
             // 
@@ -581,7 +611,7 @@
             // 
             this.miViewComposer.Name = "miViewComposer";
             this.miViewComposer.ShortcutKeys = System.Windows.Forms.Keys.F9;
-            this.miViewComposer.Size = new System.Drawing.Size(224, 22);
+            this.miViewComposer.Size = new System.Drawing.Size(261, 26);
             this.miViewComposer.Text = "&Composer";
             this.miViewComposer.Click += new System.EventHandler(this.miViewComposer_Click);
             // 
@@ -589,7 +619,7 @@
             // 
             this.miViewTabs.Enabled = false;
             this.miViewTabs.Name = "miViewTabs";
-            this.miViewTabs.Size = new System.Drawing.Size(224, 22);
+            this.miViewTabs.Size = new System.Drawing.Size(261, 26);
             this.miViewTabs.Text = "Extra Ta&bs";
             // 
             // miViewAutoScroll
@@ -598,7 +628,7 @@
             this.miViewAutoScroll.CheckOnClick = true;
             this.miViewAutoScroll.CheckState = System.Windows.Forms.CheckState.Checked;
             this.miViewAutoScroll.Name = "miViewAutoScroll";
-            this.miViewAutoScroll.Size = new System.Drawing.Size(224, 22);
+            this.miViewAutoScroll.Size = new System.Drawing.Size(261, 26);
             this.miViewAutoScroll.Text = "Sm&artScroll Exchange List";
             this.miViewAutoScroll.Click += new System.EventHandler(this.miViewAutoScroll_Click);
             // 
@@ -606,7 +636,7 @@
             // 
             this.miViewSquish.Name = "miViewSquish";
             this.miViewSquish.ShortcutKeys = System.Windows.Forms.Keys.F6;
-            this.miViewSquish.Size = new System.Drawing.Size(224, 22);
+            this.miViewSquish.Size = new System.Drawing.Size(261, 26);
             this.miViewSquish.Text = "Squish Exchange &List";
             this.miViewSquish.Click += new System.EventHandler(this.miViewSquish_Click);
             // 
@@ -614,7 +644,7 @@
             // 
             this.miViewRefresh.Name = "miViewRefresh";
             this.miViewRefresh.ShortcutKeys = System.Windows.Forms.Keys.F5;
-            this.miViewRefresh.Size = new System.Drawing.Size(224, 22);
+            this.miViewRefresh.Size = new System.Drawing.Size(261, 26);
             this.miViewRefresh.Text = "&Refresh";
             this.miViewRefresh.Click += new System.EventHandler(this.miViewRefresh_Click);
             // 
@@ -626,32 +656,33 @@
             miHelpSplitter1,
             this.miHelpAbout});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(47, 21);
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
             this.helpToolStripMenuItem.Text = "&Help";
             // 
             // miHelpDiscuss
             // 
             this.miHelpDiscuss.Name = "miHelpDiscuss";
-            this.miHelpDiscuss.Size = new System.Drawing.Size(143, 22);
+            this.miHelpDiscuss.Size = new System.Drawing.Size(167, 26);
             this.miHelpDiscuss.Text = "&Discussions";
             this.miHelpDiscuss.Click += new System.EventHandler(this.miHelpDiscuss_Click);
             // 
             // miHelpBug
             // 
             this.miHelpBug.Name = "miHelpBug";
-            this.miHelpBug.Size = new System.Drawing.Size(143, 22);
+            this.miHelpBug.Size = new System.Drawing.Size(167, 26);
             this.miHelpBug.Text = "File a &bug";
             this.miHelpBug.Click += new System.EventHandler(this.miHelpBug_Click);
             // 
             // miHelpAbout
             // 
             this.miHelpAbout.Name = "miHelpAbout";
-            this.miHelpAbout.Size = new System.Drawing.Size(143, 22);
+            this.miHelpAbout.Size = new System.Drawing.Size(167, 26);
             this.miHelpAbout.Text = "&About";
             this.miHelpAbout.Click += new System.EventHandler(this.miHelpAbout_Click);
             // 
             // ssStatus
             // 
+            this.ssStatus.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.ssStatus.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tssbCapture,
             this.tslSelCount,
@@ -683,25 +714,25 @@
             this.tsmiCaptureAll.Checked = true;
             this.tsmiCaptureAll.CheckState = System.Windows.Forms.CheckState.Checked;
             this.tsmiCaptureAll.Name = "tsmiCaptureAll";
-            this.tsmiCaptureAll.Size = new System.Drawing.Size(184, 22);
+            this.tsmiCaptureAll.Size = new System.Drawing.Size(213, 26);
             this.tsmiCaptureAll.Text = "Show All";
             // 
             // tsmiCaptureBrowsers
             // 
             this.tsmiCaptureBrowsers.Name = "tsmiCaptureBrowsers";
-            this.tsmiCaptureBrowsers.Size = new System.Drawing.Size(184, 22);
+            this.tsmiCaptureBrowsers.Size = new System.Drawing.Size(213, 26);
             this.tsmiCaptureBrowsers.Text = "Browsers Only";
             // 
             // tsmiCaptureNonBrowser
             // 
             this.tsmiCaptureNonBrowser.Name = "tsmiCaptureNonBrowser";
-            this.tsmiCaptureNonBrowser.Size = new System.Drawing.Size(184, 22);
+            this.tsmiCaptureNonBrowser.Size = new System.Drawing.Size(213, 26);
             this.tsmiCaptureNonBrowser.Text = "Non-browser Only";
             // 
             // tsmiCaptureNone
             // 
             this.tsmiCaptureNone.Name = "tsmiCaptureNone";
-            this.tsmiCaptureNone.Size = new System.Drawing.Size(184, 22);
+            this.tsmiCaptureNone.Size = new System.Drawing.Size(213, 26);
             this.tsmiCaptureNone.Text = "Hide All";
             // 
             // tslSelCount
@@ -709,7 +740,7 @@
             this.tslSelCount.AutoSize = false;
             this.tslSelCount.Name = "tslSelCount";
             this.tslSelCount.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
-            this.tslSelCount.Size = new System.Drawing.Size(80, 26);
+            this.tslSelCount.Size = new System.Drawing.Size(80, 25);
             this.tslSelCount.Text = "0";
             this.tslSelCount.ToolTipText = "Number of Exchanges";
             // 
@@ -718,14 +749,14 @@
             this.tslMemory.AutoSize = false;
             this.tslMemory.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslMemory.Name = "tslMemory";
-            this.tslMemory.Size = new System.Drawing.Size(60, 26);
+            this.tslMemory.Size = new System.Drawing.Size(60, 25);
             this.tslMemory.Text = "0mb";
             // 
             // tslInfo
             // 
             this.tslInfo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslInfo.Name = "tslInfo";
-            this.tslInfo.Size = new System.Drawing.Size(776, 26);
+            this.tslInfo.Size = new System.Drawing.Size(776, 25);
             this.tslInfo.Spring = true;
             this.tslInfo.Text = "Welcome to Clearinet!";
             this.tslInfo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -733,22 +764,36 @@
             // tsToolbar
             // 
             this.tsToolbar.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tsToolbar.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.tsToolbar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsmiNameViewer,
             this.tsbComment,
             this.tsddbRemove,
             this.tsbTearoff});
-            this.tsToolbar.Location = new System.Drawing.Point(0, 27);
+            this.tsToolbar.Location = new System.Drawing.Point(0, 30);
             this.tsToolbar.Name = "tsToolbar";
-            this.tsToolbar.Size = new System.Drawing.Size(1043, 25);
+            this.tsToolbar.Size = new System.Drawing.Size(1043, 30);
             this.tsToolbar.TabIndex = 4;
+            // 
+            // tsmiNameViewer
+            // 
+            this.tsmiNameViewer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsmiNameViewer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tsmiNameViewer.Image = ((System.Drawing.Image)(resources.GetObject("tsmiNameViewer.Image")));
+            this.tsmiNameViewer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsmiNameViewer.Name = "tsmiNameViewer";
+            this.tsmiNameViewer.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
+            this.tsmiNameViewer.Size = new System.Drawing.Size(89, 27);
+            this.tsmiNameViewer.Text = "Viewer";
+            this.tsmiNameViewer.Visible = false;
+            this.tsmiNameViewer.Click += new System.EventHandler(this.tsmiNameViewer_Click);
             // 
             // tsbComment
             // 
             this.tsbComment.Image = ((System.Drawing.Image)(resources.GetObject("tsbComment.Image")));
             this.tsbComment.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbComment.Name = "tsbComment";
-            this.tsbComment.Size = new System.Drawing.Size(84, 22);
+            this.tsbComment.Size = new System.Drawing.Size(98, 27);
             this.tsbComment.Text = "Comment";
             // 
             // tsddbRemove
@@ -759,20 +804,20 @@
             this.tsddbRemove.Image = ((System.Drawing.Image)(resources.GetObject("tsddbRemove.Image")));
             this.tsddbRemove.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsddbRemove.Name = "tsddbRemove";
-            this.tsddbRemove.Size = new System.Drawing.Size(84, 22);
+            this.tsddbRemove.Size = new System.Drawing.Size(97, 27);
             this.tsddbRemove.Text = "Remove";
             this.tsddbRemove.ToolTipText = "Remove";
             // 
             // allToolStripMenuItem
             // 
             this.allToolStripMenuItem.Name = "allToolStripMenuItem";
-            this.allToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
+            this.allToolStripMenuItem.Size = new System.Drawing.Size(272, 26);
             this.allToolStripMenuItem.Text = "All Exchanges";
             // 
             // duplicateResponseBodiesToolStripMenuItem
             // 
             this.duplicateResponseBodiesToolStripMenuItem.Name = "duplicateResponseBodiesToolStripMenuItem";
-            this.duplicateResponseBodiesToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
+            this.duplicateResponseBodiesToolStripMenuItem.Size = new System.Drawing.Size(272, 26);
             this.duplicateResponseBodiesToolStripMenuItem.Text = "&Duplicate Response Bodies";
             // 
             // tsbTearoff
@@ -780,7 +825,7 @@
             this.tsbTearoff.Image = ((System.Drawing.Image)(resources.GetObject("tsbTearoff.Image")));
             this.tsbTearoff.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbTearoff.Name = "tsbTearoff";
-            this.tsbTearoff.Size = new System.Drawing.Size(69, 22);
+            this.tsbTearoff.Size = new System.Drawing.Size(80, 27);
             this.tsbTearoff.Text = "Tearoff";
             // 
             // pnlTopGoldbar
@@ -789,7 +834,7 @@
             this.pnlTopGoldbar.Controls.Add(this.lblTodo);
             this.pnlTopGoldbar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlTopGoldbar.ForeColor = System.Drawing.Color.Black;
-            this.pnlTopGoldbar.Location = new System.Drawing.Point(0, 52);
+            this.pnlTopGoldbar.Location = new System.Drawing.Point(0, 60);
             this.pnlTopGoldbar.Margin = new System.Windows.Forms.Padding(4);
             this.pnlTopGoldbar.Name = "pnlTopGoldbar";
             this.pnlTopGoldbar.Size = new System.Drawing.Size(1043, 32);
@@ -802,7 +847,7 @@
             this.lblTodo.Location = new System.Drawing.Point(395, 11);
             this.lblTodo.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTodo.Name = "lblTodo";
-            this.lblTodo.Size = new System.Drawing.Size(205, 17);
+            this.lblTodo.Size = new System.Drawing.Size(253, 21);
             this.lblTodo.TabIndex = 3;
             this.lblTodo.Text = "Soon, cool stuff will appear here.";
             // 
@@ -811,142 +856,11 @@
             this.pnlLeft.Controls.Add(this.blvExchanges);
             this.pnlLeft.Controls.Add(this.txtQuickExec);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
-            this.pnlLeft.Location = new System.Drawing.Point(0, 84);
+            this.pnlLeft.Location = new System.Drawing.Point(0, 92);
             this.pnlLeft.Margin = new System.Windows.Forms.Padding(4);
             this.pnlLeft.Name = "pnlLeft";
-            this.pnlLeft.Size = new System.Drawing.Size(357, 512);
+            this.pnlLeft.Size = new System.Drawing.Size(357, 504);
             this.pnlLeft.TabIndex = 6;
-            // 
-            // pnlMain
-            // 
-            this.pnlMain.Controls.Add(this.tabsViews);
-            this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlMain.Location = new System.Drawing.Point(357, 84);
-            this.pnlMain.Margin = new System.Windows.Forms.Padding(4);
-            this.pnlMain.Name = "pnlMain";
-            this.pnlMain.Size = new System.Drawing.Size(686, 512);
-            this.pnlMain.TabIndex = 7;
-            // 
-            // tabsViews
-            // 
-            this.tabsViews.Controls.Add(this.pageStatistics);
-            this.tabsViews.Controls.Add(this.pageInspectors);
-            this.tabsViews.Controls.Add(this.pageAutoResponder);
-            this.tabsViews.Controls.Add(this.pageComposer);
-            this.tabsViews.Controls.Add(this.pageLog);
-            this.tabsViews.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabsViews.Location = new System.Drawing.Point(0, 0);
-            this.tabsViews.Margin = new System.Windows.Forms.Padding(4);
-            this.tabsViews.Name = "tabsViews";
-            this.tabsViews.SelectedIndex = 0;
-            this.tabsViews.Size = new System.Drawing.Size(686, 512);
-            this.tabsViews.TabIndex = 0;
-            // 
-            // pageStatistics
-            // 
-            this.pageStatistics.Location = new System.Drawing.Point(4, 25);
-            this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
-            this.pageStatistics.Name = "pageStatistics";
-            this.pageStatistics.Padding = new System.Windows.Forms.Padding(4);
-            this.pageStatistics.Size = new System.Drawing.Size(678, 483);
-            this.pageStatistics.TabIndex = 0;
-            this.pageStatistics.Text = "Statistics";
-            this.pageStatistics.UseVisualStyleBackColor = true;
-            // 
-            // pageInspectors
-            // 
-            this.pageInspectors.Location = new System.Drawing.Point(4, 25);
-            this.pageInspectors.Margin = new System.Windows.Forms.Padding(4);
-            this.pageInspectors.Name = "pageInspectors";
-            this.pageInspectors.Padding = new System.Windows.Forms.Padding(4);
-            this.pageInspectors.Size = new System.Drawing.Size(678, 483);
-            this.pageInspectors.TabIndex = 1;
-            this.pageInspectors.Text = "Inspectors";
-            this.pageInspectors.UseVisualStyleBackColor = true;
-            // 
-            // pageAutoResponder
-            // 
-            this.pageAutoResponder.Location = new System.Drawing.Point(4, 25);
-            this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
-            this.pageAutoResponder.Name = "pageAutoResponder";
-            this.pageAutoResponder.Size = new System.Drawing.Size(678, 483);
-            this.pageAutoResponder.TabIndex = 2;
-            this.pageAutoResponder.Text = "AutoResponder";
-            this.pageAutoResponder.UseVisualStyleBackColor = true;
-            // 
-            // pageComposer
-            // 
-            this.pageComposer.Location = new System.Drawing.Point(4, 25);
-            this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
-            this.pageComposer.Name = "pageComposer";
-            this.pageComposer.Size = new System.Drawing.Size(678, 483);
-            this.pageComposer.TabIndex = 3;
-            this.pageComposer.Text = "Composer";
-            this.pageComposer.UseVisualStyleBackColor = true;
-            // 
-            // pageLog
-            // 
-            this.pageLog.Controls.Add(this.rtbLog);
-            this.pageLog.Location = new System.Drawing.Point(4, 25);
-            this.pageLog.Margin = new System.Windows.Forms.Padding(4);
-            this.pageLog.Name = "pageLog";
-            this.pageLog.Size = new System.Drawing.Size(678, 483);
-            this.pageLog.TabIndex = 4;
-            this.pageLog.Text = "Log";
-            this.pageLog.UseVisualStyleBackColor = true;
-            // 
-            // rtbLog
-            // 
-            this.rtbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbLog.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbLog.Location = new System.Drawing.Point(0, 0);
-            this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
-            this.rtbLog.Name = "rtbLog";
-            this.rtbLog.Size = new System.Drawing.Size(678, 483);
-            this.rtbLog.TabIndex = 0;
-            this.rtbLog.Text = "";
-            // 
-            // splitterMain
-            // 
-            this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
-            this.splitterMain.Location = new System.Drawing.Point(357, 84);
-            this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
-            this.splitterMain.Name = "splitterMain";
-            this.splitterMain.Size = new System.Drawing.Size(4, 512);
-            this.splitterMain.TabIndex = 8;
-            this.splitterMain.TabStop = false;
-            // 
-            // tsmiNameViewer
-            // 
-            this.tsmiNameViewer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.tsmiNameViewer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tsmiNameViewer.Image = ((System.Drawing.Image)(resources.GetObject("tsmiNameViewer.Image")));
-            this.tsmiNameViewer.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsmiNameViewer.Name = "tsmiNameViewer";
-            this.tsmiNameViewer.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
-            this.tsmiNameViewer.Size = new System.Drawing.Size(74, 22);
-            this.tsmiNameViewer.Text = "Viewer";
-            this.tsmiNameViewer.Visible = false;
-            this.tsmiNameViewer.Click += new System.EventHandler(this.tsmiNameViewer_Click);
-            // 
-            // tsmiFileSaveSplitter1
-            // 
-            tsmiFileSaveSplitter1.Name = "tsmiFileSaveSplitter1";
-            tsmiFileSaveSplitter1.Size = new System.Drawing.Size(187, 6);
-            // 
-            // miFileSaveSelected
-            // 
-            this.miFileSaveSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miFileSaveSelectedSAZ});
-            this.miFileSaveSelected.Name = "miFileSaveSelected";
-            this.miFileSaveSelected.Size = new System.Drawing.Size(190, 22);
-            this.miFileSaveSelected.Text = "&Selected Exchanges";
-            // 
-            // miFileSaveSelectedSAZ
-            // 
-            this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
-            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(154, 22);
-            this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
             // 
             // blvExchanges
             // 
@@ -968,7 +882,7 @@
             this.blvExchanges.Location = new System.Drawing.Point(0, 0);
             this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
             this.blvExchanges.Name = "blvExchanges";
-            this.blvExchanges.Size = new System.Drawing.Size(357, 485);
+            this.blvExchanges.Size = new System.Drawing.Size(357, 472);
             this.blvExchanges.TabIndex = 4;
             this.blvExchanges.UseCompatibleStateImageBehavior = false;
             this.blvExchanges.View = System.Windows.Forms.View.Details;
@@ -997,16 +911,200 @@
             this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
-            this.txtQuickExec.Location = new System.Drawing.Point(0, 485);
+            this.txtQuickExec.Location = new System.Drawing.Point(0, 472);
             this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
             this.txtQuickExec.Name = "txtQuickExec";
-            this.txtQuickExec.Size = new System.Drawing.Size(357, 27);
+            this.txtQuickExec.Size = new System.Drawing.Size(357, 32);
             this.txtQuickExec.TabIndex = 3;
             this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
             // 
+            // pnlMain
+            // 
+            this.pnlMain.Controls.Add(this.tabsViews);
+            this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlMain.Location = new System.Drawing.Point(357, 92);
+            this.pnlMain.Margin = new System.Windows.Forms.Padding(4);
+            this.pnlMain.Name = "pnlMain";
+            this.pnlMain.Size = new System.Drawing.Size(686, 504);
+            this.pnlMain.TabIndex = 7;
+            // 
+            // tabsViews
+            // 
+            this.tabsViews.Controls.Add(this.pageStatistics);
+            this.tabsViews.Controls.Add(this.pageInspectors);
+            this.tabsViews.Controls.Add(this.pageAutoResponder);
+            this.tabsViews.Controls.Add(this.pageComposer);
+            this.tabsViews.Controls.Add(this.pageLog);
+            this.tabsViews.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabsViews.Location = new System.Drawing.Point(0, 0);
+            this.tabsViews.Margin = new System.Windows.Forms.Padding(4);
+            this.tabsViews.Name = "tabsViews";
+            this.tabsViews.SelectedIndex = 0;
+            this.tabsViews.Size = new System.Drawing.Size(686, 504);
+            this.tabsViews.TabIndex = 0;
+            // 
+            // pageStatistics
+            // 
+            this.pageStatistics.Location = new System.Drawing.Point(4, 28);
+            this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
+            this.pageStatistics.Name = "pageStatistics";
+            this.pageStatistics.Padding = new System.Windows.Forms.Padding(4);
+            this.pageStatistics.Size = new System.Drawing.Size(678, 472);
+            this.pageStatistics.TabIndex = 0;
+            this.pageStatistics.Text = "Statistics";
+            this.pageStatistics.UseVisualStyleBackColor = true;
+            // 
+            // pageInspectors
+            // 
+            this.pageInspectors.Controls.Add(this.tabsResponse);
+            this.pageInspectors.Controls.Add(this.pnlTamper);
+            this.pageInspectors.Controls.Add(this.splitter1);
+            this.pageInspectors.Controls.Add(this.tabsRequest);
+            this.pageInspectors.Location = new System.Drawing.Point(4, 28);
+            this.pageInspectors.Margin = new System.Windows.Forms.Padding(4);
+            this.pageInspectors.Name = "pageInspectors";
+            this.pageInspectors.Padding = new System.Windows.Forms.Padding(4);
+            this.pageInspectors.Size = new System.Drawing.Size(678, 472);
+            this.pageInspectors.TabIndex = 1;
+            this.pageInspectors.Text = "Inspectors";
+            this.pageInspectors.UseVisualStyleBackColor = true;
+            this.pageInspectors.Click += new System.EventHandler(this.pageInspectors_Click);
+            // 
+            // pageAutoResponder
+            // 
+            this.pageAutoResponder.Location = new System.Drawing.Point(4, 28);
+            this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
+            this.pageAutoResponder.Name = "pageAutoResponder";
+            this.pageAutoResponder.Size = new System.Drawing.Size(678, 480);
+            this.pageAutoResponder.TabIndex = 2;
+            this.pageAutoResponder.Text = "AutoResponder";
+            this.pageAutoResponder.UseVisualStyleBackColor = true;
+            // 
+            // pageComposer
+            // 
+            this.pageComposer.Location = new System.Drawing.Point(4, 28);
+            this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
+            this.pageComposer.Name = "pageComposer";
+            this.pageComposer.Size = new System.Drawing.Size(678, 480);
+            this.pageComposer.TabIndex = 3;
+            this.pageComposer.Text = "Composer";
+            this.pageComposer.UseVisualStyleBackColor = true;
+            // 
+            // pageLog
+            // 
+            this.pageLog.Controls.Add(this.rtbLog);
+            this.pageLog.Location = new System.Drawing.Point(4, 28);
+            this.pageLog.Margin = new System.Windows.Forms.Padding(4);
+            this.pageLog.Name = "pageLog";
+            this.pageLog.Size = new System.Drawing.Size(678, 480);
+            this.pageLog.TabIndex = 4;
+            this.pageLog.Text = "Log";
+            this.pageLog.UseVisualStyleBackColor = true;
+            // 
+            // rtbLog
+            // 
+            this.rtbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbLog.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbLog.Location = new System.Drawing.Point(0, 0);
+            this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
+            this.rtbLog.Name = "rtbLog";
+            this.rtbLog.Size = new System.Drawing.Size(678, 480);
+            this.rtbLog.TabIndex = 0;
+            this.rtbLog.Text = "";
+            // 
+            // splitterMain
+            // 
+            this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
+            this.splitterMain.Location = new System.Drawing.Point(357, 92);
+            this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
+            this.splitterMain.Name = "splitterMain";
+            this.splitterMain.Size = new System.Drawing.Size(4, 504);
+            this.splitterMain.TabIndex = 8;
+            this.splitterMain.TabStop = false;
+            // 
+            // tabsRequest
+            // 
+            this.tabsRequest.Controls.Add(this.tabPage1);
+            this.tabsRequest.Controls.Add(this.tabPage2);
+            this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tabsRequest.Location = new System.Drawing.Point(4, 4);
+            this.tabsRequest.Name = "tabsRequest";
+            this.tabsRequest.SelectedIndex = 0;
+            this.tabsRequest.Size = new System.Drawing.Size(670, 194);
+            this.tabsRequest.TabIndex = 0;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Location = new System.Drawing.Point(4, 28);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(662, 162);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "tabPage1";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Location = new System.Drawing.Point(4, 28);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(192, 68);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "tabPage2";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // tabsResponse
+            // 
+            this.tabsResponse.Controls.Add(this.tabPage3);
+            this.tabsResponse.Controls.Add(this.tabPage4);
+            this.tabsResponse.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabsResponse.Location = new System.Drawing.Point(4, 220);
+            this.tabsResponse.Name = "tabsResponse";
+            this.tabsResponse.SelectedIndex = 0;
+            this.tabsResponse.Size = new System.Drawing.Size(670, 248);
+            this.tabsResponse.TabIndex = 1;
+            // 
+            // tabPage3
+            // 
+            this.tabPage3.Location = new System.Drawing.Point(4, 28);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(662, 216);
+            this.tabPage3.TabIndex = 0;
+            this.tabPage3.Text = "tabPage3";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Location = new System.Drawing.Point(4, 28);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(192, 68);
+            this.tabPage4.TabIndex = 1;
+            this.tabPage4.Text = "tabPage4";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // pnlTamper
+            // 
+            this.pnlTamper.BackColor = System.Drawing.Color.Crimson;
+            this.pnlTamper.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTamper.Location = new System.Drawing.Point(4, 201);
+            this.pnlTamper.Name = "pnlTamper";
+            this.pnlTamper.Size = new System.Drawing.Size(670, 19);
+            this.pnlTamper.TabIndex = 2;
+            // 
+            // splitter1
+            // 
+            this.splitter1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.splitter1.Location = new System.Drawing.Point(4, 198);
+            this.splitter1.Name = "splitter1";
+            this.splitter1.Size = new System.Drawing.Size(670, 3);
+            this.splitter1.TabIndex = 4;
+            this.splitter1.TabStop = false;
+            // 
             // frmViewer
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1043, 627);
             this.Controls.Add(this.splitterMain);
@@ -1037,7 +1135,10 @@
             this.pnlLeft.PerformLayout();
             this.pnlMain.ResumeLayout(false);
             this.tabsViews.ResumeLayout(false);
+            this.pageInspectors.ResumeLayout(false);
             this.pageLog.ResumeLayout(false);
+            this.tabsRequest.ResumeLayout(false);
+            this.tabsResponse.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1135,6 +1236,14 @@
         private System.Windows.Forms.ToolStripButton tsmiNameViewer;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelected;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelectedSAZ;
+        private System.Windows.Forms.TabControl tabsRequest;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.Panel pnlTamper;
+        private System.Windows.Forms.TabControl tabsResponse;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.Splitter splitter1;
     }
 }
 

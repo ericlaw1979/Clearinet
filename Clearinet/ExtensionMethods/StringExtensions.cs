@@ -65,7 +65,7 @@ namespace Clearinet
             return idx < 0 ? s : s.Substring(0, idx);
         }
 
-        // Returns string before first delimiter; empty if null.
+        // Returns string before first instance of a delimiter; empty if null.
         public static string TrimAfter(this string s, char delim)
         {
             if (s == null) return string.Empty;
