@@ -113,6 +113,37 @@ namespace Clearinet
         }
     }
 
+    public class BetterTreeView : TreeView
+    {
+        const int TVS_EX_DOUBLEBUFFER = 0x0004;
+        const int TVS_NOTOOLTIPS = 0x80;
+        const int TVM_SETEXTENDEDSTYLE = 0x112c;
+
+        [DllImport("user32.dll", EntryPoint = "SendMessage")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam);
+
+        private void EnableDoubleBuffer()
+        {
+            SendMessage(Handle, TVM_SETEXTENDEDSTYLE, (IntPtr)TVS_EX_DOUBLEBUFFER, (IntPtr)TVS_EX_DOUBLEBUFFER);
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            EnableDoubleBuffer();
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cpBase = base.CreateParams;
+                cpBase.Style |= TVS_NOTOOLTIPS;
+                return cpBase;
+            }
+        }
+    }
+
     public class RichTextBoxV5 : RichTextBox
     {
 

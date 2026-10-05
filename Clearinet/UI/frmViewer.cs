@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -259,7 +260,9 @@ namespace Clearinet
                 case "app.ui.stayontop":
                     CApp.UIInvokeAsync(() => miViewStayOnTop.Checked = TopMost = pceaChange.ValueBool);
                     break;
-                    // case "app.ui.exchangelist.autoscroll"
+                case "app.ui.toolbar.searchcuetext":
+                    CApp.UIInvokeAsync(() => Win32UI.SetCueText(tstxtSearch.Control, pceaChange.ValueString));
+                    break;
             }
         }
 
@@ -303,8 +306,33 @@ namespace Clearinet
             this.blvExchanges.DragEnter += BlvExchanges_DragEnter;
             this.blvExchanges.AllowDrop = true;
 
-            Win32UI.SetCueText(tstxtSearch.Control, "Search MDN...");
+            Win32UI.SetCueText(tstxtSearch.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.searchcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
+            TODOAddSampleData();
+        }
+
+        /// <summary>
+        /// Add some data for development purposes.
+        /// </summary>
+        private void TODOAddSampleData()
+        {
+            for (int iX = 0; iX < 15; iX++)
+            {
+                ListViewItem lvi = new ListViewItem(iX.ToString());
+                HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{iX}", new string[] { $"FirstHeader: {iX}", $"SecondHeader: {iX}{iX}", $"Host: {iX}.com" })
+                {
+                    HTTPMethod = "POST",
+                };
+                Exchange x = new Exchange(hrh, Encoding.UTF8.GetBytes($"This is the request body for Exchange #{iX}"))
+                {
+                    ResponseBody = Encoding.UTF8.GetBytes($"This is the response body for Exchange #{iX}"),
+                    ResponseHeaders = new HTTPResponseHeaders(200, "OK, I guess", new string[] { $"FirstHeader: {iX}", $"SecondHeader: {iX}", $"ThirdHeader: {iX}", "Content-Type: text/plain; charset=utf-16" }),
+                };
+                hrh["Content-Length"] = x.ResponseBody.Length.ToString();
+                x.state = (ExchangeState)(iX);
+                lvi.Tag = x;
+                blvExchanges.Items.Add(lvi);
+            }
         }
 
         private void miFileLoadSAZ_Click(object sender, EventArgs e)
@@ -602,28 +630,32 @@ namespace Clearinet
                 return;
             }
 
+            Exchange x = blvExchanges.SelectedItems[0].Tag as Exchange;
+
             pageInspectors.SuspendLayout();
             if (null != lblInspectorInstruction) lblInspectorInstruction.Visible = false;
-            pnlTamper.Visible = tabsRequest.Visible = splitRequestResponse.Visible = tabsResponse.Visible = true;
+            tabsRequest.Visible = splitRequestResponse.Visible = tabsResponse.Visible = true;
 
-            // TODO: HACKERY! In reality, grab the Exchange off the ViewItem/Tag property of the listview item
-            HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{blvExchanges.SelectedItems[0].Text}", new string[] { "FirstHeader: 11111", "SecondHeader: 222", $"Host: {blvExchanges.SelectedItems[0].Text}" });
-            Exchange x = new Exchange(hrh, Encoding.UTF8.GetBytes("This is the request body."))
+            if ((ExchangeState.HandTamperRequest == x.state) || (ExchangeState.HandTamperResponse == x.state))
             {
-                ResponseBody = Encoding.UTF8.GetBytes($"This is the response body for Exchange #{blvExchanges.SelectedItems[0].Text}"),
-                ResponseHeaders = new HTTPResponseHeaders(200, "OK, I guess", new string[] { "FirstHeader: one", "SecondHeader: two" }),
-            };
+                btnBreakAtResponse.Visible = (x.state == ExchangeState.HandTamperRequest);
+                pnlTamper.Visible = true;
+            }
+            else
+            {
+                pnlTamper.Visible = false;
+            }
 
             if (bUpdateRequest && (tabsRequest.SelectedIndex > -1))
             {
                 RequestInspectorBase ibRequest = tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase;
-                ibRequest.AssignExchange(x);
+                if (null != x) ibRequest.AssignExchange(x); else ibRequest.Clear();
             }
 
             if (bUpdateResponse && (tabsResponse.SelectedIndex > -1))
             {
                 ResponseInspectorBase ibResponse = tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase;
-                ibResponse.AssignExchange(x);
+                if (null != x) ibResponse.AssignExchange(x); else ibResponse.Clear();
             }
             pageInspectors.ResumeLayout();
         }

@@ -32,7 +32,7 @@
             System.Windows.Forms.ToolStripSeparator miSplitter;
             this.txtFirstLine = new System.Windows.Forms.TextBox();
             this.mnuNodes = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.tvNVP = new System.Windows.Forms.TreeView();
+            this.tvNVP = new Clearinet.BetterTreeView();
             this.miCopyHeader = new System.Windows.Forms.ToolStripMenuItem();
             this.miCopyHeaderValue = new System.Windows.Forms.ToolStripMenuItem();
             this.miCopyAll = new System.Windows.Forms.ToolStripMenuItem();
@@ -172,7 +172,7 @@
         #endregion
         private System.Windows.Forms.ContextMenuStrip mnuNodes;
         internal System.Windows.Forms.TextBox txtFirstLine;
-        internal System.Windows.Forms.TreeView tvNVP;
+        internal Clearinet.BetterTreeView tvNVP;
         private System.Windows.Forms.ToolStripMenuItem miCopyAll;
         private System.Windows.Forms.ToolStripMenuItem miCopyHeader;
         private System.Windows.Forms.ToolStripMenuItem miCopyHeaderValue;

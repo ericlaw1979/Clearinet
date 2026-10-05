@@ -43,8 +43,6 @@
             System.Windows.Forms.ToolStripSeparator tsmiFileSaveSplitter1;
             System.Windows.Forms.ToolStripSeparator miInspectorSplitter;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
-            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("1");
-            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("2");
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.miFile = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileAttach = new System.Windows.Forms.ToolStripMenuItem();
@@ -121,12 +119,6 @@
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
-            this.blvExchanges = new Clearinet.BetterListView();
-            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
@@ -144,6 +136,16 @@
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
+            this.btnBreakAtResponse = new System.Windows.Forms.Button();
+            this.btnRunToComplete = new System.Windows.Forms.Button();
+            this.lblBreakpointed = new System.Windows.Forms.Label();
+            this.blvExchanges = new Clearinet.BetterListView();
+            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.txtQuickExec = new Clearinet.QuickExecBox();
+            this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -166,6 +168,7 @@
             this.tabsViews.SuspendLayout();
             this.pageInspectors.SuspendLayout();
             this.mnuInspectors.SuspendLayout();
+            this.pnlTamper.SuspendLayout();
             this.pageLog.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -786,7 +789,8 @@
             this.tsmiNameViewer,
             this.tsbComment,
             this.tsddbRemove,
-            this.tsbTearoff});
+            this.tsbTearoff,
+            this.tstxtSearch});
             this.tsToolbar.Location = new System.Drawing.Point(0, 27);
             this.tsToolbar.Name = "tsToolbar";
             this.tsToolbar.Size = new System.Drawing.Size(1043, 27);
@@ -850,7 +854,7 @@
             this.tstxtSearch.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.tstxtSearch.Name = "tstxtSearch";
             this.tstxtSearch.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
-            this.tstxtSearch.Size = new System.Drawing.Size(100, 25);
+            this.tstxtSearch.Size = new System.Drawing.Size(65, 27);
             this.tstxtSearch.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyDown);
             this.tstxtSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyUp);
             // 
@@ -888,6 +892,217 @@
             this.pnlLeft.Size = new System.Drawing.Size(357, 510);
             this.pnlLeft.TabIndex = 6;
             // 
+            // pnlMain
+            // 
+            this.pnlMain.Controls.Add(this.tabsViews);
+            this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlMain.Location = new System.Drawing.Point(357, 86);
+            this.pnlMain.Margin = new System.Windows.Forms.Padding(4);
+            this.pnlMain.Name = "pnlMain";
+            this.pnlMain.Size = new System.Drawing.Size(686, 510);
+            this.pnlMain.TabIndex = 7;
+            // 
+            // tabsViews
+            // 
+            this.tabsViews.Controls.Add(this.pageStatistics);
+            this.tabsViews.Controls.Add(this.pageInspectors);
+            this.tabsViews.Controls.Add(this.pageAutoResponder);
+            this.tabsViews.Controls.Add(this.pageComposer);
+            this.tabsViews.Controls.Add(this.pageLog);
+            this.tabsViews.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabsViews.ImageList = this.imglistIcons;
+            this.tabsViews.Location = new System.Drawing.Point(0, 0);
+            this.tabsViews.Margin = new System.Windows.Forms.Padding(4);
+            this.tabsViews.Name = "tabsViews";
+            this.tabsViews.SelectedIndex = 0;
+            this.tabsViews.Size = new System.Drawing.Size(686, 510);
+            this.tabsViews.TabIndex = 0;
+            this.tabsViews.SelectedIndexChanged += new System.EventHandler(this.tabsViews_SelectedIndexChanged);
+            // 
+            // pageStatistics
+            // 
+            this.pageStatistics.ImageIndex = 0;
+            this.pageStatistics.Location = new System.Drawing.Point(4, 25);
+            this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
+            this.pageStatistics.Name = "pageStatistics";
+            this.pageStatistics.Padding = new System.Windows.Forms.Padding(4);
+            this.pageStatistics.Size = new System.Drawing.Size(678, 481);
+            this.pageStatistics.TabIndex = 0;
+            this.pageStatistics.Text = "Statistics";
+            this.pageStatistics.UseVisualStyleBackColor = true;
+            // 
+            // pageInspectors
+            // 
+            this.pageInspectors.Controls.Add(this.tabsResponse);
+            this.pageInspectors.Controls.Add(this.pnlTamper);
+            this.pageInspectors.Controls.Add(this.splitRequestResponse);
+            this.pageInspectors.Controls.Add(this.tabsRequest);
+            this.pageInspectors.Location = new System.Drawing.Point(4, 25);
+            this.pageInspectors.Margin = new System.Windows.Forms.Padding(4);
+            this.pageInspectors.Name = "pageInspectors";
+            this.pageInspectors.Padding = new System.Windows.Forms.Padding(4);
+            this.pageInspectors.Size = new System.Drawing.Size(678, 481);
+            this.pageInspectors.TabIndex = 1;
+            this.pageInspectors.Text = "Inspectors";
+            this.pageInspectors.UseVisualStyleBackColor = true;
+            // 
+            // tabsResponse
+            // 
+            this.tabsResponse.ContextMenuStrip = this.mnuInspectors;
+            this.tabsResponse.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabsResponse.Location = new System.Drawing.Point(4, 231);
+            this.tabsResponse.Name = "tabsResponse";
+            this.tabsResponse.SelectedIndex = 0;
+            this.tabsResponse.Size = new System.Drawing.Size(670, 246);
+            this.tabsResponse.TabIndex = 1;
+            this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
+            // 
+            // mnuInspectors
+            // 
+            this.mnuInspectors.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.mnuInspectors.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miInspectorScreenshot,
+            miInspectorSplitter,
+            this.miInspectorAbout});
+            this.mnuInspectors.Name = "mnuInspectors";
+            this.mnuInspectors.Size = new System.Drawing.Size(141, 54);
+            // 
+            // miInspectorScreenshot
+            // 
+            this.miInspectorScreenshot.Name = "miInspectorScreenshot";
+            this.miInspectorScreenshot.Size = new System.Drawing.Size(140, 22);
+            this.miInspectorScreenshot.Text = "&Screenshot";
+            this.miInspectorScreenshot.Click += new System.EventHandler(this.miInspectorScreenshot_Click);
+            // 
+            // miInspectorAbout
+            // 
+            this.miInspectorAbout.Name = "miInspectorAbout";
+            this.miInspectorAbout.Size = new System.Drawing.Size(140, 22);
+            this.miInspectorAbout.Text = "&About";
+            this.miInspectorAbout.Click += new System.EventHandler(this.miInspectorAbout_Click);
+            // 
+            // pnlTamper
+            // 
+            this.pnlTamper.BackColor = System.Drawing.Color.Red;
+            this.pnlTamper.Controls.Add(this.lblBreakpointed);
+            this.pnlTamper.Controls.Add(this.btnRunToComplete);
+            this.pnlTamper.Controls.Add(this.btnBreakAtResponse);
+            this.pnlTamper.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTamper.Location = new System.Drawing.Point(4, 201);
+            this.pnlTamper.Name = "pnlTamper";
+            this.pnlTamper.Size = new System.Drawing.Size(670, 30);
+            this.pnlTamper.TabIndex = 2;
+            this.pnlTamper.Visible = false;
+            // 
+            // splitRequestResponse
+            // 
+            this.splitRequestResponse.Dock = System.Windows.Forms.DockStyle.Top;
+            this.splitRequestResponse.Location = new System.Drawing.Point(4, 198);
+            this.splitRequestResponse.Name = "splitRequestResponse";
+            this.splitRequestResponse.Size = new System.Drawing.Size(670, 3);
+            this.splitRequestResponse.TabIndex = 4;
+            this.splitRequestResponse.TabStop = false;
+            // 
+            // tabsRequest
+            // 
+            this.tabsRequest.ContextMenuStrip = this.mnuInspectors;
+            this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tabsRequest.Location = new System.Drawing.Point(4, 4);
+            this.tabsRequest.Name = "tabsRequest";
+            this.tabsRequest.SelectedIndex = 0;
+            this.tabsRequest.Size = new System.Drawing.Size(670, 194);
+            this.tabsRequest.TabIndex = 0;
+            this.tabsRequest.SelectedIndexChanged += new System.EventHandler(this.tabsRequest_SelectedIndexChanged);
+            // 
+            // pageAutoResponder
+            // 
+            this.pageAutoResponder.Location = new System.Drawing.Point(4, 25);
+            this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
+            this.pageAutoResponder.Name = "pageAutoResponder";
+            this.pageAutoResponder.Size = new System.Drawing.Size(678, 481);
+            this.pageAutoResponder.TabIndex = 2;
+            this.pageAutoResponder.Text = "AutoResponder";
+            this.pageAutoResponder.UseVisualStyleBackColor = true;
+            // 
+            // pageComposer
+            // 
+            this.pageComposer.Location = new System.Drawing.Point(4, 25);
+            this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
+            this.pageComposer.Name = "pageComposer";
+            this.pageComposer.Size = new System.Drawing.Size(678, 481);
+            this.pageComposer.TabIndex = 3;
+            this.pageComposer.Text = "Composer";
+            this.pageComposer.UseVisualStyleBackColor = true;
+            // 
+            // pageLog
+            // 
+            this.pageLog.Controls.Add(this.rtbLog);
+            this.pageLog.Location = new System.Drawing.Point(4, 25);
+            this.pageLog.Margin = new System.Windows.Forms.Padding(4);
+            this.pageLog.Name = "pageLog";
+            this.pageLog.Size = new System.Drawing.Size(678, 481);
+            this.pageLog.TabIndex = 4;
+            this.pageLog.Text = "Log";
+            this.pageLog.UseVisualStyleBackColor = true;
+            // 
+            // rtbLog
+            // 
+            this.rtbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbLog.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbLog.Location = new System.Drawing.Point(0, 0);
+            this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
+            this.rtbLog.Name = "rtbLog";
+            this.rtbLog.Size = new System.Drawing.Size(678, 481);
+            this.rtbLog.TabIndex = 0;
+            this.rtbLog.Text = "";
+            // 
+            // rtbStatistics
+            // 
+            this.rtbStatistics.Location = new System.Drawing.Point(0, 0);
+            this.rtbStatistics.Name = "rtbStatistics";
+            this.rtbStatistics.Size = new System.Drawing.Size(100, 96);
+            this.rtbStatistics.TabIndex = 0;
+            this.rtbStatistics.Text = "";
+            // 
+            // splitterMain
+            // 
+            this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
+            this.splitterMain.Location = new System.Drawing.Point(357, 86);
+            this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
+            this.splitterMain.Name = "splitterMain";
+            this.splitterMain.Size = new System.Drawing.Size(4, 510);
+            this.splitterMain.TabIndex = 8;
+            this.splitterMain.TabStop = false;
+            // 
+            // btnBreakAtResponse
+            // 
+            this.btnBreakAtResponse.BackColor = System.Drawing.Color.Yellow;
+            this.btnBreakAtResponse.Location = new System.Drawing.Point(200, 3);
+            this.btnBreakAtResponse.Name = "btnBreakAtResponse";
+            this.btnBreakAtResponse.Size = new System.Drawing.Size(139, 23);
+            this.btnBreakAtResponse.TabIndex = 0;
+            this.btnBreakAtResponse.Text = "&Break at Response";
+            this.btnBreakAtResponse.UseVisualStyleBackColor = false;
+            // 
+            // btnRunToComplete
+            // 
+            this.btnRunToComplete.BackColor = System.Drawing.Color.Chartreuse;
+            this.btnRunToComplete.Location = new System.Drawing.Point(357, 3);
+            this.btnRunToComplete.Name = "btnRunToComplete";
+            this.btnRunToComplete.Size = new System.Drawing.Size(125, 23);
+            this.btnRunToComplete.TabIndex = 1;
+            this.btnRunToComplete.Text = "Resume";
+            this.btnRunToComplete.UseVisualStyleBackColor = false;
+            // 
+            // lblBreakpointed
+            // 
+            this.lblBreakpointed.AutoSize = true;
+            this.lblBreakpointed.Location = new System.Drawing.Point(3, 6);
+            this.lblBreakpointed.Name = "lblBreakpointed";
+            this.lblBreakpointed.Size = new System.Drawing.Size(191, 16);
+            this.lblBreakpointed.TabIndex = 2;
+            this.lblBreakpointed.Text = "Breakpoint hit; editors unlocked.";
+            // 
             // blvExchanges
             // 
             this.blvExchanges.Activation = System.Windows.Forms.ItemActivation.OneClick;
@@ -904,9 +1119,6 @@
             this.blvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
             this.blvExchanges.FullRowSelect = true;
             this.blvExchanges.HideSelection = false;
-            this.blvExchanges.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem1,
-            listViewItem2});
             this.blvExchanges.LabelWrap = false;
             this.blvExchanges.Location = new System.Drawing.Point(0, 0);
             this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
@@ -949,181 +1161,11 @@
             this.txtQuickExec.TabIndex = 3;
             this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
             // 
-            // pnlMain
+            // imglistIcons
             // 
-            this.pnlMain.Controls.Add(this.tabsViews);
-            this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlMain.Location = new System.Drawing.Point(357, 86);
-            this.pnlMain.Margin = new System.Windows.Forms.Padding(4);
-            this.pnlMain.Name = "pnlMain";
-            this.pnlMain.Size = new System.Drawing.Size(686, 510);
-            this.pnlMain.TabIndex = 7;
-            // 
-            // tabsViews
-            // 
-            this.tabsViews.Controls.Add(this.pageStatistics);
-            this.tabsViews.Controls.Add(this.pageInspectors);
-            this.tabsViews.Controls.Add(this.pageAutoResponder);
-            this.tabsViews.Controls.Add(this.pageComposer);
-            this.tabsViews.Controls.Add(this.pageLog);
-            this.tabsViews.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabsViews.Location = new System.Drawing.Point(0, 0);
-            this.tabsViews.Margin = new System.Windows.Forms.Padding(4);
-            this.tabsViews.Name = "tabsViews";
-            this.tabsViews.SelectedIndex = 0;
-            this.tabsViews.Size = new System.Drawing.Size(686, 510);
-            this.tabsViews.TabIndex = 0;
-            this.tabsViews.SelectedIndexChanged += new System.EventHandler(this.tabsViews_SelectedIndexChanged);
-            // 
-            // pageStatistics
-            // 
-            this.pageStatistics.Location = new System.Drawing.Point(4, 25);
-            this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
-            this.pageStatistics.Name = "pageStatistics";
-            this.pageStatistics.Padding = new System.Windows.Forms.Padding(4);
-            this.pageStatistics.Size = new System.Drawing.Size(678, 481);
-            this.pageStatistics.TabIndex = 0;
-            this.pageStatistics.Text = "Statistics";
-            this.pageStatistics.UseVisualStyleBackColor = true;
-            // 
-            // pageInspectors
-            // 
-            this.pageInspectors.Controls.Add(this.tabsResponse);
-            this.pageInspectors.Controls.Add(this.pnlTamper);
-            this.pageInspectors.Controls.Add(this.splitRequestResponse);
-            this.pageInspectors.Controls.Add(this.tabsRequest);
-            this.pageInspectors.Location = new System.Drawing.Point(4, 25);
-            this.pageInspectors.Margin = new System.Windows.Forms.Padding(4);
-            this.pageInspectors.Name = "pageInspectors";
-            this.pageInspectors.Padding = new System.Windows.Forms.Padding(4);
-            this.pageInspectors.Size = new System.Drawing.Size(678, 481);
-            this.pageInspectors.TabIndex = 1;
-            this.pageInspectors.Text = "Inspectors";
-            this.pageInspectors.UseVisualStyleBackColor = true;
-            // 
-            // tabsResponse
-            // 
-            this.tabsResponse.ContextMenuStrip = this.mnuInspectors;
-            this.tabsResponse.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabsResponse.Location = new System.Drawing.Point(4, 220);
-            this.tabsResponse.Name = "tabsResponse";
-            this.tabsResponse.SelectedIndex = 0;
-            this.tabsResponse.Size = new System.Drawing.Size(670, 257);
-            this.tabsResponse.TabIndex = 1;
-            this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
-            // 
-            // mnuInspectors
-            // 
-            this.mnuInspectors.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.mnuInspectors.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miInspectorScreenshot,
-            miInspectorSplitter,
-            this.miInspectorAbout});
-            this.mnuInspectors.Name = "mnuInspectors";
-            this.mnuInspectors.Size = new System.Drawing.Size(141, 54);
-            // 
-            // miInspectorScreenshot
-            // 
-            this.miInspectorScreenshot.Name = "miInspectorScreenshot";
-            this.miInspectorScreenshot.Size = new System.Drawing.Size(140, 22);
-            this.miInspectorScreenshot.Text = "&Screenshot";
-            this.miInspectorScreenshot.Click += new System.EventHandler(this.miInspectorScreenshot_Click);
-            // 
-            // miInspectorAbout
-            // 
-            this.miInspectorAbout.Name = "miInspectorAbout";
-            this.miInspectorAbout.Size = new System.Drawing.Size(140, 22);
-            this.miInspectorAbout.Text = "&About";
-            this.miInspectorAbout.Click += new System.EventHandler(this.miInspectorAbout_Click);
-            // 
-            // pnlTamper
-            // 
-            this.pnlTamper.BackColor = System.Drawing.Color.Crimson;
-            this.pnlTamper.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlTamper.Location = new System.Drawing.Point(4, 201);
-            this.pnlTamper.Name = "pnlTamper";
-            this.pnlTamper.Size = new System.Drawing.Size(670, 19);
-            this.pnlTamper.TabIndex = 2;
-            // 
-            // splitRequestResponse
-            // 
-            this.splitRequestResponse.Dock = System.Windows.Forms.DockStyle.Top;
-            this.splitRequestResponse.Location = new System.Drawing.Point(4, 198);
-            this.splitRequestResponse.Name = "splitRequestResponse";
-            this.splitRequestResponse.Size = new System.Drawing.Size(670, 3);
-            this.splitRequestResponse.TabIndex = 4;
-            this.splitRequestResponse.TabStop = false;
-            // 
-            // tabsRequest
-            // 
-            this.tabsRequest.ContextMenuStrip = this.mnuInspectors;
-            this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
-            this.tabsRequest.Location = new System.Drawing.Point(4, 4);
-            this.tabsRequest.Name = "tabsRequest";
-            this.tabsRequest.SelectedIndex = 0;
-            this.tabsRequest.Size = new System.Drawing.Size(670, 194);
-            this.tabsRequest.TabIndex = 0;
-            this.tabsRequest.SelectedIndexChanged += new System.EventHandler(this.tabsRequest_SelectedIndexChanged);
-            // 
-            // pageAutoResponder
-            // 
-            this.pageAutoResponder.Location = new System.Drawing.Point(4, 25);
-            this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
-            this.pageAutoResponder.Name = "pageAutoResponder";
-            this.pageAutoResponder.Size = new System.Drawing.Size(678, 475);
-            this.pageAutoResponder.TabIndex = 2;
-            this.pageAutoResponder.Text = "AutoResponder";
-            this.pageAutoResponder.UseVisualStyleBackColor = true;
-            // 
-            // pageComposer
-            // 
-            this.pageComposer.Location = new System.Drawing.Point(4, 25);
-            this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
-            this.pageComposer.Name = "pageComposer";
-            this.pageComposer.Size = new System.Drawing.Size(678, 475);
-            this.pageComposer.TabIndex = 3;
-            this.pageComposer.Text = "Composer";
-            this.pageComposer.UseVisualStyleBackColor = true;
-            // 
-            // pageLog
-            // 
-            this.pageLog.Controls.Add(this.rtbLog);
-            this.pageLog.Location = new System.Drawing.Point(4, 25);
-            this.pageLog.Margin = new System.Windows.Forms.Padding(4);
-            this.pageLog.Name = "pageLog";
-            this.pageLog.Size = new System.Drawing.Size(678, 475);
-            this.pageLog.TabIndex = 4;
-            this.pageLog.Text = "Log";
-            this.pageLog.UseVisualStyleBackColor = true;
-            // 
-            // rtbLog
-            // 
-            this.rtbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbLog.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbLog.Location = new System.Drawing.Point(0, 0);
-            this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
-            this.rtbLog.Name = "rtbLog";
-            this.rtbLog.Size = new System.Drawing.Size(678, 475);
-            this.rtbLog.TabIndex = 0;
-            this.rtbLog.Text = "";
-            // 
-            // rtbStatistics
-            // 
-            this.rtbStatistics.Location = new System.Drawing.Point(0, 0);
-            this.rtbStatistics.Name = "rtbStatistics";
-            this.rtbStatistics.Size = new System.Drawing.Size(100, 96);
-            this.rtbStatistics.TabIndex = 0;
-            this.rtbStatistics.Text = "";
-            // 
-            // splitterMain
-            // 
-            this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
-            this.splitterMain.Location = new System.Drawing.Point(357, 86);
-            this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
-            this.splitterMain.Name = "splitterMain";
-            this.splitterMain.Size = new System.Drawing.Size(4, 510);
-            this.splitterMain.TabIndex = 8;
-            this.splitterMain.TabStop = false;
+            this.imglistIcons.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imglistIcons.ImageStream")));
+            this.imglistIcons.TransparentColor = System.Drawing.Color.Magenta;
+            this.imglistIcons.Images.SetKeyName(0, "imglistIconsC.bmp");
             // 
             // frmViewer
             // 
@@ -1160,6 +1202,8 @@
             this.tabsViews.ResumeLayout(false);
             this.pageInspectors.ResumeLayout(false);
             this.mnuInspectors.ResumeLayout(false);
+            this.pnlTamper.ResumeLayout(false);
+            this.pnlTamper.PerformLayout();
             this.pageLog.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1267,6 +1311,10 @@
         private System.Windows.Forms.ContextMenuStrip mnuInspectors;
         private System.Windows.Forms.ToolStripMenuItem miInspectorAbout;
         private System.Windows.Forms.ToolStripMenuItem miInspectorScreenshot;
+        private System.Windows.Forms.Button btnBreakAtResponse;
+        private System.Windows.Forms.Label lblBreakpointed;
+        private System.Windows.Forms.Button btnRunToComplete;
+        public System.Windows.Forms.ImageList imglistIcons;
     }
 }
 
