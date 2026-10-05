@@ -63,13 +63,13 @@
             this.miCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
             this.miCopySummary = new System.Windows.Forms.ToolStripMenuItem();
             this.miCopyTerseSummary = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditPasteAsExchanges = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemove = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveSelected = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveUnselected = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveAll = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditSelectAll = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditPasteAsExchanges = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditUndelete = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditUnlock = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditMark = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditMarkStrikeout = new System.Windows.Forms.ToolStripMenuItem();
@@ -126,27 +126,17 @@
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
-            this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.pageInspectors = new System.Windows.Forms.TabPage();
+            this.tabsResponse = new System.Windows.Forms.TabControl();
+            this.pnlTamper = new System.Windows.Forms.Panel();
+            this.splitter1 = new System.Windows.Forms.Splitter();
+            this.tabsRequest = new System.Windows.Forms.TabControl();
             this.pageAutoResponder = new System.Windows.Forms.TabPage();
             this.pageComposer = new System.Windows.Forms.TabPage();
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
+            this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.tabsRequest = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.tabsResponse = new System.Windows.Forms.TabControl();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.pnlTamper = new System.Windows.Forms.Panel();
-            this.splitter1 = new System.Windows.Forms.Splitter();
-            this.blvExchanges = new Clearinet.BetterListView();
-            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.txtQuickExec = new Clearinet.QuickExecBox();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -167,10 +157,7 @@
             this.pnlMain.SuspendLayout();
             this.tabsViews.SuspendLayout();
             this.pageInspectors.SuspendLayout();
-            this.pageStatistics.SuspendLayout();
             this.pageLog.SuspendLayout();
-            this.tabsRequest.SuspendLayout();
-            this.tabsResponse.SuspendLayout();
             this.SuspendLayout();
             // 
             // miViewSplitter3
@@ -226,7 +213,7 @@
             // miHelpSplitter1
             // 
             miHelpSplitter1.Name = "miHelpSplitter1";
-            miHelpSplitter1.Size = new System.Drawing.Size(164, 6);
+            miHelpSplitter1.Size = new System.Drawing.Size(154, 6);
             // 
             // tsmiFileSaveSplitter1
             // 
@@ -265,7 +252,7 @@
             miFileSplit3,
             this.miFileExit});
             this.miFile.Name = "miFile";
-            this.miFile.Size = new System.Drawing.Size(39, 21);
+            this.miFile.Size = new System.Drawing.Size(46, 24);
             this.miFile.Text = "&File";
             this.miFile.DropDownOpening += new System.EventHandler(this.miFile_DropDownOpening);
             // 
@@ -288,7 +275,7 @@
             // miFileLoadSAZ
             // 
             this.miFileLoadSAZ.Name = "miFileLoadSAZ";
-            this.miFileLoadSAZ.Size = new System.Drawing.Size(189, 22);
+            this.miFileLoadSAZ.Size = new System.Drawing.Size(221, 26);
             this.miFileLoadSAZ.Text = "L&oad Archive...";
             this.miFileLoadSAZ.Click += new System.EventHandler(this.miFileLoadSAZ_Click);
             // 
@@ -321,19 +308,19 @@
             this.miFileSaveSelected.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miFileSaveSelectedSAZ});
             this.miFileSaveSelected.Name = "miFileSaveSelected";
-            this.miFileSaveSelected.Size = new System.Drawing.Size(190, 22);
+            this.miFileSaveSelected.Size = new System.Drawing.Size(222, 26);
             this.miFileSaveSelected.Text = "&Selected Exchanges";
             // 
             // miFileSaveSelectedSAZ
             // 
             this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
-            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(154, 22);
+            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(183, 26);
             this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
             // 
             // miFileImport
             // 
             this.miFileImport.Name = "miFileImport";
-            this.miFileImport.Size = new System.Drawing.Size(189, 22);
+            this.miFileImport.Size = new System.Drawing.Size(221, 26);
             this.miFileImport.Text = "&Import Exchanges";
             this.miFileImport.Click += new System.EventHandler(this.miFileImport_Click);
             // 
@@ -425,6 +412,12 @@
             this.miCopyTerseSummary.Size = new System.Drawing.Size(192, 26);
             this.miCopyTerseSummary.Text = "&Terse Summary";
             // 
+            // miEditPasteAsExchanges
+            // 
+            this.miEditPasteAsExchanges.Name = "miEditPasteAsExchanges";
+            this.miEditPasteAsExchanges.Size = new System.Drawing.Size(242, 26);
+            this.miEditPasteAsExchanges.Text = "&Paste as Exchanges";
+            // 
             // miEditRemove
             // 
             this.miEditRemove.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -453,25 +446,19 @@
             this.miEditRemoveAll.Size = new System.Drawing.Size(238, 26);
             this.miEditRemoveAll.Text = "&All Exchanges";
             // 
-            // miEditSelectAll
-            // 
-            this.miEditSelectAll.Name = "miEditSelectAll";
-            this.miEditSelectAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
-            this.miEditSelectAll.Size = new System.Drawing.Size(208, 22);
-            this.miEditSelectAll.Text = "Select &all...";
-            // 
-            // miEditPasteAsExchanges
-            // 
-            this.miEditPasteAsExchanges.Name = "miEditPasteAsExchanges";
-            this.miEditPasteAsExchanges.Size = new System.Drawing.Size(242, 26);
-            this.miEditPasteAsExchanges.Text = "&Paste as Exchanges";
-            // 
             // miEditUndelete
             // 
             this.miEditUndelete.Enabled = false;
             this.miEditUndelete.Name = "miEditUndelete";
             this.miEditUndelete.Size = new System.Drawing.Size(242, 26);
             this.miEditUndelete.Text = "&Undelete";
+            // 
+            // miEditSelectAll
+            // 
+            this.miEditSelectAll.Name = "miEditSelectAll";
+            this.miEditSelectAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
+            this.miEditSelectAll.Size = new System.Drawing.Size(242, 26);
+            this.miEditSelectAll.Text = "Select &all...";
             // 
             // miEditUnlock
             // 
@@ -534,7 +521,7 @@
             // miRules
             // 
             this.miRules.Name = "miRules";
-            this.miRules.Size = new System.Drawing.Size(51, 21);
+            this.miRules.Size = new System.Drawing.Size(58, 24);
             this.miRules.Text = "&Rules";
             // 
             // miTools
@@ -545,7 +532,7 @@
             this.miTextWizard,
             this.miToolsMezer});
             this.miTools.Name = "miTools";
-            this.miTools.Size = new System.Drawing.Size(51, 21);
+            this.miTools.Size = new System.Drawing.Size(58, 24);
             this.miTools.Text = "&Tools";
             // 
             // miToolsOptions
@@ -672,27 +659,27 @@
             miHelpSplitter1,
             this.miHelpAbout});
             this.miHelp.Name = "miHelp";
-            this.miHelp.Size = new System.Drawing.Size(47, 21);
+            this.miHelp.Size = new System.Drawing.Size(55, 24);
             this.miHelp.Text = "&Help";
             // 
             // miHelpDiscuss
             // 
             this.miHelpDiscuss.Name = "miHelpDiscuss";
-            this.miHelpDiscuss.Size = new System.Drawing.Size(180, 22);
+            this.miHelpDiscuss.Size = new System.Drawing.Size(157, 26);
             this.miHelpDiscuss.Text = "Dis&cuss";
             this.miHelpDiscuss.Click += new System.EventHandler(this.miHelpDiscuss_Click);
             // 
             // miHelpBug
             // 
             this.miHelpBug.Name = "miHelpBug";
-            this.miHelpBug.Size = new System.Drawing.Size(180, 22);
+            this.miHelpBug.Size = new System.Drawing.Size(157, 26);
             this.miHelpBug.Text = "File a &bug";
             this.miHelpBug.Click += new System.EventHandler(this.miHelpBug_Click);
             // 
             // miHelpAbout
             // 
             this.miHelpAbout.Name = "miHelpAbout";
-            this.miHelpAbout.Size = new System.Drawing.Size(180, 22);
+            this.miHelpAbout.Size = new System.Drawing.Size(157, 26);
             this.miHelpAbout.Text = "&About";
             this.miHelpAbout.Click += new System.EventHandler(this.miHelpAbout_Click);
             // 
@@ -993,121 +980,15 @@
             this.pageInspectors.TabIndex = 1;
             this.pageInspectors.Text = "Inspectors";
             this.pageInspectors.UseVisualStyleBackColor = true;
-            this.pageInspectors.Click += new System.EventHandler(this.pageInspectors_Click);
-            // 
-            // pageAutoResponder
-            // 
-            this.pageAutoResponder.Location = new System.Drawing.Point(4, 28);
-            this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
-            this.pageAutoResponder.Name = "pageAutoResponder";
-            this.pageAutoResponder.Size = new System.Drawing.Size(678, 480);
-            this.pageAutoResponder.TabIndex = 2;
-            this.pageAutoResponder.Text = "AutoResponder";
-            this.pageAutoResponder.UseVisualStyleBackColor = true;
-            // 
-            // pageComposer
-            // 
-            this.pageComposer.Location = new System.Drawing.Point(4, 28);
-            this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
-            this.pageComposer.Name = "pageComposer";
-            this.pageComposer.Size = new System.Drawing.Size(678, 480);
-            this.pageComposer.TabIndex = 3;
-            this.pageComposer.Text = "Composer";
-            this.pageComposer.UseVisualStyleBackColor = true;
-            // 
-            // pageLog
-            // 
-            this.pageLog.Controls.Add(this.rtbLog);
-            this.pageLog.Location = new System.Drawing.Point(4, 28);
-            this.pageLog.Margin = new System.Windows.Forms.Padding(4);
-            this.pageLog.Name = "pageLog";
-            this.pageLog.Size = new System.Drawing.Size(678, 480);
-            this.pageLog.TabIndex = 4;
-            this.pageLog.Text = "Log";
-            this.pageLog.UseVisualStyleBackColor = true;
-            // 
-            // rtbLog
-            // 
-            this.rtbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbLog.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbLog.Location = new System.Drawing.Point(0, 0);
-            this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
-            this.rtbLog.Name = "rtbLog";
-            this.rtbLog.Size = new System.Drawing.Size(678, 480);
-            this.rtbLog.TabIndex = 0;
-            this.rtbLog.Text = "";
-            // 
-            // splitterMain
-            // 
-            this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
-            this.splitterMain.Location = new System.Drawing.Point(357, 92);
-            this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
-            this.splitterMain.Name = "splitterMain";
-            this.splitterMain.Size = new System.Drawing.Size(4, 504);
-            this.splitterMain.TabIndex = 8;
-            this.splitterMain.TabStop = false;
-            // 
-            // tabsRequest
-            // 
-            this.tabsRequest.Controls.Add(this.tabPage1);
-            this.tabsRequest.Controls.Add(this.tabPage2);
-            this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
-            this.tabsRequest.Location = new System.Drawing.Point(4, 4);
-            this.tabsRequest.Name = "tabsRequest";
-            this.tabsRequest.SelectedIndex = 0;
-            this.tabsRequest.Size = new System.Drawing.Size(670, 194);
-            this.tabsRequest.TabIndex = 0;
-            // 
-            // tabPage1
-            // 
-            this.tabPage1.Location = new System.Drawing.Point(4, 28);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(662, 162);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "tabPage1";
-            this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // tabPage2
-            // 
-            this.tabPage2.Location = new System.Drawing.Point(4, 28);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(192, 68);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "tabPage2";
-            this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // tabsResponse
             // 
-            this.tabsResponse.Controls.Add(this.tabPage3);
-            this.tabsResponse.Controls.Add(this.tabPage4);
             this.tabsResponse.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabsResponse.Location = new System.Drawing.Point(4, 220);
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
             this.tabsResponse.Size = new System.Drawing.Size(670, 248);
             this.tabsResponse.TabIndex = 1;
-            // 
-            // tabPage3
-            // 
-            this.tabPage3.Location = new System.Drawing.Point(4, 28);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(662, 216);
-            this.tabPage3.TabIndex = 0;
-            this.tabPage3.Text = "tabPage3";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // tabPage4
-            // 
-            this.tabPage4.Location = new System.Drawing.Point(4, 28);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(192, 68);
-            this.tabPage4.TabIndex = 1;
-            this.tabPage4.Text = "tabPage4";
-            this.tabPage4.UseVisualStyleBackColor = true;
             // 
             // pnlTamper
             // 
@@ -1126,6 +1007,75 @@
             this.splitter1.Size = new System.Drawing.Size(670, 3);
             this.splitter1.TabIndex = 4;
             this.splitter1.TabStop = false;
+            // 
+            // tabsRequest
+            // 
+            this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tabsRequest.Location = new System.Drawing.Point(4, 4);
+            this.tabsRequest.Name = "tabsRequest";
+            this.tabsRequest.SelectedIndex = 0;
+            this.tabsRequest.Size = new System.Drawing.Size(670, 194);
+            this.tabsRequest.TabIndex = 0;
+            // 
+            // pageAutoResponder
+            // 
+            this.pageAutoResponder.Location = new System.Drawing.Point(4, 28);
+            this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
+            this.pageAutoResponder.Name = "pageAutoResponder";
+            this.pageAutoResponder.Size = new System.Drawing.Size(678, 472);
+            this.pageAutoResponder.TabIndex = 2;
+            this.pageAutoResponder.Text = "AutoResponder";
+            this.pageAutoResponder.UseVisualStyleBackColor = true;
+            // 
+            // pageComposer
+            // 
+            this.pageComposer.Location = new System.Drawing.Point(4, 28);
+            this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
+            this.pageComposer.Name = "pageComposer";
+            this.pageComposer.Size = new System.Drawing.Size(678, 472);
+            this.pageComposer.TabIndex = 3;
+            this.pageComposer.Text = "Composer";
+            this.pageComposer.UseVisualStyleBackColor = true;
+            // 
+            // pageLog
+            // 
+            this.pageLog.Controls.Add(this.rtbLog);
+            this.pageLog.Location = new System.Drawing.Point(4, 28);
+            this.pageLog.Margin = new System.Windows.Forms.Padding(4);
+            this.pageLog.Name = "pageLog";
+            this.pageLog.Size = new System.Drawing.Size(678, 472);
+            this.pageLog.TabIndex = 4;
+            this.pageLog.Text = "Log";
+            this.pageLog.UseVisualStyleBackColor = true;
+            // 
+            // rtbLog
+            // 
+            this.rtbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbLog.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbLog.Location = new System.Drawing.Point(0, 0);
+            this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
+            this.rtbLog.Name = "rtbLog";
+            this.rtbLog.Size = new System.Drawing.Size(678, 472);
+            this.rtbLog.TabIndex = 0;
+            this.rtbLog.Text = "";
+            // 
+            // rtbStatistics
+            // 
+            this.rtbStatistics.Location = new System.Drawing.Point(0, 0);
+            this.rtbStatistics.Name = "rtbStatistics";
+            this.rtbStatistics.Size = new System.Drawing.Size(100, 96);
+            this.rtbStatistics.TabIndex = 0;
+            this.rtbStatistics.Text = "";
+            // 
+            // splitterMain
+            // 
+            this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
+            this.splitterMain.Location = new System.Drawing.Point(357, 92);
+            this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
+            this.splitterMain.Name = "splitterMain";
+            this.splitterMain.Size = new System.Drawing.Size(4, 504);
+            this.splitterMain.TabIndex = 8;
+            this.splitterMain.TabStop = false;
             // 
             // frmViewer
             // 
@@ -1160,10 +1110,8 @@
             this.pnlLeft.PerformLayout();
             this.pnlMain.ResumeLayout(false);
             this.tabsViews.ResumeLayout(false);
-            this.pageStatistics.ResumeLayout(false);
+            this.pageInspectors.ResumeLayout(false);
             this.pageLog.ResumeLayout(false);
-            this.tabsRequest.ResumeLayout(false);
-            this.tabsResponse.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1262,12 +1210,8 @@
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelected;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelectedSAZ;
         private System.Windows.Forms.TabControl tabsRequest;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.Panel pnlTamper;
         private System.Windows.Forms.TabControl tabsResponse;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.Splitter splitter1;
         private System.Windows.Forms.RichTextBox rtbStatistics;
         private System.Windows.Forms.ToolStripTextBox tstxtSearch;

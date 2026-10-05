@@ -330,7 +330,6 @@ namespace Clearinet
                 if (!AppMeetsVersionDemand(a, "AppExtensions")) return;
                 foreach (Type t in a.GetExportedTypes())
                 {
-                    CApp.alert(t.ToString());
                     if (!t.IsAbstract && t.IsPublic && t.IsClass)
                     {
                         if (typeof(IAppExtension).IsAssignableFrom(t))
@@ -355,7 +354,6 @@ namespace Clearinet
 
         private void InstantiateExtension(Type t)
         {
-            MessageBox.Show(t.ToString());
             if (m_Extensions.ContainsKey(t.GUID)) return;
 
             IAppExtension iae = (IAppExtension)Activator.CreateInstance(t);
