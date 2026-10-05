@@ -1,5 +1,4 @@
-﻿using System;
-using Clearinet;
+﻿using Clearinet;
 
 [assembly: RequiredVersion("0.0.1.0")]
 namespace TestExtensions

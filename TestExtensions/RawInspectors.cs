@@ -18,7 +18,6 @@ namespace TestExtensions
         }
         public override void SetFontSize(float flSizeInPoints) => rtViewer?.SetFontSize(flSizeInPoints);
 
-
         public override int GetOrder()
         {
             return 0;
@@ -65,7 +64,6 @@ namespace TestExtensions
             rtViewer.rtbRaw.Text = hrh.ToString() + encBody.GetString(arrBody);
             rtViewer.rtbRaw.ReadOnly = bReadOnly;
         }
-
         public override void Clear()
         {
             rtViewer.Clear();
