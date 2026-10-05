@@ -56,6 +56,29 @@ namespace Clearinet
             return ((value.Length > 0) && Char.IsWhiteSpace(value[0]));
         }
 
+        public static string RemoveAllWhitespace(this string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            char[] buffer = new char[input.Length];
+            int writerIndex = 0;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                char c = input[i];
+                if (!char.IsWhiteSpace(c))
+                {
+                    buffer[writerIndex++] = c;
+                }
+            }
+
+            // If no whitespace was removed, return the original string instance
+            if (writerIndex == input.Length)
+                return input;
+
+            return new string(buffer, 0, writerIndex);
+        }
+
         // Returns string before first delimiter; empty if null.
         public static string TrimAfter(this string s, string delim)
         {

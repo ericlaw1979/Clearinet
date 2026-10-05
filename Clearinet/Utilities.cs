@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -347,16 +348,79 @@ namespace Clearinet
             return Parameterize(sInput, false);
         }
 
-        public static byte[] GzipExpand(byte[] arrIn)
+        public static byte[] GzipExpand(byte[] arrData)
         {
-            using (var msInput = new MemoryStream(arrIn))
+            if (!arrData.HasData()) return Array.Empty<byte>();
+            using (var msInput = new MemoryStream(arrData))
             using (var msOutput = new MemoryStream())
             {
-                using (var gzip = new System.IO.Compression.GZipStream(msInput, System.IO.Compression.CompressionMode.Decompress))
+                using (var gzip = new GZipStream(msInput, CompressionMode.Decompress))
                 {
                     gzip.CopyTo(msOutput);
                 }
                 return msOutput.ToArray();
+            }
+        }
+
+        public static byte[] DeflaterCompress(byte[] arrData)
+        {
+            if (!arrData.HasData()) return Array.Empty<byte>();
+            try
+            {
+                using (var destinationStream = new MemoryStream())
+                {
+                    using (var deflateStream = new DeflateStream(destinationStream, CompressionMode.Compress))
+                    {
+                        deflateStream.Write(arrData, 0, arrData.Length);
+                    }
+
+                    return destinationStream.ToArray();
+                }
+            }
+            catch (Exception e)
+            {
+                CApp.DoNotifyUser($"The content could not be compressed.\n\n{e.Message}", "Deflate failed");
+                return arrData;
+            }
+        }
+
+        public static byte[] DeflaterExpand(byte[] arrDeflated, bool bThrowOnErrors)
+        {
+            try
+            {
+                return CompatibleDeflaterExpand(arrDeflated);
+            }
+            catch (Exception eX)
+            {
+                if (bThrowOnErrors)
+                {
+                    throw new InvalidDataException("The deflated data could not be decompressed.", eX);
+                }
+                CApp.DoNotifyUser($"The deflated data could not be decompressed\n\n{eX.Message}", "Inflate failed");
+                return Array.Empty<byte>();
+            }
+        }
+        public static byte[] CompatibleDeflaterExpand(byte[] arrDeflated)
+        {
+            if (!arrDeflated.HasData()) return Array.Empty<byte>();
+
+            // An RFC1950 ZLIB wrapper around DEFLATE may be present.
+            // http://www.faqs.org/rfcs/rfc1950.html
+            // Check for the ZLIB header bytes and if present, skip over them.
+            var ixStart = (arrDeflated.Length > 2 &&
+                           (arrDeflated[0] & 0x0F) == 0x8 &&
+                           (arrDeflated[0] & 0x80) == 0 &&
+                           ((arrDeflated[0] << 8) + arrDeflated[1]) % 31 == 0) ? 2 : 0;
+
+            using (var sourceStream = new MemoryStream(arrDeflated, ixStart, arrDeflated.Length - ixStart, writable: false))
+            using (var destinationStream = new MemoryStream(arrDeflated.Length))
+            {
+                using (var deflate = new DeflateStream(sourceStream, CompressionMode.Decompress))
+                {
+                    deflate.CopyTo(destinationStream);
+                }
+
+                return destinationStream.ToArray();
             }
         }
 

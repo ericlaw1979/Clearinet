@@ -102,12 +102,30 @@ namespace Clearinet
                         break;
                     case 14: // DeflatedSAML
                         {
-                            sOutput = "TODO";
+                            byte[] arrIn = Utilities.DeflaterCompress(Encoding.UTF8.GetBytes(sText));
+                            string sB64 = Convert.ToBase64String(arrIn);
+                            sOutput = Utilities.UrlEncode(sB64, Encoding.UTF8);
                         }
                         break;
                     case 15: // FromDeflatedSAML
                         {
-                            sOutput = "TODO";
+                            // Strip spaces.
+                            sText = sText.RemoveAllWhitespace();
+                            string sB64 = Utilities.UrlDecode(sText, Encoding.UTF8);
+
+                            // SAML uses + characters, so undo any decode into spaces.
+                            sB64 = sB64.Replace(' ', '+');
+                            byte[] arrDeflated = Convert.FromBase64String(sB64);
+                            // Not all SAML is deflated,
+                            if ((arrDeflated.Length > 0) && (arrDeflated[0] == 0x3c))
+                            {
+                                sOutput = Encoding.UTF8.GetString(arrDeflated);
+                            }
+                            else
+                            {
+                                arrLatestOutput = Utilities.DeflaterExpand(arrDeflated, false);
+                                sOutput = Encoding.UTF8.GetString(arrLatestOutput);
+                            }
                         }
                         break;
                     case 16:
