@@ -23,7 +23,7 @@ namespace Clearinet
         {
             if (keyData == Keys.Escape)
             {
-                Close();                
+                Close();
                 return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);

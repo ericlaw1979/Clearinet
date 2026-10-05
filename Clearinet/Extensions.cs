@@ -8,7 +8,202 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
-    public class Extensions
+    public class ExtensionBase
+    {
+        internal static bool AppMeetsVersionDemand(Assembly a, string sCategory)
+        {
+            var attrRequirement = (RequiredVersionAttribute)Attribute.GetCustomAttribute(
+                                   a, typeof(RequiredVersionAttribute), inherit: false);
+            if (attrRequirement == null)
+            {
+                CApp.Log.LogFormat("! File '{0}' is named as if it's an extension. However, it does not specify a RequiredVersionAttribute, so it will be ignored.", a.FullName);
+                return false;
+            }
+
+            if (!Version.TryParse(attrRequirement.RequiredVersion, out var verRequired))
+            {
+                Debug.Assert(false, "Invalid RequiredVersion string format");
+                return false;
+            }
+
+            bool bOutdated = (Assembly.GetExecutingAssembly().GetName().Version < verRequired);
+            if (bOutdated)
+            {
+                string location = string.IsNullOrEmpty(a.Location) ? a.FullName : a.Location;
+                CApp.DoNotifyUser(
+                    $"The {sCategory} in {location} require Clearinet v{attrRequirement.RequiredVersion} or later. (You have v{Assembly.GetExecutingAssembly().GetName().Version})\n\n" +
+                    $"Please install the latest version of Clearinet from https://clearinet.app.\n",
+                    "Extension Not Loaded");
+                return false;
+            }
+
+            return true;
+        }
+    }
+    public class Transcoders : ExtensionBase
+    {
+        private Dictionary<string, TranscoderTuple> m_Importers = new Dictionary<string, TranscoderTuple>();
+        private Dictionary<string, TranscoderTuple> m_Exporters = new Dictionary<string, TranscoderTuple>();
+        internal bool hasImporters => (m_Importers?.Count > 0);
+        internal bool hasExporters => (m_Exporters?.Count > 0);
+
+        internal Transcoders()
+        {
+        }
+
+        /// <summary>
+        /// Dotted filename extension
+        /// </summary>
+        /// <param name="sFilenameExtension"></param>
+        /// <returns></returns>
+        internal TranscoderTuple GetImporterForExt(string sFilenameExtension)
+        {
+            EnsureReady();
+            if (!hasImporters) return null;
+            foreach (TranscoderTuple tt in m_Importers.Values)
+            {
+                if (tt.HandlesFileExtension(sFilenameExtension)) return tt;
+            }
+            return null;
+        }
+        /// <summary>
+        /// Dotted 
+        /// </summary>
+        /// <param name="sFilenameExtension"></param>
+        /// <returns></returns>
+        internal TranscoderTuple GetExporterForExt(string sFilenameExtension)
+        {
+            EnsureReady();
+            if (!hasExporters) return null;
+            foreach (TranscoderTuple tt in m_Importers.Values)
+            {
+                if (tt.HandlesFileExtension(sFilenameExtension)) return tt;
+            }
+            return null;
+        }
+
+        private void EnsureReady()
+        {
+            // Issue: This doesn't allow us to "refresh" without restart.
+            if (hasImporters || hasExporters) return;
+            InventoryFromPath(CONFIG.GetPath("Transcoders_User"), false);
+            InventoryFromPath(CONFIG.GetPath("Transcoders"), false);
+        }
+        private static bool AddToTranscoders(Dictionary<string, TranscoderTuple> dictTranscoders, Type t)
+        {
+            bool bHasFormatSpecifier = false;
+            OfferFormatAttribute[] arrFormats = (OfferFormatAttribute[])Attribute.GetCustomAttributes(t, typeof(OfferFormatAttribute));
+            if ((null != arrFormats) && (arrFormats.Length > 0))
+            {
+                bHasFormatSpecifier = true;
+                foreach (OfferFormatAttribute ofa in arrFormats)
+                {
+                    if (!dictTranscoders.ContainsKey(ofa.FormatName))
+                    {
+                        dictTranscoders.Add(ofa.FormatName, new TranscoderTuple(ofa, t));
+                    }
+                    else
+                    {
+                        CApp.Log.Log($"Duplicate Transcoder found for {ofa.FormatName}");
+                    }
+                }
+            }
+            return bHasFormatSpecifier;
+        }
+
+        internal void InventoryFromPath(string sPath, bool bNestedDir)
+        {
+            CApp.Log.LogFormat("Scanning for Transcoders in {0}", sPath);
+
+            try
+            {
+                if (!Directory.Exists(sPath)) return;
+
+                if (!bNestedDir)
+                {
+                    DirectoryInfo[] oDirs = new DirectoryInfo(sPath).GetDirectories("*.ext");
+                    foreach (DirectoryInfo di in oDirs)
+                    {
+                        InventoryFromPath(di.FullName, true);
+                    }
+                }
+
+                FileInfo[] arrDLLFiles = new DirectoryInfo(sPath).GetFiles("*.dll");
+                CApp.Log.LogFormat("Loading any Extensions in {0}", sPath);
+
+                foreach (FileInfo fi in arrDLLFiles)
+                {
+                    if (!fi.Name.OICStartsWith("CAT-")) continue;
+                    InventoryFromAssembly(fi);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Extension Load Failed");
+            }
+        }
+
+        private void InventoryFromAssembly(FileInfo fi)
+        {
+            Assembly a;
+            try
+            {
+                a = Assembly.UnsafeLoadFrom(fi.FullName);
+            }
+            catch (Exception eX)
+            {
+                CApp.Log.LogFormat("! Failed to load Transcoder assembly {0}: {1}", fi.FullName, eX.Message);
+                return;
+            }
+
+            try
+            {
+                if (!AppMeetsVersionDemand(a, "AppExtensions")) return;
+                foreach (Type t in a.GetExportedTypes())
+                {
+                    if (t.IsAbstract && !t.IsPublic && !t.IsClass) continue;
+
+                    if (typeof(IExchangeImporter).IsAssignableFrom(t))
+                    {
+                        try
+                        {
+                            AddToTranscoders(m_Importers, t);
+                        }
+                        catch (Exception eX)
+                        {
+                            CApp.ReportException(eX, "Adding Importer Failed");
+                        }
+                    }
+
+                    if (typeof(IExchangeExporter).IsAssignableFrom(t))
+                    {
+                        try
+                        {
+                            AddToTranscoders(m_Exporters, t);
+                        }
+                        catch (Exception eX)
+                        {
+                            CApp.ReportException(eX, "Adding Exporter Failed");
+                        }
+                    }
+
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.Log.LogFormat("! Failure loading Extensions from {0}: {1}", fi.FullName, eX.Message);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (null != m_Importers) { m_Importers.Clear(); }
+            if (null != m_Exporters) { m_Exporters.Clear(); }
+            m_Importers = m_Importers = null;
+        }
+    }
+
+    public class Extensions: ExtensionBase
     {
         private Dictionary<Guid, IAppExtension> m_Extensions = new Dictionary<Guid, IAppExtension>();
         private Dictionary<Guid, IAutoTamper> m_AutoTamperers = new Dictionary<Guid, IAutoTamper>();
@@ -79,7 +274,6 @@ namespace Clearinet
                 CApp.AppBoot += () => CallAllOnLoads();
             }
         }
-
 
         // Scan the Extensions folder for assemblies.
         // For each assembly, check for RequiredVersionAttribute, and if the app's version is lower than the required version, skip it.
@@ -176,36 +370,6 @@ namespace Clearinet
             {
                 _FireOnload(iae);
             }
-        }
-
-        private static bool AppMeetsVersionDemand(Assembly a, string sCategory)
-        {
-            var attrRequirement = (RequiredVersionAttribute)Attribute.GetCustomAttribute(
-                                   a, typeof(RequiredVersionAttribute), inherit: false);
-            if (attrRequirement == null)
-            {
-                CApp.Log.LogFormat("! File '{0}' is named as if it's an extension. However, it does not specify a RequiredVersionAttribute, so it will be ignored.", a.FullName);
-                return false;
-            }
-
-            if (!Version.TryParse(attrRequirement.RequiredVersion, out var verRequired))
-            {
-                Debug.Assert(false, "Invalid RequiredVersion string format");
-                return false;
-            }
-
-            bool bOutdated = (Assembly.GetExecutingAssembly().GetName().Version < verRequired);
-            if (bOutdated)
-            {
-                string location = string.IsNullOrEmpty(a.Location) ? a.FullName : a.Location;
-                CApp.DoNotifyUser(
-                    $"The {sCategory} in {location} require Clearinet v{attrRequirement.RequiredVersion} or later. (You have v{Assembly.GetExecutingAssembly().GetName().Version})\n\n" +
-                    $"Please install the latest version of Clearinet from https://clearinet.app.\n",
-                    "Extension Not Loaded");
-                return false;
-            }
-
-            return true;
         }
     }
 }

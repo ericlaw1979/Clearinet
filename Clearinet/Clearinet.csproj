@@ -148,6 +148,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\frmViewer.resx">
       <DependentUpon>frmViewer.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
