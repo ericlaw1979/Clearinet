@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -17,10 +18,11 @@ namespace Clearinet
                 tsmiNameViewer.Visible = true;
                 this.blvExchanges.EmptyText = "No Exchanges are loaded";
                 // TODO: Automatically name this viewer if another is already running.
-                tssbCapture.Enabled = false;
-                miFileAttach.Enabled = false;
+                tssbCapture.Enabled = miFileAttach.Enabled = false;
             }
         }
+
+        private Label lblInspectorInstruction;
 
         private void miFileExit_Click(object sender, EventArgs e)
         {
@@ -565,9 +567,44 @@ namespace Clearinet
             actUpdateInspector(true, false);
         }
 
+        private void ShowSelectOne()
+        {
+            pageInspectors.SuspendLayout();
+            pnlTamper.Visible = tabsRequest.Visible = splitRequestResponse.Visible = tabsResponse.Visible = false;
+            if (null == lblInspectorInstruction)
+            {
+                lblInspectorInstruction = new Label
+                {
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Font = new Font(CApp.UI.Font, FontStyle.Italic),
+                    Text = "Please select a single Exchange to inspect",
+                    Parent = pageInspectors,
+                    ForeColor = Color.FromKnownColor(KnownColor.ControlDarkDark),
+                    Dock = DockStyle.Fill
+                };
+            }
+            else
+            {
+                lblInspectorInstruction.Visible = true;
+            }
+            pageInspectors.ResumeLayout();
+        }
+
         private void actUpdateInspector(bool bUpdateRequest, bool bUpdateResponse)
         {
+            // Don't work if it's not visible.
             if (CApp.isClosing) return;
+            if (tabsViews.SelectedTab != pageInspectors) return;
+
+            if (blvExchanges.SelectedItems.Count != 1)
+            {
+                ShowSelectOne();
+                return;
+            }
+
+            pageInspectors.SuspendLayout();
+            if (null != lblInspectorInstruction) lblInspectorInstruction.Visible = false;
+            pnlTamper.Visible = tabsRequest.Visible = splitRequestResponse.Visible = tabsResponse.Visible = true;
 
             // TODO: HACKERY! In reality, grab the Exchange off the ViewItem/Tag property of the listview item
             HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{blvExchanges.SelectedItems[0].Text}", new string[] { "FirstHeader: 11111", "SecondHeader: 222", $"Host: {blvExchanges.SelectedItems[0].Text}" });
@@ -588,6 +625,7 @@ namespace Clearinet
                 ResponseInspectorBase ibResponse = tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase;
                 ibResponse.AssignExchange(x);
             }
+            pageInspectors.ResumeLayout();
         }
 
         private void tabsResponse_SelectedIndexChanged(object sender, EventArgs e)
@@ -611,6 +649,16 @@ namespace Clearinet
             {
                 inspector.ShowAboutBox();
             }
+        }
+
+        private void tabsViews_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tabsViews.SelectedTab == pageInspectors) actUpdateInspector(true, true);
+        }
+
+        private void blvExchanges_ItemActivate(object sender, EventArgs e)
+        {
+            tabsViews.SelectedTab = pageInspectors;
         }
     }
 }
