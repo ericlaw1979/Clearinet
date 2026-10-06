@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace TestExtensions
 {
-    public class RawRequestInspector: RequestInspectorBase
+    public sealed class RawRequestInspector: RequestInspectorBase
     {
         RawText rtViewer;
         Encoding encBody;
@@ -37,7 +37,7 @@ namespace TestExtensions
         }
     }
 
-    public class RawResponseInspector : ResponseInspectorBase
+    public sealed class RawResponseInspector : ResponseInspectorBase
     {
         RawText rtViewer;
         Encoding encBody;

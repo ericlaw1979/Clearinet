@@ -17,6 +17,17 @@ namespace Clearinet
             Buffer.BlockCopy(source, 0, dest, 0, source.Length);
             return dest;
         }
+        public static byte[] Append(this byte[] arrPrefix, byte[] arrSuffix)
+        {
+            if (arrPrefix == null) throw new ArgumentNullException(nameof(arrPrefix));
+            if (arrSuffix == null) return arrPrefix;
+
+            byte[] arrFinal = new byte[arrPrefix.Length + arrSuffix.Length];
+            Array.Copy(arrPrefix, 0, arrFinal, 0, arrPrefix.Length);
+            Array.Copy(arrSuffix, 0, arrFinal, arrPrefix.Length, arrSuffix.Length);
+
+            return arrFinal;
+        }
 
         public static bool HasData(this byte[] source) => source?.Length > 0;
     }

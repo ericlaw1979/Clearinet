@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace TestExtensions
 {
-    public class RequestHeaderInspector : RequestInspectorBase
+    public sealed class RequestHeaderInspector : RequestInspectorBase
     {
         HeaderView hvViewer;
 
@@ -60,7 +60,7 @@ namespace TestExtensions
         }
     }
 
-    public class ResponseHeaderInspector : ResponseInspectorBase
+    public sealed class ResponseHeaderInspector : ResponseInspectorBase
     {
         HeaderView hvViewer;
         public override void AddToTab(TabPage tab)
@@ -81,7 +81,6 @@ namespace TestExtensions
             // Return a low score above zero, so unknown types end up on us.
             return 5;
         }
-
 
         public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)
         {

@@ -72,7 +72,7 @@ namespace Clearinet
         bool bReadOnly { get; set; }
 
         /// <summary>
-        /// Set to false when an Exchange is assigned. 
+        /// Set to false when an Exchange is assigned.
         /// Set it to true if the user makes any edits.
         /// </summary>
         bool bDirty { get; set; }
@@ -86,7 +86,6 @@ namespace Clearinet
 
         public abstract void Clear();
 
-        internal bool isBoundToTab { get; set; }
         public virtual void OnLoad()
         {
             if (CApp.isTracing) Trace.WriteLine($"Loading Inspector {this}");
@@ -131,6 +130,14 @@ namespace Clearinet
         }
 
         /// <summary>
+        /// By default, Inspectors have no special behavior.
+        /// </summary>
+        public virtual InspectorFlags GetFlags()
+        {
+            return InspectorFlags.None;
+        }
+
+        /// <summary>
         /// Return 1 to 100 for how much this Exchange "wants" a given Content Type.
         /// Return 1000 if the MIME is a custom MIME for which your Inspector is the one
         /// that the user *definitely* will want used.
@@ -164,7 +171,7 @@ namespace Clearinet
 
         /// <summary>
         /// By default, assigning an Inspector to inspect an Exchange will set the
-        /// extension's Headers, Body, and Readonly properties. But an inspector may 
+        /// extension's Headers, Body, and Readonly properties. But an inspector may
         /// override the method to do anything it wants.
         /// </summary>
         public virtual void AssignExchange(Exchange oX)
@@ -268,11 +275,6 @@ namespace Clearinet
 
             Debug.Assert(false, "Impossible!");
             return false;
-        }
-
-        public virtual InspectorFlags GetFlags()
-        {
-            return InspectorFlags.None;
         }
     }
 }

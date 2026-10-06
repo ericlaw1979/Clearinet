@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -166,6 +167,11 @@ namespace Clearinet
             if (include_endline) sbOut.Append("\r\n");
             return sbOut.ToString();
         }
+
+        public byte[] ToByteArray()
+        {
+            return this._encodingHeaders.GetBytes(ToString(true, true));
+        }
     }
 
     public class HTTPResponseHeaders : HTTPHeaders, IEnumerable<HTTPHeaderItem>
@@ -265,6 +271,11 @@ namespace Clearinet
 
             if (include_endline) sbOut.Append("\r\n");
             return sbOut.ToString();
+        }
+
+        public byte[] ToByteArray()
+        {
+            return this._encodingHeaders.GetBytes(ToString(true, true));
         }
     }
 
