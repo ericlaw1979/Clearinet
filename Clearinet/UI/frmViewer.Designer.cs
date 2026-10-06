@@ -128,24 +128,25 @@
             this.miInspectorScreenshot = new System.Windows.Forms.ToolStripMenuItem();
             this.miInspectorAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlTamper = new System.Windows.Forms.Panel();
+            this.lblBreakpointed = new System.Windows.Forms.Label();
+            this.btnRunToComplete = new System.Windows.Forms.Button();
+            this.btnBreakAtResponse = new System.Windows.Forms.Button();
             this.splitRequestResponse = new System.Windows.Forms.Splitter();
             this.tabsRequest = new System.Windows.Forms.TabControl();
             this.pageAutoResponder = new System.Windows.Forms.TabPage();
             this.pageComposer = new System.Windows.Forms.TabPage();
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
+            this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.btnBreakAtResponse = new System.Windows.Forms.Button();
-            this.btnRunToComplete = new System.Windows.Forms.Button();
-            this.lblBreakpointed = new System.Windows.Forms.Label();
             this.blvExchanges = new Clearinet.BetterListView();
             this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colMethod = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.txtQuickExec = new Clearinet.QuickExecBox();
-            this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -854,7 +855,7 @@
             this.tstxtSearch.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.tstxtSearch.Name = "tstxtSearch";
             this.tstxtSearch.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
-            this.tstxtSearch.Size = new System.Drawing.Size(65, 27);
+            this.tstxtSearch.Size = new System.Drawing.Size(45, 27);
             this.tstxtSearch.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyDown);
             this.tstxtSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyUp);
             // 
@@ -867,14 +868,15 @@
             this.pnlTopGoldbar.Location = new System.Drawing.Point(0, 54);
             this.pnlTopGoldbar.Margin = new System.Windows.Forms.Padding(4);
             this.pnlTopGoldbar.Name = "pnlTopGoldbar";
-            this.pnlTopGoldbar.Size = new System.Drawing.Size(1043, 32);
+            this.pnlTopGoldbar.Size = new System.Drawing.Size(1043, 24);
             this.pnlTopGoldbar.TabIndex = 5;
+            this.pnlTopGoldbar.Visible = false;
             // 
             // lblTodo
             // 
             this.lblTodo.AutoSize = true;
             this.lblTodo.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTodo.Location = new System.Drawing.Point(395, 11);
+            this.lblTodo.Location = new System.Drawing.Point(393, 2);
             this.lblTodo.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTodo.Name = "lblTodo";
             this.lblTodo.Size = new System.Drawing.Size(205, 17);
@@ -886,20 +888,20 @@
             this.pnlLeft.Controls.Add(this.blvExchanges);
             this.pnlLeft.Controls.Add(this.txtQuickExec);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
-            this.pnlLeft.Location = new System.Drawing.Point(0, 86);
+            this.pnlLeft.Location = new System.Drawing.Point(0, 78);
             this.pnlLeft.Margin = new System.Windows.Forms.Padding(4);
             this.pnlLeft.Name = "pnlLeft";
-            this.pnlLeft.Size = new System.Drawing.Size(357, 510);
+            this.pnlLeft.Size = new System.Drawing.Size(357, 518);
             this.pnlLeft.TabIndex = 6;
             // 
             // pnlMain
             // 
             this.pnlMain.Controls.Add(this.tabsViews);
             this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlMain.Location = new System.Drawing.Point(357, 86);
+            this.pnlMain.Location = new System.Drawing.Point(357, 78);
             this.pnlMain.Margin = new System.Windows.Forms.Padding(4);
             this.pnlMain.Name = "pnlMain";
-            this.pnlMain.Size = new System.Drawing.Size(686, 510);
+            this.pnlMain.Size = new System.Drawing.Size(686, 518);
             this.pnlMain.TabIndex = 7;
             // 
             // tabsViews
@@ -915,7 +917,7 @@
             this.tabsViews.Margin = new System.Windows.Forms.Padding(4);
             this.tabsViews.Name = "tabsViews";
             this.tabsViews.SelectedIndex = 0;
-            this.tabsViews.Size = new System.Drawing.Size(686, 510);
+            this.tabsViews.Size = new System.Drawing.Size(686, 518);
             this.tabsViews.TabIndex = 0;
             this.tabsViews.SelectedIndexChanged += new System.EventHandler(this.tabsViews_SelectedIndexChanged);
             // 
@@ -926,7 +928,7 @@
             this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
             this.pageStatistics.Name = "pageStatistics";
             this.pageStatistics.Padding = new System.Windows.Forms.Padding(4);
-            this.pageStatistics.Size = new System.Drawing.Size(678, 481);
+            this.pageStatistics.Size = new System.Drawing.Size(678, 489);
             this.pageStatistics.TabIndex = 0;
             this.pageStatistics.Text = "Statistics";
             this.pageStatistics.UseVisualStyleBackColor = true;
@@ -953,7 +955,7 @@
             this.tabsResponse.Location = new System.Drawing.Point(4, 231);
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
-            this.tabsResponse.Size = new System.Drawing.Size(670, 246);
+            this.tabsResponse.Size = new System.Drawing.Size(670, 248);
             this.tabsResponse.TabIndex = 1;
             this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
             // 
@@ -993,6 +995,35 @@
             this.pnlTamper.Size = new System.Drawing.Size(670, 30);
             this.pnlTamper.TabIndex = 2;
             this.pnlTamper.Visible = false;
+            // 
+            // lblBreakpointed
+            // 
+            this.lblBreakpointed.AutoSize = true;
+            this.lblBreakpointed.Location = new System.Drawing.Point(3, 6);
+            this.lblBreakpointed.Name = "lblBreakpointed";
+            this.lblBreakpointed.Size = new System.Drawing.Size(191, 16);
+            this.lblBreakpointed.TabIndex = 2;
+            this.lblBreakpointed.Text = "Breakpoint hit; editors unlocked.";
+            // 
+            // btnRunToComplete
+            // 
+            this.btnRunToComplete.BackColor = System.Drawing.Color.Chartreuse;
+            this.btnRunToComplete.Location = new System.Drawing.Point(357, 3);
+            this.btnRunToComplete.Name = "btnRunToComplete";
+            this.btnRunToComplete.Size = new System.Drawing.Size(125, 23);
+            this.btnRunToComplete.TabIndex = 1;
+            this.btnRunToComplete.Text = "Resume";
+            this.btnRunToComplete.UseVisualStyleBackColor = false;
+            // 
+            // btnBreakAtResponse
+            // 
+            this.btnBreakAtResponse.BackColor = System.Drawing.Color.Yellow;
+            this.btnBreakAtResponse.Location = new System.Drawing.Point(200, 3);
+            this.btnBreakAtResponse.Name = "btnBreakAtResponse";
+            this.btnBreakAtResponse.Size = new System.Drawing.Size(139, 23);
+            this.btnBreakAtResponse.TabIndex = 0;
+            this.btnBreakAtResponse.Text = "&Break at Response";
+            this.btnBreakAtResponse.UseVisualStyleBackColor = false;
             // 
             // splitRequestResponse
             // 
@@ -1052,9 +1083,15 @@
             this.rtbLog.Location = new System.Drawing.Point(0, 0);
             this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
             this.rtbLog.Name = "rtbLog";
-            this.rtbLog.Size = new System.Drawing.Size(678, 481);
+            this.rtbLog.Size = new System.Drawing.Size(678, 483);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
+            // 
+            // imglistIcons
+            // 
+            this.imglistIcons.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imglistIcons.ImageStream")));
+            this.imglistIcons.TransparentColor = System.Drawing.Color.Magenta;
+            this.imglistIcons.Images.SetKeyName(0, "imglistIconsC.bmp");
             // 
             // rtbStatistics
             // 
@@ -1067,41 +1104,12 @@
             // splitterMain
             // 
             this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
-            this.splitterMain.Location = new System.Drawing.Point(357, 86);
+            this.splitterMain.Location = new System.Drawing.Point(357, 78);
             this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
             this.splitterMain.Name = "splitterMain";
-            this.splitterMain.Size = new System.Drawing.Size(4, 510);
+            this.splitterMain.Size = new System.Drawing.Size(4, 518);
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
-            // 
-            // btnBreakAtResponse
-            // 
-            this.btnBreakAtResponse.BackColor = System.Drawing.Color.Yellow;
-            this.btnBreakAtResponse.Location = new System.Drawing.Point(200, 3);
-            this.btnBreakAtResponse.Name = "btnBreakAtResponse";
-            this.btnBreakAtResponse.Size = new System.Drawing.Size(139, 23);
-            this.btnBreakAtResponse.TabIndex = 0;
-            this.btnBreakAtResponse.Text = "&Break at Response";
-            this.btnBreakAtResponse.UseVisualStyleBackColor = false;
-            // 
-            // btnRunToComplete
-            // 
-            this.btnRunToComplete.BackColor = System.Drawing.Color.Chartreuse;
-            this.btnRunToComplete.Location = new System.Drawing.Point(357, 3);
-            this.btnRunToComplete.Name = "btnRunToComplete";
-            this.btnRunToComplete.Size = new System.Drawing.Size(125, 23);
-            this.btnRunToComplete.TabIndex = 1;
-            this.btnRunToComplete.Text = "Resume";
-            this.btnRunToComplete.UseVisualStyleBackColor = false;
-            // 
-            // lblBreakpointed
-            // 
-            this.lblBreakpointed.AutoSize = true;
-            this.lblBreakpointed.Location = new System.Drawing.Point(3, 6);
-            this.lblBreakpointed.Name = "lblBreakpointed";
-            this.lblBreakpointed.Size = new System.Drawing.Size(191, 16);
-            this.lblBreakpointed.TabIndex = 2;
-            this.lblBreakpointed.Text = "Breakpoint hit; editors unlocked.";
             // 
             // blvExchanges
             // 
@@ -1113,6 +1121,7 @@
             this.blvExchanges.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colID,
             this.colResult,
+            this.colMethod,
             this.colHost,
             this.colPath});
             this.blvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -1123,7 +1132,7 @@
             this.blvExchanges.Location = new System.Drawing.Point(0, 0);
             this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
             this.blvExchanges.Name = "blvExchanges";
-            this.blvExchanges.Size = new System.Drawing.Size(357, 483);
+            this.blvExchanges.Size = new System.Drawing.Size(357, 491);
             this.blvExchanges.TabIndex = 4;
             this.blvExchanges.UseCompatibleStateImageBehavior = false;
             this.blvExchanges.View = System.Windows.Forms.View.Details;
@@ -1138,6 +1147,10 @@
             // colResult
             // 
             this.colResult.Text = "Result";
+            // 
+            // colMethod
+            // 
+            this.colMethod.Text = "Method";
             // 
             // colHost
             // 
@@ -1154,18 +1167,12 @@
             this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
-            this.txtQuickExec.Location = new System.Drawing.Point(0, 483);
+            this.txtQuickExec.Location = new System.Drawing.Point(0, 491);
             this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
             this.txtQuickExec.Name = "txtQuickExec";
             this.txtQuickExec.Size = new System.Drawing.Size(357, 27);
             this.txtQuickExec.TabIndex = 3;
             this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
-            // 
-            // imglistIcons
-            // 
-            this.imglistIcons.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imglistIcons.ImageStream")));
-            this.imglistIcons.TransparentColor = System.Drawing.Color.Magenta;
-            this.imglistIcons.Images.SetKeyName(0, "imglistIconsC.bmp");
             // 
             // frmViewer
             // 
@@ -1315,6 +1322,7 @@
         private System.Windows.Forms.Label lblBreakpointed;
         private System.Windows.Forms.Button btnRunToComplete;
         public System.Windows.Forms.ImageList imglistIcons;
+        private System.Windows.Forms.ColumnHeader colMethod;
     }
 }
 

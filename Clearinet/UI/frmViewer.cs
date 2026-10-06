@@ -233,6 +233,18 @@ namespace Clearinet
                 frmSplashScreen.SetStatusText("Loading script engine...");
                 CApp.CreateScriptEngine();
 
+                SAZFile.SupplyPassword = () => {
+                    var fpo = new frmPrompt.PromptOptions()
+                    {
+                        Kind = frmPrompt.PromptKind.Password,
+                        OwnerWindow = CApp.UI,
+                        ReturnNullOnCancel = true,
+                        Title = "Password-Protected Session Archive",
+                        PromptText = "Enter the password to decrypt this Session Archive:"
+                    };
+                    return frmPrompt.GetUserString(fpo);
+                };
+
                 Application.Run(CApp._frmMain);
                 if (bMutexAcquired) oMutex.ReleaseMutex();
             }
@@ -431,8 +443,19 @@ namespace Clearinet
         {
             CApp.DoNotifyUser("Asked to import file: " + sPath, "NYI");
             using (SAZFile sazFile = SAZFile.LoadFrom(sPath)) {
-                CApp.DoNotifyUser($"SAZ file: {sPath} contained {sazFile.Exchanges.Count} exchanges", "NYI");
-                if (sazFile.sComment.HasText()) CApp.DoNotifyUser($"Comment: {sazFile.sComment}", "File Comment");
+                CApp.Log.Log($"Loaded SAZ File containing {sazFile.Exchanges.Count} exchanges. {sazFile.sComment}");
+
+                foreach(Exchange x in sazFile.Exchanges)
+                {
+                    ListViewItem lvi = new ListViewItem(x.id.ToString())
+                    {
+                        Tag = x
+                    };
+                    lvi.SubItems.Add(x.responseCode.ToString());
+                    lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
+                    lvi.SubItems.Add(x.RequestHeaders.RequestPath);
+                    blvExchanges.Items.Add(lvi);
+                }
             }
         }
 

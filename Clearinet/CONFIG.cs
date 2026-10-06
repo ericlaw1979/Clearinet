@@ -2,8 +2,10 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -20,6 +22,9 @@ namespace Clearinet
         private static readonly Color COLOR_DEFAULT_DISABLEDEDIT = Color.FromArgb(250, 238, 227);
 
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
+
+        // TODO: Feed from pref.
+        internal static Encoding encodingOfHeaders = Encoding.UTF8;
 
         /// <summary>
         /// Font-size in pixels for app UI.

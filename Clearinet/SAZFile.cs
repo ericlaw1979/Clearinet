@@ -2,10 +2,36 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
-using static System.Collections.Specialized.BitVector32;
-
+/*
+ * Previously documented at https://fiddler.wikidot.com/saz-files
+ * 
+ * SAZ files are simply specially formatted .ZIP files. If you rename a .SAZ file to .ZIP, you can open it for viewing using standard ZIP viewing tools.
+ * Inside a SAZ file, you will find:
+ * 
+ * _index.htm - an optional file containing a human readable version of the Session List. This file is not processed when loading a .SAZ file and exists solely for manual examination.
+ * [Content_Types.xml] — (Added in v2.4.0.9) A metadata file which specifies a few MIME types so the archive can be read by System.IO.Packaging or other clients that 
+ * support the Open Packaging Conventions.
+ * 
+ * a /raw/ folder
+ *
+ * Inside the Raw folder, there will be three or four files for each web exchange:
+ *
+ * exchangeid#_c.txt - contains the raw client request.
+ * exchangeid#_s.txt - contains the raw server request.
+ * exchangeid#_m.xml - contains metadata including flags, socket reuse information, etc.
+ * exchangeid#_w.txt - (optional) contains WebSocket messages.
+ * 
+ * The SAZ/ZIP file's comment field contains information about the app that generated the archive.
+ *
+ *
+ *
+ * SAZ files should always be forward/backward compatible, although some features may be missing (e.g. socket reuse information) 
+ * when loading older files into the newest versions of readers.
+ * 
+ * SAZ files use the MIME type: application/vnd.telerik-fiddler.SessionArchive
+ * 
+ */
 namespace Clearinet
 {
     /// <summary>
@@ -16,7 +42,7 @@ namespace Clearinet
     /// Clearinet currently uses DotNetZip; it does not currently support extensibility via an ISAZProvider interface.
     /// 
     /// </summary>
-    internal class SAZFile: IDisposable
+    internal class SAZFile : IDisposable
     {
         /// <summary>
         /// If set, this function is called to supply a password, either because one
@@ -36,7 +62,8 @@ namespace Clearinet
         {
             get => _sFilename ?? string.Empty;
             private set => _sFilename = value;
-        } private string _sFilename;
+        }
+        private string _sFilename;
 
         /// <summary>
         /// The ZIP-file comment stored in the SAZ file.
@@ -46,18 +73,33 @@ namespace Clearinet
         {
             get => _sComment ?? string.Empty;
             private set => _sComment = value;
-        } private string _sComment;
+        }
+        private string _sComment;
 
         /// <summary>
         /// Set from either the function or by calling SupplyPassword.
         /// </summary>
         private string _sPassword;
 
-        internal static SAZFile LoadFrom(string filePath, string sPassword=null)
+        private static List<ZipEntry> GetExchangeRequests(ZipFile zf)
         {
-            SAZFile sazFile = new SAZFile();
-            sazFile.sFilename = filePath;
-            sazFile._sPassword = sPassword;
+            var listRequests = new List<ZipEntry>();
+            foreach (ZipEntry entry in zf.Entries)
+            {
+                // Skip non-Exchange Client Request files.
+                if (!entry.FileName.OICStartsWith("raw/") || !entry.FileName.OICEndsWith("_c.txt")) continue;
+                listRequests.Add(entry);
+            }
+            return listRequests;
+        }
+
+        internal static SAZFile LoadFrom(string filePath, string sPassword = null)
+        {
+            SAZFile sazFile = new SAZFile
+            {
+                sFilename = filePath,
+                _sPassword = sPassword
+            };
 
             using (ZipFile zf = ZipFile.Read(filePath))
             {
@@ -68,34 +110,54 @@ namespace Clearinet
                 // DotNetZip will throw an exception when we try to extract a file.
                 zf.Password = sazFile._sPassword;
 
-                foreach (ZipEntry e in zf)
+                List<ZipEntry> listRequests = GetExchangeRequests(zf);
+                if (listRequests.Count < 1) throw new Exception("The selected file does not contain any Exchanges.");
+
+                foreach (ZipEntry e in listRequests)
                 {
                     // We need to handle the case where the file is encrypted.
-                    if (e.UsesEncryption && sazFile._sPassword.HasText())
+                    if (e.UsesEncryption && !sazFile._sPassword.HasText())
                     {
                         sazFile._sPassword = SupplyPassword?.Invoke();
-                        if (sazFile._sPassword == null)
-                        {
-                            throw new Exception("Password required to open SAZ file.");
-                        }
+                        if (sazFile._sPassword == null) throw new Exception("Password required to open SAZ file.");
                         zf.Password = sazFile._sPassword;
                     }
-                    // TODO: catch (Ionic.Zip.BadPasswordException) and reprompt for password.
-                    if (e.FileName.StartsWith("raw/") && e.FileName.EndsWith(".xml"))
+
+                    Stream strmContent = null;
+                RetryPassword:
+                    try
                     {
-                        using (var ms = new MemoryStream())
-                        {
-                            e.Extract(ms);
-/*                            ms.Position = 0;
-                            var doc = new XmlDocument();
-                            doc.Load(ms);
-                            var exchange = Exchange.FromSAZXml(doc);*/
-                            sazFile.Exchanges.Add(new Exchange(null, null));
-                        }
+                        strmContent = e.OpenReader();
                     }
+                    catch (Ionic.Zip.BadPasswordException)
+                    {
+                        sazFile._sPassword = SupplyPassword?.Invoke();
+                        if (sazFile._sPassword == null) throw new Exception("Password required to open SAZ file.");
+                        goto RetryPassword;
+                    }
+                    catch (Exception eX)
+                    {
+                        CApp.ReportException(eX, "SAZ Read Failed");
+                    }
+
+                    Exchange excNew = CreateExchangeFromStream(strmContent);
+                    sazFile.Exchanges.Add(excNew);
                 }
             }
             return sazFile;
+        }
+
+        private static Exchange CreateExchangeFromStream(Stream strmContent)
+        {
+            var (sHeaderBlock, body) = Parser.ReadHttpRequest(strmContent);
+            var (method, path, version, headerList) = Parser.ParseRequestHeaders(sHeaderBlock);
+            HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
+            rqh.HTTPVersion = version;
+            rqh.HTTPMethod = method;
+            Exchange e = new Exchange(rqh, body);
+            e.EnsureID();
+            e.SetBitFlag(ExchangeFlags.LoadedFromSAZ);
+            return e;
         }
 
         internal static bool SaveTo(List<Exchange> exchanges, string filePath, string password = null, string comment = null)

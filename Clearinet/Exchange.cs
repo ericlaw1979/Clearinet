@@ -158,7 +158,12 @@ namespace Clearinet
                 _bitFlags = value;
             }
         }
-        internal void SetBitFlag(ExchangeFlags flagsToAdjust, bool state)
+        internal void SetBitFlag(ExchangeFlags flagsToAdjust)
+        {
+            BitFlags = (_bitFlags | flagsToAdjust);
+        }
+        // TODO? ClearBitFlag
+        internal void AdjustBitFlag(ExchangeFlags flagsToAdjust, bool state)
         {
             BitFlags = state ? (_bitFlags | flagsToAdjust) : (_bitFlags & ~flagsToAdjust);
         }
@@ -264,7 +269,7 @@ namespace Clearinet
 
             Exchange exchBuilt = new Exchange(rqh, arrReqBody);
             //exchBuilt._AssignID();
-            exchBuilt.SetBitFlag(ef, true);
+            exchBuilt.SetBitFlag(ef);
             //exchBuilt.oResponse.headers = rph;
             exchBuilt._arrResponseBody = arrRespBody;
             exchBuilt.state = ExchangeState.Done;
@@ -296,7 +301,7 @@ namespace Clearinet
         /// </summary>
         public void Ignore()
         {
-            SetBitFlag(ExchangeFlags.Ignored, true);
+            SetBitFlag(ExchangeFlags.Ignored);
             if (HTTPMethodIs("CONNECT"))
             {
                 oFlags["x-no-decrypt"] = "CalledIgnore";
