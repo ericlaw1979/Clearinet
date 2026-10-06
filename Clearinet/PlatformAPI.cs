@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
+using System.Text;
 
 namespace Clearinet
 {
@@ -10,6 +10,31 @@ namespace Clearinet
     /// </summary>
     internal class PlatformAPI
     {
+        // Win32 API declaration
+        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool PathCompactPathExW(
+            StringBuilder pszOut,
+            string pszSrc,
+            uint cchMax,
+            uint dwFlags
+        );
+
+        public static string CompactPath(string sPath, int iMaxLen)
+        {
+            if (!sPath.HasText()) return string.Empty;
+
+            // Buffer size includes the null terminator
+            var sb = new StringBuilder(iMaxLen + 1);
+
+            if (PathCompactPathExW(sb, sPath, (uint)iMaxLen, 0))
+            {
+                return sb.ToString();
+            }
+
+            return sPath;
+        }
+
+
         [Flags]
         private enum SoundFlags : uint
         {
@@ -31,7 +56,7 @@ namespace Clearinet
             SoundFlags sf);
         public static void PlaySoundFile(string sFilename)
         {
-            PlaySound(sFilename, IntPtr.Zero, 
+            PlaySound(sFilename, IntPtr.Zero,
                      SoundFlags.SND_ASYNC | SoundFlags.SND_NOSTOP | SoundFlags.SND_FILENAME | SoundFlags.SND_NODEFAULT);
         }
 
@@ -93,7 +118,8 @@ namespace Clearinet
             if (iRes != 0)
             {
                 Debug.Assert(false, "Failed to enable high resolution clock.");
-            } else
+            }
+            else
             {
                 DisableBackgroundTimerThrottling();
             }

@@ -57,7 +57,7 @@ namespace Clearinet
             return bResult;
         }
 
-        public static (string headers, byte[] body) ReadHttpRequest(Stream stream)
+        public static (string headers, byte[] body) CrackHttpMessage(Stream stream)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
 
@@ -138,6 +138,48 @@ namespace Clearinet
                 if (headerList.Count > 0) headerList.RemoveAt(headerList.Count - 1);
 
                 return (method, path, version, headerList.ToArray());
+            }
+        }
+
+        public static (string version, int statusCode, string statusText, string[] headers) ParseResponseHeaders(string headerString)
+        {
+            using (var reader = new StringReader(headerString))
+            {
+                string statusLine = reader.ReadLine();
+                if (string.IsNullOrWhiteSpace(statusLine))
+                {
+                    throw new FormatException("Invalid HTTP response: missing status line.");
+                }
+
+                // Parse Status Line (e.g., "HTTP/1.1 200 OK" or "HTTP/1.1 404 Not Found")
+                // Split into maximum 3 parts: Version, StatusCode, ReasonPhrase
+                string[] statusParts = statusLine.Split(new[] { ' ' }, 3, StringSplitOptions.None);
+                if (statusParts.Length < 2)
+                {
+                    throw new FormatException($"Malformed HTTP status line: '{statusLine}'");
+                }
+
+                string version = statusParts[0];
+
+                if (!int.TryParse(statusParts[1], out int statusCode))
+                {
+                    throw new FormatException($"Invalid HTTP status code: '{statusParts[1]}'");
+                }
+
+                // Reason phrase can be empty in HTTP/2 / HTTP/3 or custom responses
+                string statusText = statusParts.Length > 2 ? statusParts[2] : string.Empty;
+
+                // Parse remaining header lines
+                var headerList = new List<string>();
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    headerList.Add(line);
+                }
+                // Strip the trailing one.
+                if (headerList.Count > 0) headerList.RemoveAt(headerList.Count - 1);
+
+                return (version, statusCode, statusText, headerList.ToArray());
             }
         }
     }

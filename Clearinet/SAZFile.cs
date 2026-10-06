@@ -113,10 +113,10 @@ namespace Clearinet
                 List<ZipEntry> listRequests = GetExchangeRequests(zf);
                 if (listRequests.Count < 1) throw new Exception("The selected file does not contain any Exchanges.");
 
-                foreach (ZipEntry e in listRequests)
+                foreach (ZipEntry eRequest in listRequests)
                 {
                     // We need to handle the case where the file is encrypted.
-                    if (e.UsesEncryption && !sazFile._sPassword.HasText())
+                    if (eRequest.UsesEncryption && !sazFile._sPassword.HasText())
                     {
                         sazFile._sPassword = SupplyPassword?.Invoke();
                         if (sazFile._sPassword == null) throw new Exception("Password required to open SAZ file.");
@@ -127,7 +127,7 @@ namespace Clearinet
                 RetryPassword:
                     try
                     {
-                        strmContent = e.OpenReader();
+                        strmContent = eRequest.OpenReader();
                     }
                     catch (Ionic.Zip.BadPasswordException)
                     {
@@ -141,15 +141,35 @@ namespace Clearinet
                     }
 
                     Exchange excNew = CreateExchangeFromStream(strmContent);
+                    strmContent.Dispose();
+
+                    ZipEntry eResponse = zf[eRequest.FileName.TrimAfter("_") + "_s.txt"];
+                    if (null != eResponse)
+                    {
+                        strmContent = eResponse.OpenReader();
+                        AddResponseFromStream(excNew, strmContent);
+                        strmContent.Dispose();
+                    }
+
                     sazFile.Exchanges.Add(excNew);
                 }
             }
             return sazFile;
         }
 
+        private static void AddResponseFromStream(Exchange e, Stream strmContent)
+        {
+            var (sHeaderBlock, body) = Parser.CrackHttpMessage(strmContent);
+            var (version, statusCode, statusText, headerList) = Parser.ParseResponseHeaders(sHeaderBlock);
+            HTTPResponseHeaders resph = new HTTPResponseHeaders(statusCode, statusText, headerList);
+            resph.HTTPVersion = version;
+            e.ResponseHeaders = resph;
+            e.ResponseBody = body;
+        }
+
         private static Exchange CreateExchangeFromStream(Stream strmContent)
         {
-            var (sHeaderBlock, body) = Parser.ReadHttpRequest(strmContent);
+            var (sHeaderBlock, body) = Parser.CrackHttpMessage(strmContent);
             var (method, path, version, headerList) = Parser.ParseRequestHeaders(sHeaderBlock);
             HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
             rqh.HTTPVersion = version;

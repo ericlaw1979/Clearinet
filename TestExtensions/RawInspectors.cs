@@ -1,10 +1,11 @@
 ﻿using Clearinet;
+using System;
 using System.Text;
 using System.Windows.Forms;
 
 namespace TestExtensions
 {
-    public sealed class RawRequestInspector: RequestInspectorBase
+    public sealed class RawRequestInspector : RequestInspectorBase
     {
         RawText rtViewer;
         Encoding encBody;
@@ -41,7 +42,7 @@ namespace TestExtensions
     {
         RawText rtViewer;
         Encoding encBody;
-     
+
         public override void AddToTab(TabPage tab)
         {
             tab.Text = "Raw";
@@ -61,7 +62,7 @@ namespace TestExtensions
             headers = hrh;
             body = arrBody;
             encBody = Encoding.UTF8; // TODO: Get encoding from headers.
-            rtViewer.rtbRaw.Text = hrh.ToString() + encBody.GetString(arrBody);
+            rtViewer.rtbRaw.Text = (hrh?.ToString() ?? string.Empty) + encBody.GetString(arrBody ?? Array.Empty<byte>());
             rtViewer.rtbRaw.ReadOnly = bReadOnly;
         }
         public override void Clear()

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Clearinet.UI;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Net.Http;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,17 +15,19 @@ namespace Clearinet
         public frmViewer()
         {
             InitializeComponent();
+            mruRecents = new MRU(CApp.Prefs.GetInt32Pref("ui.mru.max", 12), CONFIG.GetRegistryPath("MRU"));
             if (CONFIG.isViewerMode)
             {
                 this.Text = $"Clearinet Viewer";
                 tsmiNameViewer.Visible = true;
-                this.blvExchanges.EmptyText = "No Exchanges are loaded";
+                this.lvExchanges.EmptyText = "No Exchanges are loaded";
                 // TODO: Automatically name this viewer if another is already running.
                 tssbCapture.Enabled = miFileAttach.Enabled = false;
             }
         }
 
         private Label lblInspectorInstruction;
+        private MRU mruRecents;
 
         private void miFileExit_Click(object sender, EventArgs e)
         {
@@ -121,7 +125,7 @@ namespace Clearinet
         public Exchange[] GetSelectedExchanges()
         {
             // TODO: Get the data!
-            Exchange[] arrExchanges = new Exchange[blvExchanges.SelectedItems.Count];
+            Exchange[] arrExchanges = new Exchange[lvExchanges.SelectedItems.Count];
             return arrExchanges;
         }
 
@@ -216,24 +220,31 @@ namespace Clearinet
 
                 foreach (RequestInspectorBase oRI in CApp.oExtensions.m_RequestInspectors.Values)
                 {
-                    TabPage oPage = new TabPage();
-                    oRI.AddToTab(oPage);
-                    oPage.Tag = oRI;
+                    TabPage oPage = new TabPage
+                    {
+                        Tag = oRI,
+                        Text = oRI.TabTitle
+                    };
+                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
                     CApp.UI.tabsRequest.TabPages.Add(oPage);
 
                 }
                 foreach (ResponseInspectorBase oRI in CApp.oExtensions.m_ResponseInspectors.Values)
                 {
-                    TabPage oPage = new TabPage();
-                    oRI.AddToTab(oPage);
-                    oPage.Tag = oRI;
+                    TabPage oPage = new TabPage
+                    {
+                        Tag = oRI,
+                        Text = oRI.TabTitle
+                    };
+                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
                     CApp.UI.tabsResponse.TabPages.Add(oPage);
                 }
 
                 frmSplashScreen.SetStatusText("Loading script engine...");
                 CApp.CreateScriptEngine();
 
-                SAZFile.SupplyPassword = () => {
+                SAZFile.SupplyPassword = () =>
+                {
                     var fpo = new frmPrompt.PromptOptions()
                     {
                         Kind = frmPrompt.PromptKind.Password,
@@ -314,9 +325,9 @@ namespace Clearinet
             if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true)
                 && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
 
-            this.blvExchanges.DragDrop += BlvExchanges_DragDrop;
-            this.blvExchanges.DragEnter += BlvExchanges_DragEnter;
-            this.blvExchanges.AllowDrop = true;
+            this.lvExchanges.DragDrop += lvExchanges_DragDrop;
+            this.lvExchanges.DragEnter += lvExchanges_DragEnter;
+            this.lvExchanges.AllowDrop = true;
 
             Win32UI.SetCueText(tstxtSearch.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.searchcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
@@ -343,7 +354,7 @@ namespace Clearinet
                 hrh["Content-Length"] = x.ResponseBody.Length.ToString();
                 x.state = (ExchangeState)(iX);
                 lvi.Tag = x;
-                blvExchanges.Items.Add(lvi);
+                lvExchanges.Items.Add(lvi);
             }
         }
 
@@ -380,7 +391,7 @@ namespace Clearinet
             //nyi
         }
 
-        private void BlvExchanges_DragEnter(object sender, DragEventArgs e)
+        private void lvExchanges_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -390,7 +401,7 @@ namespace Clearinet
             e.Effect = DragDropEffects.None;
         }
 
-        private void BlvExchanges_DragDrop(object sender, DragEventArgs e)
+        private void lvExchanges_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -406,6 +417,28 @@ namespace Clearinet
                     return;
                 }
             }
+        }
+
+        public Exchange GetFirstSelectedExchange()
+        {
+            return (lvExchanges.SelectedCount == 0) ? null : lvExchanges.SelectedItems[0].Tag as Exchange;
+        }
+
+        // Activate Inspectors tab and try to pick the best two.
+        public void actInspectSession()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke((MethodInvoker)actInspectSession);
+                return;
+            }
+            Exchange exch = GetFirstSelectedExchange();
+            if (null == exch) return;
+
+            /* todo: DoBeforeInspect() */
+            /* todo: iterate inspectors Pick the best one! */
+
+            tabsViews.SelectedTab = this.pageInspectors;
         }
 
         private void ImportAnyStartupArchives()
@@ -428,34 +461,53 @@ namespace Clearinet
         }
         private void actImportFile(string sPath)
         {
+            // TODO: Can we put importer filenames into the MRU and have the right thing happen?
             CApp.DoNotifyUser("Asked to load file: " + sPath, "NYI");
             if (sPath.OICEndsWith(".json"))
             {
-                
+
             }
+        }
+
+        public void actSaveSessionArchive(string sPath)
+        {
+            // TODO: Save it!
+            mruRecents.PushFile(sPath);
         }
 
         /// <summary>
         /// LEGACY API. Do not rename. Load a .SAZ file.
         /// </summary>
         /// <param name="sPath"></param>
-        public void actLoadSessionArchive(string sPath)
+        public bool actLoadSessionArchive(string sPath)
         {
-            CApp.DoNotifyUser("Asked to import file: " + sPath, "NYI");
-            using (SAZFile sazFile = SAZFile.LoadFrom(sPath)) {
-                CApp.Log.Log($"Loaded SAZ File containing {sazFile.Exchanges.Count} exchanges. {sazFile.sComment}");
-
-                foreach(Exchange x in sazFile.Exchanges)
+            try
+            {
+                using (SAZFile sazFile = SAZFile.LoadFrom(sPath))
                 {
-                    ListViewItem lvi = new ListViewItem(x.id.ToString())
+                    CApp.Log.Log($"Loaded SAZ File containing {sazFile.Exchanges.Count} exchanges. {sazFile.sComment}");
+                    SetStatusText($"Loaded SAZ File containing {sazFile.Exchanges.Count} exchanges.");
+                    mruRecents.PushFile(sPath);
+
+                    foreach (Exchange x in sazFile.Exchanges)
                     {
-                        Tag = x
-                    };
-                    lvi.SubItems.Add(x.responseCode.ToString());
-                    lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
-                    lvi.SubItems.Add(x.RequestHeaders.RequestPath);
-                    blvExchanges.Items.Add(lvi);
+                        ListViewItem lvi = new ListViewItem(x.id.ToString())
+                        {
+                            Tag = x
+                        };
+                        lvi.SubItems.Add(x.responseCode.ToString());
+                        lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
+                        lvi.SubItems.Add(x.RequestHeaders.RequestPath);
+                        x.ViewItem = lvi;
+                        lvExchanges.Items.Add(lvi);
+                    }
                 }
+                return true;
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "actLoadSessionArchive Failed");
+                return false;
             }
         }
 
@@ -607,9 +659,9 @@ namespace Clearinet
             // Disable controls if inapplicable
         }
 
-        private void blvExchanges_SelectedIndexChanged(object sender, EventArgs e)
+        private void lvExchanges_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (blvExchanges.SelectedItems.Count < 1) return;
+            if (lvExchanges.SelectedItems.Count < 1) return;
             actUpdateInspector(true, true);
         }
 
@@ -647,13 +699,13 @@ namespace Clearinet
             if (CApp.isClosing) return;
             if (tabsViews.SelectedTab != pageInspectors) return;
 
-            if (blvExchanges.SelectedItems.Count != 1)
+            if (lvExchanges.SelectedItems.Count != 1)
             {
                 ShowSelectOne();
                 return;
             }
 
-            Exchange x = blvExchanges.SelectedItems[0].Tag as Exchange;
+            Exchange x = lvExchanges.SelectedItems[0].Tag as Exchange;
 
             pageInspectors.SuspendLayout();
             if (null != lblInspectorInstruction) lblInspectorInstruction.Visible = false;
@@ -711,9 +763,72 @@ namespace Clearinet
             if (tabsViews.SelectedTab == pageInspectors) actUpdateInspector(true, true);
         }
 
-        private void blvExchanges_ItemActivate(object sender, EventArgs e)
+
+        private void mnuFileMRU_DropDownOpening(object sender, EventArgs e)
         {
-            tabsViews.SelectedTab = pageInspectors;
+            try
+            {
+                mnuFileMRU.DropDownItems.Clear();
+                var filenames = mruRecents.GetFiles();
+
+                var items = new List<ToolStripItem>(16);
+
+                if (filenames.Count < 1)
+                {
+                    items.Add(new ToolStripMenuItem("<empty") { Enabled = false });
+                }
+                else
+                {
+                    int ix = 0;
+                    foreach (string f in filenames)
+                    {
+                        var newItem = new ToolStripMenuItem($"&{ix:x}. {PlatformAPI.CompactPath(f, 50)}")
+                        {
+                            Tag = f
+                        };
+
+                        newItem.MouseHover += (s, ea) => CApp.UI.SetStatusText((s as ToolStripMenuItem).Tag as String);
+                        newItem.Click += (s, ea) =>
+                        {
+                            string sFilename = (s as ToolStripMenuItem).Tag as String;
+                            if (!actLoadSessionArchive(sFilename))
+                            {
+                                if (!File.Exists(sFilename))
+                                {
+                                    if (DialogResult.Yes == MessageBox.Show(
+                                        "That file is not available. It may have been moved or deleted, or may be on a disconnected drive.\n\nWould you like to remove this file from the list?",
+                                        "File Not Found", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                                    {
+                                        mruRecents.ForgetFile(sFilename);
+                                    }
+                                }
+                            }
+                        };
+                        items.Add(newItem);
+                    }
+                }
+
+                items.Add(new ToolStripSeparator());
+                items.Add(new ToolStripMenuItem("&Prune Obsolete", image: null, (s, ea) => mruRecents.Prune()));
+                items.Add(new ToolStripMenuItem("Clear this &List", image: null, (s, ea) => mruRecents.Purge()));
+                mnuFileMRU.DropDownItems.AddRange(items.ToArray());
+            }
+            catch (Exception eX) { CApp.ReportException(eX, "oops"); }
+        }
+
+        private void lvExchanges_DoubleClick(object sender, EventArgs e)
+        {
+            actInspectSession();
+        }
+
+        private void lvExchanges_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Enter)
+            {
+                actInspectSession();
+                e.SuppressKeyPress = e.Handled = true;
+                // TODO: Alt+Enter => Properties; ShifT+Enter =>InspectInTornoff
+            }
         }
     }
 }

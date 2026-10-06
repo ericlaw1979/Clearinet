@@ -2,6 +2,8 @@
   <Folder Name="/Solution Items/">
     <File Path="../Docs/AGENTS.md" />
     <File Path="../Docs/Credits.txt" />
+    <File Path="../Docs/INSPECTORS.md" />
+    <File Path="../Docs/SECURITY.md" />
   </Folder>
   <Project Path="../TestExtensions/TestExtensions.csproj" Id="f028e611-c356-4b37-9b47-b5cdbd8d7f92" />
   <Project Path="Clearinet.csproj" Id="38557fae-6dad-4b56-878e-eaddc455d47b" />

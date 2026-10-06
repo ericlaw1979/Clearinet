@@ -1,13 +1,8 @@
-﻿using Microsoft.JScript;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Clearinet
 {
@@ -45,23 +40,38 @@ namespace Clearinet
         {
         }
 
-        public bool Exists(string sHeaderName)
-        {
-            return storage.Exists(h => h.Name.OICEquals(sHeaderName));
-        }
+        protected List<HTTPHeaderItem> storage = new List<HTTPHeaderItem>();
+        /// <summary>
+        /// Legacy Getter/Setter that handles only the simple case of the *first* named header.
+        /// returns an empty string if the header wasn't found. TODO: Build a smarter function which joins headers by comma
+        /// </summary>
+        /// <param name="sHeaderName"></param>
+        /// <returns></returns>
         public string this[string sHeaderName]
         {
-            get { return "TODO"; }
-            set { }
+            get => storage.Find(h => h.Name.OICEquals(sHeaderName))?.Value ?? string.Empty;
+            set
+            {
+                var hi = storage.Find(h => h.Name.OICEquals(sHeaderName));
+                if (hi != null)
+                {
+                    hi.Value = value;
+                    return;
+                }
+                Add(sHeaderName, value);
+            }
         }
+
         public HTTPHeaderItem Add(string sHeaderName, string sHeaderValue)
         {
             HTTPHeaderItem hhi = new HTTPHeaderItem(sHeaderName, sHeaderValue);
             storage.Add(hhi);
             return hhi;
         }
-
-        protected List<HTTPHeaderItem> storage = new List<HTTPHeaderItem>();
+        public bool Exists(string sHeaderName)
+        {
+            return storage.Exists(h => h.Name.OICEquals(sHeaderName));
+        }
     }
     public class HTTPRequestHeaders : HTTPHeaders, IEnumerable<HTTPHeaderItem>
     {
@@ -200,7 +210,7 @@ namespace Clearinet
                 string sErrs = String.Empty;
                 Parser.ParseHeaderLines(this, sNVP, 0, ref sErrs); // TODO: Don't discard output errors?
             }
-        }                     
+        }
 
         public HTTPResponseHeaders(Encoding encodingForHeaders)
         {
@@ -229,11 +239,12 @@ namespace Clearinet
         [Obsolete]
         public int HTTPResponseCode { get => StatusCode; set => StatusCode = value; }
         [Obsolete]
-        public string HTTPResponseStatus { 
+        public string HTTPResponseStatus
+        {
             get => $"{StatusCode} {StatusText}";
             set
             {
-                var parts = value.Split(new[] {' '}, 2);
+                var parts = value.Split(new[] { ' ' }, 2);
                 if (parts.Length > 0 && int.TryParse(parts[0], out int code))
                 {
                     StatusCode = code;

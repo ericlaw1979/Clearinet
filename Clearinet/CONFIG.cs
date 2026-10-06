@@ -2,7 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -92,6 +91,7 @@ namespace Clearinet
                 case "Prefs": return sRootRegistryKey + @"Prefs\";
                 case "Root": return sRootRegistryKey;
                 case "UI": return sRootRegistryKey + @"UI\";
+                case "MRU": return sRootRegistryKey + @"UI\MRU\";
                 default:
                     Debug.Assert(false, "Asked for an undefined path: " + sWhich);
                     return sRootRegistryKey;

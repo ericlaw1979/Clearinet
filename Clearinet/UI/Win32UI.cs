@@ -1,6 +1,4 @@
-﻿using Clearinet;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -58,7 +56,7 @@ namespace Clearinet
         private const int EM_SETCUEBANNER = 0x1501;
         public static void SetCueText(Control oCtl, string sCueText)
         {
-             SendMessage(oCtl.Handle, (oCtl is ComboBox) ? CB_SETCUEBANNER : EM_SETCUEBANNER, IntPtr.Zero, sCueText);
+            SendMessage(oCtl.Handle, (oCtl is ComboBox) ? CB_SETCUEBANNER : EM_SETCUEBANNER, IntPtr.Zero, sCueText);
         }
         #endregion
 
@@ -105,7 +103,7 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// Prevent ugly overlay on image.
+        /// Prevent ugly overlay on the image in the listview.
         /// </summary>
         internal static void DontOverlayImage(ListView lvTarget)
         {
@@ -193,7 +191,7 @@ namespace Clearinet
             if (!bMarkAll)
             {
                 // Easy mode: Find the next match
-                Find(sFind, 
+                Find(sFind,
                     Math.Min(SelectionStart + 1, TextLength),  // Start offset
                     RichTextBoxFinds.None);
             }
@@ -237,12 +235,24 @@ namespace Clearinet
         }
     }
 
+    /// <summary>
+    /// An improved version of the Win32 Listview with empty text and assorted other improvements.
+    /// </summary>
     public class BetterListView : System.Windows.Forms.ListView
     {
         /// <summary>
         /// Text to show when there are not items in the ListView
         /// </summary>
-        public string EmptyText { get; set; }
+        public string EmptyText
+        {
+            get => _emptyText;
+            set
+            {
+                _emptyText = value;
+                if (this.IsHandleCreated) this.RecreateHandle();
+            }
+        }
+        private string _emptyText;
 
         protected override void WndProc(ref Message m)
         {

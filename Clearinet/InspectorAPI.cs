@@ -5,6 +5,8 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
+    // TODO: write code that does FindBestInspector based on a given Exchange. Then call it in actInspectSession/Exchange
+
     [Flags]
     public enum InspectorFlags
     {
@@ -65,6 +67,13 @@ namespace Clearinet
     public abstract class InspectorBase : IAppExtension
     {
         internal InspectorBase() { }
+        internal virtual string TabTitle
+        {
+            get
+            {
+                return this.GetType().FullName;
+            }
+        }
 
         /// <summary>
         /// Is the Inspector in Edit mode?
@@ -176,10 +185,12 @@ namespace Clearinet
         /// </summary>
         public virtual void AssignExchange(Exchange oX)
         {
+            // Figure out if we're a Request Inspector or Response Inspector and then
+            // call the correct assignment method.
             RequestInspectorBase reqThis = (this as RequestInspectorBase);
             if (null != reqThis)
             {
-                reqThis.Assign(oX.RequestHeaders, oX.RequestBody, 
+                reqThis.Assign(oX.RequestHeaders, oX.RequestBody,
                     (oX.state != ExchangeState.HandTamperRequest) &&
                             !oX.oFlags.ContainsKey("x-Unlocked"));
                 return;

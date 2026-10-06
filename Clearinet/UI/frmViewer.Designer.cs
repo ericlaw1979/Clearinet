@@ -42,13 +42,14 @@
             System.Windows.Forms.ToolStripSeparator miHelpSplitter1;
             System.Windows.Forms.ToolStripSeparator tsmiFileSaveSplitter1;
             System.Windows.Forms.ToolStripSeparator miInspectorSplitter;
+            System.Windows.Forms.ToolStripMenuItem notYetLoadedToolStripMenuItem;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmViewer));
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.miFile = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileAttach = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileNewViewer = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileLoadSAZ = new System.Windows.Forms.ToolStripMenuItem();
-            this.recentArchivesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuFileMRU = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
@@ -140,7 +141,7 @@
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.blvExchanges = new Clearinet.BetterListView();
+            this.lvExchanges = new Clearinet.ExchangeListView();
             this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colMethod = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -160,6 +161,7 @@
             miHelpSplitter1 = new System.Windows.Forms.ToolStripSeparator();
             tsmiFileSaveSplitter1 = new System.Windows.Forms.ToolStripSeparator();
             miInspectorSplitter = new System.Windows.Forms.ToolStripSeparator();
+            notYetLoadedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMain.SuspendLayout();
             this.ssStatus.SuspendLayout();
             this.tsToolbar.SuspendLayout();
@@ -238,6 +240,12 @@
             miInspectorSplitter.Name = "miInspectorSplitter";
             miInspectorSplitter.Size = new System.Drawing.Size(137, 6);
             // 
+            // notYetLoadedToolStripMenuItem
+            // 
+            notYetLoadedToolStripMenuItem.Name = "notYetLoadedToolStripMenuItem";
+            notYetLoadedToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            notYetLoadedToolStripMenuItem.Text = "(not yet loaded)";
+            // 
             // mnuMain
             // 
             this.mnuMain.ImageScalingSize = new System.Drawing.Size(20, 20);
@@ -262,7 +270,7 @@
             miFileSplit1,
             this.miFileNewViewer,
             this.miFileLoadSAZ,
-            this.recentArchivesToolStripMenuItem,
+            this.mnuFileMRU,
             this.saveToolStripMenuItem,
             miFileSplit2,
             this.miFileImport,
@@ -297,12 +305,14 @@
             this.miFileLoadSAZ.Text = "L&oad Archive...";
             this.miFileLoadSAZ.Click += new System.EventHandler(this.miFileLoadSAZ_Click);
             // 
-            // recentArchivesToolStripMenuItem
+            // mnuFileMRU
             // 
-            this.recentArchivesToolStripMenuItem.Enabled = false;
-            this.recentArchivesToolStripMenuItem.Name = "recentArchivesToolStripMenuItem";
-            this.recentArchivesToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
-            this.recentArchivesToolStripMenuItem.Text = "&Recent Archives";
+            this.mnuFileMRU.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            notYetLoadedToolStripMenuItem});
+            this.mnuFileMRU.Name = "mnuFileMRU";
+            this.mnuFileMRU.Size = new System.Drawing.Size(189, 22);
+            this.mnuFileMRU.Text = "&Recent Archives";
+            this.mnuFileMRU.DropDownOpening += new System.EventHandler(this.mnuFileMRU_DropDownOpening);
             // 
             // saveToolStripMenuItem
             // 
@@ -855,7 +865,7 @@
             this.tstxtSearch.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.tstxtSearch.Name = "tstxtSearch";
             this.tstxtSearch.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
-            this.tstxtSearch.Size = new System.Drawing.Size(45, 27);
+            this.tstxtSearch.Size = new System.Drawing.Size(0, 27);
             this.tstxtSearch.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyDown);
             this.tstxtSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyUp);
             // 
@@ -885,7 +895,7 @@
             // 
             // pnlLeft
             // 
-            this.pnlLeft.Controls.Add(this.blvExchanges);
+            this.pnlLeft.Controls.Add(this.lvExchanges);
             this.pnlLeft.Controls.Add(this.txtQuickExec);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Location = new System.Drawing.Point(0, 78);
@@ -943,7 +953,7 @@
             this.pageInspectors.Margin = new System.Windows.Forms.Padding(4);
             this.pageInspectors.Name = "pageInspectors";
             this.pageInspectors.Padding = new System.Windows.Forms.Padding(4);
-            this.pageInspectors.Size = new System.Drawing.Size(678, 481);
+            this.pageInspectors.Size = new System.Drawing.Size(678, 489);
             this.pageInspectors.TabIndex = 1;
             this.pageInspectors.Text = "Inspectors";
             this.pageInspectors.UseVisualStyleBackColor = true;
@@ -955,7 +965,7 @@
             this.tabsResponse.Location = new System.Drawing.Point(4, 231);
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
-            this.tabsResponse.Size = new System.Drawing.Size(670, 248);
+            this.tabsResponse.Size = new System.Drawing.Size(670, 254);
             this.tabsResponse.TabIndex = 1;
             this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
             // 
@@ -1050,7 +1060,7 @@
             this.pageAutoResponder.Location = new System.Drawing.Point(4, 25);
             this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
             this.pageAutoResponder.Name = "pageAutoResponder";
-            this.pageAutoResponder.Size = new System.Drawing.Size(678, 481);
+            this.pageAutoResponder.Size = new System.Drawing.Size(678, 489);
             this.pageAutoResponder.TabIndex = 2;
             this.pageAutoResponder.Text = "AutoResponder";
             this.pageAutoResponder.UseVisualStyleBackColor = true;
@@ -1060,7 +1070,7 @@
             this.pageComposer.Location = new System.Drawing.Point(4, 25);
             this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
             this.pageComposer.Name = "pageComposer";
-            this.pageComposer.Size = new System.Drawing.Size(678, 481);
+            this.pageComposer.Size = new System.Drawing.Size(678, 489);
             this.pageComposer.TabIndex = 3;
             this.pageComposer.Text = "Composer";
             this.pageComposer.UseVisualStyleBackColor = true;
@@ -1071,7 +1081,7 @@
             this.pageLog.Location = new System.Drawing.Point(4, 25);
             this.pageLog.Margin = new System.Windows.Forms.Padding(4);
             this.pageLog.Name = "pageLog";
-            this.pageLog.Size = new System.Drawing.Size(678, 481);
+            this.pageLog.Size = new System.Drawing.Size(678, 489);
             this.pageLog.TabIndex = 4;
             this.pageLog.Text = "Log";
             this.pageLog.UseVisualStyleBackColor = true;
@@ -1083,7 +1093,7 @@
             this.rtbLog.Location = new System.Drawing.Point(0, 0);
             this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
             this.rtbLog.Name = "rtbLog";
-            this.rtbLog.Size = new System.Drawing.Size(678, 483);
+            this.rtbLog.Size = new System.Drawing.Size(678, 491);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
             // 
@@ -1111,33 +1121,34 @@
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             // 
-            // blvExchanges
+            // lvExchanges
             // 
-            this.blvExchanges.Activation = System.Windows.Forms.ItemActivation.OneClick;
-            this.blvExchanges.AllowColumnReorder = true;
-            this.blvExchanges.AutoArrange = false;
-            this.blvExchanges.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.blvExchanges.CausesValidation = false;
-            this.blvExchanges.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.lvExchanges.Activation = System.Windows.Forms.ItemActivation.OneClick;
+            this.lvExchanges.AllowColumnReorder = true;
+            this.lvExchanges.AutoArrange = false;
+            this.lvExchanges.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lvExchanges.CausesValidation = false;
+            this.lvExchanges.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colID,
             this.colResult,
             this.colMethod,
             this.colHost,
             this.colPath});
-            this.blvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.blvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
-            this.blvExchanges.FullRowSelect = true;
-            this.blvExchanges.HideSelection = false;
-            this.blvExchanges.LabelWrap = false;
-            this.blvExchanges.Location = new System.Drawing.Point(0, 0);
-            this.blvExchanges.Margin = new System.Windows.Forms.Padding(4);
-            this.blvExchanges.Name = "blvExchanges";
-            this.blvExchanges.Size = new System.Drawing.Size(357, 491);
-            this.blvExchanges.TabIndex = 4;
-            this.blvExchanges.UseCompatibleStateImageBehavior = false;
-            this.blvExchanges.View = System.Windows.Forms.View.Details;
-            this.blvExchanges.ItemActivate += new System.EventHandler(this.blvExchanges_ItemActivate);
-            this.blvExchanges.SelectedIndexChanged += new System.EventHandler(this.blvExchanges_SelectedIndexChanged);
+            this.lvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
+            this.lvExchanges.FullRowSelect = true;
+            this.lvExchanges.HideSelection = false;
+            this.lvExchanges.LabelWrap = false;
+            this.lvExchanges.Location = new System.Drawing.Point(0, 0);
+            this.lvExchanges.Margin = new System.Windows.Forms.Padding(4);
+            this.lvExchanges.Name = "lvExchanges";
+            this.lvExchanges.Size = new System.Drawing.Size(357, 491);
+            this.lvExchanges.TabIndex = 4;
+            this.lvExchanges.UseCompatibleStateImageBehavior = false;
+            this.lvExchanges.View = System.Windows.Forms.View.Details;
+            this.lvExchanges.SelectedIndexChanged += new System.EventHandler(this.lvExchanges_SelectedIndexChanged);
+            this.lvExchanges.DoubleClick += new System.EventHandler(this.lvExchanges_DoubleClick);
+            this.lvExchanges.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyDown);
             // 
             // colID
             // 
@@ -1241,7 +1252,7 @@
         private System.Windows.Forms.ToolStripMenuItem miFileAttach;
         private System.Windows.Forms.ToolStripMenuItem miFileNewViewer;
         private System.Windows.Forms.ToolStripMenuItem miFileLoadSAZ;
-        private System.Windows.Forms.ToolStripMenuItem recentArchivesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mnuFileMRU;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSAZ;
         private System.Windows.Forms.ToolStripMenuItem miEditUnlock;
@@ -1304,7 +1315,7 @@
         private System.Windows.Forms.ColumnHeader colResult;
         private System.Windows.Forms.ColumnHeader colHost;
         private System.Windows.Forms.ColumnHeader colPath;
-        internal BetterListView blvExchanges;
+        internal Clearinet.ExchangeListView lvExchanges;
         private System.Windows.Forms.ToolStripMenuItem miViewStatistics;
         private System.Windows.Forms.ToolStripButton tsmiNameViewer;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSelected;
