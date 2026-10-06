@@ -72,6 +72,23 @@ namespace Clearinet
         {
             return storage.Exists(h => h.Name.OICEquals(sHeaderName));
         }
+
+        public bool ExistsAny(params string[] sHeaderNames)
+        {
+            return ExistsAny((IEnumerable<string>)sHeaderNames);
+        }
+        public bool ExistsAny(IEnumerable<string> sHeaderNames)
+        {
+            if (sHeaderNames is null) return false;
+            for (int x = 0; x < storage.Count; x++)
+            {
+                foreach (string s in sHeaderNames)
+                {
+                    if (String.Equals(storage[x].Name, s, StringComparison.OrdinalIgnoreCase)) return true;
+                }
+            }
+            return false;
+        }
     }
     public class HTTPRequestHeaders : HTTPHeaders, IEnumerable<HTTPHeaderItem>
     {

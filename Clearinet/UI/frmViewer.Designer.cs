@@ -116,7 +116,7 @@
             this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.duplicateResponseBodiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tsbTearoff = new System.Windows.Forms.ToolStripButton();
-            this.tstxtSearch = new System.Windows.Forms.ToolStripTextBox();
+            this.tstxtLookup = new System.Windows.Forms.ToolStripTextBox();
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
@@ -342,8 +342,8 @@
             // miFileSaveSelectedSAZ
             // 
             this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
-            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(154, 22);
-            this.miFileSaveSelectedSAZ.Text = "in &Archive Zip";
+            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(150, 22);
+            this.miFileSaveSelectedSAZ.Text = "in &ArchiveZip";
             // 
             // miFileImport
             // 
@@ -445,6 +445,7 @@
             this.miEditPasteAsExchanges.Name = "miEditPasteAsExchanges";
             this.miEditPasteAsExchanges.Size = new System.Drawing.Size(208, 22);
             this.miEditPasteAsExchanges.Text = "&Paste as Exchanges";
+            this.miEditPasteAsExchanges.Click += new System.EventHandler(this.miEditPasteAsExchanges_Click);
             // 
             // miEditRemove
             // 
@@ -461,18 +462,21 @@
             this.miEditRemoveSelected.Name = "miEditRemoveSelected";
             this.miEditRemoveSelected.Size = new System.Drawing.Size(205, 22);
             this.miEditRemoveSelected.Text = "&Selected Exchanges";
+            this.miEditRemoveSelected.Click += new System.EventHandler(this.miEditRemoveSelected_Click);
             // 
             // miEditRemoveUnselected
             // 
             this.miEditRemoveUnselected.Name = "miEditRemoveUnselected";
             this.miEditRemoveUnselected.Size = new System.Drawing.Size(205, 22);
             this.miEditRemoveUnselected.Text = "&Unselected Exchanges";
+            this.miEditRemoveUnselected.Click += new System.EventHandler(this.miEditRemoveUnselected_Click);
             // 
             // miEditRemoveAll
             // 
             this.miEditRemoveAll.Name = "miEditRemoveAll";
             this.miEditRemoveAll.Size = new System.Drawing.Size(205, 22);
             this.miEditRemoveAll.Text = "&All Exchanges";
+            this.miEditRemoveAll.Click += new System.EventHandler(this.miEditRemoveAll_Click);
             // 
             // miEditUndelete
             // 
@@ -487,6 +491,7 @@
             this.miEditSelectAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
             this.miEditSelectAll.Size = new System.Drawing.Size(208, 22);
             this.miEditSelectAll.Text = "Select &all...";
+            this.miEditSelectAll.Click += new System.EventHandler(this.miEditSelectAll_Click);
             // 
             // miEditUnlock
             // 
@@ -801,7 +806,7 @@
             this.tsbComment,
             this.tsddbRemove,
             this.tsbTearoff,
-            this.tstxtSearch});
+            this.tstxtLookup});
             this.tsToolbar.Location = new System.Drawing.Point(0, 27);
             this.tsToolbar.Name = "tsToolbar";
             this.tsToolbar.Size = new System.Drawing.Size(1043, 27);
@@ -860,14 +865,13 @@
             this.tsbTearoff.Size = new System.Drawing.Size(73, 24);
             this.tsbTearoff.Text = "Tearoff";
             // 
-            // tstxtSearch
+            // tstxtLookup
             // 
-            this.tstxtSearch.Font = new System.Drawing.Font("Segoe UI", 9.75F);
-            this.tstxtSearch.Name = "tstxtSearch";
-            this.tstxtSearch.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
-            this.tstxtSearch.Size = new System.Drawing.Size(0, 27);
-            this.tstxtSearch.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyDown);
-            this.tstxtSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtSearch_KeyUp);
+            this.tstxtLookup.Font = new System.Drawing.Font("Segoe UI", 9.75F);
+            this.tstxtLookup.Name = "tstxtLookup";
+            this.tstxtLookup.Size = new System.Drawing.Size(100, 27);
+            this.tstxtLookup.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyDown);
+            this.tstxtLookup.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyUp);
             // 
             // pnlTopGoldbar
             // 
@@ -965,7 +969,7 @@
             this.tabsResponse.Location = new System.Drawing.Point(4, 231);
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
-            this.tabsResponse.Size = new System.Drawing.Size(670, 254);
+            this.tabsResponse.Size = new System.Drawing.Size(670, 256);
             this.tabsResponse.TabIndex = 1;
             this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
             // 
@@ -1174,7 +1178,7 @@
             // txtQuickExec
             // 
             this.txtQuickExec.BackColor = System.Drawing.Color.Black;
-            this.txtQuickExec.CueText = "[Alt+Q] Type a command or HELP";
+            this.txtQuickExec.CueText = "[Alt+;] Type a command or HELP";
             this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
@@ -1199,6 +1203,7 @@
             this.Controls.Add(this.mnuMain);
             this.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.KeyPreview = true;
             this.MainMenuStrip = this.mnuMain;
             this.Margin = new System.Windows.Forms.Padding(5);
             this.MinimumSize = new System.Drawing.Size(464, 387);
@@ -1206,6 +1211,7 @@
             this.Text = "Clearinet Web Debugger";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmViewer_FormClosing);
             this.Load += new System.EventHandler(this.frmViewer_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmViewer_KeyDown);
             this.mnuMain.ResumeLayout(false);
             this.mnuMain.PerformLayout();
             this.ssStatus.ResumeLayout(false);
@@ -1325,7 +1331,6 @@
         private System.Windows.Forms.TabControl tabsResponse;
         private System.Windows.Forms.Splitter splitRequestResponse;
         private System.Windows.Forms.RichTextBox rtbStatistics;
-        private System.Windows.Forms.ToolStripTextBox tstxtSearch;
         private System.Windows.Forms.ContextMenuStrip mnuInspectors;
         private System.Windows.Forms.ToolStripMenuItem miInspectorAbout;
         private System.Windows.Forms.ToolStripMenuItem miInspectorScreenshot;
@@ -1334,6 +1339,7 @@
         private System.Windows.Forms.Button btnRunToComplete;
         public System.Windows.Forms.ImageList imglistIcons;
         private System.Windows.Forms.ColumnHeader colMethod;
+        private System.Windows.Forms.ToolStripTextBox tstxtLookup;
     }
 }
 

@@ -3,6 +3,7 @@
     <File Path="../Docs/AGENTS.md" />
     <File Path="../Docs/Credits.txt" />
     <File Path="../Docs/INSPECTORS.md" />
+    <File Path="../Docs/PREFERENCES.md" />
     <File Path="../Docs/SECURITY.md" />
   </Folder>
   <Project Path="../TestExtensions/TestExtensions.csproj" Id="f028e611-c356-4b37-9b47-b5cdbd8d7f92" />

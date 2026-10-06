@@ -1,9 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -26,7 +24,7 @@ namespace Clearinet
         internal static JScriptEngine scriptRules;
 
         public static bool isBooted { get; private set; } = false;
-        public static bool isClosing { get;  private set; } = false;
+        public static bool isClosing { get; private set; } = false;
 
         public static bool isAttached { get; private set; } = false;
 
@@ -163,7 +161,7 @@ namespace Clearinet
 
             if ("help" == sCmd)
             {
-                MessageBox.Show("One day, this sill show cool things", "TODO: Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("One day, this will show cool things", "TODO: Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
             }
 
@@ -273,7 +271,7 @@ namespace Clearinet
             string sMessage = (sCallerMessage.HasText()) ? sCallerMessage :
             "Clearinet encountered a problem. If you think this is a bug, please copy this message by hitting CTRL+C, and submit a report using the Help menu.";
 
-            sMessage = sMessage + $"\n\n{eX.Message}\n\nType: {eX.GetType()}\nSource: { eX.Source }\n{eX.StackTrace}\n\n{eX.InnerException}\n"
+            sMessage = sMessage + $"\n\n{eX.Message}\n\nType: {eX.GetType()}\nSource: {eX.Source}\n{eX.StackTrace}\n\n{eX.InnerException}\n"
                 + $"{CApp.VersionString} [.NET {Environment.Version} on {Environment.OSVersion.VersionString}]";
 
             if (null != OnNotification)
@@ -282,9 +280,9 @@ namespace Clearinet
                 OnNotification(null, oEA);
             }
 
-            MessageBox.Show(sMessage, sTitle, MessageBoxButtons.OK,MessageBoxIcon.Error);
+            MessageBox.Show(sMessage, sTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-#endregion
+        #endregion
 
         internal static bool OnBeforeShutdown()
         {

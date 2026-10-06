@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -217,28 +218,7 @@ namespace Clearinet
 
                 frmSplashScreen.SetStatusText("Loading extensions...");
                 CApp.oExtensions = new Extensions();
-
-                foreach (RequestInspectorBase oRI in CApp.oExtensions.m_RequestInspectors.Values)
-                {
-                    TabPage oPage = new TabPage
-                    {
-                        Tag = oRI,
-                        Text = oRI.TabTitle
-                    };
-                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
-                    CApp.UI.tabsRequest.TabPages.Add(oPage);
-
-                }
-                foreach (ResponseInspectorBase oRI in CApp.oExtensions.m_ResponseInspectors.Values)
-                {
-                    TabPage oPage = new TabPage
-                    {
-                        Tag = oRI,
-                        Text = oRI.TabTitle
-                    };
-                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
-                    CApp.UI.tabsResponse.TabPages.Add(oPage);
-                }
+                doPopulateInspectorTabs();
 
                 frmSplashScreen.SetStatusText("Loading script engine...");
                 CApp.CreateScriptEngine();
@@ -258,6 +238,39 @@ namespace Clearinet
 
                 Application.Run(CApp._frmMain);
                 if (bMutexAcquired) oMutex.ReleaseMutex();
+            }
+        }
+
+        private static void doPopulateInspectorTabs()
+        {
+            foreach (RequestInspectorBase oRI in CApp.oExtensions.m_RequestInspectors.Values)
+            {
+                try
+                {
+                    TabPage oPage = new TabPage
+                    {
+                        Tag = oRI,
+                        Text = oRI.TabTitle
+                    };
+                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
+                    CApp.UI.tabsRequest.TabPages.Add(oPage);
+                }
+                catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
+            }
+
+            foreach (ResponseInspectorBase oRI in CApp.oExtensions.m_ResponseInspectors.Values)
+            {
+                try
+                {
+                    TabPage oPage = new TabPage
+                    {
+                        Tag = oRI,
+                        Text = oRI.TabTitle
+                    };
+                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
+                    CApp.UI.tabsResponse.TabPages.Add(oPage);
+                }
+                catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
             }
         }
 
@@ -283,8 +296,8 @@ namespace Clearinet
                 case "app.ui.stayontop":
                     CApp.UIInvokeAsync(() => miViewStayOnTop.Checked = TopMost = pceaChange.ValueBool);
                     break;
-                case "app.ui.toolbar.searchcuetext":
-                    CApp.UIInvokeAsync(() => Win32UI.SetCueText(tstxtSearch.Control, pceaChange.ValueString));
+                case "app.ui.toolbar.lookupcuetext":
+                    CApp.UIInvokeAsync(() => Win32UI.SetCueText(tstxtLookup.Control, pceaChange.ValueString));
                     break;
             }
         }
@@ -329,7 +342,7 @@ namespace Clearinet
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
 
-            Win32UI.SetCueText(tstxtSearch.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.searchcuetext", "Search MDN..."));
+            Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
             TODOAddSampleData();
         }
@@ -341,7 +354,6 @@ namespace Clearinet
         {
             for (int iX = 0; iX < 15; iX++)
             {
-                ListViewItem lvi = new ListViewItem(iX.ToString());
                 HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{iX}", new string[] { $"FirstHeader: {iX}", $"SecondHeader: {iX}{iX}", $"Host: {iX}.com" })
                 {
                     HTTPMethod = "POST",
@@ -353,8 +365,7 @@ namespace Clearinet
                 };
                 hrh["Content-Length"] = x.ResponseBody.Length.ToString();
                 x.state = (ExchangeState)(iX);
-                lvi.Tag = x;
-                lvExchanges.Items.Add(lvi);
+                addExchangeToListView(x);
             }
         }
 
@@ -491,15 +502,7 @@ namespace Clearinet
 
                     foreach (Exchange x in sazFile.Exchanges)
                     {
-                        ListViewItem lvi = new ListViewItem(x.id.ToString())
-                        {
-                            Tag = x
-                        };
-                        lvi.SubItems.Add(x.responseCode.ToString());
-                        lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
-                        lvi.SubItems.Add(x.RequestHeaders.RequestPath);
-                        x.ViewItem = lvi;
-                        lvExchanges.Items.Add(lvi);
+                        addExchangeToListView(x);
                     }
                 }
                 return true;
@@ -509,6 +512,19 @@ namespace Clearinet
                 CApp.ReportException(eX, "actLoadSessionArchive Failed");
                 return false;
             }
+        }
+
+        private void addExchangeToListView(Exchange x)
+        {
+            ListViewItem lvi = new ListViewItem(x.id.ToString())
+            {
+                Tag = x
+            };
+            lvi.SubItems.Add(x.responseCode.ToString());
+            lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
+            lvi.SubItems.Add(x.RequestHeaders.RequestPath);
+            x.ViewItem = lvi;
+            lvExchanges.Items.Add(lvi);
         }
 
         private void HandleProxyAttached()
@@ -620,30 +636,39 @@ namespace Clearinet
         {
             frmFind.BeginFinding();
         }
-
-        private void tstxtSearch_KeyUp(object sender, KeyEventArgs e)
+        private void miEditRemoveSelected_Click(object sender, EventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
-            {
-                Utilities.LaunchHyperlink(CApp.Prefs.GetStringPref("app.ui.toolbar.searchurl",
-                   "https://developer.mozilla.org/en-US/search?q=$W$").Replace("$W$", tstxtSearch.Text.Trim()));
-                tstxtSearch.Clear();
-            }
+            lvExchanges.RemoveSelected();
+        }
+        private void miEditRemoveUnselected_Click(object sender, EventArgs e)
+        {
+            lvExchanges.RemoveUnselected();
         }
 
-        private void tstxtSearch_KeyDown(object sender, KeyEventArgs e)
+        private void tstxtLookup_KeyDown(object sender, KeyEventArgs e)
         {
             // Prevent the beep.
             if (e.KeyCode == Keys.Enter) { e.Handled = e.SuppressKeyPress = true; }
+        }
+
+        private void tstxtLookup_KeyUp(object sender, KeyEventArgs e)
+        {
+            // We need this in KeyUp to prevent a beep.
+            if (e.KeyCode == Keys.Enter)
+            {
+                Utilities.LaunchHyperlink(CApp.Prefs.GetStringPref("app.ui.toolbar.searchurl",
+                   "https://developer.mozilla.org/en-US/search?q=$W$").Replace("$W$", tstxtLookup.Text.Trim()));
+                tstxtLookup.Clear();
+            }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             // This ridiculousness is needed because otherwise the toolstrip control
             // uses ESC to mean "unfocus this text box"
-            if (keyData == Keys.Escape && tstxtSearch.Focused)
+            if (keyData == Keys.Escape && tstxtLookup.Focused)
             {
-                tstxtSearch.Clear();
+                tstxtLookup.Clear();
                 return true; // indicate key was handled.
             }
             return base.ProcessCmdKey(ref msg, keyData);
@@ -652,6 +677,10 @@ namespace Clearinet
         private void miEdit_DropDownOpening(object sender, EventArgs e)
         {
             // Disable controls if inapplicable
+            miEditPasteAsExchanges.Enabled = Clipboard.ContainsImage() | Clipboard.ContainsText() | Clipboard.ContainsFileDropList();
+            miEditRemove.Enabled = miEditFind.Enabled = lvExchanges.Items.Count > 0;
+            miEditMark.Enabled = lvExchanges.SelectedCount > 0;
+            // TODO: Moar!
         }
 
         private void miFile_DropDownOpening(object sender, EventArgs e)
@@ -821,6 +850,10 @@ namespace Clearinet
             actInspectSession();
         }
 
+        public void actSelectAll()
+        {
+            lvExchanges.SelectAll();
+        }
         private void lvExchanges_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == Keys.Enter)
@@ -828,7 +861,110 @@ namespace Clearinet
                 actInspectSession();
                 e.SuppressKeyPress = e.Handled = true;
                 // TODO: Alt+Enter => Properties; ShifT+Enter =>InspectInTornoff
+                return;
+            }
+
+            if (e.KeyCode == Keys.Delete)
+            {
+                if (e.Modifiers == Keys.Shift) lvExchanges.RemoveUnselected(); else lvExchanges.RemoveSelected();
+            }
+
+            if (e.Modifiers == Keys.Control)
+            {
+                switch (e.KeyCode)
+                {
+                    case Keys.X:
+                        lvExchanges.ClearExchanges();
+                        break;
+                }
             }
         }
+
+        private void doPasteImageAsExchange()
+        {
+            try
+            {
+                Image imageToPaste = Clipboard.GetImage();
+
+                if (null == imageToPaste)
+                {
+                    CApp.DoNotifyUser("The clipboard did not contain a pasteable image.", "Paste Failed");
+                    return;
+                }
+
+                var headersRequest = new HTTPRequestHeaders($"/clipboard/{DateTime.Now.ToString("H-mm-ss")}.png", new[] { "Host: localhost" });
+                var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
+
+                var oMS = new MemoryStream();
+                imageToPaste.Save(oMS, ImageFormat.Png);
+                var headersResponse = new HTTPResponseHeaders(200, "Pasted", new[] { "Content-Type: image/png", $"Content-Length: {oMS.Length}" });
+                exchNew.ResponseHeaders = headersResponse;
+                exchNew.ResponseBody = oMS.ToArray();
+                exchNew.BitFlags = ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet
+                                    | ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.ServedFromCache;
+                exchNew.EnsureID();
+                exchNew.state = ExchangeState.Done;
+                addExchangeToListView(exchNew);
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Unable to store image.");
+            }
+        }
+
+        private void miEditPasteAsExchanges_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (Clipboard.ContainsImage())
+                {
+                    doPasteImageAsExchange();
+                    return;
+                }
+                if (Clipboard.ContainsFileDropList())
+                {
+                    // Paste files
+                    // nyi;
+                    return;
+                }
+                //doPasteTextAsExchange();
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Failed Paste");
+            }
+        }
+
+        private void miEditSelectAll_Click(object sender, EventArgs e)
+        {
+            lvExchanges.SelectAll();
+        }
+
+        private void miEditRemoveAll_Click(object sender, EventArgs e)
+        {
+            lvExchanges.ClearExchanges();
+        }
+
+        private void frmViewer_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Focus QuickExec (Ctrl/Alt + Q or Semicolon)
+            if (((e.Modifiers == Keys.Alt) || (e.Modifiers == Keys.Control)) &&
+                ((e.KeyCode == Keys.Q) || e.KeyCode == Keys.OemSemicolon))
+            {
+                txtQuickExec.Focus();
+                e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
+            // Focus Exchange List (Alt+S)
+            if (e.KeyData == (Keys.Alt | Keys.S))
+            {
+                lvExchanges.Focus();
+                e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
+
+            // TODO: Support fontsize adjustment with CTRL+Plus, Ctrl+Minus, and so on
+        }
+
     }
 }
