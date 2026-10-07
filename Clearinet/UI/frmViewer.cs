@@ -1018,9 +1018,9 @@ namespace Clearinet
             // to periodically post updates to the UI thread.
             if (!bNow && (CApp.PauseReporting || (0 == lvExchanges.SelectedCount)))
             {
-            // TODO: BAckground update
-            //    ScheduledTasks.ScheduleWork("UpdateStatusBar", 100,
-              //      () => { CApp.UIInvokeAsync((MethodInvoker)_UpdateStatusBar, null); });
+                // TODO: BAckground update
+                //    ScheduledTasks.ScheduleWork("UpdateStatusBar", 100,
+                //      () => { CApp.UIInvokeAsync((MethodInvoker)_UpdateStatusBar, null); });
                 //return;
             }
 
@@ -1036,7 +1036,7 @@ namespace Clearinet
             }
             else
             {
-                tslSelCount.Text =$"{cSelected:N0} / {lvExchanges.TotalCount:N0}";
+                tslSelCount.Text = $"{cSelected:N0} / {lvExchanges.TotalCount:N0}";
             }
         }
         public void actUpdateReport()

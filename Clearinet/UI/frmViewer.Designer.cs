@@ -146,8 +146,8 @@
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
-            this.rtbStatistics = new System.Windows.Forms.RichTextBox();
             this.splitterMain = new System.Windows.Forms.Splitter();
+            this.rtbStatistics = new Clearinet.RichTextBoxV5();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -169,6 +169,7 @@
             this.pnlLeft.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.tabsViews.SuspendLayout();
+            this.pageStatistics.SuspendLayout();
             this.pageInspectors.SuspendLayout();
             this.mnuInspectors.SuspendLayout();
             this.pnlTamper.SuspendLayout();
@@ -1001,6 +1002,7 @@
             // 
             // pageStatistics
             // 
+            this.pageStatistics.Controls.Add(this.rtbStatistics);
             this.pageStatistics.ImageIndex = 0;
             this.pageStatistics.Location = new System.Drawing.Point(4, 25);
             this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
@@ -1171,14 +1173,6 @@
             this.imglistIcons.TransparentColor = System.Drawing.Color.Magenta;
             this.imglistIcons.Images.SetKeyName(0, "imglistIconsC.bmp");
             // 
-            // rtbStatistics
-            // 
-            this.rtbStatistics.Location = new System.Drawing.Point(0, 0);
-            this.rtbStatistics.Name = "rtbStatistics";
-            this.rtbStatistics.Size = new System.Drawing.Size(100, 96);
-            this.rtbStatistics.TabIndex = 0;
-            this.rtbStatistics.Text = "";
-            // 
             // splitterMain
             // 
             this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
@@ -1188,6 +1182,17 @@
             this.splitterMain.Size = new System.Drawing.Size(4, 518);
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
+            // 
+            // rtbStatistics
+            // 
+            this.rtbStatistics.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbStatistics.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbStatistics.Location = new System.Drawing.Point(4, 4);
+            this.rtbStatistics.Name = "rtbStatistics";
+            this.rtbStatistics.ReadOnly = true;
+            this.rtbStatistics.Size = new System.Drawing.Size(670, 481);
+            this.rtbStatistics.TabIndex = 0;
+            this.rtbStatistics.Text = "";
             // 
             // frmViewer
             // 
@@ -1224,6 +1229,7 @@
             this.pnlLeft.PerformLayout();
             this.pnlMain.ResumeLayout(false);
             this.tabsViews.ResumeLayout(false);
+            this.pageStatistics.ResumeLayout(false);
             this.pageInspectors.ResumeLayout(false);
             this.mnuInspectors.ResumeLayout(false);
             this.pnlTamper.ResumeLayout(false);
@@ -1328,7 +1334,6 @@
         private System.Windows.Forms.Panel pnlTamper;
         private System.Windows.Forms.TabControl tabsResponse;
         private System.Windows.Forms.Splitter splitRequestResponse;
-        private System.Windows.Forms.RichTextBox rtbStatistics;
         private System.Windows.Forms.ContextMenuStrip mnuInspectors;
         private System.Windows.Forms.ToolStripMenuItem miInspectorAbout;
         private System.Windows.Forms.ToolStripMenuItem miInspectorScreenshot;
@@ -1340,6 +1345,7 @@
         private System.Windows.Forms.ToolStripTextBox tstxtLookup;
         public System.Windows.Forms.TabControl tabsViews;
         public ExchangeListView lvExchanges;
+        private RichTextBoxV5 rtbStatistics;
     }
 }
 
