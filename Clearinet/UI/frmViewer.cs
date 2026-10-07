@@ -333,7 +333,6 @@ namespace Clearinet
             CONFIG.RetrieveLayout(this);
 
             // TODO: Add event handlers for allow back/forward mouse buttons to change between active tabs
-            // TODO: Load Inspectors
             // TODO: Grab system network config
             // TODO: Start the core Proxy listener
 

@@ -17,12 +17,7 @@ namespace Clearinet
 
         public HTTPHeaderItem(string name, string value)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                Debug.Assert(false, "Headers must be named.");
-                name = string.Empty;
-            }
-
+            if (!name.HasText()) throw new ArgumentException("Header name must be non-empty", nameof(name));
             Name = name;
             Value = value ?? string.Empty;
         }
