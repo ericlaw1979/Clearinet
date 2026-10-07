@@ -5,9 +5,12 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Clearinet
 {
+    public delegate void CalculateReportHandler(Exchange[] arrExchanges);
+
     public static class CApp
     {
         internal static frmViewer _frmMain;
@@ -62,6 +65,40 @@ namespace Clearinet
                 return _frmMain;
             }
         }
+
+        public delegate void SessionStateHandler(Exchange arrExchanges);
+
+        #region Report API
+        // A Report is a summary of the currently-selected exchanges in the list.
+
+        private static bool _bPauseReporting = false;
+        internal static bool PauseReporting
+        {
+            get
+            {
+                return _bPauseReporting;
+            }
+            set
+            {
+                _bPauseReporting = value;
+                if (!_bPauseReporting)
+                {
+                    UI.actReportStatistics(true);  // Force update now.
+                }
+            }
+        }
+
+        internal static void OnCalculateReport(Exchange[] arrExchanges)
+        {
+            if (_bPauseReporting || isClosing) return;
+            if (null != CalculateReport)
+            {
+                CalculateReport(arrExchanges);
+            }
+        }
+        public static event CalculateReportHandler CalculateReport;
+#endregion
+
 
         /// <summary>
         /// Asynchronously invoke on App's thread unless closing.

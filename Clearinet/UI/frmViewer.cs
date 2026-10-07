@@ -30,6 +30,9 @@ namespace Clearinet
         private Label lblInspectorInstruction;
         private MRU mruRecents;
 
+
+        private static System.Windows.Forms.Timer timerReportUpdater = new System.Windows.Forms.Timer();
+
         private void miFileExit_Click(object sender, EventArgs e)
         {
             this.Close();
@@ -116,7 +119,7 @@ namespace Clearinet
         }
         private void miViewRefresh_Click(object sender, EventArgs e)
         {
-            actRefreshUI();
+            actRefreshUI(false);
             // TODO: Get selected exchanges...
             Exchange[] arrEx = GetSelectedExchanges();
             // ... and for each, call RefreshListViewItem to ensure
@@ -138,10 +141,17 @@ namespace Clearinet
         /// Update the Inspector and Status bar.
         /// LEGACY API. Do not rename.
         /// </summary>
-        public void actRefreshUI()
+        public void actRefreshUI(bool bBecauseSelectionChanged)
         {
             // TODO: This should ensure that all inspectors are selected properly,
             // any info shown for the current session in the status bar is correct, etc.
+            if (CApp.isClosing) return;
+            actUpdateInspector(true, true);
+
+            actReportStatistics();
+
+            int cSelected = lvExchanges.SelectedCount;
+            if (cSelected == 1) tslInfo.Text = GetFirstSelectedExchange().RequestHeaders?.RequestPath ?? string.Empty;
         }
 
         private void miFileNewViewer_Click(object sender, EventArgs e)
@@ -342,6 +352,9 @@ namespace Clearinet
             if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true)
                 && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
 
+            timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
+            timerReportUpdater.Tick += new EventHandler(timerReportUpdater_Tick);
+
             this.lvExchanges.DragDrop += lvExchanges_DragDrop;
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
@@ -349,6 +362,12 @@ namespace Clearinet
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
             TODOAddSampleData();
+        }
+
+        private void timerReportUpdater_Tick(object sender, EventArgs e)
+        {
+            timerReportUpdater.Stop();
+            actUpdateReport();
         }
 
         /// <summary>
@@ -375,7 +394,9 @@ namespace Clearinet
 
         private void miFileLoadSAZ_Click(object sender, EventArgs e)
         {
-            actLoadSessionArchive(Utilities.ObtainOpenFilename("Open SAZ", "SAZ Files (*.saz)|*.saz"));
+            var sFilename = Utilities.ObtainOpenFilename("Open SAZ", "SAZ Files (*.saz)|*.saz");
+            if (!sFilename.HasText()) return;
+            actLoadSessionArchive(sFilename);
         }
 
         private void miFileImport_Click(object sender, EventArgs e)
@@ -545,6 +566,7 @@ namespace Clearinet
         private void frmViewer_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (!CApp.OnBeforeShutdown()) { e.Cancel = true; return; }
+            timerReportUpdater.Stop();
             CApp.OnAppShutdown();
         }
 
@@ -694,8 +716,9 @@ namespace Clearinet
 
         private void lvExchanges_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (lvExchanges.SelectedItems.Count < 1) return;
-            actUpdateInspector(true, true);
+            if (CApp.isClosing) return;
+            // TODO: Store the most recent item for back/forward nav.
+            actRefreshUI(true);
         }
 
         private void tabsRequest_SelectedIndexChanged(object sender, EventArgs e)
@@ -970,5 +993,55 @@ namespace Clearinet
             // TODO: Support fontsize adjustment with CTRL+Plus, Ctrl+Minus, and so on
         }
 
+        public void actReportStatistics()
+        {
+            actReportStatistics(false);
+        }
+        internal void actReportStatistics(bool bNow)
+        {
+            UpdateStatusBar(false);
+
+            if (CApp.PauseReporting) return;
+            if (bNow)
+            {
+                actUpdateReport();
+            }
+            else
+            {
+                if (!timerReportUpdater.Enabled) timerReportUpdater.Start();
+            }
+        }
+
+        private void UpdateStatusBar(bool bNow)
+        {
+            // If updates are paused, we throttle UI updates and start a background task
+            // to periodically post updates to the UI thread.
+            if (!bNow && (CApp.PauseReporting || (0 == lvExchanges.SelectedCount)))
+            {
+            // TODO: BAckground update
+            //    ScheduledTasks.ScheduleWork("UpdateStatusBar", 100,
+              //      () => { CApp.UIInvokeAsync((MethodInvoker)_UpdateStatusBar, null); });
+                //return;
+            }
+
+            _UpdateStatusBar();
+        }
+
+        private void _UpdateStatusBar()
+        {
+            int cSelected = lvExchanges.SelectedCount;
+            if (cSelected < 1)
+            {
+                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}";
+            }
+            else
+            {
+                tslSelCount.Text =$"{cSelected:N0} / {lvExchanges.TotalCount:N0}";
+            }
+        }
+        public void actUpdateReport()
+        {
+            CApp.OnCalculateReport(GetSelectedExchanges());
+        }
     }
 }

@@ -17,6 +17,12 @@ namespace Clearinet
             get { return this.SelectedItems.Count; }
         }
 
+        public int TotalCount
+        {
+            // TODO: After we start queueing updates, include that number
+            get { return this.Items.Count; }
+        }
+
         internal void SelectAll()
         {
             // TODO: For perf, we need to ensure we're not firing events during this process.
@@ -62,7 +68,6 @@ namespace Clearinet
 
             EndUpdate();
         }
-
 
         internal void RemoveUnselected()
         {

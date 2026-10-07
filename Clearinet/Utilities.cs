@@ -19,7 +19,7 @@ namespace Clearinet
         [DllImport("Kernel32.dll", EntryPoint = "GetTickCount64", CharSet = CharSet.Unicode)]
         private static extern UInt64 GetTickCount64();
 
-        // Legacy compat. Can't imagine this actually improves performance.
+        // Legacy compat from before the .NET Framework had Array.Empty<T>().
         public static byte[] emptyByteArray = Array.Empty<byte>();
         public static UInt64 GetTickCount()
         {
@@ -275,7 +275,7 @@ namespace Clearinet
 
         public static string UNSTABLE_DescribeClientHello(MemoryStream _)
         {
-            return "TODO: don't call this!";
+            return "TODO: don't call this! It's meant to parse a ClientHello to text.";
         }
 
         public static string UNSTABLE_DescribeServerHello(MemoryStream _)
