@@ -1,8 +1,10 @@
 ﻿using Ionic.Zip;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Xml;
 /*
  * Previously documented at https://fiddler.wikidot.com/saz-files
  * 
@@ -151,10 +153,139 @@ namespace Clearinet
                         strmContent.Dispose();
                     }
 
+                    ZipEntry eMetadata = zf[eRequest.FileName.TrimAfter("_") + "_m.xml"];
+                    if (null != eMetadata)
+                    {
+                        strmContent = eMetadata.OpenReader();
+                        AddMetadataFromStream(excNew, strmContent);
+                        strmContent.Dispose();
+                    }
+
+                    // TODO: WebSocket data
+
                     sazFile.Exchanges.Add(excNew);
                 }
             }
             return sazFile;
+        }
+
+        private static void AddMetadataFromStream(Exchange exchNew, Stream strmContent)
+        {
+            ExchangeFlags sfInferredFlags = ExchangeFlags.None;
+            string sOriginalID = null;
+
+            try
+            {
+                using (XmlReader oXML = XmlReader.Create(strmContent, new XmlReaderSettings { IgnoreWhitespace = true }))
+                {
+                    while (oXML.Read())
+                    {
+                        if (oXML.NodeType != XmlNodeType.Element) continue;
+
+                        switch (oXML.Name)
+                        {
+                            case "Session":
+                                // Simplified null check using pattern matching
+                                if (oXML.GetAttribute("Aborted") is string)
+                                {
+                                    exchNew.state = ExchangeState.Aborted;
+                                }
+
+                                if (uint.TryParse(oXML.GetAttribute("BitFlags"), NumberStyles.HexNumber, null, out var bitFlags))
+                                {
+                                    exchNew.BitFlags = (ExchangeFlags)bitFlags;
+                                }
+
+                                if (oXML.GetAttribute("SID") is string sid)
+                                {
+                                    sOriginalID = sid;
+                                }
+                                break;
+
+                            case "SessionFlag":
+                                exchNew.oFlags.TryAdd(oXML.GetAttribute("N"), oXML.GetAttribute("V"));
+                                break;
+
+                            case "SessionTimers":
+                                exchNew.Timers.ClientConnected = XmlConvert.ToDateTime(oXML.GetAttribute("ClientConnected"), XmlDateTimeSerializationMode.RoundtripKind);
+
+                                // Local function to simplify repetitive attribute parsing
+                                void ParseAndSetDateTime(string attributeName, Action<DateTime> setter)
+                                {
+                                    var value = oXML.GetAttribute(attributeName);
+                                    if (value != null)
+                                    {
+                                        setter(XmlConvert.ToDateTime(value, XmlDateTimeSerializationMode.RoundtripKind));
+                                    }
+                                }
+
+                                void ParseAndSetInt(string attributeName, Action<int> setter)
+                                {
+                                    var value = oXML.GetAttribute(attributeName);
+                                    if (value != null)
+                                    {
+                                        setter(XmlConvert.ToInt32(value));
+                                    }
+                                }
+
+                                ParseAndSetDateTime("ClientBeginRequest", dt => exchNew.Timers.ClientBeginRequest = dt);
+                                ParseAndSetDateTime("GotRequestHeaders", dt => exchNew.Timers.ClearinetGotRequestHeaders = dt);
+                                exchNew.Timers.ClientDoneRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ClientDoneRequest"), XmlDateTimeSerializationMode.RoundtripKind);
+
+                                ParseAndSetInt("GatewayTime", val => exchNew.Timers.GatewayDeterminationTime = val);
+                                ParseAndSetInt("DNSTime", val => exchNew.Timers.DNSTime = val);
+                                ParseAndSetInt("TCPConnectTime", val => exchNew.Timers.TCPConnectTime = val);
+                                ParseAndSetInt("HTTPSHandshakeTime", val => exchNew.Timers.HTTPSHandshakeTime = val);
+
+                                ParseAndSetDateTime("ServerConnected", dt => exchNew.Timers.ServerConnected = dt);
+                                ParseAndSetDateTime("FiddlerBeginRequest", dt => exchNew.Timers.ClearinetBeginRequest = dt);
+                                exchNew.Timers.ClearinetBeginRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ServerGotRequest"), XmlDateTimeSerializationMode.RoundtripKind);
+                                ParseAndSetDateTime("ServerBeginResponse", dt => exchNew.Timers.ServerBeginResponse = dt);
+                                ParseAndSetDateTime("GotResponseHeaders", dt => exchNew.Timers.ClearinetGotResponseHeaders = dt);
+
+                                exchNew.Timers.ServerDoneResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ServerDoneResponse"), XmlDateTimeSerializationMode.RoundtripKind);
+                                exchNew.Timers.ClientBeginResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ClientBeginResponse"), XmlDateTimeSerializationMode.RoundtripKind);
+                                exchNew.Timers.ClientDoneResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ClientDoneResponse"), XmlDateTimeSerializationMode.RoundtripKind);
+                                break;
+
+                            case "TunnelInfo":
+                                // Out variables directly declared inside long.TryParse
+                                if (long.TryParse(oXML.GetAttribute("BytesEgress"), out var lngBytesEgress) &&
+                                    long.TryParse(oXML.GetAttribute("BytesIngress"), out var lngBytesIngress))
+                                {
+                                    // __oTunnel = new MockTunnel(lngBytesEgress, lngBytesIngress);
+                                }
+                                break;
+
+                            case "PipeInfo":
+                                if ("true" != oXML.GetAttribute("Streamed"))
+                                {
+                                    sfInferredFlags |= ExchangeFlags.ResponseStreamed;
+                                }
+
+                                if ("true" == oXML.GetAttribute("CltReuse"))
+                                {
+                                    sfInferredFlags |= ExchangeFlags.ClientPipeReused;
+                                }
+
+                                if ("true" == oXML.GetAttribute("Reused"))
+                                {
+                                    sfInferredFlags |= ExchangeFlags.ServerPipeReused;
+                                }
+
+                                //TODO:Gatewayinfo
+                                break;
+                        }
+                    }
+
+                    if (exchNew.BitFlags == ExchangeFlags.None) exchNew.BitFlags = sfInferredFlags;
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Metadata load failed");
+                return;
+            }
         }
 
         private static void AddResponseFromStream(Exchange e, Stream strmContent)

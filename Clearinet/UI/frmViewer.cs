@@ -354,6 +354,7 @@ namespace Clearinet
 
             timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
             timerReportUpdater.Tick += new EventHandler(timerReportUpdater_Tick);
+            CApp.CalculateReport += UpdateStatisticsTab;
 
             this.lvExchanges.DragDrop += lvExchanges_DragDrop;
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
@@ -362,6 +363,51 @@ namespace Clearinet
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
             TODOAddSampleData();
+        }
+
+        private void UpdateStatisticsTab(Exchange[] arrExchanges)
+        {
+            // TODO: Put more interesting statistics here.
+            var cRequestHeaderBytes = 0;
+            var cRequestBodyBytes = 0;
+            var cResponseHeaderBytes = 0;
+            var cResponseBodyBytes = 0;
+            foreach (Exchange x in arrExchanges)
+            {
+                bool isCONNECT = x.HTTPMethodIs("CONNECT"); // Data in the Connect body is "fake"
+                cRequestHeaderBytes += x.RequestHeaders?.ToString().Length ?? 0;
+                if (!isCONNECT) cRequestBodyBytes += x.RequestBody?.Length ?? 0;
+                cResponseHeaderBytes += x.ResponseHeaders?.ToString().Length ?? 0;
+                if (!isCONNECT) cResponseBodyBytes += x.ResponseBody?.Length ?? 0;
+            }
+
+            if (0 == arrExchanges.Length)
+            {
+                rtbStatistics.Text = "Select one or more Exchanges in the list at the left to see information here.";
+                return;
+            }
+            if (1 == arrExchanges.Length)
+            {
+                string sPriorDayWarning = string.Empty;
+                DateTime dtFirst = arrExchanges[0].Timers.ClientBeginRequest;
+                if ((dtFirst.Ticks > 0) && (dtFirst.Date != DateTime.Today))
+                {
+                    sPriorDayWarning = $"This Exchange was captured on {dtFirst.Date.ToLongDateString()}.\r\n\r\n";
+                }
+
+                rtbStatistics.Text = $"{sPriorDayWarning}Exchange Timers\r\n{arrExchanges[0].Timers.ToString(true)}\r\n" +
+                $"\r\nRequest Headers:\t{cRequestHeaderBytes:N0} bytes" +
+                $"\r\nRequest Body:\t{cRequestBodyBytes:N0} bytes" +
+                $"\r\nResponse Headers:\t{cResponseHeaderBytes:N0} bytes" +
+                $"\r\nResponse Body:\t{cResponseBodyBytes:N0} bytes";
+                return;
+            }
+
+            rtbStatistics.Text = $"You've selected {arrExchanges.Length} Exchanges\r\n" +
+                $"\r\nRequest Headers:\t{cRequestHeaderBytes:N0} bytes" +
+                $"\r\nRequest Bodies:\t{cRequestBodyBytes:N0} bytes" +
+                $"\r\nResponse Headers:\t{cResponseHeaderBytes:N0} bytes" +
+                $"\r\nResponse Bodies:\t{cResponseBodyBytes:N0} bytes";
         }
 
         private void timerReportUpdater_Tick(object sender, EventArgs e)
@@ -521,8 +567,8 @@ namespace Clearinet
             {
                 using (SAZFile sazFile = SAZFile.LoadFrom(sPath))
                 {
-                    CApp.Log.Log($"Loaded SAZ File containing {sazFile.Exchanges.Count} exchanges. {sazFile.sComment}");
-                    SetStatusText($"Loaded SAZ File containing {sazFile.Exchanges.Count} exchanges.");
+                    CApp.Log.Log($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}. {sazFile.sComment}");
+                    SetStatusText($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}");
                     mruRecents.PushFile(sPath);
 
                     foreach (Exchange x in sazFile.Exchanges)

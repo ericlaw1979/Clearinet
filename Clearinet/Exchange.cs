@@ -89,7 +89,7 @@ namespace Clearinet
         public void utilPrependToResponseBody(string sPrefix) { /*TODO*/ }
 
         public bool utilDecodeRequest(bool bQuiet = true) { /*TODO*/ return false; }
-        public bool utilDecodeResponse(bool bQuiet=true)  { /*TODO*/ return false; }
+        public bool utilDecodeResponse(bool bQuiet = true) { /*TODO*/ return false; }
 
         // TODO: Add a convenience handler that tries to get a .NET URL from the string?
 
@@ -97,7 +97,7 @@ namespace Clearinet
         public string fullUrl { get; set; }
         public string host { get; set; }
         public string hostname { get; set; }
-        public int port { get; set; }  
+        public int port { get; set; }
         public string clientIP { get; set; }
         public int responseCode { get; set; }
 
@@ -192,7 +192,6 @@ namespace Clearinet
         }
         public ExchangeTimers Timers = new ExchangeTimers();
 
-
         // ISSUE: For the core engine, we won't have a ListViewItem;
         // We probably need to have a "Tag" pointer that can be used
         // to hold arbitrary data for the core engine, and then have
@@ -238,7 +237,8 @@ namespace Clearinet
 
             if (null == rph)
             {
-                (rph = new HTTPResponseHeaders {
+                (rph = new HTTPResponseHeaders
+                {
                     StatusCode = 200,
                     StatusText = "OK",
                     HTTPVersion = "HTTP/1.1"
@@ -289,7 +289,8 @@ namespace Clearinet
             {
                 return this.RequestHeaders.HTTPMethod;
             }
-            set {
+            set
+            {
                 // todo: if headers not present...
                 this.RequestHeaders.HTTPMethod = value;
             }

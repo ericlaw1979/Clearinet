@@ -191,7 +191,7 @@ namespace Clearinet
 
             txtOutput.WordWrap = !cbViewBytes.Checked;
             txtOutput.Text = sOutput;
-    
+
             btnSetInputFromOutput.Enabled = (!bThrew && !cbViewBytes.Checked && (txtOutput.TextLength > 0));
             if (bThrew)
             {
@@ -246,12 +246,12 @@ namespace Clearinet
             arrLatestOutput = oMS.ToArray();
             sOutput = encodingInput.GetString(arrLatestOutput);
             return sOutput;
-        }      
+        }
 
         internal frmTextWizard(string sInput)
         {
             InitializeComponent();
-            
+
             txtInput.Font = new Font(txtInput.Font.FontFamily, CONFIG.flFontSize);
 
             txtOutput.Font = new Font(txtOutput.Font.FontFamily, CONFIG.flFontSize);
@@ -367,7 +367,7 @@ namespace Clearinet
         private void cbViewBytes_CheckedChanged(object sender, EventArgs e)
         {
             // Ensure we use a monospaced font for the output box when viewing bytes, and a Unicode font otherwise.
-            txtOutput.Font = new Font((cbViewBytes.Checked ? "Lucida Console": "Arial Unicode MS"), CONFIG.flFontSize);
+            txtOutput.Font = new Font((cbViewBytes.Checked ? "Consolas" : "Arial Unicode MS"), CONFIG.flFontSize);
             Recalc();
         }
     }

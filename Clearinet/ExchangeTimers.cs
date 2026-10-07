@@ -145,7 +145,7 @@ namespace Clearinet
             AppendTimer(sb, "ClientBeginResponse", ClientBeginResponse, sSep);
             AppendTimer(sb, "ClientDoneResponse", ClientDoneResponse, sSep);
 
-            AppendDuration(sb, "DNSTime", DNSTime, sSep); 
+            AppendDuration(sb, "DNSTime", DNSTime, sSep);
             AppendDuration(sb, "GatewayDeterminationTime", GatewayDeterminationTime, sSep);
             AppendDuration(sb, "TCPConnectTime", TCPConnectTime, sSep);
             AppendDuration(sb, "HTTPSHandshakeTime", HTTPSHandshakeTime, sSep);
@@ -153,20 +153,21 @@ namespace Clearinet
             if (bMultiLine)
             {
                 if (TimeSpan.Zero < (ClientDoneResponse - ClientBeginRequest))
-                  sb.AppendFormat("\tOverall Elapsed:\t{0:h:mm:ss.fff}\r\n", ClientDoneResponse - ClientBeginRequest);
+                    sb.AppendFormat("\tOverall Elapsed:\t{0:h\\:mm\\:ss\\.fff}\r\n", ClientDoneResponse - ClientBeginRequest);
             }
             else
             {
                 // Trim trailing comma.
                 if (sb.Length >= sSep.Length) sb.Length -= sSep.Length;
             }
+            if (sb.Length < 1) sb.Append("(No timers recorded)");
             return sb.ToString();
         }
 
         private static void AppendTimer(StringBuilder sb, string name, DateTime value, string sSep)
         {
             if (value == DateTime.MinValue) return;
-            sb.Append($"{name}:{value.ToString("HH:mm:ss.fff")}{sSep}");
+            sb.Append($"{name}:\t{value.ToString("HH:mm:ss.fff")}{sSep}");
         }
 
         private static void AppendDuration(StringBuilder sb, string name, int value, string sSep)
