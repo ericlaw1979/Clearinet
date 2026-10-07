@@ -8,7 +8,7 @@ namespace Clearinet
     /// <summary>
     /// This class contains APIs that will likely vary based on the OS platform.
     /// </summary>
-    internal class PlatformAPI
+    public class PlatformAPI
     {
         // Win32 API declaration
         [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]

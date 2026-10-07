@@ -40,13 +40,13 @@ namespace Clearinet
         {
         }
 
+        // TODO: Should this be a smarter structure?
         protected List<HTTPHeaderItem> storage = new List<HTTPHeaderItem>();
+
         /// <summary>
         /// Legacy Getter/Setter that handles only the simple case of the *first* named header.
         /// returns an empty string if the header wasn't found. TODO: Build a smarter function which joins headers by comma
         /// </summary>
-        /// <param name="sHeaderName"></param>
-        /// <returns></returns>
         public string this[string sHeaderName]
         {
             get => storage.Find(h => h.Name.OICEquals(sHeaderName))?.Value ?? string.Empty;
@@ -71,6 +71,21 @@ namespace Clearinet
         public bool Exists(string sHeaderName)
         {
             return storage.Exists(h => h.Name.OICEquals(sHeaderName));
+        }
+        /// <summary>
+        /// True if ANY instance of the named header exists with the sought string anywhere in the value
+        /// </summary>
+        public bool ExistsAndContains(string sHeaderName, string sPartialValue)
+        {
+            for (int iX = 0; iX < storage.Count; ++iX)
+            {
+                if (storage[iX].Name.OICEquals(sHeaderName) &&
+                    storage[iX].Value.OICContains(sPartialValue))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public bool ExistsAny(params string[] sHeaderNames)

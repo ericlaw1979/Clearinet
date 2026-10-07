@@ -125,8 +125,12 @@ namespace Clearinet
 
         public Exchange[] GetSelectedExchanges()
         {
-            // TODO: Get the data!
-            Exchange[] arrExchanges = new Exchange[lvExchanges.SelectedItems.Count];
+            int iSelCount = lvExchanges.SelectedItems.Count;
+            Exchange[] arrExchanges = new Exchange[iSelCount];
+            for (int ix = 0; ix < iSelCount; ++ix)
+            {
+                arrExchanges[ix] = lvExchanges.SelectedItems[ix].Tag as Exchange;
+            }
             return arrExchanges;
         }
 

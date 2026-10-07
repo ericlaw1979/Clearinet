@@ -22,6 +22,13 @@ namespace Clearinet
 
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
+        public static Color GetColor(string sPref, Color colorDefault)
+        {
+            string sColor = CApp.Prefs.GetStringPref(sPref, null);
+            if (sColor.HasText()) return Utilities.ParseColor(sColor);
+            return colorDefault;
+        }
+
         // TODO: Feed from pref.
         internal static Encoding encodingOfHeaders = Encoding.UTF8;
 
@@ -104,13 +111,13 @@ namespace Clearinet
             {
                 case "Extensions":
                     return CApp.Prefs.GetStringPref("app.paths.extensions",
-                      Application.StartupPath + Path.DirectorySeparatorChar + "Extensions");
+                      Application.StartupPath + Path.DirectorySeparatorChar + "Extensions" + Path.DirectorySeparatorChar);
                 case "Extensions_User":
                     return CApp.Prefs.GetStringPref("app.paths.extensions_user",
                                                 GetPath("UserFolder") + "Extensions" + Path.DirectorySeparatorChar);
                 case "Transcoders":
                     return CApp.Prefs.GetStringPref("app.paths.extensions",
-                      Application.StartupPath + Path.DirectorySeparatorChar + "ImportExport");
+                      Application.StartupPath + Path.DirectorySeparatorChar + "ImportExport" + Path.DirectorySeparatorChar);
                 case "Transcoders_User":
                     return CApp.Prefs.GetStringPref("app.paths.extensions_user",
                                                 GetPath("UserFolder") + "ImportExport" + Path.DirectorySeparatorChar);
@@ -119,6 +126,9 @@ namespace Clearinet
                 case "Root": return Application.StartupPath;
                 case "Scripts":
                     return GetPath("UserFolder") + "Scripts" + Path.DirectorySeparatorChar;
+                case "Tools":
+                    return CApp.Prefs.GetStringPref("app.paths.tools",
+                      Application.StartupPath + Path.DirectorySeparatorChar + "Tools" + Path.DirectorySeparatorChar);
                 case "UserFolder":
                     return Environment.GetFolderPath(Environment.SpecialFolder.Personal,
                                                      Environment.SpecialFolderOption.DoNotVerify)

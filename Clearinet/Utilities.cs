@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -115,7 +116,7 @@ namespace Clearinet
         {
             return WebUtility.HtmlDecode(s);
         }
-        
+
         public static string HtmlEncode(string s)
         {
             return WebUtility.HtmlEncode(s);
@@ -510,6 +511,61 @@ namespace Clearinet
             }
 
             return tokens.ToArray();
+        }
+
+        internal static Color ParseColor(string sColor)
+        {
+            if (!sColor.HasText()) return Color.Empty;
+            try
+            {
+                return ColorTranslator.FromHtml(sColor);
+            }
+            catch (Exception)
+            {
+                return Color.FromName(sColor);
+            }
+        }
+
+        public static string GetExecutableOutput(string sApp, string sParams, out int iExitCode)
+        {
+            iExitCode = -999;
+            var sbResult = new StringBuilder();
+            sbResult.Append($"Results from {sApp} {sParams}\r\n\r\n");
+
+            try
+            {
+                using (var oProc = new Process())
+                {
+                    oProc.StartInfo = new ProcessStartInfo
+                    {
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = false,
+                        CreateNoWindow = true,
+                        FileName = sApp,
+                        Arguments = sParams
+                    };
+
+                    oProc.Start();
+                    while (oProc.StandardOutput.ReadLine() is string str)
+                    {
+                        str = str.TrimEnd();
+                        if (str.Length > 0)
+                        {
+                            sbResult.AppendLine(str);
+                        }
+                    }
+
+                    iExitCode = oProc.ExitCode;
+                }
+            }
+            catch (Exception eX)
+            {
+                sbResult.Append($"Threw: {eX}\r\n{eX.StackTrace}");
+            }
+
+            sbResult.Append("------------------------------------\r\n");
+            return sbResult.ToString();
         }
     }
 }
