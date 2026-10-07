@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net481</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>Clearinet</RootNamespace>
     <AssemblyName>Clearinet</AssemblyName>
@@ -19,6 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DotNetZip.Reduced" Version="1.9.1.8" />
+    <PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
     <Reference Include="Microsoft.JScript" />
     <Reference Include="System.Web" />
     <Reference Include="System.Deployment" />
