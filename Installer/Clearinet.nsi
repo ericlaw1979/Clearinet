@@ -4,7 +4,7 @@
 ; install the program.
 ;
 ; To build, run:
-;  <folder>\nsis\makensis.exe cin.nsi
+;  <folder>\nsis\makensis.exe Clearinet.nsi
 ;
 ; For release builds, you must first sign the binaries
 ; inside the package, then build the installer, then
@@ -100,10 +100,16 @@ goto lbl_WriteUninstall
 lbl_UpdateRegistry:
 ClearErrors
 
-DetailPrint "Writing Win32 Registry"
+DetailPrint "Writing Registry"
 WriteRegStr HKLM "SOFTWARE\Clearinet" "InstallPath" "$INSTDIR\"
 WriteRegStr HKLM "Software\Clearinet" "Version" "${VER_App}"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe" "" '"$INSTDIR\clearinet.exe"'
+
+
+; Tell the system what we support
+WriteRegStr HKLM "Software\Classes\Applications\Clearinet.exe\SupportedTypes" ".har" ""
+WriteRegStr HKLM "Software\Classes\Applications\Clearinet.exe\SupportedTypes" ".saz" ""
+
 
 ; take SAZ File Association
 WriteRegStr HKCR ".saz" "" "Clearinet.ArchiveZip"
@@ -113,6 +119,17 @@ WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open\command" "" '"$INSTDIR\clearin
 WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open V&iewer Mode\command" "" '"$INSTDIR\clearinet.exe" -viewer "%1"'
 ; TODO: Do we want to use the legacy MIME here?
 WriteRegStr HKCR "Clearinet.ArchiveZip" "Content Type" "application/x-zip-compressed+SessionArchive"
+
+
+
+WriteRegStr HKLM "Software\Classes\Clearinet.HARFile" "" "HTTP Archive File"
+WriteRegStr HKLM "Software\Classes\Clearinet.HARFile" "FriendlyTypeName" "HTTP Archive File"
+# Associated Icon (using main executable icon at index 0)
+WriteRegStr HKLM "Software\Classes\Clearinet.HARFile\DefaultIcon" "" "$INSTDIR\Clearinet.exe,0"
+# Default "open" verb shell execution command
+WriteRegStr HKLM "Software\Classes\Clearinet.HARFile\shell\open\command" "" '"$INSTDIR\Clearinet.exe" "%1"'
+WriteRegStr HKLM "Software\Classes\.har\OpenWithProgids" "Clearinet.HARFile" ""
+WriteRegStr HKLM "Software\Classes\Applications\Clearinet.exe\shell\open\command" "" '"$INSTDIR\Clearinet.exe" "%1"'
 
 
 # Tell Windows Explorer to refresh associated file icons
@@ -204,6 +221,17 @@ SetRegView lastused
 DeleteRegKey HKCR ".saz" 
 DeleteRegKey HKCR "Clearinet.ArchiveZip"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe"
+
+# Remove ProgID association from .har extension
+DeleteRegValue HKLM "Software\Classes\.har\OpenWithProgids" "Clearinet.HARFile"
+
+
+# Delete the ProgID registry tree
+DeleteRegKey HKLM "Software\Classes\Clearinet.HARFile"
+DeleteRegKey HKLM "Software\Classes\Applications\Clearinet.exe"
+
+# Refresh shell cache
+System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 
 ; Remove files
 

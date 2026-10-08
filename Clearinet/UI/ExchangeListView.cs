@@ -37,6 +37,7 @@ namespace Clearinet
         {
             BeginUpdate();
             this.Items.Clear();
+            Exchange.ResetSessionCounter();
             EndUpdate();
         }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Windows.Forms;
 using System.Xml;
 /*
  * Previously documented at https://fiddler.wikidot.com/saz-files
@@ -374,12 +375,42 @@ namespace Clearinet
             }
             #endregion
 
-            // TODO: Write _index.html containing the columns of the Exchanges list.
+            WriteLegacyIndexFile(zf, exchanges);
+
             zf.Save(filePath);
             zf.Dispose();
             return true;
         }
 
+        private static void WriteLegacyIndexFile(ZipFile zf, Exchange[] exchanges)
+        {
+            zf.AddEntry("_index.htm", (_, strm) =>
+            {
+                TextWriter tw = new StreamWriter(strm, Encoding.UTF8);
+                tw.WriteLine("<html><head><style>body,thead,td,a,p{font-size:10px;font-family:verdana,sans-serif;}</style></head>");
+                tw.WriteLine($"<body><table cols={CApp.UI.lvExchanges.Columns.Count}><thead><tr><td></td>");
+                foreach (ColumnHeader ch in CApp.UI.lvExchanges.Columns)
+                {
+                    tw.WriteLine($"<th>{ch.Text}</th>");
+                }
+                tw.WriteLine($"</tr></thead><tbody>");
+                for (var ix = 0; ix < exchanges.Length; ++ix)
+                {
+                    Exchange exch = exchanges[ix];
+                    ListViewItem lvi = exchanges[ix].ViewItem;
+                    if (null == lvi) continue;
+                    tw.WriteLine($"<tr><td><a href='raw\\{ix + 1}_c.txt'>C</a>&nbsp;<a href='raw\\{ix + 1}_s.txt'>S</a>&nbsp;<a href='raw\\{ix + 1}_m.xml'>M</a></td>");
+                    for (var iy = 0; iy < CApp.UI.lvExchanges.Columns.Count; ++iy)
+                    {
+                        tw.WriteLine($"<td>{lvi.SubItems[iy].Text}</td>");
+                    }
+                    tw.WriteLine($"</tr>");
+                }
+                tw.WriteLine($"</tbody></table></body></html>");
+                tw.Flush();
+            });
+
+        }
         /// <summary>
         /// By convention, we add an OPC manifest to allow Packaging APIs
         /// to read our SAZ files. This allows System.IO.Packaging to
