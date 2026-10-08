@@ -66,7 +66,10 @@ namespace Clearinet
                 lvi.Remove();
             }
 
-
+            if (this.TotalCount == 0)
+            {
+                Exchange.ResetSessionCounter();
+            }
             EndUpdate();
         }
 
