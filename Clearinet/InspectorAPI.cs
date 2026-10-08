@@ -5,8 +5,6 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
-    // TODO: write code that does FindBestInspector based on a given Exchange. Then call it in actInspectSession/Exchange
-
     [Flags]
     public enum InspectorFlags
     {
@@ -150,6 +148,11 @@ namespace Clearinet
         /// Return 1 to 100 for how much this Exchange "wants" a given Content Type.
         /// Return 1000 if the MIME is a custom MIME for which your Inspector is the one
         /// that the user *definitely* will want used.
+        /// 
+        /// This makes a ton of sense for Response Inspectors, but not so much for Request Inspectors
+        /// because they only rarely have a payload. Request Inspectors may have more of a need to look
+        /// at other aspects of the Exchange, e.g. the client process or some component of the URL.
+        /// 
         public virtual int ScoreForContentType(string sMIME)
         {
             return 0;

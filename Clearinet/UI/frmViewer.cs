@@ -499,7 +499,7 @@ namespace Clearinet
                 }
                 SAZFile.SaveTo(sFilename, arrExchanges, sPassword);
                 CApp.UI.mruRecents.PushFile(sFilename);
-                CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypted":"Saved")} {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 48)}");
+                CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypted" : "Saved")} {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 48)}");
             }
             catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
             return true;
@@ -554,7 +554,7 @@ namespace Clearinet
             Exchange exch = GetFirstSelectedExchange();
             if (null == exch) return;
 
-            /* todo: DoBeforeInspect() */
+            /* todo: Call anyone syncing the DoBeforeInspect event.*/
             SelectBestInspector(tabsRequest, exch);
             SelectBestInspector(tabsResponse, exch);
 
@@ -1214,6 +1214,15 @@ namespace Clearinet
             if (e.KeyData == (Keys.Alt | Keys.S))
             {
                 lvExchanges.Focus();
+                e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
+
+            if (e.KeyCode == Keys.H && e.Modifiers == Keys.Control)
+            {
+                Win32UI.activateTitledTab("Headers", tabsRequest);
+                Win32UI.activateTitledTab("Headers", tabsResponse);
+                tabsViews.SelectedTab = pageInspectors;
                 e.SuppressKeyPress = e.Handled = true;
                 return;
             }

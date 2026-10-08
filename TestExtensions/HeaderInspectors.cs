@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace TestExtensions
@@ -37,21 +38,7 @@ namespace TestExtensions
             hvViewer.tvNVP.Nodes.Clear();
 
             hvViewer._headers = hrh;
-            TreeNode tnAll = new TreeNode("All", 0, 0);
-
-            TreeNode nodeAdding;
-
-            foreach (HTTPHeaderItem oItem in hrh)
-            {
-                nodeAdding = tnAll.Nodes.Add(oItem.ToString());
-                nodeAdding.Tag = oItem;
-                nodeAdding.NodeFont = hvViewer.tvNVP.Font;
-            }
-
-            hvViewer.tvNVP.Nodes.Add(tnAll);
-            tnAll.ExpandAll();
-            hvViewer.tvNVP.TopNode = hvViewer.tvNVP.Nodes[0];
-
+            HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
         }
 
         public override void Clear()
@@ -95,25 +82,147 @@ namespace TestExtensions
             hvViewer.tvNVP.Nodes.Clear();
 
             hvViewer._headers = hrh;
-            TreeNode tnAll = new TreeNode("All", 0, 0);
-
-            TreeNode nodeAdding;
-
-            foreach (HTTPHeaderItem oItem in hrh)
-            {
-                nodeAdding = tnAll.Nodes.Add(oItem.ToString());
-                nodeAdding.Tag = oItem;
-                nodeAdding.NodeFont = hvViewer.tvNVP.Font;
-            }
-
-            hvViewer.tvNVP.Nodes.Add(tnAll);
-            tnAll.ExpandAll();
-            hvViewer.tvNVP.TopNode = hvViewer.tvNVP.Nodes[0];
+            HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
         }
 
         public override void Clear()
         {
             hvViewer.Clear();
+        }
+    }
+
+    internal static class HeaderTreeBuilder
+    {
+        private static readonly string[] CategoryNames =
+        {
+            "Cache", "Client", "Entity", "Miscellaneous", "Security", "Server", "Transport"
+        };
+
+        internal static void Populate(BetterTreeView tree, IEnumerable<HTTPHeaderItem> headers)
+        {
+            Dictionary<string, List<HTTPHeaderItem>> headersByCategory =
+                new Dictionary<string, List<HTTPHeaderItem>>(StringComparer.Ordinal);
+            foreach (string categoryName in CategoryNames)
+            {
+                headersByCategory.Add(categoryName, new List<HTTPHeaderItem>());
+            }
+
+            foreach (HTTPHeaderItem item in headers)
+            {
+                headersByCategory[GetCategory(item.Name)].Add(item);
+            }
+
+            foreach (string categoryName in CategoryNames)
+            {
+                List<HTTPHeaderItem> categoryHeaders = headersByCategory[categoryName];
+                if (categoryHeaders.Count == 0) continue;
+
+                TreeNode categoryNode = new TreeNode(categoryName, 0, 0);
+                foreach (HTTPHeaderItem item in categoryHeaders.OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    TreeNode node = categoryNode.Nodes.Add(item.ToString());
+                    node.Tag = item;
+                    node.NodeFont = tree.Font;
+                }
+
+                tree.Nodes.Add(categoryNode);
+                categoryNode.NodeFont = new Font(tree.Font, FontStyle.Italic);
+            }
+
+            tree.ExpandAll();
+            if (tree.Nodes.Count > 0) tree.TopNode = tree.Nodes[0];
+        }
+
+        private static string GetCategory(string headerName)
+        {
+            // TODO: We probably want to use a dictionary of known headers to categories,
+            // rather than a switch statement. This would allow us to easily add new
+            // headers in a performant and potentially extensible way.
+            switch (headerName.ToLowerInvariant())
+            {
+                case "age":
+                case "cache-control":
+                case "etag":
+                case "expires":
+                case "if-match":
+                case "if-modified-since":
+                case "if-none-match":
+                case "if-range":
+                case "if-unmodified-since":
+                case "last-modified":
+                case "pragma":
+                case "vary":
+                case "warning":
+                    return "Cache";
+
+                case "content-md5":
+                case "content-type":
+                case "digest":
+                case "repr-digest":
+                case "want-repr-digest":
+                    return "Entity";
+
+                case "alt-svc":
+                case "connection":
+                case "content-encoding":
+                case "expect":
+                case "host":
+                case "keep-alive":
+                case "te":
+                case "trailer":
+                case "transfer-encoding":
+                case "upgrade":
+                case "via":
+                case "forwarded":
+                    return "Transport";
+
+                case "authorization":
+                case "proxy-authorization":
+                case "proxy-authenticate":
+                case "www-authenticate":
+                case "cookie":
+                case "set-cookie":
+                case "strict-transport-security":
+                case "content-security-policy":
+                case "content-security-policy-report-only":
+                case "referrer-policy":
+                case "permissions-policy":
+                case "x-content-type-options":
+                case "x-frame-options":
+                case "x-xss-protection":
+                    return "Security";
+
+                case "accept":
+                case "accept-charset":
+                case "accept-encoding":
+                case "accept-language":
+                case "from":
+                case "origin":
+                case "referer":
+                case "user-agent":
+                case "dnt":
+                case "priority":
+                case "x-requested-with":
+                    return "Client";
+
+                case "allow":
+                case "accept-ranges":
+                case "authentication-info":
+                case "date":
+                case "location":
+                case "retry-after":
+                case "server":
+                case "x-powered-by":
+                    return "Server";
+            }
+
+            if (headerName.StartsWith("Content-", StringComparison.OrdinalIgnoreCase)) return "Entity";
+            if (headerName.StartsWith("Sec-", StringComparison.OrdinalIgnoreCase)) return "Security";
+            if (headerName.StartsWith("Access-", StringComparison.OrdinalIgnoreCase)) return "Security";
+            if (headerName.StartsWith("Cross-", StringComparison.OrdinalIgnoreCase)) return "Security";
+            if (headerName.StartsWith("X-Forwarded-", StringComparison.OrdinalIgnoreCase)) return "Transport";
+
+            return "Miscellaneous";
         }
     }
 }

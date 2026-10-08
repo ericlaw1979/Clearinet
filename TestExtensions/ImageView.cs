@@ -14,7 +14,7 @@ namespace TestExtensions
             {
                 cbxSizing.SelectedIndex = CApp.Prefs.GetInt32Pref("inspectors.ImageView.SizeMode", 0);
             }
-            catch (Exception eX) { Debug.Assert(false, "Invalid scale"); }
+            catch (Exception) { Debug.Assert(false, "Invalid scale"); }
         }
 
         private void cbxSizing_SelectedIndexChanged(object sender, System.EventArgs e)
