@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
 
 namespace Clearinet
 {
@@ -19,7 +20,7 @@ namespace Clearinet
         /// <summary>
         /// Time at which App got the request Headers.
         /// </summary>
-        public DateTime ClearinetGotRequestHeaders;
+        public DateTime ProxyGotRequestHeaders;
 
         /// <summary>
         /// Time at which the App got the complete client request.
@@ -34,12 +35,12 @@ namespace Clearinet
         /// <summary>
         /// Time of start of first Send() call to the server.
         /// </summary>
-        public DateTime ClearinetBeginRequest;
+        public DateTime ProxyBeginRequest;
 
         /// <summary>
         /// Time of end of last Send() call to the server.
         /// </summary>
-        public DateTime ClearinetEndRequest;
+        public DateTime ProxyDoneRequest;
 
         /// <summary>
         /// Time of first Read() call from the server returning (aka ServerResponseFirstRead)
@@ -49,7 +50,7 @@ namespace Clearinet
         /// <summary>
         /// Time at which App got the response Headers.
         /// </summary>
-        public DateTime ClearinetGotResponseHeaders;
+        public DateTime ProxyGotResponseHeaders;
 
         /// <summary>
         /// Time at which the App got the complete server response (aka ServerResponseLastRead)
@@ -134,13 +135,13 @@ namespace Clearinet
 
             AppendTimer(sb, "ClientConnected", ClientConnected, sSep);
             AppendTimer(sb, "ClientBeginRequest", ClientBeginRequest, sSep);
-            AppendTimer(sb, "ClearinetGotRequestHeaders", ClearinetGotRequestHeaders, sSep);
+            AppendTimer(sb, "ProxyGotRequestHeaders", ProxyGotRequestHeaders, sSep);
             AppendTimer(sb, "ClientDoneRequest", ClientDoneRequest, sSep);
             AppendTimer(sb, "ServerConnected", ServerConnected, sSep);
-            AppendTimer(sb, "ClearinetBeginRequest", ClearinetBeginRequest, sSep);
-            AppendTimer(sb, "ClearinetEndRequest", ClearinetEndRequest, sSep);
+            AppendTimer(sb, "ProxyBeginRequest", ProxyBeginRequest, sSep);
+            AppendTimer(sb, "ProxyDoneRequest", ProxyDoneRequest, sSep);
             AppendTimer(sb, "ServerBeginResponse", ServerBeginResponse, sSep);
-            AppendTimer(sb, "ClearinetGotResponseHeaders", ClearinetGotResponseHeaders, sSep);
+            AppendTimer(sb, "ProxyGotResponseHeaders", ProxyGotResponseHeaders, sSep);
             AppendTimer(sb, "ServerDoneResponse", ServerDoneResponse, sSep);
             AppendTimer(sb, "ClientBeginResponse", ClientBeginResponse, sSep);
             AppendTimer(sb, "ClientDoneResponse", ClientDoneResponse, sSep);
@@ -174,6 +175,34 @@ namespace Clearinet
         {
             if (value <= 0) return;
             sb.Append($"{name}:{value}ms{sSep}");
+        }
+
+        internal void WriteToSAZMetadata(XmlTextWriter oXML)
+        {
+            // Write ExchangeTimers
+            oXML.WriteStartElement("SessionTimers");
+
+            // Local function to format DateTime in RoundtripKind
+            string FormatDT(DateTime dt) => XmlConvert.ToString(dt, XmlDateTimeSerializationMode.RoundtripKind);
+
+            oXML.WriteAttributeString("ClientConnected", FormatDT(this.ClientConnected));
+            oXML.WriteAttributeString("ClientBeginRequest", FormatDT(this.ClientBeginRequest));
+            oXML.WriteAttributeString("GotRequestHeaders", FormatDT(this.ProxyGotRequestHeaders));
+            oXML.WriteAttributeString("ClientDoneRequest", FormatDT(this.ClientDoneRequest));
+            oXML.WriteAttributeString("GatewayTime", XmlConvert.ToString(this.GatewayDeterminationTime));
+            oXML.WriteAttributeString("DNSTime", XmlConvert.ToString(this.DNSTime));
+            oXML.WriteAttributeString("TCPConnectTime", XmlConvert.ToString(this.TCPConnectTime));
+            oXML.WriteAttributeString("HTTPSHandshakeTime", XmlConvert.ToString(this.HTTPSHandshakeTime));
+            oXML.WriteAttributeString("ServerConnected", FormatDT(this.ServerConnected));
+            oXML.WriteAttributeString("FiddlerBeginRequest", FormatDT(this.ProxyBeginRequest));
+            oXML.WriteAttributeString("ServerGotRequest", FormatDT(this.ProxyDoneRequest));
+            oXML.WriteAttributeString("ServerBeginResponse", FormatDT(this.ServerBeginResponse));
+            oXML.WriteAttributeString("GotResponseHeaders", FormatDT(this.ProxyGotResponseHeaders));
+            oXML.WriteAttributeString("ServerDoneResponse", FormatDT(this.ServerDoneResponse));
+            oXML.WriteAttributeString("ClientBeginResponse", FormatDT(this.ClientBeginResponse));
+            oXML.WriteAttributeString("ClientDoneResponse", FormatDT(this.ClientDoneResponse));
+
+            oXML.WriteEndElement(); // </SessionTimers>
         }
     }
 

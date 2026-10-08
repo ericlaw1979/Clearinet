@@ -53,7 +53,7 @@ namespace Clearinet
         public static Func<string> SupplyPassword { get; set; }
 
         /// <summary>
-        /// Set of Exchanges inside this SAZ File
+        /// Set of Exchanges saved inside this SAZ File. Only meaningful for Loading... This API is probably not designed right
         /// </summary>
         public List<Exchange> Exchanges { get; private set; } = new List<Exchange>();
 
@@ -117,7 +117,7 @@ namespace Clearinet
 
                 foreach (ZipEntry eRequest in listRequests)
                 {
-                    // We need to handle the case where the file is encrypted.
+                    // The SAZ may be encrypted and require a password.
                     if (eRequest.UsesEncryption && !sazFile._sPassword.HasText())
                     {
                         sazFile._sPassword = SupplyPassword?.Invoke();
@@ -134,7 +134,8 @@ namespace Clearinet
                     catch (Ionic.Zip.BadPasswordException)
                     {
                         sazFile._sPassword = SupplyPassword?.Invoke();
-                        if (sazFile._sPassword == null) throw new Exception("Password required to open SAZ file.");
+                        if (!sazFile._sPassword.HasText()) throw new Exception("Load Canceled: The encrypted SAZ file required a password.");
+                        zf.Password = sazFile._sPassword;
                         goto RetryPassword;
                     }
                     catch (Exception eX)
@@ -229,7 +230,7 @@ namespace Clearinet
                                 }
 
                                 ParseAndSetDateTime("ClientBeginRequest", dt => exchNew.Timers.ClientBeginRequest = dt);
-                                ParseAndSetDateTime("GotRequestHeaders", dt => exchNew.Timers.ClearinetGotRequestHeaders = dt);
+                                ParseAndSetDateTime("GotRequestHeaders", dt => exchNew.Timers.ProxyGotRequestHeaders = dt);
                                 exchNew.Timers.ClientDoneRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ClientDoneRequest"), XmlDateTimeSerializationMode.RoundtripKind);
 
                                 ParseAndSetInt("GatewayTime", val => exchNew.Timers.GatewayDeterminationTime = val);
@@ -238,10 +239,10 @@ namespace Clearinet
                                 ParseAndSetInt("HTTPSHandshakeTime", val => exchNew.Timers.HTTPSHandshakeTime = val);
 
                                 ParseAndSetDateTime("ServerConnected", dt => exchNew.Timers.ServerConnected = dt);
-                                ParseAndSetDateTime("FiddlerBeginRequest", dt => exchNew.Timers.ClearinetBeginRequest = dt);
-                                exchNew.Timers.ClearinetBeginRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ServerGotRequest"), XmlDateTimeSerializationMode.RoundtripKind);
+                                ParseAndSetDateTime("FiddlerBeginRequest", dt => exchNew.Timers.ProxyBeginRequest = dt);
+                                exchNew.Timers.ProxyBeginRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ServerGotRequest"), XmlDateTimeSerializationMode.RoundtripKind);
                                 ParseAndSetDateTime("ServerBeginResponse", dt => exchNew.Timers.ServerBeginResponse = dt);
-                                ParseAndSetDateTime("GotResponseHeaders", dt => exchNew.Timers.ClearinetGotResponseHeaders = dt);
+                                ParseAndSetDateTime("GotResponseHeaders", dt => exchNew.Timers.ProxyGotResponseHeaders = dt);
 
                                 exchNew.Timers.ServerDoneResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ServerDoneResponse"), XmlDateTimeSerializationMode.RoundtripKind);
                                 exchNew.Timers.ClientBeginResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ClientBeginResponse"), XmlDateTimeSerializationMode.RoundtripKind);
@@ -311,8 +312,9 @@ namespace Clearinet
             return e;
         }
 
-        internal static bool SaveTo(List<Exchange> exchanges, string filePath, string password = null, string comment = null)
+        internal static bool SaveTo(string filePath, Exchange[] exchanges, string password = null, string comment = null)
         {
+            if (exchanges == null || exchanges.Length < 1) throw new ArgumentException("No Exchanges to save.");
             ZipFile zf = new ZipFile();
             // Each Exchange writes at least 3 files. SAZ Files with over 21844 exchanges
             // need Zip64 because without it the number of files exceeds the 65535 file
@@ -337,11 +339,43 @@ namespace Clearinet
             // foreach (Exchange exchange in exchanges){
             //    write _c.txt, _s.txt, and _m.xml files for each exchange into the raw folder.
             // }
+            for (int iX = 0; iX < exchanges.Length; ++iX)
+            {
+                Exchange exch = exchanges[iX];
+                string sBaseName = $"raw/{exch.id}_";
+                // Write the client request
+                zf.AddEntry(sBaseName + "c.txt", (_, strm) =>
+                {
+                    exch.RequestHeaders.WriteToStream(strm);
+                    if (exch.RequestBody.HasData())
+                    {
+                        strm.Write(exch.RequestBody, 0, exch.RequestBody.Length);
+                    }
+                });
+                // Write the server response
+                zf.AddEntry(sBaseName + "s.txt", (_, strm) =>
+                {
+                    if (exch.ResponseHeaders != null)
+                    {
+                        exch.ResponseHeaders.WriteToStream(strm);
+
+                        if (exch.ResponseBody.HasData())
+                        {
+                            strm.Write(exch.ResponseBody, 0, exch.ResponseBody.Length);
+                        }
+                    }
+                });
+
+                // Write the metadata
+                zf.AddEntry(sBaseName + "m.xml", (_, strm) =>
+                {
+                    exch.WriteMetadataToStream(strm);
+                });
+            }
             #endregion
 
             // TODO: Write _index.html containing the columns of the Exchanges list.
-
-            zf.Save();
+            zf.Save(filePath);
             zf.Dispose();
             return true;
         }

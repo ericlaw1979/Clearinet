@@ -299,7 +299,13 @@ namespace Clearinet
 
         public static string ObtainSaveFilename(string sDialogTitle, string sFilter, string sInitialDirectory = null)
         {
+            return ObtainSaveFilenameAndType(sDialogTitle, sFilter, sInitialDirectory).sFilename;
+        }
+
+        public static (string sFilename, int iChosenType) ObtainSaveFilenameAndType(string sDialogTitle, string sFilter, string sInitialDirectory = null)        
+        {
             string sFilename = null;
+            int iChosenType = -1;
 
             using (FileDialog oFileDialog = new SaveFileDialog())
             {
@@ -314,10 +320,11 @@ namespace Clearinet
                 if (DialogResult.OK == oFileDialog.ShowDialog(CApp.UI))
                 {
                     sFilename = oFileDialog.FileName;
+                    iChosenType = oFileDialog.FilterIndex;
                 }
             }
 
-            return sFilename;
+            return (sFilename, iChosenType); 
         }
 
         public static string ObtainOpenFilename(string sDialogTitle, string sFilter, string sInitialDirectory = null)

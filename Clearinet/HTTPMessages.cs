@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 namespace Clearinet
@@ -209,6 +210,12 @@ namespace Clearinet
         {
             return this._encodingHeaders.GetBytes(ToString(true, true));
         }
+
+        internal void WriteToStream(Stream strm)
+        {
+            byte[] arrBytes = ToByteArray();
+            strm.Write(arrBytes, 0, arrBytes.Length);
+        }
     }
 
     public class HTTPResponseHeaders : HTTPHeaders, IEnumerable<HTTPHeaderItem>
@@ -314,6 +321,12 @@ namespace Clearinet
         public byte[] ToByteArray()
         {
             return this._encodingHeaders.GetBytes(ToString(true, true));
+        }
+
+        internal void WriteToStream(Stream strm)
+        {
+            byte[] arrBytes = ToByteArray();
+            strm.Write(arrBytes, 0, arrBytes.Length);
         }
     }
 

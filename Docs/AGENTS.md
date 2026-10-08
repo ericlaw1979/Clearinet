@@ -1,17 +1,17 @@
 ### Class & Interface Mappings
 - Replace `FiddlerApplication` with `CApp`.
-- Replace `Session` with `Exchange`.
+- Replace `Session` with `Exchange` in almost all comments, variable names, class names, etc.
 - Replace `IFiddlerExtension` with `IAppExtension`.
 - Replace `ProfferFormat` with `OfferFormat`
 - Replace `uriContains` with `urlContains`
-- Replace timers `FiddlerGotRequestHeaders` with `ClearinetGotRequestHeaders`
-- Replace timers' `FiddlerBeginRequest` with `ClearinetBeginRequest`
-- Replace timers' `ServerGotRequest` with `ClearinetEndRequest`
-- Replace timers' `FiddlerGotResponseHeaders` with `ClearinetGotResponseHeaders`
+- Replace timers' `FiddlerGotRequestHeaders` with `ProxyGotRequestHeaders`
+- Replace timers' `FiddlerBeginRequest` with `ProxyBeginRequest`
+- Replace timers' `ServerGotRequest` with `ProxyDoneRequest`
+- Replace timers' `FiddlerGotResponseHeaders` with `ProxyGotResponseHeaders`
 - Replace `ProgressCallbackEventArgs` with `ProgressEventArgs`
 - Replace `Log.LogString` with `Log.Log`
 - Replace `Utilities.IsNullOrEmpty()` with `HasText()` and `HasData()` extension methods on string and byte[] respectively.
-- Replace `Array.Empty<byte>()` with `Array.Empty<byte>()`
+- Replace `Utilities.emptyByteArray` with `Array.Empty<byte>()`
 - Remove `SessionTimers.EnableHighResolutionTimers` (the app now checks CApp.Prefs.GetBoolPref("app.high_resolution_clock", true) at boot time)
 - IHandleExecAction is not yet implemented.
 - `IAutoTamper2` and `IAutoTamper3` were merged into the `IAutoTamper` interface. Implementers should leave the Peek methods unimplemented if they aren't needed.
@@ -36,7 +36,6 @@
 Fiddler's UI would set `CheckForIllegalCrossThreadCalls=false` which would allow any thread to manipulate UI elements, potentially causing corruption. Clearinet's UI does not set this, meaning that any cross-thread call will result in an immediate exception. 
 To fix this, code should call UIInvokeAsync if Winforms UI interaction is needed.
 
-
-
-### Other deltas
+### Other deltas vs. Fiddler Classic
 - Raw Inspector allows searching in case-sensitive manner with "exact:" prefix
+- Attempting to create a Header with an empty name will now throw an exception. Fiddler would allow this.

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace Clearinet
 {
@@ -341,6 +344,75 @@ namespace Clearinet
             return this.RequestMethod.OICEquals(sTestFor);
         }
 
+
+        public bool WriteMetadataToStream(Stream strmMetadata)
+        {
+            try
+            {
+                using (XmlTextWriter oXML = new XmlTextWriter(strmMetadata, Encoding.UTF8))
+                {
+                    oXML.Formatting = Formatting.Indented;
+                    oXML.WriteStartDocument();
+                    oXML.WriteStartElement("Session");  // Legacy name for Exchange
+                    oXML.WriteAttributeString("SID", this.id.ToString());
+                    oXML.WriteAttributeString("BitFlags", $"{(uint)this.BitFlags:X}");
+
+                    if (this.state == ExchangeState.Aborted)
+                    {
+                        oXML.WriteAttributeString("Aborted", "true");
+                    }
+
+                    oXML.WriteStartElement("SessionFlags");
+                    foreach (var kvp in this.oFlags)
+                    {
+                        oXML.WriteStartElement("SessionFlag");
+                        oXML.WriteAttributeString("N", kvp.Key);
+                        oXML.WriteAttributeString("V", kvp.Value);
+                        oXML.WriteEndElement();
+                    }
+                    oXML.WriteEndElement();     // End Flags
+
+                    if (null != Timers) Timers.WriteToSAZMetadata(oXML);
+
+                    // TODO: Write CONNECT info after we support it.
+                    /*if (__oTunnel != null)
+                    {
+                        oXML.WriteStartElement("TunnelInfo");
+                        oXML.WriteAttributeString("BytesEgress", __oTunnel.IngressByteCount.ToString());
+                        oXML.WriteAttributeString("BytesIngress", __oTunnel.EgressByteCount.ToString());
+                        oXML.WriteEndElement();
+                    }*/
+
+                    // Write PipeInfo // TODO: This is pretty redundant with the BitFlags. Is there
+                    // really an handler old enough that it wants it?
+                    oXML.WriteStartElement("PipeInfo");
+
+                    if (this.BitFlags.HasFlag(ExchangeFlags.ResponseStreamed))
+                        oXML.WriteAttributeString("Streamed", "true");
+
+                    if (this.BitFlags.HasFlag(ExchangeFlags.ClientPipeReused))
+                        oXML.WriteAttributeString("CltReuse", "true");
+
+                    if (this.BitFlags.HasFlag(ExchangeFlags.ServerPipeReused))
+                        oXML.WriteAttributeString("Reused", "true");
+
+                    if (this.BitFlags.HasFlag(ExchangeFlags.SentToGateway))
+                        oXML.WriteAttributeString("Forwarded", "true");
+
+                    oXML.WriteEndElement(); // </PipeInfo>
+
+                    oXML.WriteEndElement(); // </Session>
+                    oXML.WriteEndDocument();
+                    oXML.Flush();
+                    return true;
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Saving Exchange metadata failed");
+                return false;
+            }
+        }
     }
 
 

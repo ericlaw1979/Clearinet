@@ -137,6 +137,17 @@ namespace Clearinet
             return arrExchanges;
         }
 
+        public Exchange[] GetAllExchanges()
+        {
+            int iCount = lvExchanges.Items.Count;
+            Exchange[] arrExchanges = new Exchange[iCount];
+            for (int ix = 0; ix < iCount; ++ix)
+            {
+                arrExchanges[ix] = lvExchanges.Items[ix].Tag as Exchange;
+            }
+            return arrExchanges;
+        }
+
         /// <summary>
         /// Update the Inspector and Status bar.
         /// LEGACY API. Do not rename.
@@ -458,13 +469,36 @@ namespace Clearinet
 
         private void miFileSaveSAZ_Click(object sender, EventArgs e)
         {
+            actSaveExchanges(GetAllExchanges());
+        }
+
+        private bool actSaveExchanges(Exchange[] arrExchanges)
+        {
+            if (arrExchanges?.Length < 1) return false;
             try
             {
-                string sFilename = Utilities.ObtainSaveFilename("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
-                if (!sFilename.HasText()) return;
-                CApp.alert("nyi");
+                (string sFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                if (!sFilename.HasText()) return false;
+                string sPassword = null;
+                if (2 == iType)
+                {
+                    sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
+                    {
+                        Kind = frmPrompt.PromptKind.Password,
+                        OwnerWindow = CApp.UI,
+                        ReturnNullOnCancel = true,
+                        Title = "Password-Protect Session Archive",
+                        PromptText = "Enter a password to encrypt this Session Archive:"
+                    });
+                    if (null == sPassword) return false; // Cancel Save
+                    if (!sPassword.HasText()) sPassword = null;
+                }
+                SAZFile.SaveTo(sFilename, arrExchanges, sPassword);
+                CApp.UI.mruRecents.PushFile(sFilename);
+                CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypted":"Saved")} {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 48)}");
             }
             catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
+            return true;
         }
 
         private void MiFileSaveSelectedSAZ_Click(object sender, EventArgs e)
@@ -774,7 +808,17 @@ namespace Clearinet
 
         private void miFile_DropDownOpening(object sender, EventArgs e)
         {
-            // Disable controls if inapplicable
+            if (lvExchanges.Items.Count > 0)
+            {
+                saveToolStripMenuItem.Enabled = true; // TODO: Rename!!!
+                miFileSaveSelected.Enabled = (lvExchanges.SelectedCount > 0);
+                miFileExport.Enabled = true;
+            }
+            else
+            {
+                saveToolStripMenuItem.Enabled = false;
+                miFileExport.Enabled = false;
+            }
         }
 
         private void lvExchanges_SelectedIndexChanged(object sender, EventArgs e)
@@ -998,8 +1042,79 @@ namespace Clearinet
             }
             catch (Exception eX)
             {
-                CApp.ReportException(eX, "Unable to store image.");
+                CApp.ReportException(eX, "Unable to paste image.");
             }
+        }
+
+        // Paste the clipboard text as a new Exchange; if the text is a data URL, parse it.
+        private void doPasteTextAsExchange()
+        {
+            try
+            {
+                string sText = Clipboard.GetText(TextDataFormat.UnicodeText);
+                if (!sText.HasText())
+                {
+                    CApp.DoNotifyUser("The clipboard did not contain any text.", "Paste Failed");
+                    return;
+                }
+
+                var headersRequest = new HTTPRequestHeaders($"/clipboard/{DateTime.Now.ToString("H-mm-ss")}.txt", new[] { "Host: localhost" });
+                var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
+                exchNew.ResponseHeaders = new HTTPResponseHeaders(200, "Pasted", null);
+                if (sText.TrimStart().StartsWith("data:"))
+                {
+                    _FillExchangeFromDataURL(exchNew, sText);
+                }
+                else
+                {
+                    var headersResponse = new HTTPResponseHeaders(200, "Pasted", new[] { "Content-Type: text/plain; charset=utf-8", $"Content-Length: {sText.Length}" });
+                    exchNew.ResponseHeaders = headersResponse;
+                    exchNew.ResponseBody = Encoding.UTF8.GetBytes(sText);
+                }
+
+                exchNew.BitFlags = ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet
+                                    | ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.ServedFromCache;
+                exchNew.EnsureID();
+                exchNew.state = ExchangeState.Done;
+                addExchangeToListView(exchNew);
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Unable to paste text.");
+            }
+        }
+
+        // TODO: We can make this smarter and trim leading and trailing stuff, improving the UX
+        // if the user sloppily copies e.g. "<img src=data:.... width=400/>" and then tries to paste it.
+        private void _FillExchangeFromDataURL(Exchange exchNew, string sClipboardText)
+        {
+            // data:[<mediatype>][;base64],<data>
+            string payload = sClipboardText.TrimBefore("data:").Trim();
+            int comma = payload.IndexOf(',');
+            if (comma < 0)
+            {
+                exchNew.ResponseBody = Array.Empty<byte>();
+                exchNew.ResponseHeaders["Content-Type"] = "text/plain";
+                exchNew.ResponseHeaders["Content-Length"] = "0";
+                return;
+            }
+
+            string meta = payload.Substring(0, comma);
+            string dataPart = payload.Substring(comma + 1);
+            bool isBase64 = meta.EndsWith(";base64", StringComparison.OrdinalIgnoreCase);
+            string mimeType = isBase64
+                ? meta.Substring(0, meta.Length - ";base64".Length)
+                : meta;
+
+            if (!mimeType.HasText()) mimeType = "application/octet-stream";
+
+            byte[] bodyBytes = isBase64
+                ? Convert.FromBase64String(dataPart)
+                : Encoding.UTF8.GetBytes(Uri.UnescapeDataString(dataPart));
+
+            exchNew.ResponseBody = bodyBytes;
+            exchNew.ResponseHeaders["Content-Type"] = mimeType;
+            exchNew.ResponseHeaders["Content-Length"] = bodyBytes.Length.ToString();
         }
 
         private void miEditPasteAsExchanges_Click(object sender, EventArgs e)
@@ -1017,7 +1132,7 @@ namespace Clearinet
                     // nyi;
                     return;
                 }
-                //doPasteTextAsExchange();
+                doPasteTextAsExchange();
             }
             catch (Exception eX)
             {

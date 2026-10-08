@@ -1014,8 +1014,8 @@ namespace ImportNetlog
         private static void setAllTimers(Exchange oX, long dt)
         {
             var oTimers = oX.Timers;
-            oTimers.ClientConnected = oTimers.ClientBeginRequest = oTimers.ClearinetGotRequestHeaders = oTimers.ClearinetBeginRequest =
-            oTimers.ClientBeginResponse = oTimers.ClearinetGotResponseHeaders = oTimers.ServerBeginResponse =
+            oTimers.ClientConnected = oTimers.ClientBeginRequest = oTimers.ProxyGotRequestHeaders = oTimers.ProxyBeginRequest =
+            oTimers.ClientBeginResponse = oTimers.ProxyGotResponseHeaders = oTimers.ServerBeginResponse =
             oTimers.ServerDoneResponse = oTimers.ClientDoneResponse = GetTimeStamp(0.0, dt);
         }
 
@@ -1375,7 +1375,7 @@ namespace ImportNetlog
                         sMethod = (string)htParams["method"];
 
                         // In case we don't get these later.
-                        oTimers.ClientBeginRequest = oTimers.ClearinetGotRequestHeaders = oTimers.ClearinetBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
+                        oTimers.ClientBeginRequest = oTimers.ProxyGotRequestHeaders = oTimers.ProxyBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
                         continue;
                     }
 
@@ -1407,7 +1407,7 @@ namespace ImportNetlog
 
                     if (iType == NetLogMagics.SEND_HEADERS)
                     {
-                        oTimers.ClientBeginRequest = oTimers.ClearinetGotRequestHeaders = oTimers.ClearinetBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
+                        oTimers.ClientBeginRequest = oTimers.ProxyGotRequestHeaders = oTimers.ProxyBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
                         ArrayList alHeaderLines = htParams["headers"] as ArrayList;
                         if (null != alHeaderLines && alHeaderLines.Count > 0)
                         {
@@ -1421,7 +1421,7 @@ namespace ImportNetlog
                     if (iType == NetLogMagics.SEND_QUIC_HEADERS)
                     {
                         dictExchangeFlags["X-Transport"] = "QUIC";
-                        oTimers.ClientBeginRequest = oTimers.ClearinetGotRequestHeaders = oTimers.ClearinetBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
+                        oTimers.ClientBeginRequest = oTimers.ProxyGotRequestHeaders = oTimers.ProxyBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
                         string sRequest = HeadersToString(htParams["headers"]);
                         if (!String.IsNullOrEmpty(sRequest))
                         {
@@ -1434,7 +1434,7 @@ namespace ImportNetlog
                     if (iType == NetLogMagics.SEND_HTTP2_HEADERS)
                     {
                         dictExchangeFlags["X-Transport"] = "HTTP2";
-                        oTimers.ClientBeginRequest = oTimers.ClearinetGotRequestHeaders = oTimers.ClearinetBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
+                        oTimers.ClientBeginRequest = oTimers.ProxyGotRequestHeaders = oTimers.ProxyBeginRequest = GetTimeStamp(htEvent["time"], _baseTime);
                         string sRequest = HeadersToString(htParams["headers"]);
                         if (!String.IsNullOrEmpty(sRequest))
                         {
@@ -1544,7 +1544,7 @@ namespace ImportNetlog
                             }
                         }
 
-                        oTimers.ClientBeginResponse = oTimers.ClearinetGotResponseHeaders = oTimers.ServerBeginResponse = GetTimeStamp(htEvent["time"], _baseTime);
+                        oTimers.ClientBeginResponse = oTimers.ProxyGotResponseHeaders = oTimers.ServerBeginResponse = GetTimeStamp(htEvent["time"], _baseTime);
                         continue;
                     }
 
