@@ -4,4 +4,4 @@ Most of the patterns and objects from the legacy tool exist in the Clearinet app
 been renamed and in rare cases some of the mistakes made in the original Fiddler implementation have been
 corrected in the new version.
 
-You can point your agentic code generator at AGENTS.md to help with the process of porting your code.
+You can point your agentic code generator at [AGENTS.md](AGENTS.md) to help with the process of porting your code.
