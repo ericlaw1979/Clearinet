@@ -1,6 +1,6 @@
 # ClearINET Web Debugger
 
-Clearinet is a locally-running web debugging application designed to visualize, generate, and modify network traffic transported using Web Protocols (primarily HTTP over TLS, aka HTTPS). Common functionality is built-in ("batteries included") but the tool is built for extensibility, with the aim of easily allowing anyone to customize the tool via powerful and simple-to-use extension models.
+Clearinet will be a locally-running web debugging application designed to visualize, generate, and modify network traffic transported using Web Protocols (primarily HTTP over TLS, aka HTTPS). Common functionality is built-in ("batteries included") but the tool is built for extensibility, with the aim of easily allowing anyone to customize the tool via powerful and simple-to-use extension models.
 
 ## Primary Outputs
 - Clearinet App > the full application which runs on Windows
@@ -28,7 +28,7 @@ Where possible, we should aim to fix some of the [Fiddler Mistakes](https://text
 To aid in AI-powered porting/modernization of code, an [AGENTS.md](/Docs/AGENTS.md) file is available.
 
 ## Commentary and Motivation
-This application is the spiritual successor to the Fiddler Web Debugger, a tool which was acquired by Telerik in 2012 with the promise that it would remain free forever. Progress Software acquired Telerik at the end of 2014. In 2016, Fiddler's maintainer left Telerik/Progress and the Fiddler Web Debugger, later renamed to Fiddler Classic, saw few updates over the following 10 years. In 2016, Progress announced that they were reneging on earlier promises and changing the tool's license to preclude any commercial use. They also refuse to offer for sale any license for such use. More discussion can be found in the [Fiddler in 2026 blog post](https://textslashplain.com/2026/08/05/fiddler-in-2026/).
+This application is the spiritual successor to the Fiddler Web Debugger, a tool which was acquired by Telerik in 2012 with the promise that it would remain free forever. Progress Software acquired Telerik at the end of 2014. In 2016, Fiddler's maintainer left Telerik/Progress and the Fiddler Web Debugger, later renamed to Fiddler Classic, saw few updates over the following 10 years. In August 2026, Progress announced that they were reneging on earlier promises and changing the tool's license to preclude any commercial use. They also refuse to offer for sale any license for such use. More discussion can be found in the [Fiddler in 2026 blog post](https://textslashplain.com/2026/08/05/fiddler-in-2026/).
 
 ## Get Involved
 - [Clearinet Community](https://groups.google.com/group/clearinet)
