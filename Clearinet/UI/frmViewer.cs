@@ -371,9 +371,13 @@ namespace Clearinet
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
 
+            allExchangesToolStripMenuItem.Click += AllExchangesToolStripMenuItem_Click;
+
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
         }
+
+
 
         private void UpdateStatisticsTab(Exchange[] arrExchanges)
         {
@@ -460,11 +464,11 @@ namespace Clearinet
             try
             {
                 // TODO
-                string sFilename = Utilities.ObtainOpenFilename("Import Exchanges...", "Any file|*.*|Password Protected SAZ|*.saz");
+                string sFilename = Utilities.ObtainOpenFilename("Import Exchanges...", "Common formats|*.har;*.json|Any file|*.*|Password Protected SAZ|*.saz");
                 if (!sFilename.HasText()) return;
                 actImportFile(sFilename);
             }
-            catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
+            catch (Exception eX) { CApp.ReportException(eX, "Import failed"); }
         }
 
         private void miFileSaveSAZ_Click(object sender, EventArgs e)
@@ -551,9 +555,30 @@ namespace Clearinet
             if (null == exch) return;
 
             /* todo: DoBeforeInspect() */
-            /* todo: iterate inspectors Pick the best one! */
+            SelectBestInspector(tabsRequest, exch);
+            SelectBestInspector(tabsResponse, exch);
 
             tabsViews.SelectedTab = this.pageInspectors;
+        }
+
+        private static void SelectBestInspector(TabControl tabs, Exchange exch)
+        {
+            TabPage bestPage = null;
+            int bestScore = int.MinValue;
+            foreach (TabPage page in tabs.TabPages)
+            {
+                if (page.Tag is InspectorBase inspector)
+                {
+                    int score = inspector.ScoreForExchange(exch);
+                    if (null == bestPage || score > bestScore)
+                    {
+                        bestPage = page;
+                        bestScore = score;
+                    }
+                }
+            }
+
+            if (null != bestPage) tabs.SelectedTab = bestPage;
         }
 
         private void ImportAnyStartupArchives()
@@ -574,10 +599,41 @@ namespace Clearinet
                 }
             }
         }
+
+        private void AllExchangesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Exchange[] arrExchanges = GetAllExchanges();
+            string sFilename = Utilities.ObtainSaveFilename("Export Exchanges to HAR...", "HAR format|*.har|Any file|*.*");
+            if (!sFilename.HasText()) return;
+
+            if (sFilename.OICEndsWithAny(".har", ".json"))
+            {
+                TranscoderTuple tt = CApp.oTranscoders.GetExporterForExt(Path.GetExtension(sFilename));
+                if (null == tt)
+                {
+                    CApp.DoNotifyUser($"No exporter found for {Path.GetExtension(sFilename)}", "NYI");
+                    return;
+                }
+                IExchangeExporter oExporter = (IExchangeExporter)Activator.CreateInstance(tt.typeTranscoder);
+
+                var dictOptions = new Dictionary<string, object>();
+                dictOptions.Add("Filename", sFilename);
+
+                var exchImported = oExporter.ExportExchanges(tt.FormatName, arrExchanges, dictOptions,
+                                null /*  (s, pcea) => CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}")*/);
+
+                CApp.UI.SetStatusText($"Exported {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 32)} using the '{tt.FormatName}' exporter.");
+            }
+        }
         private void actImportFile(string sPath)
         {
+            if (sPath.OICEndsWith(".saz"))
+            {
+                actLoadSessionArchive(sPath);
+                return;
+            }
             // TODO: Can we put importer filenames into the MRU and have the right thing happen?
-            if (sPath.OICEndsWith(".json"))
+            if (sPath.OICEndsWithAny(".har", ".json"))
             {
                 TranscoderTuple tt = CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath));
                 if (null == tt)
@@ -599,12 +655,6 @@ namespace Clearinet
                 }
                 CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
             }
-        }
-
-        public void actSaveSessionArchive(string sPath)
-        {
-            // TODO: Save it!
-            mruRecents.PushFile(sPath);
         }
 
         /// <summary>

@@ -3,4 +3,13 @@ Clearinet is built upon the work of a number of other entities.
 The list of those entities will be found here.
 
 - DotNetZip.Reduced is used for SAZ File support. https://www.nuget.org/packages/DotNetZip.Reduced
+- BrotliSharpLib
+- ZstdSharp.Port
 - (More to come)
+
+Beyond these suppliers, code from Clearinet came from:
+
+- My brain
+- GitHub Copilot
+- Google Gemini
+- (your name here; see CONTRIBUTING.MD on GitHub)

@@ -75,7 +75,7 @@ namespace Clearinet
         {
             EnsureReady();
             if (!hasExporters) return null;
-            foreach (TranscoderTuple tt in m_Importers.Values)
+            foreach (TranscoderTuple tt in m_Exporters.Values)
             {
                 if (tt.HandlesFileExtension(sFilenameExtension)) return tt;
             }
