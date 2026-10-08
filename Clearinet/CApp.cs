@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Clearinet
 {
@@ -23,6 +22,7 @@ namespace Clearinet
         public static bool isTracing { get; internal set; } = false;
 
         public static Extensions oExtensions;
+        public static Transcoders oTranscoders;
 
         internal static JScriptEngine scriptRules;
 
@@ -97,7 +97,7 @@ namespace Clearinet
             }
         }
         public static event CalculateReportHandler CalculateReport;
-#endregion
+        #endregion
 
 
         /// <summary>
@@ -200,6 +200,11 @@ namespace Clearinet
             {
                 MessageBox.Show("One day, this will show cool things", "TODO: Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
+            }
+
+            if ("demo" == sCmd)
+            {
+                UI.TODOAddSampleData();
             }
 
             if ("prefs" == sCmd)

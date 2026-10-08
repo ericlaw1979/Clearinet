@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Clearinet;
+using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace TestExtensions
@@ -15,6 +10,21 @@ namespace TestExtensions
         public ImageView()
         {
             InitializeComponent();
+            try
+            {
+                cbxSizing.SelectedIndex = CApp.Prefs.GetInt32Pref("inspectors.ImageView.SizeMode", 0);
+            }
+            catch (Exception eX) { Debug.Assert(false, "Invalid scale"); }
+        }
+
+        private void cbxSizing_SelectedIndexChanged(object sender, System.EventArgs e)
+        {
+            switch (cbxSizing.SelectedIndex)
+            {
+                case 0: pbImage.SizeMode = PictureBoxSizeMode.Zoom; break;              // Scale to fit
+                case 1: pbImage.SizeMode = PictureBoxSizeMode.CenterImage; break;       // No scaling
+            }
+            CApp.Prefs.SetInt32Pref("inspectors.ImageView.SizeMode", cbxSizing.SelectedIndex);
         }
     }
 }

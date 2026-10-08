@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Clearinet;
+using ImportNetlog.WebFormats;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,8 +9,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Clearinet;
-using ImportNetlog.WebFormats;
 
 namespace ImportNetlog
 {
@@ -121,19 +121,22 @@ namespace ImportNetlog
             _evtProgressNotifications = evtProgressNotifications;
             Stopwatch oSW = Stopwatch.StartNew();
             string sJSONData = oSR.ReadToEnd();
-            Hashtable htFile = JSON.JsonDecode(sJSONData, out _) as Hashtable;
+            NotifyProgress(0.0f, "Begin parsing Netlog.json file.");
 
+            Hashtable htFile = JSON.JsonDecode(sJSONData, out _) as Hashtable;
             // If JSON-parsing failed, it's possible that the file was truncated either during capture or transfer.
             // Try repairing the end of file by replacing the last (incomplete) line.
             // This strategy is borrowed from the online "Catapult" netlog viewer app.
             if (null == htFile)
             {
                 int iEnd = Math.Max(sJSONData.LastIndexOf(",\n"), sJSONData.LastIndexOf(",\r"));
-                if (iEnd > 0) {
+                if (iEnd > 0)
+                {
                     sJSONData = sJSONData.Substring(0, iEnd) + "]}";
                     htFile = JSON.JsonDecode(sJSONData, out _) as Hashtable;
                 }
-                if (null == htFile) {
+                if (null == htFile)
+                {
                     NotifyProgress(1.00f, "Aborting; file is not properly-formatted NetLog JSON.");
                     CApp.DoNotifyUser("This file is not properly-formatted NetLog JSON.", "Import aborted");
                     return;
@@ -141,8 +144,8 @@ namespace ImportNetlog
                 else { CApp.DoNotifyUser("This file was truncated and may be missing data.\nParsing any readable data.", "Warning"); }
             }
 
-            NotifyProgress(0.25f, "Finished parsing JSON file; took " + oSW.ElapsedMilliseconds + "ms.");
-            if (!ExtractSessionsFromJSON(htFile))
+            NotifyProgress(0.25f, $"Finished parsing JSON file; took {oSW.ElapsedMilliseconds}ms.");
+            if (!ExtractExchangesFromJSON(htFile))
             {
                 if (!(htFile["traceEvents"] is ArrayList alTraceEvents))
                 {
@@ -159,12 +162,12 @@ namespace ImportNetlog
                 }
                 else
                 {
-                    ExtractSessionsFromTraceJSON(alTraceEvents);
+                    ExtractExchangesFromTraceJSON(alTraceEvents);
                 }
             }
         }
 
-        private void ExtractSessionsFromTraceJSON(ArrayList alTraceEvents)
+        private void ExtractExchangesFromTraceJSON(ArrayList alTraceEvents)
         {
             // Sources
             NetLogMagics.SRC_NONE = 0;
@@ -198,7 +201,7 @@ namespace ImportNetlog
             List<Hashtable> listEvents = new List<Hashtable>();
             foreach (Hashtable htItem in alTraceEvents)
             {
-                if ((htItem["scope"] as string) =="netlog")
+                if ((htItem["scope"] as string) == "netlog")
                 {
                     listEvents.Add(htItem);
                 }
@@ -254,7 +257,7 @@ namespace ImportNetlog
 
                 var sSourceType = htArgs["source_type"] as string;
                 if (null == sSourceType) continue;
-                
+
                 // Collect only events related to URL_REQUESTS.
                 if (sSourceType != "URL_REQUEST") continue;
 
@@ -291,10 +294,10 @@ namespace ImportNetlog
 
             NotifyProgress(0.75f, "Finished reading event entries, saw " + cURLRequests.ToString() + " URLRequests");
 
-            GenerateSessionsFromURLRequests(dictURLRequests);
+            GenerateExchangesFromURLRequests(dictURLRequests);
 
-            //GenerateDebugTreeSession(dictURLRequests);
-            //GenerateSocketListSession(dictSockets);
+            GenerateDebugTreeExchange(dictURLRequests);
+            //GenerateSocketListExchange(dictSockets);
 
             NotifyProgress(1, "Import Completed.");
         }
@@ -319,14 +322,14 @@ namespace ImportNetlog
             {
                 int result = Convert.ToInt32(sHexValue, 16);
                 return result;
-            } 
+            }
             catch
             {
                 return iDefault;
             }
         }
 
-        public bool ExtractSessionsFromJSON(Hashtable htFile)
+        public bool ExtractExchangesFromJSON(Hashtable htFile)
         {
             if (!(htFile["constants"] is Hashtable htConstants)) return false;
             if (!(htConstants["clientInfo"] is Hashtable htClientInfo)) return false;
@@ -408,11 +411,11 @@ namespace ImportNetlog
             CApp.Log.LogFormat("Base capture time is {0} aka {1}", _baseTime, _dtBaseTime);
             #endregion
 
-            // Create a Summary Session, the response body of which we'll fill in later.
+            // Create a Summary Exchange, the response body of which we'll fill in later.
             Exchange exchangeSummary = Exchange.BuildFromData(false,
                     new HTTPRequestHeaders(
                         String.Format("/CAPTURE_INFO"),
-                        new[] { "Host: NETLOG" , "Date: " + _dtBaseTime.ToString("r") }),
+                        new[] { "Host: NETLOG", "Date: " + _dtBaseTime.ToString("r") }),
                     Array.Empty<byte>(),
                     new HTTPResponseHeaders(200, "Analyzed Data", new[] { "Content-Type: text/plain; charset=utf-8" }),
                     Array.Empty<byte>(),
@@ -420,7 +423,7 @@ namespace ImportNetlog
             setAllTimers(exchangeSummary, _baseTime);
             _listExchanges.Add(exchangeSummary);
 
-            { // Create a RAW data session with all of the JSON text for debugging purposes.
+            { // Create a RAW data Exchange with all of the JSON text for debugging purposes.
                 Exchange exchangeRaw = Exchange.BuildFromData(false,
                         new HTTPRequestHeaders(
                             String.Format("/RAW_JSON"),
@@ -515,14 +518,14 @@ namespace ImportNetlog
                     if (iType == NetLogMagics.HOST_RESOLVER_IMPL_REQUEST)
                     {
                         // TODO: Do we actually care about any of the flags here?
-                       // FiddlerApplication.Log.LogString("!!0" + JSON.JsonEncode(htEvent));
+                        // FiddlerApplication.Log.LogString("!!0" + JSON.JsonEncode(htEvent));
                         /*
                          "source":{"type":0, "start_time":"817048", "id":3246}, 
                          "params":{"network_isolation_key":"null null", "dns_query_type":0, "allow_cached_response":true, "is_speculative":false, 
                                    "host":"ragnsells.crm4.dynamics.com:443"}, "time":"817048",
                                    "type":3, "phase":1}
                         */
-                     }
+                    }
                 }
 
                 if (NetLogMagics.SRC_HOST_RESOLVER_IMPL_JOB == iSourceType)
@@ -586,7 +589,7 @@ namespace ImportNetlog
 
             NotifyProgress(0.75f, "Finished reading event entries, saw " + cURLRequests.ToString() + " URLRequests");
 
-            GenerateSessionsFromURLRequests(dictURLRequests);
+            GenerateExchangesFromURLRequests(dictURLRequests);
 
             StringBuilder sbClientInfo = new StringBuilder();
             sbClientInfo.AppendFormat("Sensitivity:\t{0}\n", sDetailLevel);
@@ -601,22 +604,22 @@ namespace ImportNetlog
 
             exchangeSummary.utilSetResponseBody(sbClientInfo.ToString());
 
-            GenerateDebugTreeSession(dictURLRequests);
-            GenerateSocketListSession(dictSockets);
-            GenerateDNSResolutionListSession(dictDNSResolutions);
+            GenerateDebugTreeExchange(dictURLRequests);
+            GenerateSocketListExchange(dictSockets);
+            GenerateDNSResolutionListExchange(dictDNSResolutions);
 
             NotifyProgress(1, "Import Completed.");
             return true;
         }
 
         /// <summary>
-        /// Add a JSON session of the URL_REQUEST buckets for diagnostic purposes.
+        /// Add a JSON Exchange of the URL_REQUEST buckets for diagnostic purposes.
         /// WARNING: LOSSY. MANGLES TREE. DO THIS LAST.
         /// </summary>
         /// <param name="dictEventTypes"></param>
         /// <param name="dictNetErrors"></param>
         /// <param name="dictURLRequests"></param>
-        private void GenerateDebugTreeSession(Dictionary<int, List<Hashtable>> dictURLRequests)
+        private void GenerateDebugTreeExchange(Dictionary<int, List<Hashtable>> dictURLRequests)
         {
             try
             {
@@ -639,7 +642,8 @@ namespace ImportNetlog
                             int iType = getIntValue(ht["type"], -1);
                             ht["type"] = dictEventTypes[iType];
 
-                            if (iType == NetLogMagics.URL_REQUEST_START_JOB) {
+                            if (iType == NetLogMagics.URL_REQUEST_START_JOB)
+                            {
                                 sUrl = ((string)(ht["params"] as Hashtable)?["url"] ?? sUrl);
                             }
 
@@ -681,10 +685,10 @@ namespace ImportNetlog
                     _listExchanges.Add(exchangeURLRequests);
                 }
             }
-            catch (Exception e) { CApp.Log.LogFormat("GenerateDebugTreeSession failed: "+ DescribeExceptionWithStack(e)); }
+            catch (Exception e) { CApp.Log.LogFormat("GenerateDebugTreeExchange failed: " + DescribeExceptionWithStack(e)); }
         }
 
-        private void GenerateSocketListSession(Dictionary<int, List<Hashtable>> dictSockets)
+        private void GenerateSocketListExchange(Dictionary<int, List<Hashtable>> dictSockets)
         {
             try
             {
@@ -697,7 +701,7 @@ namespace ImportNetlog
                     foreach (Hashtable htEvent in kvpSocket.Value)
                     {
                         int iType = getIntValue(htEvent["type"], -1);
-                        var htParams = (Hashtable) htEvent["params"];
+                        var htParams = (Hashtable)htEvent["params"];
 
                         if (iType == NetLogMagics.TCP_CONNECT)
                         {
@@ -825,7 +829,8 @@ namespace ImportNetlog
 
                             if (iHandshakeMessageType == 2 /*ServerHello*/)
                             {
-                                try {
+                                try
+                                {
                                     var htServerHello = new Hashtable();
                                     htThisSocket.Add("ServerHello", htServerHello);  // TODO: Figure out why we're often reaching this twice.
 
@@ -852,9 +857,9 @@ namespace ImportNetlog
                                     // https://datatracker.ietf.org/doc/html/rfc8446#section-4.2.1
                                     // Note: This is Super Hacky and depends on Fiddler not changing the format of this string.
                                     if (sDesc.Contains("supported_versions\tTls1.3"))
-                                      htThisSocket.Add("Negotiated TLS Version", "1.3");
+                                        htThisSocket.Add("Negotiated TLS Version", "1.3");
                                 }
-                                catch {}
+                                catch { }
 
                                 continue;
                             }
@@ -902,7 +907,7 @@ namespace ImportNetlog
 
                             byte cCertTypes = arrCertRequest[4];
                             var alCertTypes = new ArrayList();
-                            for (int ixCertType = 0; ixCertType<cCertTypes; ++ixCertType)
+                            for (int ixCertType = 0; ixCertType < cCertTypes; ++ixCertType)
                             {
                                 int iCertType = arrCertRequest[5 + ixCertType];
                                 string sCertType;
@@ -946,7 +951,8 @@ namespace ImportNetlog
                                 htCertFilter.Add("Accepted SignatureAndHashAlgorithms", alSigHashAlgs);
                                 iPtr += (cbSigHashAlgs);
                             }
-                            catch (Exception eX) {
+                            catch (Exception eX)
+                            {
                                 CApp.ReportException(eX, "Failed to parse Signature/Hash algorithms in NetLog");
                             }
 
@@ -1002,7 +1008,7 @@ namespace ImportNetlog
                     _listExchanges.Add(exchangeAllSockets);
                 }
             }
-            catch (Exception e) { CApp.Log.LogFormat("GenerateSocketListSession failed: " + DescribeExceptionWithStack(e)); }
+            catch (Exception e) { CApp.Log.LogFormat("GenerateSocketListExchange failed: " + DescribeExceptionWithStack(e)); }
         }
 
         private static void setAllTimers(Exchange oX, long dt)
@@ -1036,71 +1042,73 @@ namespace ImportNetlog
             int iPtr = 4;
 
             // The first field of the request is a length-prefixed 0-255 byte opaque array named certificate_request_context
-            iPtr += 1+arrCertRequest[iPtr];
+            iPtr += 1 + arrCertRequest[iPtr];
 
             int cbExtensionList = (arrCertRequest[iPtr++] << 8) +
                                   (arrCertRequest[iPtr++]);
             Debug.Assert(iPtr + cbExtensionList == arrCertRequest.Length);
             while (iPtr < arrCertRequest.Length)
             {
-              int iExtensionType = (arrCertRequest[iPtr++] << 8) + arrCertRequest[iPtr++];
-              int iExtDataLen = (arrCertRequest[iPtr++] << 8) + arrCertRequest[iPtr++];
+                int iExtensionType = (arrCertRequest[iPtr++] << 8) + arrCertRequest[iPtr++];
+                int iExtDataLen = (arrCertRequest[iPtr++] << 8) + arrCertRequest[iPtr++];
 
-              byte[] arrExtData = new byte[iExtDataLen];
-              Buffer.BlockCopy(arrCertRequest, iPtr, arrExtData, 0, arrExtData.Length);
+                byte[] arrExtData = new byte[iExtDataLen];
+                Buffer.BlockCopy(arrCertRequest, iPtr, arrExtData, 0, arrExtData.Length);
 
-              switch (iExtensionType)
-              {
-                case 0x2f: // certificate_authorities
-                    try {
-                        var alCADNs = new ArrayList();
-                        int iX = 0;
-                        int cbCADistinguishedNames = (arrExtData[iX++] << 8) + arrExtData[iX++];
-                        while (cbCADistinguishedNames > 0)
+                switch (iExtensionType)
+                {
+                    case 0x2f: // certificate_authorities
+                        try
                         {
-                            int cbThisDN = (arrExtData[iX++] << 8) + arrExtData[iX++];
-                            try
+                            var alCADNs = new ArrayList();
+                            int iX = 0;
+                            int cbCADistinguishedNames = (arrExtData[iX++] << 8) + arrExtData[iX++];
+                            while (cbCADistinguishedNames > 0)
                             {
-                                byte[] bytesDER = new byte[cbThisDN];
-                                Buffer.BlockCopy(arrExtData, iX, bytesDER, 0, cbThisDN);
-                                AsnEncodedData asndata = new AsnEncodedData(bytesDER);
-                                alCADNs.Add(new X500DistinguishedName(asndata).Name);
+                                int cbThisDN = (arrExtData[iX++] << 8) + arrExtData[iX++];
+                                try
+                                {
+                                    byte[] bytesDER = new byte[cbThisDN];
+                                    Buffer.BlockCopy(arrExtData, iX, bytesDER, 0, cbThisDN);
+                                    AsnEncodedData asndata = new AsnEncodedData(bytesDER);
+                                    alCADNs.Add(new X500DistinguishedName(asndata).Name);
+                                }
+                                catch { Debug.Assert(false); }
+                                cbCADistinguishedNames -= (2 + cbThisDN);
+                                iX += cbThisDN;
                             }
-                            catch { Debug.Assert(false); }
-                            cbCADistinguishedNames -= (2 + cbThisDN);
-                            iX += cbThisDN;
+                            htCertFilter.Add("Accepted Authorities", alCADNs);
                         }
-                        htCertFilter.Add("Accepted Authorities", alCADNs);
-                        }
-                    catch { htCertFilter.Add("Accepted Authorities", "Parse failure"); }
-                    break;
-                case 0x0d: // signature_algorithms
-                    try {
-                        int iX = 0;
-                        int cbSigHashAlgs = (arrExtData[iX++] << 8) +
-                                             arrExtData[iX++];
-                        Debug.Assert((cbSigHashAlgs % 2) == 0);
-
-                        var alSigSchemes = new ArrayList();
-
-                        for (int ixSigHashPair = 0; ixSigHashPair < cbSigHashAlgs / 2; ++ixSigHashPair)
+                        catch { htCertFilter.Add("Accepted Authorities", "Parse failure"); }
+                        break;
+                    case 0x0d: // signature_algorithms
+                        try
                         {
-                                alSigSchemes.Add(GetTLS13SigSchemeString((arrExtData[iX + (2 * ixSigHashPair)] << 8) + arrExtData[1+ iX + (2 * ixSigHashPair)]));
-                        }
-                        htCertFilter.Add("Accepted SignatureSchemes", alSigSchemes);
-                    }
-                    catch { htCertFilter.Add("Accepted SignatureSchemes", "Parse failure"); }
-                    break;
-                default:
-                    htCertFilter.Add("FilterExt #" + iExtensionType.ToString(), "Length" + iExtDataLen.ToString());
-                break;
-              }
+                            int iX = 0;
+                            int cbSigHashAlgs = (arrExtData[iX++] << 8) +
+                                                 arrExtData[iX++];
+                            Debug.Assert((cbSigHashAlgs % 2) == 0);
 
-              iPtr += (iExtDataLen);  // Skip the data*/
+                            var alSigSchemes = new ArrayList();
+
+                            for (int ixSigHashPair = 0; ixSigHashPair < cbSigHashAlgs / 2; ++ixSigHashPair)
+                            {
+                                alSigSchemes.Add(GetTLS13SigSchemeString((arrExtData[iX + (2 * ixSigHashPair)] << 8) + arrExtData[1 + iX + (2 * ixSigHashPair)]));
+                            }
+                            htCertFilter.Add("Accepted SignatureSchemes", alSigSchemes);
+                        }
+                        catch { htCertFilter.Add("Accepted SignatureSchemes", "Parse failure"); }
+                        break;
+                    default:
+                        htCertFilter.Add("FilterExt #" + iExtensionType.ToString(), "Length" + iExtDataLen.ToString());
+                        break;
+                }
+
+                iPtr += (iExtDataLen);  // Skip the data*/
             }
         }
 
-        private void GenerateDNSResolutionListSession(Dictionary<int, List<Hashtable>> dictDNSResolutions)
+        private void GenerateDNSResolutionListExchange(Dictionary<int, List<Hashtable>> dictDNSResolutions)
         {
             if (dictDNSResolutions.Count < 1) return;
             try
@@ -1149,7 +1157,7 @@ namespace ImportNetlog
                 setAllTimers(exchangeDNS, _baseTime);
                 _listExchanges.Add(exchangeDNS);
             }
-            catch (Exception e) { CApp.Log.LogFormat("GenerateDNSResolutionListSession failed: " + DescribeExceptionWithStack(e)); }
+            catch (Exception e) { CApp.Log.LogFormat("GenerateDNSResolutionListExchange failed: " + DescribeExceptionWithStack(e)); }
         }
 
         // https://www.rfc-editor.org/rfc/rfc8446#section-4.3.2:~:text=extensions%20contains%20a-,SignatureSchemeList,-value%3A%0A%0A%20%20%20%20%20%20enum%20%7B%0A%20%20%20%20%20%20%20%20%20%20/*%20RSASSA
@@ -1224,18 +1232,18 @@ namespace ImportNetlog
             return String.Format("{0}_{1}", sHash, sSig);
         }
 
-        private int GenerateSessionsFromURLRequests(Dictionary<int, List<Hashtable>> dictURLRequests)
+        private int GenerateExchangesFromURLRequests(Dictionary<int, List<Hashtable>> dictURLRequests)
         {
             int cURLRequests = dictURLRequests.Count;
             int iLastPct;
             int iRequest = 0;
             iLastPct = 75;
 
-            // Iterate over each URLRequest's events bucket and parse one or more Sessions out of it.
+            // Iterate over each URLRequest's events bucket and parse one or more Exchanges out of it.
             foreach (KeyValuePair<int, List<Hashtable>> kvpUR in dictURLRequests)
             {
                 ++iRequest;
-                ParseSessionsFromBucket(kvpUR);
+                ParseExchangesFromBucket(kvpUR);
                 int iPct = (int)(100 * (0.75f + 0.25f * (iRequest / (float)cURLRequests)));
                 if (iPct != iLastPct)
                 {
@@ -1248,8 +1256,8 @@ namespace ImportNetlog
         }
 
         // Each bucket contains all of the events associated with a URL_REQUEST, and each URL_REQUEST may contain
-        // one or more (Auth, Redirects) Web Sessions.
-        private void ParseSessionsFromBucket(KeyValuePair<int, List<Hashtable>> kvpUR)
+        // one or more (Auth, Redirects) Web Exchangess.
+        private void ParseExchangesFromBucket(KeyValuePair<int, List<Hashtable>> kvpUR)
         {
             List<Hashtable> listEvents = kvpUR.Value;
 
@@ -1282,7 +1290,8 @@ namespace ImportNetlog
                     if (iType == -1)
                     {
                         string sType = (htEvent["name"] as String);
-                        switch (sType) {
+                        switch (sType)
+                        {
                             case "REQUEST_ALIVE": iType = NetLogMagics.REQUEST_ALIVE; break;
                             case "URL_REQUEST_START_JOB": iType = NetLogMagics.URL_REQUEST_START_JOB; break;
                             case "HTTP_TRANSACTION_SEND_REQUEST_HEADERS": iType = NetLogMagics.SEND_HEADERS; break;
@@ -1324,17 +1333,17 @@ namespace ImportNetlog
                             switch (iTrafficAnnotation)
                             {
                                 // TODO (Bug #3): Lookup a friendly string from https://source.chromium.org/chromium/chromium/src/+/master:tools/traffic_annotation/summary/annotations.xml;l=27?q=101845102&ss=chromium
-                                case 63171670:  sAnnotation += " (navigation_url_loader)"; break;
+                                case 63171670: sAnnotation += " (navigation_url_loader)"; break;
                                 case 101845102: sAnnotation += " (blink_resource_loader)"; break;
                                 case 110815970: sAnnotation += " (resource prefetch)"; break;
                                 case 112189210: sAnnotation += " (favicon_loader)"; break;
-                                case 16469669:  sAnnotation += " (background_fetch)"; break;
-                                case 35266994:  sAnnotation += " (early_hints_preload)"; break;
+                                case 16469669: sAnnotation += " (background_fetch)"; break;
+                                case 35266994: sAnnotation += " (early_hints_preload)"; break;
                                 case 113711087: sAnnotation += " (edge_replace_update_client)"; break;
                                 case 107267424: sAnnotation += " (open_search)"; break;
-                                case 21498113:  sAnnotation += " (service_worker_script_load)"; break;
-                                case 88863520:  sAnnotation += " (autofill_query)"; break;
-                                case 30454590:  sAnnotation += " (smartscreen)"; break;
+                                case 21498113: sAnnotation += " (service_worker_script_load)"; break;
+                                case 88863520: sAnnotation += " (autofill_query)"; break;
+                                case 30454590: sAnnotation += " (smartscreen)"; break;
                             }
                             dictExchangeFlags["X-Netlog-Traffic_Annotation"] = sAnnotation;
                         }
@@ -1344,7 +1353,7 @@ namespace ImportNetlog
                     if (iType == NetLogMagics.URL_REQUEST_START_JOB)
                     {
                         // If we already had a URL_REQUEST_START_JOB on this URL_REQUEST, we are probably chasing a redirect.
-                        // "finish" off the existing Session and start a new one at this point.
+                        // "finish" off the existing Exchange and start a new one at this point.
                         // TODO: This is really hacky right now.
                         if (bHasStartJob)
                         {
@@ -1449,7 +1458,7 @@ namespace ImportNetlog
                         // In Chrome 81.3993, the |exclusion_reason| field was renamed to |status| because the |cookie_inclusion_status| entries are
                         // now also emitted for included cookies.
                         string sExclusionReasons = (htParams["exclusion_reason"] as string);
-                                        if (String.IsNullOrEmpty(sExclusionReasons)) sExclusionReasons = (htParams["status"] as string) ?? String.Empty;
+                        if (String.IsNullOrEmpty(sExclusionReasons)) sExclusionReasons = (htParams["status"] as string) ?? String.Empty;
 
                         // If the log indicates that the cookie was included, just skip it for now.
                         // https://source.chromium.org/chromium/chromium/src/+/master:net/cookies/canonical_cookie.cc;l=899?q=GetDebugString%20cookie&ss=chromium&originalUrl=https:%2F%2Fcs.chromium.org%2F
@@ -1565,7 +1574,8 @@ namespace ImportNetlog
             }
 
             bool bCookieSetFailed = listCookieSetExclusions.Count > 0;
-            if (bCookieSetFailed) {
+            if (bCookieSetFailed)
+            {
                 dictExchangeFlags["ui-backcolor"] = "#FF8080";
                 dictExchangeFlags["ui-comments"] = "A cookie set by Set-Cookie was not stored.";
                 AnnotateHeadersWithUnstoredCookies(oRPH, listCookieSetExclusions);
@@ -1576,7 +1586,8 @@ namespace ImportNetlog
         private static void AnnotateHeadersWithUnsentCookies(HTTPRequestHeaders oRQH, List<string> listExclusions)
         {
             if (null == oRQH) return;
-            foreach (string sExclusion in listExclusions) {
+            foreach (string sExclusion in listExclusions)
+            {
                 oRQH.Add("$NETLOG-CookieNotSent", sExclusion);
             }
 
@@ -1632,11 +1643,12 @@ namespace ImportNetlog
 
             // Store the URL from the URLRequest here, because it might have a URL Fragment in it, and the URL built
             // out of the headers definitely should not.
-            if (oS.fullUrl != sURL) {
+            if (oS.fullUrl != sURL)
+            {
                 oS["X-Netlog-URLRequest-URL"] = sURL;
             }
 
-            // Attach the ExchangeFlags to the new Session.
+            // Attach the ExchangeFlags to the new Exchange.
             foreach (KeyValuePair<string, string> sFlag in dictExchangeFlags)
             {
                 oS[sFlag.Key] = sFlag.Value;
@@ -1646,7 +1658,7 @@ namespace ImportNetlog
             oS.Timers = oTimers;
 
             _listExchanges.Add(oS);
-            // CApp.Log.LogFormat("Added Session #{0}", oS.id);
+            // CApp.Log.LogFormat("Added Exchange #{0}", oS.id);
         }
 
         // Chrome annoyingly uses both Hashtables (JS Object) and Arraylists (JS Array) to represent headers

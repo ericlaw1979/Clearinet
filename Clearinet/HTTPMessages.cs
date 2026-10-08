@@ -317,15 +317,4 @@ namespace Clearinet
         }
     }
 
-    public class HTTPParser
-    {
-        public static HTTPRequestHeaders ParseRequest(string sRequest)
-        {
-            return new HTTPRequestHeaders();
-        }
-        public static HTTPResponseHeaders ParseResponse(string sResponse)
-        {
-            return new HTTPResponseHeaders();
-        }
-    }
 }

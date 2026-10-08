@@ -142,7 +142,7 @@ namespace Clearinet
                         CApp.ReportException(eX, "SAZ Read Failed");
                     }
 
-                    Exchange excNew = CreateExchangeFromStream(strmContent);
+                    Exchange excNew = CreateExchangeWithRequestFromStream(strmContent);
                     strmContent.Dispose();
 
                     ZipEntry eResponse = zf[eRequest.FileName.TrimAfter("_") + "_s.txt"];
@@ -298,7 +298,7 @@ namespace Clearinet
             e.ResponseBody = body;
         }
 
-        private static Exchange CreateExchangeFromStream(Stream strmContent)
+        private static Exchange CreateExchangeWithRequestFromStream(Stream strmContent)
         {
             var (sHeaderBlock, body) = Parser.CrackHttpMessage(strmContent);
             var (method, path, version, headerList) = Parser.ParseRequestHeaders(sHeaderBlock);

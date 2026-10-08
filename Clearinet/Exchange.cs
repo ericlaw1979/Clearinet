@@ -84,9 +84,9 @@ namespace Clearinet
 
         public void utilCreateResponseAndBypassServer() { /*TODO*/ }
 
-        public void utilSetRequestBody(string sBody) { /*TODO*/ }
-        public void utilSetResponseBody(string sString) { /*TODO*/ }
-        public void utilPrependToResponseBody(string sPrefix) { /*TODO*/ }
+        public void utilSetRequestBody(string sBody) { RequestBody = System.Text.Encoding.UTF8.GetBytes(sBody); /*TODO*/ }
+        public void utilSetResponseBody(string sBody) { ResponseBody = System.Text.Encoding.UTF8.GetBytes(sBody); /*TODO do it for real*/ }
+        public void utilPrependToResponseBody(string sPrefix) { ResponseBody = System.Text.Encoding.UTF8.GetBytes(sPrefix).Append(ResponseBody); }
 
         public bool utilDecodeRequest(bool bQuiet = true) { /*TODO*/ return false; }
         public bool utilDecodeResponse(bool bQuiet = true) { /*TODO*/ return false; }
@@ -268,9 +268,9 @@ namespace Clearinet
             }
 
             Exchange exchBuilt = new Exchange(rqh, arrReqBody);
-            //exchBuilt._AssignID();
+            exchBuilt.EnsureID();
             exchBuilt.SetBitFlag(ef);
-            //exchBuilt.oResponse.headers = rph;
+            exchBuilt.ResponseHeaders = rph;
             exchBuilt._arrResponseBody = arrRespBody;
             exchBuilt.state = ExchangeState.Done;
 

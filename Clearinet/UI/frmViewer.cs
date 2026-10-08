@@ -232,6 +232,7 @@ namespace Clearinet
 
                 frmSplashScreen.SetStatusText("Loading extensions...");
                 CApp.oExtensions = new Extensions();
+                CApp.oTranscoders = new Transcoders();
                 doPopulateInspectorTabs();
 
                 frmSplashScreen.SetStatusText("Loading script engine...");
@@ -361,7 +362,6 @@ namespace Clearinet
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
-            TODOAddSampleData();
         }
 
         private void UpdateStatisticsTab(Exchange[] arrExchanges)
@@ -416,9 +416,9 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// Add some data for development purposes.
+        /// Add some data for development purposes.REMOVE THIS
         /// </summary>
-        private void TODOAddSampleData()
+        internal void TODOAddSampleData()
         {
             for (int iX = 0; iX < 15; iX++)
             {
@@ -546,7 +546,24 @@ namespace Clearinet
             CApp.DoNotifyUser("Asked to load file: " + sPath, "NYI");
             if (sPath.OICEndsWith(".json"))
             {
+                TranscoderTuple tt = CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath));
+                if (null == tt)
+                {
+                    CApp.DoNotifyUser($"No importer found for {Path.GetExtension(sPath)}", "NYI");
+                    return;
+                }
+                IExchangeImporter oImporter = (IExchangeImporter)Activator.CreateInstance(tt.typeTranscoder);
 
+                var dictOptions = new Dictionary<string, object>();
+                dictOptions.Add("Filename", sPath);
+
+                var exchImported = oImporter.ImportExchanges(tt.FormatName, dictOptions,
+                                null /*  (s, pcea) => CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}")*/);
+
+                foreach (Exchange x in exchImported)
+                {
+                    addExchangeToListView(x);
+                }
             }
         }
 
