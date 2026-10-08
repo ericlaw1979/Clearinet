@@ -1611,7 +1611,20 @@ namespace ImportNetlog
             // TODO: Sanity-check missing headers.
             if (null == oRQH && !String.IsNullOrWhiteSpace(sURL))
             {
-                oRQH = HTTPParser.ParseRequest(sMethod + " " + sURL + " HTTP/1.1\r\nMissing-Data: Request Headers not captured in NetLog\r\n\r\n");
+                oRQH = HTTPParser.ParseRequest($"{sMethod} {sURL} HTTP/1.1\r\nMissing-Data: Request Headers not captured in NetLog\r\n\r\n");
+            }
+
+            if (!oRQH.Exists("Host"))
+            {
+                try
+                {
+                    Uri oUri = new Uri(sURL);
+                    oRQH["Host"] = oUri.Host;
+                }
+                catch (Exception eX)
+                {
+                    Debug.Assert(false, eX.Message);
+                }
             }
 
             if (msResponseBody.Length < 1 && cbDroppedResponseBody > 0)

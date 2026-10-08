@@ -95,11 +95,28 @@ namespace Clearinet
 
         public string url { get; set; }
         public string fullUrl { get; set; }
-        public string host { get; set; }
+        public string host
+        {
+            get => RequestHeaders?["Host"] ?? string.Empty;
+            set
+            {
+                if (null == RequestHeaders) RequestHeaders = new HTTPRequestHeaders();
+                RequestHeaders["Host"] = value;
+            }
+        }
+
         public string hostname { get; set; }
         public int port { get; set; }
         public string clientIP { get; set; }
-        public int responseCode { get; set; }
+        public int responseCode
+        {
+            get => ResponseHeaders?.StatusCode ?? 0;
+            set
+            {
+                if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
+                ResponseHeaders.StatusCode = value;
+            }
+        }
 
         public void PoisonServerPipe() { } // TODO: Prevent server connection reuse
         public void PoisonClientPipe() { } // TODO: Prevent client connection reuse

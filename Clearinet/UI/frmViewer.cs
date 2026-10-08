@@ -543,7 +543,6 @@ namespace Clearinet
         private void actImportFile(string sPath)
         {
             // TODO: Can we put importer filenames into the MRU and have the right thing happen?
-            CApp.DoNotifyUser("Asked to load file: " + sPath, "NYI");
             if (sPath.OICEndsWith(".json"))
             {
                 TranscoderTuple tt = CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath));
@@ -564,6 +563,7 @@ namespace Clearinet
                 {
                     addExchangeToListView(x);
                 }
+                CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
             }
         }
 
@@ -609,6 +609,7 @@ namespace Clearinet
             };
             lvi.SubItems.Add(x.responseCode.ToString());
             lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
+            lvi.SubItems.Add(x.host);
             lvi.SubItems.Add(x.RequestHeaders.RequestPath);
             x.ViewItem = lvi;
             lvExchanges.Items.Add(lvi);

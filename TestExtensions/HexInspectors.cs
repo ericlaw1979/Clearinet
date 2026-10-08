@@ -1,4 +1,4 @@
-﻿using Clearinet;
+﻿/*using Clearinet;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -272,3 +272,4 @@ namespace TestExtensions
 
     }
 }
+*/
