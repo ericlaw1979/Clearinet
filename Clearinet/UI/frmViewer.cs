@@ -1131,24 +1131,29 @@ namespace Clearinet
                     return;
                 }
 
-                var headersRequest = new HTTPRequestHeaders($"/clipboard/{DateTime.Now.ToString("H-mm-ss")}.png", new[] { "Host: localhost" });
-                var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
-
                 var oMS = new MemoryStream();
                 imageToPaste.Save(oMS, ImageFormat.Png);
-                var headersResponse = new HTTPResponseHeaders(200, "Pasted", new[] { "Content-Type: image/png", $"Content-Length: {oMS.Length}" });
-                exchNew.ResponseHeaders = headersResponse;
-                exchNew.ResponseBody = oMS.ToArray();
-                exchNew.BitFlags = ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet
-                                    | ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.ServedFromCache;
-                exchNew.EnsureID();
-                exchNew.state = ExchangeState.Done;
-                addExchangeToListView(exchNew);
+                AddFauxExchange($"/clipboard/{DateTime.Now.ToString("H-mm-ss")}.png", "image/png", oMS.ToArray());
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Unable to paste image.");
             }
+        }
+
+        internal void AddFauxExchange(string sURL, string sContentType, byte[] arrBody)
+        {
+            var headersRequest = new HTTPRequestHeaders(sURL, new[] { "Host: localhost" });
+            var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
+
+            var headersResponse = new HTTPResponseHeaders(200, "Pasted", new[] { $"Content-Type: {sContentType}", $"Content-Length: {arrBody.Length}" });
+            exchNew.ResponseHeaders = headersResponse;
+            exchNew.ResponseBody = arrBody.FastClone();
+            exchNew.BitFlags = ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet
+                                | ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.ServedFromCache;
+            exchNew.EnsureID();
+            exchNew.state = ExchangeState.Done;
+            addExchangeToListView(exchNew);
         }
 
         // Paste the clipboard text as a new Exchange; if the text is a data URL, parse it.

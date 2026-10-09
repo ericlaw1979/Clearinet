@@ -81,12 +81,12 @@
             // 
             this.txtOutput.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtOutput.Font = new System.Drawing.Font("Arial", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtOutput.Location = new System.Drawing.Point(0, 47);
+            this.txtOutput.Location = new System.Drawing.Point(0, 39);
             this.txtOutput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtOutput.Multiline = true;
             this.txtOutput.Name = "txtOutput";
             this.txtOutput.ReadOnly = true;
-            this.txtOutput.Size = new System.Drawing.Size(969, 240);
+            this.txtOutput.Size = new System.Drawing.Size(969, 248);
             this.txtOutput.TabIndex = 3;
             this.txtOutput.TextChanged += new System.EventHandler(this.txtOutput_TextChanged);
             // 
@@ -104,7 +104,7 @@
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(969, 47);
+            this.panel2.Size = new System.Drawing.Size(969, 39);
             this.panel2.TabIndex = 2;
             // 
             // lnkSaveAsFile
@@ -150,10 +150,11 @@
             this.lnkEncodings.AutoSize = true;
             this.lnkEncodings.Location = new System.Drawing.Point(414, 10);
             this.lnkEncodings.Name = "lnkEncodings";
-            this.lnkEncodings.Size = new System.Drawing.Size(55, 13);
+            this.lnkEncodings.Size = new System.Drawing.Size(88, 13);
             this.lnkEncodings.TabIndex = 2;
             this.lnkEncodings.TabStop = true;
-            this.lnkEncodings.Text = "Encodings";
+            this.lnkEncodings.Text = "TODO:Encodings";
+            this.lnkEncodings.Visible = false;
             // 
             // cbViewBytes
             // 

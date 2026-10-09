@@ -324,8 +324,15 @@ namespace Clearinet
 
         private void lnkSaveAsExchange_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            // nyi
-            MessageBox.Show("This feature is not yet implemented.", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                if (null == arrLatestOutput)
+                {
+                    arrLatestOutput = encodingOutput.GetBytes(txtOutput.Text);
+                }
+                CApp.UI.AddFauxExchange($"/TextWizard/{DateTime.Now.ToString("H-mm-ss")}", "application/octet-stream", arrLatestOutput);
+            }
+            catch (Exception eX) { CApp.ReportException(eX, "Failed"); }
         }
 
         private void lnkSaveAsFile_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
