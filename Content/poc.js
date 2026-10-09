@@ -15,6 +15,26 @@ class Handlers {
         CApp.UI.SetStatusText("Your script has compiled and loaded!");
     }
 
+    public static BindUIButton("SingleBrowserMode \uD83D\uDC40")
+    function LaunchSingleInstance() {
+      Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
+    }
+      
+    public BindUITab("Flags")
+    static function FlagsReport(arrEx: Exchange[]):String {
+      var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
+      for (var i:int = 0; i<arrEx.Length; ++i)
+      {
+        sbOut.AppendLine("FLAGS");
+        sbOut.AppendFormat("Exchange Flags #{0} (for '{1}')\n", arrEx[i].id, arrEx[i].fullUrl);
+        for(var sFlag in arrEx[i].oFlags)
+            sbOut.AppendFormat("\t{0}:\t\t{1}\n", sFlag.Key, sFlag.Value);
+        
+        sbOut.AppendFormat("\n BitFlags: {0}", arrEx[i].BitFlags);
+      }
+      return sbOut.ToString();
+    }
+      
     static function OnBoot() {
       CApp.Log.Log("[Script] OnBoot");
     }
@@ -33,6 +53,7 @@ class Handlers {
     }
     
     static function OnBeforeShutdown(): boolean {
+      if (!bCanClose) CApp.alert("Close is disallowed. QuickExec 'sesame' to unlock");
       return bCanClose;
     }
         
@@ -42,8 +63,14 @@ class Handlers {
         case "find":
            if (sArgs.length>1) frmFind.BeginFinding(sArgs[1]); else frmFind.BeginFinding();
            break;
-        case "seasame":
-        MessageBox.Show("allowing close");
+           
+        case "stayalive":
+        CApp.UI.SetStatusText("disallow close");
+        bCanClose = false;
+        return;
+        
+        case "sesame":
+        CApp.UI.SetStatusText("Now allowing close");
         bCanClose = true;
         return;
         

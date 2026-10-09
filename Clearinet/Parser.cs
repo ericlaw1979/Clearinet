@@ -106,7 +106,7 @@ namespace Clearinet
             }
         }
 
-        public static (string method, string path, string version, string[] headers) ParseRequestHeaders(string headerString)
+        public static (string method, string path, string version, string[] headers, string sorigin) ParseRequestHeaders(string headerString)
         {
             using (var reader = new StringReader(headerString))
             {
@@ -126,6 +126,37 @@ namespace Clearinet
                 string method = requestParts[0];
                 string path = requestParts[1];
                 string version = requestParts[2];
+                string sorigin = null;
+
+                // Make the path relative.
+                // For non-CONNECT requests, check whether the origin was present
+                // in the request line. It typically *will* be if the client knows
+                // that it's talking to a proxy. But there are both capture and load
+                // scenarios where the request path starts with /whatever.html
+                if (!method.OICEquals("CONNECT"))
+                {
+                    if (!path.StartsWith("/") && path.Contains(":"))
+                    {
+                        if (path.OICStartsWith("data:"))
+                        {
+                            sorigin = "data:";
+                            path = path.Substring(5); // Strip off the "data:" prefix
+                        }
+                        else
+                        {
+                            // https://server.com/path?query 
+                            int ixDelimiter = path.IndexOf(':');
+                            if (ixDelimiter < (path.Length - 1) && path[ixDelimiter + 1] == '/') ixDelimiter++;
+                            if (ixDelimiter < (path.Length - 1) && path[ixDelimiter + 1] == '/') ixDelimiter++;
+                            ixDelimiter = path.IndexOf('/', ixDelimiter + 1);
+                            if (ixDelimiter > 0)
+                            {
+                                sorigin = path.Substring(0, ixDelimiter);
+                                path = path.Substring(ixDelimiter);
+                            }
+                        }
+                    }
+                }
 
                 // Parse remaining header lines
                 var headerList = new List<string>();
@@ -137,7 +168,7 @@ namespace Clearinet
                 // Strip the trailing one
                 if (headerList.Count > 0) headerList.RemoveAt(headerList.Count - 1);
 
-                return (method, path, version, headerList.ToArray());
+                return (method, path, version, headerList.ToArray(), sorigin);
             }
         }
 
@@ -188,10 +219,14 @@ namespace Clearinet
     {
         public static HTTPRequestHeaders ParseRequest(string sRequest)
         {
-            var (method, path, version, headerList) = Parser.ParseRequestHeaders(sRequest);
+            var (method, path, version, headerList, origin) = Parser.ParseRequestHeaders(sRequest);
             HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
             rqh.HTTPVersion = version;
             rqh.HTTPMethod = method;
+            if ((origin != null) && origin.Contains(":"))
+            {
+                rqh.UriScheme = origin.TrimAfter(":");
+            }
             return rqh;
         }
         public static HTTPResponseHeaders ParseResponse(string sResponse)

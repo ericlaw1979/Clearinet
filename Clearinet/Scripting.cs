@@ -1,12 +1,9 @@
-﻿
-using Microsoft.JScript;
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
@@ -99,7 +96,7 @@ namespace Clearinet
         private void OnScriptFileChanged(object sender, FileSystemEventArgs e)
         {
             // Debounce rapid successive events.
-            if ((Utilities.GetTickCount() - tcLatestScriptLoad) < 
+            if ((Utilities.GetTickCount() - tcLatestScriptLoad) <
                 (uint)CApp.Prefs.GetInt32Pref("scripting.msReloadDebounce", 2000))
             {
                 return;
@@ -114,13 +111,15 @@ namespace Clearinet
                 try
                 {
                     BeforeRulesCompile?.Invoke(_scriptPath);
+                    ClearPriorScriptButtons(CApp.UI.tsToolbar);
+                    ClearPriorScriptTabs();
                     CompileScript();
                     AfterRulesCompile?.Invoke();
                 }
                 catch (Exception ex)
                 {
                     // TODO: Need to extract line/column info from the exception
-                    RulesCompileFailed?.Invoke(ex.Message, 0, 0, 0); 
+                    RulesCompileFailed?.Invoke(ex.Message, 0, 0, 0);
                 }
             }
         }
@@ -181,9 +180,123 @@ namespace Clearinet
             _isReadyForCalls = (null != _typeHandlers);
             if (_isReadyForCalls)
             {
+                _bindUIElements();
                 _cacheHandlerMethods();
                 _RunMainMethod();
             }
+        }
+
+        private void _bindUIElements()
+        {
+            // This method iterates through all public static fields in the Handlers class,
+            // looking for functions that have a BindUIButton attribute. For each such function found, it inserts a
+            // new button at the start (left) of the CApp.UI toolbar, and binds the button's click event to the specified method in the script.
+            // an example looks like:
+            //   public static BindUIButton("SingleBrowserMode \uD83D\uDC40")
+            //   function LaunchSingleInstance() {
+            //   Utilities.LaunchNative('msedge.exe', '--user-data-dir="%temp%\\throwaway" --no-first-run --proxy-server=127.0.0.1:' + CONFIG.ListenPort.ToString() + " about:blank");
+            //
+            var tsToolbar = CApp.UI.tsToolbar;
+
+            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                BindUIButton b = Attribute.GetCustomAttribute(mi, typeof(BindUIButton), false) as BindUIButton;
+                if (null == b) continue;
+
+                MethodInfo methodToInvoke = mi;
+                ToolStripButton tsb = new ToolStripButton
+                {
+                    Text = b._sText,
+                    DisplayStyle = ToolStripItemDisplayStyle.Text,
+                    Tag = methodToInvoke
+                };
+
+                tsb.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        methodToInvoke.Invoke(null, null);
+                    }
+                    catch (Exception eX)
+                    {
+                        CApp.ReportException(eX, $"Script toolbar action failed: {methodToInvoke.Name}");
+                    }
+                };
+
+                tsToolbar.Items.Insert(0, tsb);
+                htButtonScripts[tsb] = methodToInvoke;
+            }
+
+
+            // Bind each of the BindUITabs.
+            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                BindUITab tab = Attribute.GetCustomAttribute(mi, typeof(BindUITab), false) as BindUITab;
+                if (null == tab) continue;
+
+                TabPage page = new TabPage
+                {
+                    Text = tab._sTitle
+                };
+
+                // TODO: Support HTML tabs. For now, we just create a RichTextBox tab for each BindUITab.
+                RichTextBoxV5 rtb = new RichTextBoxV5
+                {
+                    Dock = DockStyle.Fill,
+                    ReadOnly = true,
+                    BackColor = CONFIG.colorDisabledEdit,
+                    WordWrap = false
+                };
+                page.Controls.Add(rtb);
+
+                CalculateReportHandler reportHandler = (arrExchanges) =>
+                {
+                    try
+                    {
+                        object oResult = mi.Invoke(null, new object[] { arrExchanges });
+                        rtb.Text = oResult as string ?? String.Empty;
+                    }
+                    catch (Exception eX)
+                    {
+                        CApp.ReportException(eX, $"Script tab report failed: {mi.Name}");
+                    }
+                };
+
+                tab._delegate = reportHandler;
+                tab._pageTab = page;
+                CApp.CalculateReport += reportHandler;
+                CApp.UI.tabsViews.TabPages.Add(page);
+                listBoundTabs.Add(tab);
+            }
+
+        }
+
+        private void ClearPriorScriptTabs()
+        {
+            foreach (BindUITab tab in listBoundTabs)
+            {
+                if (null != tab._delegate) CApp.CalculateReport -= tab._delegate;
+                if (null != tab._pageTab)
+                {
+                    CApp.UI.tabsViews.TabPages.Remove(tab._pageTab);
+                    tab._pageTab.Dispose();
+                }
+            }
+            listBoundTabs.Clear();
+        }
+
+        private void ClearPriorScriptButtons(ToolStrip tsToolbar)
+        {
+            // First, clear any existing buttons that were added by a previous script.
+            foreach (DictionaryEntry de in htButtonScripts)
+            {
+                if (de.Key is ToolStripItem tsi)
+                {
+                    tsToolbar.Items.Remove(tsi);
+                    tsi.Dispose();
+                }
+            }
+            htButtonScripts.Clear();
         }
 
         private void _cacheHandlerMethods()
@@ -207,14 +320,14 @@ namespace Clearinet
 
         private void _RunMainMethod()
         {
-           try
-           {
+            try
+            {
                 _typeHandlers.GetMethod("Main")?.Invoke(null, null);
-           }
-           catch (Exception eX)
-           {
-               CApp.ReportException(eX, "JScript main() failed.", "There was a problem with your script.");
-           }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "JScript main() failed.", "There was a problem with your script.");
+            }
         }
 
         public bool CallMethod(string sMethodName)
@@ -239,7 +352,7 @@ namespace Clearinet
             catch (Exception eX)
             {
                 CApp.DoNotifyUser("Error in your Script.\n\n" +
-                    eX.Message + "\n" + eX.StackTrace + "\n\n" + eX.InnerException, $"Error calling { sMethodName }");
+                    eX.Message + "\n" + eX.StackTrace + "\n\n" + eX.InnerException, $"Error calling {sMethodName}");
             }
             return false;
         }

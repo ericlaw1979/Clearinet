@@ -30,12 +30,12 @@
 - Replace `using Fiddler;` with `using Clearinet`
 
 ### Preference names
-- Preference names that start with "fiddler.ui" should be changed to start with "app.ui"
+- Preference names that start with `fiddler.ui` should be changed to start with `app.ui`
 
 ### Threading implications
 Fiddler's UI would set `CheckForIllegalCrossThreadCalls=false` which would allow any thread to manipulate UI elements, potentially causing corruption. Clearinet's UI does not set this, meaning that any cross-thread call will result in an immediate exception. 
 To fix this, code should call UIInvokeAsync if Winforms UI interaction is needed.
 
 ### Other deltas vs. Fiddler Classic
-- Raw Inspector allows searching in case-sensitive manner with "exact:" prefix
+- Raw Inspector allows searching in case-sensitive manner with `exact:` prefix
 - Attempting to create a Header with an empty name will now throw an exception. Fiddler would allow this.

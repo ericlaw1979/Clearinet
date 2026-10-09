@@ -7,8 +7,6 @@ namespace Clearinet
     public delegate void RulesAfterCompileHandler();
     public delegate void RulesCompileFailedHandler(string sDescription, int iLine, int iStartColumn, int iEndColumn);
 
-    public delegate void RecalcHandler(Exchange[] _arrExchanges);
-
     /// <summary>
     /// Bind a toolbar button to your method.
     /// </summary>
@@ -35,7 +33,7 @@ namespace Clearinet
         internal string _sOptions;
         internal string _sTitle;
         internal TabPage _pageTab;
-        internal RecalcHandler _delegate;
+        internal CalculateReportHandler _delegate;
 
         public BindUITab(string sTitle)
         {
@@ -71,8 +69,8 @@ namespace Clearinet
         {
             _sTitle = sTitle;
             _sSubmenu = sSubmenu;
-        } 
-   }
+        }
+    }
 
     /// <summary>
     /// The ContextAction Attribute allows users to bind a script to an item on the Exchanges listview ContextMenu
@@ -103,5 +101,5 @@ namespace Clearinet
         }
     }
 
-   
+
 }

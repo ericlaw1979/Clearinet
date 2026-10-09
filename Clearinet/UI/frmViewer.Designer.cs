@@ -1302,7 +1302,7 @@
         private System.Windows.Forms.ToolStripMenuItem tsmiCaptureBrowsers;
         private System.Windows.Forms.ToolStripMenuItem tsmiCaptureNone;
         private System.Windows.Forms.ToolStripStatusLabel tslInfo;
-        private System.Windows.Forms.ToolStrip tsToolbar;
+        public System.Windows.Forms.ToolStrip tsToolbar;
         private System.Windows.Forms.ToolStripButton tsbTearoff;
         private System.Windows.Forms.ToolStripButton tsbComment;
         private System.Windows.Forms.ToolStripDropDownButton tsddbRemove;

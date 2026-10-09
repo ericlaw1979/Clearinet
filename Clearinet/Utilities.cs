@@ -273,6 +273,19 @@ namespace Clearinet
             }
         }
 
+        public static void LaunchNative(string sApp, string sParams)
+        {
+            try
+            {
+                Trace.WriteLine($"Launching: '{sApp}' with parameters: '{sParams}'");
+                Process.Start(sApp, sParams);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to launch the requested application:\n\n{ex.Message}", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         public static string UNSTABLE_DescribeClientHello(MemoryStream _)
         {
             return "TODO: don't call this! It's meant to parse a ClientHello to text.";
@@ -302,7 +315,7 @@ namespace Clearinet
             return ObtainSaveFilenameAndType(sDialogTitle, sFilter, sInitialDirectory).sFilename;
         }
 
-        public static (string sFilename, int iChosenType) ObtainSaveFilenameAndType(string sDialogTitle, string sFilter, string sInitialDirectory = null)        
+        public static (string sFilename, int iChosenType) ObtainSaveFilenameAndType(string sDialogTitle, string sFilter, string sInitialDirectory = null)
         {
             string sFilename = null;
             int iChosenType = -1;
@@ -324,7 +337,7 @@ namespace Clearinet
                 }
             }
 
-            return (sFilename, iChosenType); 
+            return (sFilename, iChosenType);
         }
 
         public static string ObtainOpenFilename(string sDialogTitle, string sFilter, string sInitialDirectory = null)

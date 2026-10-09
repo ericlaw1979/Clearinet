@@ -1609,9 +1609,10 @@ namespace ImportNetlog
                                         Dictionary<string, string> dictExchangeFlags, string sURL, string sMethod, ExchangeTimers oTimers, int cbDroppedResponseBody)
         {
             // TODO: Sanity-check missing headers.
-            if (null == oRQH && !String.IsNullOrWhiteSpace(sURL))
+            if (null == oRQH)
             {
-                oRQH = HTTPParser.ParseRequest($"{sMethod} {sURL} HTTP/1.1\r\nMissing-Data: Request Headers not captured in NetLog\r\n\r\n");
+                if (String.IsNullOrWhiteSpace(sURL)) sURL = "https://missing-data/";
+                oRQH = HTTPParser.ParseRequest($"{sMethod} https://missing-data/ HTTP/1.1\r\nMissing-Data: Request Headers not captured in NetLog\r\n\r\n");
             }
 
             if (!oRQH.Exists("Host"))

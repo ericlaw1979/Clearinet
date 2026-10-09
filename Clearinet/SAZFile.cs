@@ -303,10 +303,14 @@ namespace Clearinet
         private static Exchange CreateExchangeWithRequestFromStream(Stream strmContent)
         {
             var (sHeaderBlock, body) = Parser.CrackHttpMessage(strmContent);
-            var (method, path, version, headerList) = Parser.ParseRequestHeaders(sHeaderBlock);
+            var (method, path, version, headerList, origin) = Parser.ParseRequestHeaders(sHeaderBlock);
             HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
             rqh.HTTPVersion = version;
             rqh.HTTPMethod = method;
+            if ((origin != null) && origin.Contains(":"))
+            {
+                rqh.UriScheme = origin.TrimAfter(":");
+            }
             Exchange e = new Exchange(rqh, body);
             e.EnsureID();
             e.SetBitFlag(ExchangeFlags.LoadedFromSAZ);

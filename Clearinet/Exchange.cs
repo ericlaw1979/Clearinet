@@ -96,8 +96,58 @@ namespace Clearinet
 
         // TODO: Add a convenience handler that tries to get a .NET URL from the string?
 
-        public string url { get; set; }
-        public string fullUrl { get; set; }
+        // For silly historical reasons, this is the schemeless-url.
+        public string url
+        {
+            get
+            {
+                if (null == RequestHeaders) return string.Empty;
+                if (RequestHeaders.UriScheme.OICEquals("data")) return "data:" + RequestHeaders.RequestPath;
+                return $"{RequestHeaders["Host"]}{RequestHeaders.RequestPath}";
+            }
+            set
+            {
+                // TODO: We probably don't want to use the actual .NET URL parser here.
+                Uri oUri;
+                if (!Uri.TryCreate(value, UriKind.Absolute, out oUri))
+                {
+                    throw new ArgumentException($"Invalid URL: {value}");
+                }
+                RequestHeaders["Host"] = oUri.Host;
+                if (!oUri.IsDefaultPort)
+                {
+                    RequestHeaders["Host"] += $":{oUri.Port}";
+                }
+                RequestHeaders.RequestPath = oUri.PathAndQuery;
+            }
+        }
+        public string fullUrl
+        {
+            get
+            {
+                if (null == RequestHeaders) return string.Empty;
+                if (RequestHeaders.UriScheme.OICEquals("data")) return "data:" + RequestHeaders.RequestPath;
+                return $"{RequestHeaders.UriScheme}://{RequestHeaders["Host"]}{RequestHeaders.RequestPath}";
+            }
+            set
+            {
+                if (null == RequestHeaders) RequestHeaders = new HTTPRequestHeaders();
+
+                // TODO: We probably don't want to use the actual .NET URL parser here.
+                Uri oUri;
+                if (!Uri.TryCreate(value, UriKind.Absolute, out oUri))
+                {
+                    throw new ArgumentException($"Invalid URL: {value}");
+                }
+                RequestHeaders.UriScheme = oUri.Scheme;
+                RequestHeaders["Host"] = oUri.Host;
+                if (!oUri.IsDefaultPort)
+                {
+                    RequestHeaders["Host"] += $":{oUri.Port}";
+                }
+                RequestHeaders.RequestPath = oUri.PathAndQuery;
+            }
+        }
         public string host
         {
             get => RequestHeaders?["Host"] ?? string.Empty;
