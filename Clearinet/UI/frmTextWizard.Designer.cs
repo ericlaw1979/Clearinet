@@ -193,7 +193,8 @@
             "Hash(AsSHA1)",
             "Hash(AsSHA256)",
             "Hash(AsSHA384)",
-            "Hash(AsSHA512)"});
+            "Hash(AsSHA512)",
+            "CrackURL"});
             this.cbxTransforms.Location = new System.Drawing.Point(79, 7);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";

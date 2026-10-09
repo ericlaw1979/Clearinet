@@ -159,6 +159,50 @@ namespace Clearinet
                             sOutput = Utilities.GetBase64Hash("sha512", arrIn) + "\r\n\r\n" + Utilities.GetHash("sha512", arrIn);
                         }
                         break;
+                    case 21: // CrackURL
+                        {
+                            if (!sText.HasText())
+                            {
+                                sOutput = String.Empty;
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    Uri oUri = new Uri(sText);
+                                    StringBuilder sb = new StringBuilder();
+
+                                    sb.Append($"Scheme:\t{oUri.Scheme}\r\nHost:\t{oUri.Host}\r\nPort:\t{oUri.Port}\r\nPath:\t{oUri.AbsolutePath}\r\n");
+                                    if (oUri.Fragment.HasText()) sb.Append($"Fragment: {oUri.Fragment}\r\n");
+                                    string sQuery = oUri.Query;
+                                    if (sQuery.StartsWith("?")) sQuery = sQuery.Substring(1);
+                                    if (sQuery.HasText())
+                                    {
+                                        sb.Append("\r\nQueryString:");
+                                        foreach (string sKey in sQuery.Split('&'))
+                                        {
+                                            if (!sKey.HasText()) continue;
+                                            string[] arrParts = sKey.Split('=');
+                                            if (arrParts.Length < 2)
+                                            {
+                                                sb.Append($"\r\n\t{arrParts[0]}");
+                                            }
+                                            else
+                                            {
+                                                sb.Append($"\r\n\t{Utilities.UrlDecode(arrParts[0])} = {Utilities.UrlDecode(arrParts[1])}");
+                                            }
+                                        }
+                                    }
+                                    sOutput = sb.ToString();
+                                }
+                                catch (Exception eX)
+                                {
+                                    arrLatestOutput = Utilities.UrlDecodeToBytes(sText, encodingInput);
+                                    sOutput = Utilities.UrlDecode(sText, encodingInput);
+                                }
+                            }
+                        }
+                        break;
 
                     default:
                         Debug.Assert(false, "Not reachable");
@@ -248,6 +292,7 @@ namespace Clearinet
             return sOutput;
         }
 
+        //TODO: Offer an overload that specifies the encoding by search string
         internal frmTextWizard(string sInput)
         {
             InitializeComponent();
@@ -353,7 +398,7 @@ namespace Clearinet
         private void cbxTransforms_SelectedIndexChanged(object sender, EventArgs e)
         {
             Recalc();
-            CApp.Prefs.SetInt32Pref("textwizard.LastTransforms", cbxTransforms.SelectedIndex);
+            CApp.Prefs.SetInt32Pref("textwizard.LastTransform", cbxTransforms.SelectedIndex);
         }
 
         private void btnSetInputFromOutput_Click(object sender, EventArgs e)

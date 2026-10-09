@@ -1455,5 +1455,41 @@ namespace Clearinet
         {
             lvExchanges.UndeleteItems();
         }
+
+        private void mnuExchange_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            mnuExchangeCopy.Enabled = lvExchanges.SelectedCount > 0;
+        }
+
+        private void miExchangeCopyUrl_Click(object sender, EventArgs e)
+        {
+            Exchange[] arrExch = GetSelectedExchanges();
+            if (arrExch.Length < 1) return;
+            if (arrExch.Length == 1)
+            {
+                Clipboard.SetText(arrExch[0].fullUrl);
+                return;
+            }
+            StringBuilder sbAllUrls = new StringBuilder();
+            for (var ix = 0; ix < arrExch.Length; ++ix)
+            {
+                sbAllUrls.AppendLine(arrExch[ix].fullUrl);
+            }
+            Clipboard.SetText(sbAllUrls.ToString());
+        }
+
+        private void miExchangeCopyHeaders_Click(object sender, EventArgs e)
+        {
+            Exchange[] arrExch = GetSelectedExchanges();
+            if (arrExch.Length < 1) return;
+            StringBuilder sbAllHeaders = new StringBuilder();
+            for (var ix = 0; ix < arrExch.Length; ++ix)
+            {
+                sbAllHeaders.AppendLine(arrExch[ix].RequestHeaders?.ToString());
+                sbAllHeaders.AppendLine(arrExch[ix].ResponseHeaders?.ToString());
+                sbAllHeaders.AppendLine("==================================");
+            }
+            Clipboard.SetText(sbAllHeaders.ToString());
+        }
     }
 }
