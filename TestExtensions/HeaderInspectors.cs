@@ -32,13 +32,21 @@ namespace TestExtensions
 
         public override void Assign(HTTPRequestHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
-            headers = hrh;
-            hvViewer.txtFirstLine.ReadOnly = bReadOnly;
-            hvViewer.txtFirstLine.Text = $"{hrh.HTTPMethod} {hrh.RequestPath} {hrh.HTTPVersion}";
-            hvViewer.tvNVP.Nodes.Clear();
+            try
+            {
+                hvViewer.tvNVP.BeginUpdate();
+                headers = hrh;
+                hvViewer.txtFirstLine.ReadOnly = bReadOnly;
+                hvViewer.txtFirstLine.Text = $"{hrh.HTTPMethod} {hrh.RequestPath} {hrh.HTTPVersion}";
+                hvViewer.tvNVP.Nodes.Clear();
 
-            hvViewer._headers = hrh;
-            HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
+                hvViewer._headers = hrh;
+                HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
+            }
+            finally
+            {
+                hvViewer.tvNVP.EndUpdate();
+            }
         }
 
         public override void Clear()
@@ -71,18 +79,26 @@ namespace TestExtensions
 
         public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
-            headers = hrh;
-            if (null == hrh)
+            try
             {
-                Clear();
-                return;
-            }
-            hvViewer.txtFirstLine.ReadOnly = bReadOnly;
-            hvViewer.txtFirstLine.Text = $"{hrh.HTTPVersion} {hrh.StatusCode} {hrh.StatusText}";
-            hvViewer.tvNVP.Nodes.Clear();
+                hvViewer.tvNVP.BeginUpdate();
+                headers = hrh;
+                if (null == hrh)
+                {
+                    Clear();
+                    return;
+                }
+                hvViewer.txtFirstLine.ReadOnly = bReadOnly;
+                hvViewer.txtFirstLine.Text = $"{hrh.HTTPVersion} {hrh.StatusCode} {hrh.StatusText}";
+                hvViewer.tvNVP.Nodes.Clear();
 
-            hvViewer._headers = hrh;
-            HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
+                hvViewer._headers = hrh;
+                HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
+            }
+            finally
+            {
+                hvViewer.tvNVP.EndUpdate();
+            }
         }
 
         public override void Clear()
@@ -97,6 +113,10 @@ namespace TestExtensions
         {
             "Cache", "Client", "Entity", "Miscellaneous", "Security", "Server", "Transport"
         };
+
+        private static HashSet<string> htHighlight = new HashSet<string>(
+            CApp.Prefs.GetStringPref("inspectors.headers.highlighted_names", "authorization,content-type,content-length,cookie,set-cookie,host").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+            StringComparer.OrdinalIgnoreCase);
 
         internal static void Populate(BetterTreeView tree, IEnumerable<HTTPHeaderItem> headers)
         {
@@ -123,6 +143,10 @@ namespace TestExtensions
                     TreeNode node = categoryNode.Nodes.Add(item.ToString());
                     node.Tag = item;
                     node.NodeFont = tree.Font;
+                    if (htHighlight.Contains(item.Name))
+                    {
+                        node.ForeColor = Color.Green;
+                    }
                 }
 
                 tree.Nodes.Add(categoryNode);
