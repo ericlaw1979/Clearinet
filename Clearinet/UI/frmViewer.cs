@@ -440,7 +440,7 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// Add some data for development purposes.REMOVE THIS
+        /// Add some data for development purposes. TODO:REMOVE THIS
         /// </summary>
         internal void TODOAddSampleData()
         {
@@ -453,7 +453,8 @@ namespace Clearinet
                 Exchange x = new Exchange(hrh, Encoding.UTF8.GetBytes($"This is the request body for Exchange #{iX}"))
                 {
                     ResponseBody = Encoding.UTF8.GetBytes($"This is the response body for Exchange #{iX}"),
-                    ResponseHeaders = new HTTPResponseHeaders(200, "OK, I guess", new string[] { $"FirstHeader: {iX}", $"SecondHeader: {iX}", $"ThirdHeader: {iX}", "Content-Type: text/plain; charset=utf-16" }),
+                    ResponseHeaders = new HTTPResponseHeaders(200, "OK, I guess", new string[] { $"FirstHeader: {iX}", $"SecondHeader: {iX}", $"ThirdHeader: {iX}",
+                                                        $"FourthLong-{new String('a',512)}z: value{new String('c', 512)}z", "Content-Type: text/plain; charset=utf-16" }),
                 };
                 hrh["Content-Length"] = x.ResponseBody.Length.ToString();
                 x.state = (ExchangeState)(iX);

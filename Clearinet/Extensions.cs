@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Windows.Forms;
 
 namespace Clearinet
 {
@@ -86,7 +85,7 @@ namespace Clearinet
         {
             // Issue: This doesn't allow us to "refresh" without restart.
             if (hasImporters || hasExporters) return;
-            InventoryFromPath(CONFIG.GetPath("Transcoders_User"), false);
+            InventoryFromPath(CONFIG.GetPath("Transcoders_User"), false);  // Load User folder first to enable "upgrades"
             InventoryFromPath(CONFIG.GetPath("Transcoders"), false);
         }
         private static bool AddToTranscoders(Dictionary<string, TranscoderTuple> dictTranscoders, Type t)
@@ -203,7 +202,7 @@ namespace Clearinet
         }
     }
 
-    public class Extensions: ExtensionBase
+    public class Extensions : ExtensionBase
     {
         private Dictionary<Guid, IAppExtension> m_Extensions = new Dictionary<Guid, IAppExtension>();
         private Dictionary<Guid, IAutoTamper> m_AutoTamperers = new Dictionary<Guid, IAutoTamper>();
@@ -226,8 +225,8 @@ namespace Clearinet
             StringBuilder sbResult = new StringBuilder(128);
             sbResult.Append($"Extensions: {m_Extensions.Count} loaded: " +
                 $"{m_RequestInspectors.Count} Request Inspectors; " +
-                $"{ m_ResponseInspectors.Count} Response Inspectors; " +
-                $"{ m_AutoTamperers.Count} AutoTamperers");
+                $"{m_ResponseInspectors.Count} Response Inspectors; " +
+                $"{m_AutoTamperers.Count} AutoTamperers");
 
             if (bVerbose)
             {
@@ -265,7 +264,7 @@ namespace Clearinet
 
         private void ScanAndLoad()
         {
-            InstantiateFromPath(CONFIG.GetPath("Extensions_User"));
+            InstantiateFromPath(CONFIG.GetPath("Extensions_User"));  // Load User folder first to enable "upgrades"
             InstantiateFromPath(CONFIG.GetPath("Extensions"));
 
             // If we found any extensions, ensure that we call OnLoad for each when boot completes.
