@@ -11,6 +11,9 @@ namespace Clearinet
         public event EventHandler ItemShowProperties;
         public EventHandler OnExchangesAdded;
 
+        WeakReference wrActiveItem;
+        WeakReference wrPreviousActiveItem;
+
         public int SelectedCount
         {
             // TODO: is LVM_GETSELECTEDCOUNT cheaper?
@@ -41,12 +44,43 @@ namespace Clearinet
             EndUpdate();
         }
 
+        internal void UpdateActiveItem()
+        {
+            wrPreviousActiveItem = wrActiveItem;
+
+            if (SelectedItems.Count == 1)
+            {
+                wrActiveItem = new WeakReference(SelectedItems[0]);
+            }
+        }
+
+        /// <summary>
+        /// Call this just before the currently selected Sessions is deleted
+        /// </summary>
+        internal void RestorePriorActiveItem()
+        {
+            wrActiveItem = wrPreviousActiveItem;
+        }
+
+        /// <summary>
+        /// Activate the previously focused item, akin to a browser's back button.
+        /// </summary>
+        internal void ActivatePreviousItem()
+        {
+            if (null == wrPreviousActiveItem) return;
+            ListViewItem oLVI = wrPreviousActiveItem.Target as ListViewItem;
+            if (oLVI == null) return;
+
+            SelectedItems.Clear();
+            oLVI.Selected = oLVI.Focused = true;
+        }
+
         internal void RemoveSelected()
         {
             int cSelected = SelectedCount;
             if (cSelected < 1) return;
 
-            // TODO: Cache items using a "Weak" store to enable undelete
+            RestorePriorActiveItem();
 
             // Perf optimization.
             if (cSelected == Items.Count)
@@ -103,6 +137,15 @@ namespace Clearinet
             }
 
             EndUpdate();
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // ExchangeListView
+            // 
+            this.ResumeLayout(false);
         }
     }
 }

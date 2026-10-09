@@ -875,6 +875,7 @@ namespace Clearinet
         {
             if (CApp.isClosing) return;
             // TODO: Store the most recent item for back/forward nav.
+            lvExchanges.UpdateActiveItem();
             actRefreshUI(true);
         }
 
@@ -1062,6 +1063,20 @@ namespace Clearinet
                         break;
                 }
             }
+
+            if (e.Modifiers == Keys.Alt)
+            {
+                // 
+            }
+
+            switch (e.KeyCode)
+            {
+                case Keys.Back:
+                    e.SuppressKeyPress = e.Handled = true;
+                    lvExchanges.ActivatePreviousItem();
+                    break;
+
+            }   // switch
         }
 
         private void doPasteImageAsExchange()
