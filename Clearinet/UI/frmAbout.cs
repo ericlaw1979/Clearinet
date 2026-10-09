@@ -15,6 +15,7 @@ namespace Clearinet
         {
             InitializeComponent();
             txtAbout.Text = $"{GetAppEnvironmentInfo()}\r\n\r\nCopyright ©2026 Clearinet Contributors";
+            // TODO: Add Easter egg (konami code).
         }
 
         protected override void OnShown(EventArgs e)
@@ -32,12 +33,6 @@ namespace Clearinet
                 return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);
-        }
-
-        private void lnkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            // TODO: REMOVE ME
-            Utilities.LaunchHyperlink("");
         }
 
         public static string GetAppEnvironmentInfo()
@@ -82,6 +77,11 @@ namespace Clearinet
             sb.AppendLine($"{runtimeFramework} {osName} {osVersion}");
 
             return sb.ToString();
+        }
+
+        private void lnkWebsite_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Utilities.LaunchHyperlink("https://clearinet.app/");
         }
     }
 }

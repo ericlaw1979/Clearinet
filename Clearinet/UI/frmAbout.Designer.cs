@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAbout));
             this.txtAbout = new System.Windows.Forms.TextBox();
             this.pbIcon = new System.Windows.Forms.PictureBox();
+            this.lnkWebsite = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pbIcon)).BeginInit();
             this.SuspendLayout();
             // 
@@ -60,11 +61,24 @@
             this.pbIcon.TabIndex = 2;
             this.pbIcon.TabStop = false;
             // 
+            // lnkWebsite
+            // 
+            this.lnkWebsite.AutoSize = true;
+            this.lnkWebsite.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.lnkWebsite.Location = new System.Drawing.Point(108, 216);
+            this.lnkWebsite.Name = "lnkWebsite";
+            this.lnkWebsite.Size = new System.Drawing.Size(127, 17);
+            this.lnkWebsite.TabIndex = 3;
+            this.lnkWebsite.TabStop = true;
+            this.lnkWebsite.Text = "https://Clearinet.app";
+            this.lnkWebsite.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkWebsite_LinkClicked);
+            // 
             // frmAbout
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(419, 242);
+            this.Controls.Add(this.lnkWebsite);
             this.Controls.Add(this.pbIcon);
             this.Controls.Add(this.txtAbout);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -84,5 +98,6 @@
         #endregion
         private System.Windows.Forms.TextBox txtAbout;
         private System.Windows.Forms.PictureBox pbIcon;
+        private System.Windows.Forms.LinkLabel lnkWebsite;
     }
 }
