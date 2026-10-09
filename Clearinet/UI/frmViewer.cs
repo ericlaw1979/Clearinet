@@ -27,6 +27,19 @@ namespace Clearinet
             }
         }
 
+        /// <summary>
+        /// Prevent UI flashing. The degree to which this helps is AMAZING.
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
+                return cp;
+            }
+        }
+
         private Label lblInspectorInstruction;
         private MRU mruRecents;
 
