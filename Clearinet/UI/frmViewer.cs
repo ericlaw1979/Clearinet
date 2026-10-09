@@ -371,13 +371,17 @@ namespace Clearinet
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
 
+            this.miEditUndelete.Click += MiEditUndelete_Click;
             allExchangesToolStripMenuItem.Click += AllExchangesToolStripMenuItem_Click;
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
         }
 
-
+        private void MiEditUndelete_Click(object sender, EventArgs e)
+        {
+            lvExchanges.UndeleteItems();
+        }
 
         private void UpdateStatisticsTab(Exchange[] arrExchanges)
         {
@@ -859,11 +863,10 @@ namespace Clearinet
 
         private void miEdit_DropDownOpening(object sender, EventArgs e)
         {
-            // Disable controls if inapplicable
             miEditPasteAsExchanges.Enabled = Clipboard.ContainsImage() | Clipboard.ContainsText() | Clipboard.ContainsFileDropList();
             miEditRemove.Enabled = miEditFind.Enabled = lvExchanges.Items.Count > 0;
             miEditMark.Enabled = lvExchanges.SelectedCount > 0;
-            // TODO: Moar!
+            miEditUndelete.Enabled = lvExchanges.CanUndelete();
         }
 
         private void miFile_DropDownOpening(object sender, EventArgs e)
@@ -1070,6 +1073,9 @@ namespace Clearinet
                 {
                     case Keys.X:
                         lvExchanges.ClearExchanges();
+                        break;
+                    case Keys.Z:
+                        lvExchanges.UndeleteItems();
                         break;
                 }
             }

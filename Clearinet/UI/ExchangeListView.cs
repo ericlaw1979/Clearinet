@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -26,6 +27,19 @@ namespace Clearinet
             get { return this.Items.Count; }
         }
 
+        public ListViewItem[] UnselectedItems
+        {
+            get
+            {
+                var result = new List<ListViewItem>(Items.Count); // TODO: Should be TotalCount-SelectedCount ?
+                foreach (ListViewItem item in Items)
+                {
+                    if (!item.Selected) result.Add(item);
+                }
+                return result.ToArray();
+            }
+        }
+
         internal void SelectAll()
         {
             // TODO: For perf, we need to ensure we're not firing events during this process.
@@ -39,6 +53,7 @@ namespace Clearinet
         internal void ClearExchanges()
         {
             BeginUpdate();
+            StoreItemsBeforeDeletion(Items);
             this.Items.Clear();
             Exchange.ResetSessionCounter();
             EndUpdate();
@@ -75,6 +90,55 @@ namespace Clearinet
             oLVI.Selected = oLVI.Focused = true;
         }
 
+        internal bool CanUndelete()
+        {
+            return ((null != _wrDeletedItems) && _wrDeletedItems.IsAlive);
+        }
+        private WeakReference _wrDeletedItems = null;
+        // Store items to be deleted into a weak reference so that we can undelete them if the user asks.
+        private void StoreItemsBeforeDeletion(object items)
+        {
+            ListViewItem[] arrLVIs = null;
+
+            if (items is ListViewItemCollection lvic)
+            {
+                arrLVIs = new ListViewItem[lvic.Count];
+                lvic.CopyTo(arrLVIs, 0);
+            }
+            else if (items is SelectedListViewItemCollection slvic)
+            {
+                arrLVIs = new ListViewItem[slvic.Count];
+                slvic.CopyTo(arrLVIs, 0);
+            }
+            else if (items is ListViewItem[] array)
+            {
+                arrLVIs = array;
+            }
+
+            if (0 == (arrLVIs?.Length ?? 0)) return;
+            _wrDeletedItems = new WeakReference(arrLVIs);
+        }
+
+        public void UndeleteItems()
+        {
+            if (null == _wrDeletedItems) { CApp.UI.SetStatusText("No Exchanges could be restored."); return; }
+
+            ListViewItem[] arrRestoredLVIs = _wrDeletedItems.Target as ListViewItem[];
+            if (null == arrRestoredLVIs) { CApp.UI.SetStatusText("No Exchanges could be restored."); return; }
+            _wrDeletedItems = null;  // Only undelete once.
+
+            try
+            {
+                foreach (ListViewItem oLVI in arrRestoredLVIs) oLVI.Selected = false;
+                Items.AddRange(arrRestoredLVIs);
+                CApp.UI.SetStatusText($"Restored {arrRestoredLVIs.Length} deleted Exchanges");
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Failed to undelete Exchanges");
+            }
+        }
+
         internal void RemoveSelected()
         {
             int cSelected = SelectedCount;
@@ -88,11 +152,13 @@ namespace Clearinet
                 ClearExchanges();
                 return;
             }
+            StoreItemsBeforeDeletion(SelectedItems);
 
             // TODO: For perf, we need to ensure we're not firing events during this process.
             BeginUpdate();
 
-            // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the list of SelectedIndicies and delete them downward.
+            // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the list of
+            // SelectedIndicies and delete them downward.
 
             // For small numbers of items, just remove.
             foreach (ListViewItem lvi in SelectedItems)
@@ -123,7 +189,10 @@ namespace Clearinet
             // TODO: For perf, we need to ensure we're not firing events during this process.
             BeginUpdate();
 
-            // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the list of SelectedIndicies and delete them downward.
+            // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the
+            // list of SelectedIndicies and delete all but them downward.
+
+            StoreItemsBeforeDeletion(UnselectedItems);
 
             int iX = Items.Count - 1; // Start at the end.
             while (iX >= 0 && (cToDelete > 0))
@@ -137,15 +206,6 @@ namespace Clearinet
             }
 
             EndUpdate();
-        }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            // 
-            // ExchangeListView
-            // 
-            this.ResumeLayout(false);
         }
     }
 }
