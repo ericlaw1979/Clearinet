@@ -8,3 +8,4 @@ Below is a list of some preferences, their defaults, and what they control
 "app.saz.warn_about_data_protection", true => Whether to warn the user about sharing SAZ files that may contain private information.
 "app.ui.toolbar.lookupurl", "https://developer.mozilla.org/en-US/search?q=$W$" => The target of the lookup tool in the toolbar.
 "app.high_resolution_clock", true => Whether the app should tell Windows to increase timer resolution for improved accuracy in timing scenarios.
+"inspectors.headers.highlighted_names", "content-type,content-length,host" => change the color of more important headers
