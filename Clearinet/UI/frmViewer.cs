@@ -484,7 +484,7 @@ namespace Clearinet
                 (string sFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
                 if (!sFilename.HasText()) return false;
                 string sPassword = null;
-                if (2 == iType)
+                if (2 == iType) // Password protected?
                 {
                     sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
                     {
@@ -496,6 +496,16 @@ namespace Clearinet
                     });
                     if (null == sPassword) return false; // Cancel Save
                     if (!sPassword.HasText()) sPassword = null;
+                }
+                else
+                {
+                    if (!CApp.Prefs.GetBoolPref("app.saz.warn_about_data_protection", false))
+                    {
+                        CApp.DoNotifyUser(
+                            "Captured Network Data may contain passwords and other private data. Protect access and share only with people you trust.\n\nTo encrypt a SAZ file when supplying the file's name, use the 'Save As Type' dropdown to select 'Password Protected SAZ'.",
+                            "Security and Privacy", MessageBoxIcon.Warning);
+                        CApp.Prefs.SetBoolPref("app.saz.warn_about_data_protection", true);
+                    }
                 }
                 SAZFile.SaveTo(sFilename, arrExchanges, sPassword);
                 CApp.UI.mruRecents.PushFile(sFilename);
