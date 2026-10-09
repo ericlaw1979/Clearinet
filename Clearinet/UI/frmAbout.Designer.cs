@@ -29,25 +29,10 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAbout));
-            this.lnkFeedback = new System.Windows.Forms.LinkLabel();
             this.txtAbout = new System.Windows.Forms.TextBox();
             this.pbIcon = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbIcon)).BeginInit();
             this.SuspendLayout();
-            // 
-            // lnkFeedback
-            // 
-            this.lnkFeedback.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.lnkFeedback.AutoSize = true;
-            this.lnkFeedback.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkFeedback.Location = new System.Drawing.Point(108, 296);
-            this.lnkFeedback.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lnkFeedback.Name = "lnkFeedback";
-            this.lnkFeedback.Size = new System.Drawing.Size(136, 23);
-            this.lnkFeedback.TabIndex = 0;
-            this.lnkFeedback.TabStop = true;
-            this.lnkFeedback.Text = "remove me";
-            this.lnkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkFeedback_LinkClicked);
             // 
             // txtAbout
             // 
@@ -60,9 +45,8 @@
             this.txtAbout.Margin = new System.Windows.Forms.Padding(4);
             this.txtAbout.Multiline = true;
             this.txtAbout.Name = "txtAbout";
-            this.txtAbout.Size = new System.Drawing.Size(391, 281);
+            this.txtAbout.Size = new System.Drawing.Size(243, 197);
             this.txtAbout.TabIndex = 1;
-            this.txtAbout.Text = "";
             // 
             // pbIcon
             // 
@@ -77,12 +61,11 @@
             // 
             // frmAbout
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(517, 322);
+            this.ClientSize = new System.Drawing.Size(369, 238);
             this.Controls.Add(this.pbIcon);
             this.Controls.Add(this.txtAbout);
-            this.Controls.Add(this.lnkFeedback);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.KeyPreview = true;
@@ -98,8 +81,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.LinkLabel lnkFeedback;
         private System.Windows.Forms.TextBox txtAbout;
         private System.Windows.Forms.PictureBox pbIcon;
     }

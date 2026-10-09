@@ -50,7 +50,7 @@
             this.miFileNewViewer = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileLoadSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFileMRU = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSave = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
@@ -272,7 +272,7 @@
             this.miFileNewViewer,
             this.miFileLoadSAZ,
             this.mnuFileMRU,
-            this.saveToolStripMenuItem,
+            this.miFileSave,
             miFileSplit2,
             this.miFileImport,
             this.miFileExport,
@@ -315,15 +315,15 @@
             this.mnuFileMRU.Text = "&Recent Archives";
             this.mnuFileMRU.DropDownOpening += new System.EventHandler(this.mnuFileMRU_DropDownOpening);
             // 
-            // saveToolStripMenuItem
+            // miFileSave
             // 
-            this.saveToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFileSave.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miFileSaveSAZ,
             tsmiFileSaveSplitter1,
             this.miFileSaveSelected});
-            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
-            this.saveToolStripMenuItem.Text = "&Save";
+            this.miFileSave.Name = "miFileSave";
+            this.miFileSave.Size = new System.Drawing.Size(189, 22);
+            this.miFileSave.Text = "&Save";
             // 
             // miFileSaveSAZ
             // 
@@ -343,8 +343,9 @@
             // miFileSaveSelectedSAZ
             // 
             this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
-            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(150, 22);
+            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(180, 22);
             this.miFileSaveSelectedSAZ.Text = "in &ArchiveZip";
+            this.miFileSaveSelectedSAZ.Click += new System.EventHandler(this.miFileSaveSelectedSAZ_Click);
             // 
             // miFileImport
             // 
@@ -1266,7 +1267,7 @@
         private System.Windows.Forms.ToolStripMenuItem miFileNewViewer;
         private System.Windows.Forms.ToolStripMenuItem miFileLoadSAZ;
         private System.Windows.Forms.ToolStripMenuItem mnuFileMRU;
-        private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miFileSave;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveSAZ;
         private System.Windows.Forms.ToolStripMenuItem miEditUnlock;
         private System.Windows.Forms.ToolStripMenuItem miEditMarkStrikeout;

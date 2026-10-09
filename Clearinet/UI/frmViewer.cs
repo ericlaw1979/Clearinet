@@ -519,11 +519,6 @@ namespace Clearinet
             return true;
         }
 
-        private void MiFileSaveSelectedSAZ_Click(object sender, EventArgs e)
-        {
-            //nyi
-        }
-
         private void lvExchanges_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -873,13 +868,13 @@ namespace Clearinet
         {
             if (lvExchanges.Items.Count > 0)
             {
-                saveToolStripMenuItem.Enabled = true; // TODO: Rename!!!
+                miFileSave.Enabled = true;
                 miFileSaveSelected.Enabled = (lvExchanges.SelectedCount > 0);
                 miFileExport.Enabled = true;
             }
             else
             {
-                saveToolStripMenuItem.Enabled = false;
+                miFileSave.Enabled = false;
                 miFileExport.Enabled = false;
             }
         }
@@ -1310,6 +1305,11 @@ namespace Clearinet
         public void actUpdateReport()
         {
             CApp.OnCalculateReport(GetSelectedExchanges());
+        }
+
+        private void miFileSaveSelectedSAZ_Click(object sender, EventArgs e)
+        {
+            actSaveExchanges(GetSelectedExchanges());
         }
     }
 }
