@@ -54,10 +54,16 @@
             this.miFileSaveSAZ = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSelected = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileSaveSelectedSAZ = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveRequest = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveRequestFull = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveRequestBody = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveResponse = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveResponseFull = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileSaveResponseBody = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileImport = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileExport = new System.Windows.Forms.ToolStripMenuItem();
-            this.allExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectedExchangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileExportAll = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileExportSelected = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileExit = new System.Windows.Forms.ToolStripMenuItem();
             this.miEdit = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopy = new System.Windows.Forms.ToolStripMenuItem();
@@ -143,7 +149,9 @@
             this.splitRequestResponse = new System.Windows.Forms.Splitter();
             this.tabsRequest = new System.Windows.Forms.TabControl();
             this.pageAutoResponder = new System.Windows.Forms.TabPage();
+            this.label1 = new System.Windows.Forms.Label();
             this.pageComposer = new System.Windows.Forms.TabPage();
+            this.label2 = new System.Windows.Forms.Label();
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
@@ -173,6 +181,8 @@
             this.pageInspectors.SuspendLayout();
             this.mnuInspectors.SuspendLayout();
             this.pnlTamper.SuspendLayout();
+            this.pageAutoResponder.SuspendLayout();
+            this.pageComposer.SuspendLayout();
             this.pageLog.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -320,7 +330,9 @@
             this.miFileSave.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miFileSaveSAZ,
             tsmiFileSaveSplitter1,
-            this.miFileSaveSelected});
+            this.miFileSaveSelected,
+            this.miFileSaveRequest,
+            this.miFileSaveResponse});
             this.miFileSave.Name = "miFileSave";
             this.miFileSave.Size = new System.Drawing.Size(189, 22);
             this.miFileSave.Text = "&Save";
@@ -343,9 +355,55 @@
             // miFileSaveSelectedSAZ
             // 
             this.miFileSaveSelectedSAZ.Name = "miFileSaveSelectedSAZ";
-            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(180, 22);
+            this.miFileSaveSelectedSAZ.Size = new System.Drawing.Size(150, 22);
             this.miFileSaveSelectedSAZ.Text = "in &ArchiveZip";
             this.miFileSaveSelectedSAZ.Click += new System.EventHandler(this.miFileSaveSelectedSAZ_Click);
+            // 
+            // miFileSaveRequest
+            // 
+            this.miFileSaveRequest.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFileSaveRequestFull,
+            this.miFileSaveRequestBody});
+            this.miFileSaveRequest.Name = "miFileSaveRequest";
+            this.miFileSaveRequest.Size = new System.Drawing.Size(190, 22);
+            this.miFileSaveRequest.Text = "&Request";
+            // 
+            // miFileSaveRequestFull
+            // 
+            this.miFileSaveRequestFull.Name = "miFileSaveRequestFull";
+            this.miFileSaveRequestFull.Size = new System.Drawing.Size(160, 22);
+            this.miFileSaveRequestFull.Text = "&Entire Request";
+            this.miFileSaveRequestFull.Click += new System.EventHandler(this.miFileSaveRequestFull_Click);
+            // 
+            // miFileSaveRequestBody
+            // 
+            this.miFileSaveRequestBody.Name = "miFileSaveRequestBody";
+            this.miFileSaveRequestBody.Size = new System.Drawing.Size(160, 22);
+            this.miFileSaveRequestBody.Text = "Request &Body";
+            this.miFileSaveRequestBody.Click += new System.EventHandler(this.miFileSaveRequestBody_Click);
+            // 
+            // miFileSaveResponse
+            // 
+            this.miFileSaveResponse.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFileSaveResponseFull,
+            this.miFileSaveResponseBody});
+            this.miFileSaveResponse.Name = "miFileSaveResponse";
+            this.miFileSaveResponse.Size = new System.Drawing.Size(190, 22);
+            this.miFileSaveResponse.Text = "R&esponse";
+            // 
+            // miFileSaveResponseFull
+            // 
+            this.miFileSaveResponseFull.Name = "miFileSaveResponseFull";
+            this.miFileSaveResponseFull.Size = new System.Drawing.Size(175, 22);
+            this.miFileSaveResponseFull.Text = "&Entire Response";
+            this.miFileSaveResponseFull.Click += new System.EventHandler(this.miFileSaveResponseFull_Click);
+            // 
+            // miFileSaveResponseBody
+            // 
+            this.miFileSaveResponseBody.Name = "miFileSaveResponseBody";
+            this.miFileSaveResponseBody.Size = new System.Drawing.Size(175, 22);
+            this.miFileSaveResponseBody.Text = "R&esponse Body...";
+            this.miFileSaveResponseBody.Click += new System.EventHandler(this.miFileSaveResponseBody_Click);
             // 
             // miFileImport
             // 
@@ -357,23 +415,25 @@
             // miFileExport
             // 
             this.miFileExport.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.allExchangesToolStripMenuItem,
-            this.selectedExchangesToolStripMenuItem});
+            this.miFileExportAll,
+            this.miFileExportSelected});
             this.miFileExport.Name = "miFileExport";
             this.miFileExport.Size = new System.Drawing.Size(189, 22);
             this.miFileExport.Text = "&Export Exchanges";
             // 
-            // allExchangesToolStripMenuItem
+            // miFileExportAll
             // 
-            this.allExchangesToolStripMenuItem.Name = "allExchangesToolStripMenuItem";
-            this.allExchangesToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
-            this.allExchangesToolStripMenuItem.Text = "&All Exchanges...";
+            this.miFileExportAll.Name = "miFileExportAll";
+            this.miFileExportAll.Size = new System.Drawing.Size(199, 22);
+            this.miFileExportAll.Text = "&All Exchanges...";
+            this.miFileExportAll.Click += new System.EventHandler(this.miFileExportAll_Click);
             // 
-            // selectedExchangesToolStripMenuItem
+            // miFileExportSelected
             // 
-            this.selectedExchangesToolStripMenuItem.Name = "selectedExchangesToolStripMenuItem";
-            this.selectedExchangesToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
-            this.selectedExchangesToolStripMenuItem.Text = "&Selected Exchanges...";
+            this.miFileExportSelected.Name = "miFileExportSelected";
+            this.miFileExportSelected.Size = new System.Drawing.Size(199, 22);
+            this.miFileExportSelected.Text = "&Selected Exchanges...";
+            this.miFileExportSelected.Click += new System.EventHandler(this.miFileExportSelected_Click);
             // 
             // miFileExit
             // 
@@ -486,6 +546,7 @@
             this.miEditUndelete.Name = "miEditUndelete";
             this.miEditUndelete.Size = new System.Drawing.Size(208, 22);
             this.miEditUndelete.Text = "&Undelete";
+            this.miEditUndelete.Click += new System.EventHandler(this.miEditUndelete_Click);
             // 
             // miEditSelectAll
             // 
@@ -932,12 +993,14 @@
             this.lvExchanges.Margin = new System.Windows.Forms.Padding(4);
             this.lvExchanges.Name = "lvExchanges";
             this.lvExchanges.Size = new System.Drawing.Size(357, 491);
+            this.lvExchanges.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvExchanges.TabIndex = 4;
             this.lvExchanges.UseCompatibleStateImageBehavior = false;
             this.lvExchanges.View = System.Windows.Forms.View.Details;
             this.lvExchanges.SelectedIndexChanged += new System.EventHandler(this.lvExchanges_SelectedIndexChanged);
             this.lvExchanges.DoubleClick += new System.EventHandler(this.lvExchanges_DoubleClick);
             this.lvExchanges.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyDown);
+            this.lvExchanges.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lvExchanges_MouseDown);
             // 
             // colID
             // 
@@ -1140,6 +1203,7 @@
             // 
             // pageAutoResponder
             // 
+            this.pageAutoResponder.Controls.Add(this.label1);
             this.pageAutoResponder.Location = new System.Drawing.Point(4, 25);
             this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
             this.pageAutoResponder.Name = "pageAutoResponder";
@@ -1148,8 +1212,20 @@
             this.pageAutoResponder.Text = "AutoResponder";
             this.pageAutoResponder.UseVisualStyleBackColor = true;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Tahoma", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.Red;
+            this.label1.Location = new System.Drawing.Point(163, 154);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(389, 33);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "This tab is not yet implemented";
+            // 
             // pageComposer
             // 
+            this.pageComposer.Controls.Add(this.label2);
             this.pageComposer.Location = new System.Drawing.Point(4, 25);
             this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
             this.pageComposer.Name = "pageComposer";
@@ -1157,6 +1233,17 @@
             this.pageComposer.TabIndex = 3;
             this.pageComposer.Text = "Composer";
             this.pageComposer.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Tahoma", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.ForeColor = System.Drawing.Color.Red;
+            this.label2.Location = new System.Drawing.Point(145, 228);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(389, 33);
+            this.label2.TabIndex = 1;
+            this.label2.Text = "This tab is not yet implemented";
             // 
             // pageLog
             // 
@@ -1179,6 +1266,7 @@
             this.rtbLog.Size = new System.Drawing.Size(678, 489);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
+            this.rtbLog.KeyDown += new System.Windows.Forms.KeyEventHandler(this.rtbLog_KeyDown);
             // 
             // imglistIcons
             // 
@@ -1236,6 +1324,10 @@
             this.mnuInspectors.ResumeLayout(false);
             this.pnlTamper.ResumeLayout(false);
             this.pnlTamper.PerformLayout();
+            this.pageAutoResponder.ResumeLayout(false);
+            this.pageAutoResponder.PerformLayout();
+            this.pageComposer.ResumeLayout(false);
+            this.pageComposer.PerformLayout();
             this.pageLog.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1277,8 +1369,8 @@
         private System.Windows.Forms.ToolStripMenuItem miEditMarkUnmark;
         private System.Windows.Forms.ToolStripMenuItem miFileImport;
         private System.Windows.Forms.ToolStripMenuItem miFileExport;
-        private System.Windows.Forms.ToolStripMenuItem allExchangesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem selectedExchangesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miFileExportAll;
+        private System.Windows.Forms.ToolStripMenuItem miFileExportSelected;
         private System.Windows.Forms.ToolStripMenuItem miFileExit;
         private System.Windows.Forms.ToolStripMenuItem miViewStayOnTop;
         private System.Windows.Forms.ToolStripMenuItem miViewMinimize;
@@ -1348,6 +1440,14 @@
         public System.Windows.Forms.TabControl tabsViews;
         public ExchangeListView lvExchanges;
         private RichTextBoxV5 rtbStatistics;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ToolStripMenuItem miFileSaveRequest;
+        private System.Windows.Forms.ToolStripMenuItem miFileSaveRequestFull;
+        private System.Windows.Forms.ToolStripMenuItem miFileSaveRequestBody;
+        private System.Windows.Forms.ToolStripMenuItem miFileSaveResponse;
+        private System.Windows.Forms.ToolStripMenuItem miFileSaveResponseBody;
+        private System.Windows.Forms.ToolStripMenuItem miFileSaveResponseFull;
     }
 }
 

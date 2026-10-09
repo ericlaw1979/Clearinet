@@ -371,16 +371,8 @@ namespace Clearinet
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
 
-            this.miEditUndelete.Click += MiEditUndelete_Click;
-            allExchangesToolStripMenuItem.Click += AllExchangesToolStripMenuItem_Click;
-
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
-        }
-
-        private void MiEditUndelete_Click(object sender, EventArgs e)
-        {
-            lvExchanges.UndeleteItems();
         }
 
         private void UpdateStatisticsTab(Exchange[] arrExchanges)
@@ -609,9 +601,20 @@ namespace Clearinet
             }
         }
 
-        private void AllExchangesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void miFileExportAll_Click(object sender, EventArgs e)
         {
             Exchange[] arrExchanges = GetAllExchanges();
+            actExportExchanges(arrExchanges);
+        }
+
+        private void miFileExportSelected_Click(object sender, EventArgs e)
+        {
+            Exchange[] arrExchanges = GetSelectedExchanges();
+            actExportExchanges(arrExchanges);
+        }
+
+        private void actExportExchanges(Exchange[] arrExchanges)
+        {
             string sFilename = Utilities.ObtainSaveFilename("Export Exchanges to HAR...", "HAR format|*.har|Any file|*.*");
             if (!sFilename.HasText()) return;
 
@@ -629,11 +632,12 @@ namespace Clearinet
                 dictOptions.Add("Filename", sFilename);
 
                 var exchImported = oExporter.ExportExchanges(tt.FormatName, arrExchanges, dictOptions,
-                                null /*  (s, pcea) => CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}")*/);
+                                (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); });
 
                 CApp.UI.SetStatusText($"Exported {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 32)} using the '{tt.FormatName}' exporter.");
             }
         }
+
         private void actImportFile(string sPath)
         {
             if (sPath.OICEndsWith(".saz"))
@@ -656,7 +660,7 @@ namespace Clearinet
                 dictOptions.Add("Filename", sPath);
 
                 var exchImported = oImporter.ImportExchanges(tt.FormatName, dictOptions,
-                                null /*  (s, pcea) => CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}")*/);
+                                (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); Application.DoEvents(); });
 
                 foreach (Exchange x in exchImported)
                 {
@@ -728,6 +732,11 @@ namespace Clearinet
 
         internal void UpdateLog(string sLog)
         {
+            if (this.InvokeRequired)
+            {
+                this.Invoke((Action<string>)UpdateLog, sLog);
+                return;
+            }
             Debug.Assert(!this.InvokeRequired);
             rtbLog.AppendText(sLog + "\r\n");
 
@@ -882,7 +891,6 @@ namespace Clearinet
         private void lvExchanges_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (CApp.isClosing) return;
-            // TODO: Store the most recent item for back/forward nav.
             lvExchanges.UpdateActiveItem();
             actRefreshUI(true);
         }
@@ -921,6 +929,14 @@ namespace Clearinet
             if (CApp.isClosing) return;
             if (tabsViews.SelectedTab != pageInspectors) return;
 
+            if (lvExchanges.SelectedItems.Count == 0)
+            {
+                // CLEAR Inspectors.
+                (tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase)?.Clear();
+                (tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase)?.Clear();
+                ShowSelectOne();
+                return;
+            }
             if (lvExchanges.SelectedItems.Count != 1)
             {
                 ShowSelectOne();
@@ -1310,6 +1326,116 @@ namespace Clearinet
         private void miFileSaveSelectedSAZ_Click(object sender, EventArgs e)
         {
             actSaveExchanges(GetSelectedExchanges());
+        }
+
+        private void lvExchanges_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.XButton1)
+            {
+                lvExchanges.ActivatePreviousItem();
+            }
+        }
+
+        private void rtbLog_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.A && e.Modifiers == Keys.Control)
+            {
+                rtbLog.SelectAll();
+                e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
+            if (e.KeyCode == Keys.X && e.Modifiers == Keys.Control)
+            {
+                rtbLog.Clear();
+                e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
+
+        }
+
+        private void miFileSaveRequestFull_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Exchange[] arrExchanges = GetSelectedExchanges();
+                if (arrExchanges.Length < 1) { CApp.DoNotifyUser("No Exchanges were selected.", "Nothing to Save"); return; }
+                for (int iX = 0; iX < arrExchanges.Length; ++iX)
+                {
+                    Exchange exch = arrExchanges[iX];
+                    string sFilename = Utilities.ObtainSaveFilename($"Export Exchange {exch.id} Request", "Any file|*.*");
+                    if (!sFilename.HasText()) return;
+                    File.WriteAllBytes(sFilename, exch.FullRequestBytes());
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Request dumping failed");
+            }
+        }
+
+        private void miFileSaveRequestBody_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Exchange[] arrExchanges = GetSelectedExchanges();
+                if (arrExchanges.Length < 1) { CApp.DoNotifyUser("No Exchanges were selected.", "Nothing to Save"); return; }
+                for (int iX = 0; iX < arrExchanges.Length; ++iX)
+                {
+                    Exchange exch = arrExchanges[iX];
+                    string sFilename = Utilities.ObtainSaveFilename($"Export Exchange {exch.id} Request Body", "Any file|*.*");
+                    if (!sFilename.HasText()) return;
+                    File.WriteAllBytes(sFilename, exch.RequestBody);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Request dumping failed");
+            }
+        }
+
+        private void miFileSaveResponseFull_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Exchange[] arrExchanges = GetSelectedExchanges();
+                if (arrExchanges.Length < 1) { CApp.DoNotifyUser("No Exchanges were selected.", "Nothing to Save"); return; }
+                for (int iX = 0; iX < arrExchanges.Length; ++iX)
+                {
+                    Exchange exch = arrExchanges[iX];
+                    string sFilename = Utilities.ObtainSaveFilename($"Export Exchange {exch.id} Response", "Any file|*.*");
+                    if (!sFilename.HasText()) return;
+                    File.WriteAllBytes(sFilename, exch.FullResponseBytes());
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Response dumping failed");
+            }
+        }
+
+        private void miFileSaveResponseBody_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Exchange[] arrExchanges = GetSelectedExchanges();
+                if (arrExchanges.Length < 1) { CApp.DoNotifyUser("No Exchanges were selected.", "Nothing to Export"); return; }
+                for (int iX = 0; iX < arrExchanges.Length; ++iX)
+                {
+                    Exchange exch = arrExchanges[iX];
+                    string sFilename = Utilities.ObtainSaveFilename($"Export Exchange {exch.id} Response Body", "Any file|*.*");
+                    if (!sFilename.HasText()) return;
+                    File.WriteAllBytes(sFilename, exch.ResponseBody);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Response dumping failed");
+            }
+        }
+
+        private void miEditUndelete_Click(object sender, EventArgs e)
+        {
+            lvExchanges.UndeleteItems();
         }
     }
 }

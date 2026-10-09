@@ -323,19 +323,14 @@ namespace ImportNetlog.WebFormats
                             int remainingLength = json.Length - index;
                             if (remainingLength >= 4)
                             {
-                                string sChar;
-                                try
+                                if (ushort.TryParse(json.Substring(index, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ushort codeUnit))
                                 {
-                                    uint codePoint = uint.Parse(json.Substring(index, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                                    sChar = char.ConvertFromUtf32((int)codePoint);
+                                    s.Append((char)codeUnit);
                                 }
-                                catch (Exception ex)
+                                else
                                 {
-                                    Debug.WriteLine("JSONConvert failed: " + ex.Message);
-                                    sChar = "\uFFFD";
+                                    s.Append('\uFFFD');
                                 }
-
-                                s.Append(sChar);
                                 index += 4;
                             }
                             else

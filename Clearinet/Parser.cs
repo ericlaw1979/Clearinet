@@ -179,7 +179,7 @@ namespace Clearinet
                 string statusLine = reader.ReadLine();
                 if (string.IsNullOrWhiteSpace(statusLine))
                 {
-                    throw new FormatException("Invalid HTTP response: missing status line.");
+                    throw new FormatException("Invalid HTTP response: missing status line.\n" + headerString);
                 }
 
                 // Parse Status Line (e.g., "HTTP/1.1 200 OK" or "HTTP/1.1 404 Not Found")

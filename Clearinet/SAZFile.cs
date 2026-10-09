@@ -1,6 +1,7 @@
 ﻿using Ionic.Zip;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -144,23 +145,42 @@ namespace Clearinet
                         CApp.ReportException(eX, "SAZ Read Failed");
                     }
 
-                    Exchange excNew = CreateExchangeWithRequestFromStream(strmContent);
-                    strmContent.Dispose();
+                    Exchange excNew;
+                    try
+                    {
+                        excNew = CreateExchangeWithRequestFromStream(strmContent);
+                        strmContent.Dispose();
+                    }
+                    catch
+                    {
+                        Debug.Assert(false); continue;
+                    }
 
                     ZipEntry eResponse = zf[eRequest.FileName.TrimAfter("_") + "_s.txt"];
                     if (null != eResponse)
                     {
-                        strmContent = eResponse.OpenReader();
-                        AddResponseFromStream(excNew, strmContent);
-                        strmContent.Dispose();
+                        try
+                        {
+                            if (eResponse.CompressedSize > 0)
+                            {
+                                strmContent = eResponse.OpenReader();
+                                AddResponseFromStream(excNew, strmContent);
+                                strmContent.Dispose();
+                            } // else {no response from server?}
+                        }
+                        catch { Debug.Assert(false, $"Failed to read response for {eResponse.FileName}"); }
                     }
 
                     ZipEntry eMetadata = zf[eRequest.FileName.TrimAfter("_") + "_m.xml"];
                     if (null != eMetadata)
                     {
-                        strmContent = eMetadata.OpenReader();
-                        AddMetadataFromStream(excNew, strmContent);
-                        strmContent.Dispose();
+                        try
+                        {
+                            strmContent = eMetadata.OpenReader();
+                            AddMetadataFromStream(excNew, strmContent);
+                            strmContent.Dispose();
+                        }
+                        catch { Debug.Assert(false); }
                     }
 
                     // TODO: WebSocket data

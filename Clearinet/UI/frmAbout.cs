@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Lifetime;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Windows.Forms;
@@ -16,6 +15,12 @@ namespace Clearinet
         {
             InitializeComponent();
             txtAbout.Text = $"{GetAppEnvironmentInfo()}\r\n\r\nCopyright ©2026 Clearinet Contributors";
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            ActiveControl = null; // Prevent focus on the textbox.
         }
 
         // Close on ESC

@@ -1,12 +1,13 @@
+using Clearinet;
+using ImportNetlog.WebFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net.Mime;
 using System.Text;
-using Clearinet;
-using ImportNetlog.WebFormats;
 
 namespace TestExtensions
 {
@@ -39,13 +40,19 @@ namespace TestExtensions
 
             try
             {
-                if (!NotifyProgress(evtProgress, 0, "Reading HTTP Archive.")) return null;
-                if (content == null) content = File.ReadAllText(filename, Encoding.UTF8);
+                if (content == null)
+                {
+                    if (!NotifyProgress(evtProgress, 0, $"Reading HTTP Archive data from '{filename}'.")) return null;
+                    content = File.ReadAllText(filename, Encoding.UTF8);
+                    if (!NotifyProgress(evtProgress, 1, "HTTP Archive file read completed.")) return null;
+                }
 
+                if (!NotifyProgress(evtProgress, 2, "Parsing HAR JSON...")) return null;
                 object parsed = JSON.JsonDecode(content.TrimStart('\uFEFF'), out JSON.JSONParseErrors errors);
                 if (errors.iErrorIndex >= 0)
                     throw new InvalidDataException($"Invalid HAR JSON at character {errors.iErrorIndex}.");
 
+                if (!NotifyProgress(evtProgress, 5, $"JSON parsing completed.")) return null;
                 Hashtable root = RequireObject(parsed, "HAR");
                 Hashtable log = RequireObject(root["log"], "log");
                 ArrayList entries = RequireArray(log["entries"], "log.entries");
@@ -57,7 +64,7 @@ namespace TestExtensions
                     exchanges.Add(ReadEntry(RequireObject(entries[i], $"entry {i + 1}")));
                 }
 
-                if (!NotifyProgress(evtProgress, 1, $"Imported {exchanges.Count} HAR entries.")) return null;
+                if (!NotifyProgress(evtProgress, 100, $"Imported {exchanges.Count} HAR entries.")) return null;
                 return exchanges.ToArray();
             }
             catch (IOException eX)
@@ -128,7 +135,7 @@ namespace TestExtensions
                     hasRequestBody = true;
                 }
                 else if (postData["params"] is ArrayList parameters &&
-                    new ContentType(requestHeaders["Content-Type"]).MediaType.OICEquals("application/x-www-form-urlencoded"))
+                    ContentTypeIs(requestHeaders["Content-Type"], "application/x-www-form-urlencoded"))
                 {
                     List<string> pairs = new List<string>(parameters.Count);
                     foreach (object parameter in parameters)
@@ -180,6 +187,12 @@ namespace TestExtensions
             return exchange;
         }
 
+        private static bool ContentTypeIs(string sContentType, string sMediaType)
+        {
+            if (!sContentType.HasText()) return false;
+            return sMediaType.OICEquals(sContentType.TrimAfter(';'));
+        }
+
         private static void ReadHeaders(object value, HTTPHeaders headers)
         {
             foreach (object item in RequireArray(value, "headers"))
@@ -204,8 +217,21 @@ namespace TestExtensions
             if (!String.IsNullOrEmpty(encoding))
                 throw new InvalidDataException($"Unsupported HAR body encoding: {encoding}.");
 
-            string charset = String.IsNullOrEmpty(contentType) ? null : new ContentType(contentType).CharSet;
+            string charset = String.IsNullOrEmpty(contentType) ? null : GetCharset(contentType);
             return (String.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset)).GetBytes(text);
+        }
+
+        private static string GetCharset(string contentType)
+        {
+            try
+            {
+                return new ContentType(contentType).CharSet;
+            }
+            catch (FormatException)
+            {
+                Trace.Write("illegal charset in HAR Content-Type: {contentType}");
+                return null;
+            }
         }
 
         private static void NormalizeBodyHeaders(HTTPHeaders headers, int length)

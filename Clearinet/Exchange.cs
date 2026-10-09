@@ -109,16 +109,19 @@ namespace Clearinet
             {
                 // TODO: We probably don't want to use the actual .NET URL parser here.
                 Uri oUri;
-                if (!Uri.TryCreate(value, UriKind.Absolute, out oUri))
+                if (Uri.TryCreate(value, UriKind.Absolute, out oUri))
                 {
-                    throw new ArgumentException($"Invalid URL: {value}");
+                    RequestHeaders["Host"] = oUri.Host;
+                    if (!oUri.IsDefaultPort)
+                    {
+                        RequestHeaders["Host"] += $":{oUri.Port}";
+                        RequestHeaders.RequestPath = oUri.PathAndQuery;
+                    }
                 }
-                RequestHeaders["Host"] = oUri.Host;
-                if (!oUri.IsDefaultPort)
+                else
                 {
-                    RequestHeaders["Host"] += $":{oUri.Port}";
+                    RequestHeaders.RequestPath = value;
                 }
-                RequestHeaders.RequestPath = oUri.PathAndQuery;
             }
         }
         public string fullUrl
@@ -462,6 +465,36 @@ namespace Clearinet
                 CApp.ReportException(eX, "Saving Exchange metadata failed");
                 return false;
             }
+        }
+
+        internal byte[] FullResponseBytes()
+        {
+            MemoryStream ms = new MemoryStream();
+            if (null != ResponseHeaders)
+            {
+                byte[] arrHeaders = ResponseHeaders.ToByteArray();
+                ms.Write(arrHeaders, 0, arrHeaders.Length);
+            }
+            if (null != ResponseBody)
+            {
+                ms.Write(ResponseBody, 0, ResponseBody.Length);
+            }
+            return ms.ToArray();
+        }
+
+        internal byte[] FullRequestBytes()
+        {
+            MemoryStream ms = new MemoryStream();
+            if (null != RequestHeaders)
+            {
+                byte[] arrHeaders = RequestHeaders.ToByteArray();
+                ms.Write(arrHeaders, 0, arrHeaders.Length);
+            }
+            if (null != RequestBody)
+            {
+                ms.Write(RequestBody, 0, RequestBody.Length);
+            }
+            return ms.ToArray();
         }
     }
 

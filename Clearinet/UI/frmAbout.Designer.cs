@@ -45,7 +45,8 @@
             this.txtAbout.Margin = new System.Windows.Forms.Padding(4);
             this.txtAbout.Multiline = true;
             this.txtAbout.Name = "txtAbout";
-            this.txtAbout.Size = new System.Drawing.Size(243, 197);
+            this.txtAbout.ReadOnly = true;
+            this.txtAbout.Size = new System.Drawing.Size(293, 201);
             this.txtAbout.TabIndex = 1;
             // 
             // pbIcon
@@ -63,7 +64,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(369, 238);
+            this.ClientSize = new System.Drawing.Size(419, 242);
             this.Controls.Add(this.pbIcon);
             this.Controls.Add(this.txtAbout);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
