@@ -30,7 +30,13 @@ class Handlers {
         for(var sFlag in arrEx[i].oFlags)
             sbOut.AppendFormat("\t{0}:\t\t{1}\n", sFlag.Key, sFlag.Value);
         
-        sbOut.AppendFormat("\n BitFlags: {0}", arrEx[i].BitFlags);
+        sbOut.AppendFormat("\n BitFlags: {0}\n\n", arrEx[i].BitFlags);
+        
+	if (arrEx[i].ResponseHeaders.Exists("Content-Encoding")) {
+	  var strDecoded = arrEx[i].GetResponseBodyAsString();
+	  sbOut.AppendLine("== Content was compressed.========== \nDecoded content is " + strDecoded.Length.ToString()+ " bytes.\n");
+ 	  sbOut.AppendLine("Decoded content: " + strDecoded.slice(0, 2048));
+	}
       }
       return sbOut.ToString();
     }

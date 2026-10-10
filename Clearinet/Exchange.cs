@@ -261,7 +261,39 @@ namespace Clearinet
         }
         public string GetResponseBodyAsString()
         {
-            return string.Empty;
+            byte[] decompressed = ResponseBody;
+            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "gzip") &&
+                decompressed.HasData())
+            {
+                var sw = Stopwatch.StartNew();
+                decompressed = Utilities.GzipExpand(ResponseBody);
+                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of gzip to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
+            }
+
+            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "deflate") &&
+                decompressed.HasData())
+            {
+                var sw = Stopwatch.StartNew();
+                decompressed = Utilities.DeflaterExpand(ResponseBody, false);
+                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of deflate to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
+            }
+
+            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "zstd") &&
+                decompressed.HasData())
+            {
+                var sw = Stopwatch.StartNew();
+                decompressed = Utilities.Zstdexpand(ResponseBody);
+                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of Zstd to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
+            }
+            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "br") &&
+            decompressed.HasData())
+            {
+                var sw = Stopwatch.StartNew();
+                decompressed = Utilities.BrotliExpand(ResponseBody);
+                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of Brotli to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
+            }
+
+            return Encoding.UTF8.GetString(decompressed); // TODO: Use the charset from the Content-Type header if present.
         }
         public ExchangeTimers Timers = new ExchangeTimers();
 

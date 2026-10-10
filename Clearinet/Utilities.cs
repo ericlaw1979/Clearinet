@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using BrotliSharpLib;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -367,6 +368,34 @@ namespace Clearinet
         public static string[] Parameterize(string sInput)
         {
             return Parameterize(sInput, false);
+        }
+
+        public static byte[] Zstdexpand(byte[] arrData)
+        {
+            if (!arrData.HasData()) return Array.Empty<byte>();
+            using (var msInput = new MemoryStream(arrData))
+            using (var msOutput = new MemoryStream())
+            {
+                using (var zstd = new ZstdSharp.DecompressionStream(msInput))
+                {
+                    zstd.CopyTo(msOutput);
+                }
+                return msOutput.ToArray();
+            }
+        }
+
+        public static byte[] BrotliExpand(byte[] arrData)
+        {
+            if (!arrData.HasData()) return Array.Empty<byte>();
+            using (var msInput = new MemoryStream(arrData))
+            using (var msOutput = new MemoryStream())
+            {
+                using (var br = new BrotliStream(msInput, CompressionMode.Decompress))
+                {
+                    br.CopyTo(msOutput);
+                }
+                return msOutput.ToArray();
+            }
         }
 
         public static byte[] GzipExpand(byte[] arrData)

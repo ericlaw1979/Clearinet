@@ -83,6 +83,15 @@ File "..\Content\SAZFile.ico"
 
 ; Install any 3P dependencies
 File "..\Clearinet\bin\Release\Ionic.Zip.Reduced.dll"
+File "..\Clearinet\bin\Release\ZstdSharp.dll"
+File "..\Clearinet\bin\Release\BrotliSharpLib.dll"
+  
+; Microsoft Support Assemblies Zstd and Brotli rely upon:
+File "..\Clearinet\bin\Release\System.Buffers.dll"
+File "..\Clearinet\bin\Release\System.Memory.dll"
+File "..\Clearinet\bin\Release\System.Numerics.Vectors.dll"
+File "..\Clearinet\bin\Release\System.Runtime.CompilerServices.Unsafe.dll"
+File "..\Clearinet\bin\Release\System.Threading.Tasks.Extensions.dll"
 
 ; Install any default extensions
 ; Install any template scripts/responses/etc
@@ -241,6 +250,13 @@ Delete "$INSTDIR\clearinet.exe"
 Delete "$INSTDIR\clearinet.exe.config"
 Delete "$INSTDIR\SAZFile.ico"
 Delete "$INSTDIR\Ionic.Zip.Reduced.dll"
+Delete "$INSTDIR\ZstdSharp.dll"
+Delete "$INSTDIR\BrotliSharpLib.dll"
+Delete "$INSTDIR\System.Buffers.dll"
+Delete "$INSTDIR\System.Memory.dll"
+Delete "$INSTDIR\System.Numerics.Vectors.dll"
+Delete "$INSTDIR\System.Runtime.CompilerServices.Unsafe.dll"
+Delete "$INSTDIR\System.Threading.Tasks.Extensions.dll"
 
 Delete "$INSTDIR\Credits.txt"
 
