@@ -77,6 +77,16 @@ namespace TestExtensions
             return 5;
         }
 
+        public override int ScoreForExchange(Exchange oX)
+        {
+            // If it's a redirect, we're probably the most relevant:
+            if (oX.responseCode >= 300 && oX.responseCode < 400) return 80;
+            // If there's no response body, we're pretty relevant:
+            if (!oX.ResponseBody.HasData()) return 60;
+
+            return ScoreForContentType(oX.ResponseHeaders?["Content-Type"]);
+        }
+
         public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
             try
@@ -115,7 +125,9 @@ namespace TestExtensions
         };
 
         private static HashSet<string> htHighlight = new HashSet<string>(
-            CApp.Prefs.GetStringPref("inspectors.headers.highlighted_names", "authorization,content-type,content-length,cookie,set-cookie,host").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+            CApp.Prefs.GetStringPref("inspectors.headers.highlighted_names",
+                             "authorization,content-type,content-length,content-disposition,cookie,set-cookie,"
+                            + "host,location,set-cookie").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
             StringComparer.OrdinalIgnoreCase);
 
         internal static void Populate(BetterTreeView tree, IEnumerable<HTTPHeaderItem> headers)

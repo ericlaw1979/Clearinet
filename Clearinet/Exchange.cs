@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -261,39 +263,215 @@ namespace Clearinet
         }
         public string GetResponseBodyAsString()
         {
-            byte[] decompressed = ResponseBody;
-            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "gzip") &&
-                decompressed.HasData())
-            {
-                var sw = Stopwatch.StartNew();
-                decompressed = Utilities.GzipExpand(ResponseBody);
-                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of gzip to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
-            }
-
-            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "deflate") &&
-                decompressed.HasData())
-            {
-                var sw = Stopwatch.StartNew();
-                decompressed = Utilities.DeflaterExpand(ResponseBody, false);
-                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of deflate to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
-            }
-
-            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "zstd") &&
-                decompressed.HasData())
-            {
-                var sw = Stopwatch.StartNew();
-                decompressed = Utilities.Zstdexpand(ResponseBody);
-                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of Zstd to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
-            }
-            if (ResponseHeaders.ExistsAndContains("Content-Encoding", "br") &&
-            decompressed.HasData())
-            {
-                var sw = Stopwatch.StartNew();
-                decompressed = Utilities.BrotliExpand(ResponseBody);
-                CApp.Log.Log($"Expanded {ResponseBody.Length:N0}bytes of Brotli to {decompressed.Length:N0}bytes in {sw.ElapsedMilliseconds}ms.");
-            }
-
+            byte[] decompressed = DecodeBodyFromHeaders(ResponseHeaders, ResponseBody);
             return Encoding.UTF8.GetString(decompressed); // TODO: Use the charset from the Content-Type header if present.
+        }
+
+        public static byte[] DecodeBodyFromHeaders(HTTPHeaders headers, byte[] bodyBytes)
+        {
+            byte[] decoded = bodyBytes ?? Array.Empty<byte>();
+            if (headers == null || !decoded.HasData()) return decoded;
+
+            List<string> transferEncodings = GetEncodingTokens(headers, "Transfer-Encoding");
+            for (int i = transferEncodings.Count - 1; i >= 0 && decoded.HasData(); i--)
+            {
+                decoded = DecodeTransferEncoding(transferEncodings[i], decoded);
+            }
+
+            List<string> contentEncodings = GetEncodingTokens(headers, "Content-Encoding");
+            for (int i = contentEncodings.Count - 1; i >= 0 && decoded.HasData(); i--)
+            {
+                decoded = DecodeContentEncoding(contentEncodings[i], decoded);
+            }
+
+            return decoded;
+        }
+
+        private static List<string> GetEncodingTokens(HTTPHeaders headers, string headerName)
+        {
+            var tokens = new List<string>();
+            if (headers is IEnumerable<HTTPHeaderItem> allHeaders)
+            {
+                foreach (var header in allHeaders)
+                {
+                    if (!header.Name.OICEquals(headerName)) continue;
+                    AddEncodingTokens(tokens, header.Value);
+                }
+            }
+            else
+            {
+                AddEncodingTokens(tokens, headers[headerName]);
+            }
+            return tokens;
+        }
+
+        private static void AddEncodingTokens(List<string> tokens, string headerValue)
+        {
+            if (string.IsNullOrWhiteSpace(headerValue)) return;
+
+            string[] parts = headerValue.Split(',');
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string token = parts[i]?.Trim();
+                if (string.IsNullOrEmpty(token)) continue;
+
+                int parameterDelimiter = token.IndexOf(';');
+                if (parameterDelimiter >= 0)
+                {
+                    token = token.Substring(0, parameterDelimiter).Trim();
+                }
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    tokens.Add(token);
+                }
+            }
+        }
+
+        private static byte[] DecodeTransferEncoding(string encoding, byte[] input)
+        {
+            switch (encoding.ToLowerInvariant())
+            {
+                case "identity":
+                    return input;
+                case "chunked":
+                    return DecodeChunkedBody(input);
+                case "gzip":
+                    return Utilities.GzipExpand(input);
+                case "deflate":
+                    return Utilities.DeflaterExpand(input, true);
+                case "br":
+                    return Utilities.BrotliExpand(input);
+                case "zstd":
+                    return Utilities.Zstdexpand(input);
+                default:
+                    throw new InvalidDataException($"Unsupported Transfer-Encoding token '{encoding}'.");
+            }
+        }
+
+        private static byte[] DecodeContentEncoding(string encoding, byte[] input)
+        {
+            switch (encoding.ToLowerInvariant())
+            {
+                case "identity":
+                    return input;
+                case "gzip":
+                    return Utilities.GzipExpand(input);
+                case "deflate":
+                    return Utilities.DeflaterExpand(input, true);
+                case "br":
+                    return Utilities.BrotliExpand(input);
+                case "zstd":
+                    return Utilities.Zstdexpand(input);
+                default:
+                    throw new InvalidDataException($"Unsupported Content-Encoding token '{encoding}'.");
+            }
+        }
+
+        private static byte[] DecodeChunkedBody(byte[] chunkedBody)
+        {
+            if (!chunkedBody.HasData()) return Array.Empty<byte>();
+
+            using (var input = new MemoryStream(chunkedBody, writable: false))
+            using (var output = new MemoryStream(chunkedBody.Length))
+            {
+                while (true)
+                {
+                    string chunkSizeLine = ReadHttpLine(input);
+                    if (chunkSizeLine == null)
+                    {
+                        throw new InvalidDataException("Chunked body ended before a terminating chunk was found.");
+                    }
+
+                    int extensionDelimiter = chunkSizeLine.IndexOf(';');
+                    if (extensionDelimiter >= 0)
+                    {
+                        chunkSizeLine = chunkSizeLine.Substring(0, extensionDelimiter);
+                    }
+
+                    chunkSizeLine = chunkSizeLine.Trim();
+                    if (!int.TryParse(chunkSizeLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int chunkSize))
+                    {
+                        throw new InvalidDataException($"Invalid chunk size line '{chunkSizeLine}'.");
+                    }
+
+                    if (chunkSize == 0)
+                    {
+                        SkipChunkTrailers(input);
+                        break;
+                    }
+
+                    CopyChunkData(input, output, chunkSize);
+                    VerifyChunkTerminator(input);
+                }
+
+                return output.ToArray();
+            }
+        }
+
+        private static string ReadHttpLine(Stream input)
+        {
+            var lineBuilder = new StringBuilder();
+            while (true)
+            {
+                int next = input.ReadByte();
+                if (next < 0)
+                {
+                    return lineBuilder.Length == 0 ? null : lineBuilder.ToString();
+                }
+
+                if (next == '\n') return lineBuilder.ToString();
+                if (next == '\r')
+                {
+                    int afterCr = input.ReadByte();
+                    if (afterCr < 0 || afterCr == '\n') return lineBuilder.ToString();
+                    lineBuilder.Append((char)next);
+                    lineBuilder.Append((char)afterCr);
+                    continue;
+                }
+
+                lineBuilder.Append((char)next);
+            }
+        }
+
+        private static void SkipChunkTrailers(Stream input)
+        {
+            while (true)
+            {
+                string trailer = ReadHttpLine(input);
+                if (string.IsNullOrEmpty(trailer)) return;
+            }
+        }
+
+        private static void CopyChunkData(Stream input, Stream output, int chunkSize)
+        {
+            int remaining = chunkSize;
+            byte[] buffer = new byte[Math.Min(chunkSize, 8192)];
+            while (remaining > 0)
+            {
+                int bytesRead = input.Read(buffer, 0, Math.Min(buffer.Length, remaining));
+                if (bytesRead <= 0)
+                {
+                    throw new InvalidDataException("Chunk data ended before the declared chunk size was reached.");
+                }
+
+                output.Write(buffer, 0, bytesRead);
+                remaining -= bytesRead;
+            }
+        }
+
+        private static void VerifyChunkTerminator(Stream input)
+        {
+            int first = input.ReadByte();
+            if (first == '\r')
+            {
+                int second = input.ReadByte();
+                if (second == '\n') return;
+                throw new InvalidDataException("Chunk data was not followed by a CRLF terminator.");
+            }
+
+            if (first == '\n') return;
+            throw new InvalidDataException("Chunk data was not followed by a line terminator.");
         }
         public ExchangeTimers Timers = new ExchangeTimers();
 
@@ -387,6 +565,7 @@ namespace Clearinet
             this.RequestHeaders = rqh; // CLONE?
             this._arrRequestBody = arrReqBody; // CLONE?
         }
+
 
         public string RequestMethod
         {
