@@ -4,8 +4,10 @@
     <TargetFramework>net481</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>CAE-$(MSBuildProjectName)</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
-
+	
   <ItemGroup>
     <ProjectReference Include="..\Clearinet\Clearinet.csproj" />
   </ItemGroup>
@@ -13,6 +15,10 @@
   <ItemGroup>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Svg" Version="3.4.8" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

@@ -1,4 +1,5 @@
 ﻿using Clearinet;
+using Svg;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -47,19 +48,35 @@ namespace TestExtensions
         {
             if (null == headers || !arrBody.HasData()) { Debug.Assert(false); Clear(); return; }
             var sContentType = headers["Content-Type"];
+            bool bHasEncoding = headers.ExistsAny("Content-Encoding", "Transfer-Encoding");
             oView.txtMetadata.Text = sContentType;
             try
             {
-                imageRendered = new Bitmap(new MemoryStream(arrBody));
+                // If the response claims to be an image, then proactively remove encoding before
+                // trying to render it.
+                if (bHasEncoding && sContentType.StartsWith("image/"))
+                {
+                    arrBody = Exchange.DecodeBodyFromHeaders(headers, arrBody);
+                }
+
+                if (sContentType.OICStartsWith("image/svg+xml"))
+                {
+                    using (var oSvgStream = new MemoryStream(arrBody))
+                    {
+                        var oSvgDocument = SvgDocument.Open<SvgDocument>(oSvgStream);
+                        imageRendered = oSvgDocument.Draw();
+                    }
+                }
+                else
+                {
+                    imageRendered = new Bitmap(new MemoryStream(arrBody));
+                }
                 oView.pbImage.Image = imageRendered;
             }
             catch
             {
                 oView.pbImage.Image = null;
-                /* TODO: We probably should just do the work to remove the encoding ourselves */
-                var sEncodingWarning =
-                    headers.ExistsAny("Content-Encoding", "Transfer-Encoding") ?
-                    "ENCODING PRESENT, Remove before viewing.\r\n" : string.Empty;
+                var sEncodingWarning = bHasEncoding ? "HTTP ENCODING PRESENT.\r\n" : string.Empty;
                 oView.txtMetadata.Text = $"Not an image?\r\n\r\n{sEncodingWarning}Content-Type: {sContentType}";
             }
         }
@@ -72,7 +89,6 @@ namespace TestExtensions
             oView.pbImage.Cursor = Cursors.Default;
         }
 
-        // todo: exclude image/svg+xml until we can handle it.
         public override int ScoreForContentType(string sMIME) => (sMIME.OICStartsWith("image/") ? 90 : -1);
 
         public override int GetOrder() => -200;
