@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -26,7 +19,7 @@ namespace Clearinet
         private void btnOk_Click(object sender, EventArgs e)
         {
             // Don't clutter the prefs with default values.
-            if (!cbAttachOnStartup.Checked) 
+            if (!cbAttachOnStartup.Checked)
                 CApp.Prefs.SetBoolPref("app.attach_on_startup", false);
             else
                 CApp.Prefs.RemovePref("app.attach_on_startup");

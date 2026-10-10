@@ -383,6 +383,7 @@ namespace Clearinet
             this.lvExchanges.DragDrop += lvExchanges_DragDrop;
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
+            rtbLog.Font = new Font("Consolas", CONFIG.flFontSize);
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();

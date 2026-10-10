@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -213,8 +215,50 @@ namespace Clearinet
                 return true;
             }
 
+            if ("lm" == sCmd)
+            {
+                _DumpModulesToLog();
+                UI.actActivateTab("Log");
+                return true;
+            }
+
             if (scriptRules == null) return false;
             return scriptRules.RunExecAction(arrParams);
+        }
+
+        internal static void _DumpModulesToLog()
+        {
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            List<AssemblyName> nameList = new List<AssemblyName>();
+
+            // Extract AssemblyName objects
+            for (int i = 0; i < assemblies.Length; i++)
+            {
+                AssemblyName name = assemblies[i].GetName();
+                if (name.Name != null)
+                {
+                    nameList.Add(name);
+                }
+            }
+
+            // Sort alphabetically by Name (case-insensitive)
+            nameList.Sort(delegate (AssemblyName x, AssemblyName y)
+            {
+                return string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase);
+            });
+
+            // Format multiline string
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{"Assembly Name",-45} | {"Version",-15}");
+            sb.AppendLine(new string('-', 63));
+
+            for (int i = 0; i < nameList.Count; i++)
+            {
+                AssemblyName name = nameList[i];
+                sb.AppendLine($"{name.Name,-45} | {name.Version,-15}");
+            }
+
+            Log.Log(sb.ToString());
         }
 
         internal static void CreateScriptEngine()
