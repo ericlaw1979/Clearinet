@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
-namespace ImportNetlog.WebFormats
+namespace Clearinet.WebFormats
 {
     /// <summary>
     /// This class encodes and decodes JSON text http://www.json.org/

@@ -1,5 +1,5 @@
 ﻿using Clearinet;
-using ImportNetlog.WebFormats;
+using Clearinet.WebFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -1,3 +1,5 @@
+using Clearinet;
+using Clearinet.WebFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,8 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Text;
-using Clearinet;
-using ImportNetlog.WebFormats;
 
 namespace TestExtensions
 {
@@ -202,8 +202,13 @@ namespace TestExtensions
                 ["cache"] = new Hashtable(),
                 ["timings"] = new Hashtable
                 {
-                    ["blocked"] = blocked, ["dns"] = dns, ["connect"] = connect,
-                    ["ssl"] = ssl, ["send"] = send, ["wait"] = wait, ["receive"] = receive
+                    ["blocked"] = blocked,
+                    ["dns"] = dns,
+                    ["connect"] = connect,
+                    ["ssl"] = ssl,
+                    ["send"] = send,
+                    ["wait"] = wait,
+                    ["receive"] = receive
                 }
             };
             if (timeMissing) entry["comment"] = "Capture timestamp unavailable; startedDateTime is a placeholder.";

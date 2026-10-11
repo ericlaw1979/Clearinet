@@ -384,6 +384,8 @@ namespace Clearinet
             }
         }
 
+        // Note: System.IO.Compression.BrotliStream is only available in
+        // .NET Standard 2.1 and later, so we use BrotliSharpLib.
         public static byte[] BrotliExpand(byte[] arrData)
         {
             if (!arrData.HasData()) return Array.Empty<byte>();

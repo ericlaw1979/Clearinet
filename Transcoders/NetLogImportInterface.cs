@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Clearinet;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
-using Clearinet;
 using System.IO.Compression;
+using System.Text;
 
 namespace ImportNetlog
 {
@@ -63,7 +63,8 @@ namespace ImportNetlog
                             bWasGZIP = true;
                             evtProgressNotifications?.Invoke(null, new ProgressEventArgs(0, "Import file was compressed using gzip/DEFLATE."));
                         }
-                        else if (bFirst == 0x50 && oFS.ReadByte() == 0x4b) {
+                        else if (bFirst == 0x50 && oFS.ReadByte() == 0x4b)
+                        {
                             bWasPKZIP = true;
                             evtProgressNotifications?.Invoke(null, new ProgressEventArgs(0, "Import file was a ZIP archive."));
                         }
