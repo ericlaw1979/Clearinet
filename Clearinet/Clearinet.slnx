@@ -7,5 +7,6 @@
     <File Path="../Docs/SECURITY.md" />
   </Folder>
   <Project Path="../TestExtensions/TestExtensions.csproj" Id="f028e611-c356-4b37-9b47-b5cdbd8d7f92" />
+  <Project Path="../Transcoders/Transcoders.csproj" Id="ff9d8da4-d3e5-4ff9-8d6c-3d02858debd3" />
   <Project Path="Clearinet.csproj" Id="38557fae-6dad-4b56-878e-eaddc455d47b" />
 </Solution>

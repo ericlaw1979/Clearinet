@@ -151,8 +151,9 @@
     <Compile Include="SimpleLog.cs" />
     <Compile Include="ExtensionMethods\StringExtensions.cs" />
     <Compile Include="UI\ThemeManager.cs" />
-    <Compile Include="Utilities.cs" />
+    <Compile Include="Utilities\Utilities.cs" />
     <Compile Include="UI\Win32UI.cs" />
+    <Compile Include="Utilities\JSON.cs" />
     <EmbeddedResource Include="UI\frmAbout.resx">
       <DependentUpon>frmAbout.cs</DependentUpon>
       <SubType>Designer</SubType>

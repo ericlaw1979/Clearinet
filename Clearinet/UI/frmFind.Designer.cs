@@ -106,8 +106,8 @@
         #endregion
 
         private System.Windows.Forms.Button btnFind;
-        private System.Windows.Forms.TextBox txtToFind;
-        private System.Windows.Forms.ComboBox cbxFindIn;
-        private System.Windows.Forms.ComboBox cbxWhichComponent;
+        internal System.Windows.Forms.TextBox txtToFind;
+        internal System.Windows.Forms.ComboBox cbxFindIn;
+        internal System.Windows.Forms.ComboBox cbxWhichComponent;
     }
 }
