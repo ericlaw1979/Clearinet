@@ -1,6 +1,7 @@
 ﻿using Clearinet.UI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -490,6 +491,7 @@ namespace Clearinet
         private bool actSaveExchanges(Exchange[] arrExchanges)
         {
             if (arrExchanges?.Length < 1) return false;
+
             try
             {
                 (string sFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
@@ -518,9 +520,12 @@ namespace Clearinet
                         CApp.Prefs.SetBoolPref("app.saz.warn_about_data_protection", true);
                     }
                 }
-                SAZFile.SaveTo(sFilename, arrExchanges, sPassword);
-                CApp.UI.mruRecents.PushFile(sFilename);
-                CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypted" : "Saved")} {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 48)}");
+                using (LongRunningOperation lro = new LongRunningOperation("Saving Exchanges...", true))
+                {
+                    SAZFile.SaveTo(sFilename, arrExchanges, sPassword, lro: lro);
+                    CApp.UI.mruRecents.PushFile(sFilename);
+                    CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypted" : "Saved")} {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 48)}");
+                }
             }
             catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
             return true;
@@ -1492,6 +1497,63 @@ namespace Clearinet
                 sbAllHeaders.AppendLine("==================================");
             }
             Clipboard.SetText(sbAllHeaders.ToString());
+        }
+    }
+
+    public class LongRunningOperation : IDisposable
+    {
+        private bool PreventSleepOrExit { get; set; }
+
+        public string OperationName { get; private set; }
+
+        private ToolStripProgressBar ProgressUI;
+
+        private CancelEventHandler ceh;
+
+        public LongRunningOperation(string sOperationName, bool bPreventSleepOrExit)
+        {
+            OperationName = sOperationName;
+            PreventSleepOrExit = bPreventSleepOrExit;
+            if (PreventSleepOrExit)
+            {
+                ceh = (s, e) =>
+                {
+                    CApp.UI.SetStatusText($"Please wait for the operation ('{OperationName}') to complete before exiting.");
+                    e.Cancel = true;
+                };
+                PlatformAPI.PreventSleep(keepDisplayOn: false);
+                CApp.BeforeAppShutdown += ceh;
+            }
+            ProgressUI = new ToolStripProgressBar()
+            {
+                Maximum = 100,
+                ToolTipText = sOperationName,
+                Style = ProgressBarStyle.Marquee
+            };
+
+            CApp.UI.tsToolbar.Items.Insert(0, ProgressUI);
+            Application.DoEvents();
+        }
+
+        public void UpdateProgress(int iPercent)
+        {
+            if (null != ProgressUI)
+            {
+                ProgressUI.Style = ProgressBarStyle.Blocks;
+                ProgressUI.Value = iPercent;
+                Application.DoEvents();
+            }
+        }
+
+        public void Dispose()
+        {
+            CApp.UI.tsToolbar.Items.Remove(ProgressUI);
+            ProgressUI.Dispose();
+            if (PreventSleepOrExit)
+            {
+                PlatformAPI.RestoreSleep();
+                CApp.BeforeAppShutdown -= ceh;
+            }
         }
     }
 }

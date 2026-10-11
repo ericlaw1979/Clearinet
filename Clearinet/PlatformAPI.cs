@@ -147,5 +147,40 @@ namespace Clearinet
             return $"Current: {current:F3}ms; Min: {min:F3}ms; Max: {max:F3}ms";
         }
         #endregion SystemClockResolution
+
+        // Win32 API Flags
+        [Flags]
+        private enum ExecutionState : uint
+        {
+            ES_SYSTEM_REQUIRED = 0x00000001,  // Prevents the system from sleeping
+            ES_DISPLAY_REQUIRED = 0x00000002, // Prevents the display from turning off
+            ES_CONTINUOUS = 0x80000000        // Informs system that state remains in effect until reset
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern ExecutionState SetThreadExecutionState(ExecutionState esFlags);
+
+        /// <summary>
+        /// Prevents the PC (and optionally the display) from going to sleep.
+        /// </summary>
+        /// <param name="keepDisplayOn">Set to true to also keep the monitor on.</param>
+        internal static void PreventSleep(bool keepDisplayOn = false)
+        {
+            ExecutionState flags = ExecutionState.ES_CONTINUOUS | ExecutionState.ES_SYSTEM_REQUIRED;
+            if (keepDisplayOn)
+            {
+                flags |= ExecutionState.ES_DISPLAY_REQUIRED;
+            }
+
+            SetThreadExecutionState(flags);
+        }
+
+        /// <summary>
+        /// Restores default power management behaviors, allowing the PC to sleep normally.
+        /// </summary>
+        internal static void RestoreSleep()
+        {
+            SetThreadExecutionState(ExecutionState.ES_CONTINUOUS);
+        }
     }
 }

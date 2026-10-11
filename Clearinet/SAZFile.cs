@@ -337,7 +337,7 @@ namespace Clearinet
             return e;
         }
 
-        internal static bool SaveTo(string filePath, Exchange[] exchanges, string password = null, string comment = null)
+        internal static bool SaveTo(string filePath, Exchange[] exchanges, string password = null, string comment = null, LongRunningOperation lro = null)
         {
             if (exchanges == null || exchanges.Length < 1) throw new ArgumentException("No Exchanges to save.");
             ZipFile zf = new ZipFile();
@@ -396,11 +396,12 @@ namespace Clearinet
                 {
                     exch.WriteMetadataToStream(strm);
                 });
+                lro?.UpdateProgress((iX * 100) / exchanges.Length);
+                System.Threading.Thread.Sleep(2000); // Give the UI a moment to update
             }
             #endregion
 
             WriteLegacyIndexFile(zf, exchanges);
-
             zf.Save(filePath);
             zf.Dispose();
             return true;
