@@ -1063,6 +1063,7 @@ namespace Clearinet
                             }
                         };
                         items.Add(newItem);
+                        ix++;
                     }
                 }
 
