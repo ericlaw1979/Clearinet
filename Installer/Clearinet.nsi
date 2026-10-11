@@ -95,7 +95,17 @@ File "..\Clearinet\bin\Release\System.Numerics.Vectors.dll"
 File "..\Clearinet\bin\Release\System.Runtime.CompilerServices.Unsafe.dll"
 File "..\Clearinet\bin\Release\System.Threading.Tasks.Extensions.dll"
 
-; Install any default extensions
+; Install default extensions
+
+SetOutPath "$INSTDIR\Extensions\"
+File "\TestExtensions\bin\Release\net481\CAE-TestExtensions.dll"
+
+SetOutPath "$INSTDIR\ImportExport\"
+File "..\Clearinet\bin\Release\ImportExport\CAT-Default.dll"
+
+SetOutPath "$INSTDIR\Tools\"
+File "..\Clearinet\bin\Release\Tools\dwebp.exe"
+
 ; Install any template scripts/responses/etc
 
 IfErrors +1 lbl_UpdateRegistry
@@ -250,6 +260,7 @@ System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 
 Delete "$INSTDIR\clearinet.exe"
 Delete "$INSTDIR\clearinet.exe.config"
+Delete "$INSTDIR\Credits.txt"
 Delete "$INSTDIR\SAZFile.ico"
 Delete "$INSTDIR\Ionic.Zip.Reduced.dll"
 Delete "$INSTDIR\ZstdSharp.dll"
@@ -261,8 +272,10 @@ Delete "$INSTDIR\System.Memory.dll"
 Delete "$INSTDIR\System.Numerics.Vectors.dll"
 Delete "$INSTDIR\System.Runtime.CompilerServices.Unsafe.dll"
 Delete "$INSTDIR\System.Threading.Tasks.Extensions.dll"
+Delete "$INSTDIR\Tools\dwebp.exe"
+Delete "$INSTDIR\Extensions\CAE-TestExtensions.dll"
+Delete "$INSTDIR\ImportExport\CAT-Default.dll"
 
-Delete "$INSTDIR\Credits.txt"
 
 ; Remove uninstaller
 DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet"
