@@ -98,13 +98,13 @@ File "..\Clearinet\bin\Release\System.Threading.Tasks.Extensions.dll"
 ; Install default extensions
 
 SetOutPath "$INSTDIR\Extensions\"
-File "\Extensions\bin\Release\CAE-Default.dll"
+File "..\Extensions\bin\Release\CAE-Default.dll"
 
 SetOutPath "$INSTDIR\ImportExport\"
-File "\Transcoders\bin\Release\CAT-Default.dll"
+File "..\Transcoders\bin\Release\CAT-Default.dll"
 
 SetOutPath "$INSTDIR\Tools\"
-File "\Content\bundled\dwebp.exe"
+File "..\Content\bundled\dwebp.exe"
 
 ; Install any template scripts/responses/etc
 
