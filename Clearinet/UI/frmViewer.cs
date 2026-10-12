@@ -134,9 +134,8 @@ namespace Clearinet
         private void miViewRefresh_Click(object sender, EventArgs e)
         {
             actRefreshUI(false);
-            // TODO: Get selected exchanges...
             Exchange[] arrEx = GetSelectedExchanges();
-            // ... and for each, call RefreshListViewItem to ensure
+            // TODO: and for each, call RefreshListViewItem to ensure
             // all column data is up-to-date.
         }
 
@@ -176,7 +175,7 @@ namespace Clearinet
             actReportStatistics();
 
             int cSelected = lvExchanges.SelectedCount;
-            if (cSelected == 1) tslInfo.Text = GetFirstSelectedExchange().RequestHeaders?.RequestPath ?? string.Empty;
+            if (cSelected == 1) tslInfo.Text = GetFirstSelectedExchange()?.fullUrl ?? string.Empty;
         }
 
         private void miFileNewViewer_Click(object sender, EventArgs e)
@@ -238,7 +237,6 @@ namespace Clearinet
             catch (Exception eX)
             {
                 frmSplashScreen.CloseSplashScreen();
-                MessageBox.Show("FAILED TO GET MUTEX?. TODO:Activate it!");
                 CApp.ReportException(eX, "Clearinet", "Failed to obtain mutex for single-instance enforcement.");
                 return;
             }

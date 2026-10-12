@@ -65,7 +65,7 @@ namespace Clearinet
     public abstract class InspectorBase : IAppExtension
     {
         internal InspectorBase() { }
-        internal virtual string TabTitle
+        public virtual string TabTitle
         {
             get
             {

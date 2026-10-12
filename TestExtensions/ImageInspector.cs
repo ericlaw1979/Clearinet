@@ -14,6 +14,7 @@ namespace TestExtensions
         ImageView oView;
         Image imageRendered;
 
+        public override string TabTitle => "Images";
         public override void AddToTab(TabPage o)
         {
             oView = new ImageView();
