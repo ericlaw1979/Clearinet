@@ -63,6 +63,16 @@ namespace Clearinet.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap FindIcon {
+            get {
+                object obj = ResourceManager.GetObject("FindIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap FrmSplashScreenLogo {
             get {
                 object obj = ResourceManager.GetObject("FrmSplashScreenLogo", resourceCulture);

@@ -94,8 +94,17 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="InspectorAPI.cs" />
     <Compile Include="SAZFile.cs" />
+    <Compile Include="UI\CheckedComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\ExchangeListView.cs">
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\FindPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\FindPanel.Designer.cs">
+      <DependentUpon>FindPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\frmAbout.cs">
       <SubType>Form</SubType>
@@ -154,6 +163,9 @@
     <Compile Include="Utilities\Utilities.cs" />
     <Compile Include="UI\Win32UI.cs" />
     <Compile Include="Utilities\JSON.cs" />
+    <EmbeddedResource Include="UI\FindPanel.resx">
+      <DependentUpon>FindPanel.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\frmAbout.resx">
       <DependentUpon>frmAbout.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -208,6 +220,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.ico" />
+    <None Include="Resources\FindIcon.png" />
     <None Include="Resources\PromptQuery.png" />
   </ItemGroup>
   <!-- Auto-generate build date attribute before compilation -->
