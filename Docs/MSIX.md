@@ -85,6 +85,20 @@ Run focused scripting regressions independently of packaging:
 dotnet test .\Test\Clearinet.Tests.csproj -c Release '/bl:{}'
 ```
 
+After packaging, run the same regressions against the x64 executable used
+in the MSIX, rather than rebuilding the unpackaged app:
+
+```powershell
+$packagedApp = (Resolve-Path .\Clearinet\bin\msix\x64\Release\Clearinet.exe).Path
+dotnet test .\Test\Clearinet.Tests.csproj -c Release "/p:ClearinetTestAppPath=$packagedApp" '/bl:{}'
+```
+
+The alternate test build uses the packaged executable's runtime DLLs and
+configuration, with separate intermediates and outputs. These tests check
+scripting absence, lifecycle cancellation, user-supplied scripting, and
+invalid/unreadable script errors, but do not register the package or prove
+Explorer activation or MSIX registry virtualization.
+
 Check the produced archive without signing, extracting, or installing it:
 
 ```powershell
@@ -92,7 +106,7 @@ Check the produced archive without signing, extracting, or installing it:
 ```
 
 This checks the payload, unsigned state, absence of rules scripts/signing
-material, identity, architecture, minimum OS, full-trust entry point,
+material, identity, manifest and binary architecture, minimum OS, full-trust entry point,
 file associations, generated runtime configuration, and visual asset dimensions.
 MakeAppx also validates the package manifest during the build.
 

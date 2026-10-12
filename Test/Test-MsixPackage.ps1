@@ -57,6 +57,27 @@ try {
         $manifest.Package.Identity.ProcessorArchitecture -eq 'x64' -and
         $manifest.Package.Dependencies.TargetDeviceFamily.MinVersion -eq '10.0.19044.0'
     ) 'Incorrect package architecture or minimum Windows version.'
+    foreach ($name in @('Clearinet.exe', 'Extensions/CAE-Default.dll', 'ImportExport/CAT-Default.dll')) {
+        $stream = $archive.GetEntry($name).Open()
+        $memory = [IO.MemoryStream]::new()
+        try {
+            $stream.CopyTo($memory)
+            $memory.Position = 0x3c
+            $reader = [IO.BinaryReader]::new($memory)
+            try {
+                $headerOffset = $reader.ReadInt32()
+                $memory.Position = $headerOffset
+                $signature = $reader.ReadUInt32()
+                $machine = $reader.ReadUInt16()
+                Assert-Package "X64Binary-$([IO.Path]::GetFileNameWithoutExtension($name))" (
+                    $signature -eq 0x4550 -and $machine -eq 0x8664
+                ) 'The actual executable or plugin is not an AMD64 PE image.'
+            } finally { $reader.Dispose() }
+        } finally {
+            $memory.Dispose()
+            $stream.Dispose()
+        }
+    }
     $packageDependencies = @($manifest.SelectNodes("//*[local-name()='PackageDependency']"))
     Assert-Package 'NoWindowsAppSdkRuntime' ($packageDependencies.Count -eq 0) 'Unexpected MSIX framework dependency.'
     $application = $manifest.Package.Applications.Application

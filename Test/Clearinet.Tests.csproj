@@ -4,11 +4,29 @@
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
     <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget Condition="'$(ClearinetTestAppPath)' != ''">x64</PlatformTarget>
+    <AppConfig Condition="'$(ClearinetTestAppPath)' != ''">$(ClearinetTestAppPath).config</AppConfig>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="PcapImport.Tests.cs;NetLogImport.Tests.cs;HarImport.Tests.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="MSTest" Version="3.6.4" />
-    <ProjectReference Include="..\Clearinet\Clearinet.csproj" />
+    <ProjectReference Include="..\Clearinet\Clearinet.csproj" Condition="'$(ClearinetTestAppPath)' == ''" />
+    <Reference Include="Clearinet" Condition="'$(ClearinetTestAppPath)' != ''">
+      <HintPath>$(ClearinetTestAppPath)</HintPath>
+    </Reference>
   </ItemGroup>
+  <Target Name="ValidateTestAppPath" BeforeTargets="ResolveReferences" Condition="'$(ClearinetTestAppPath)' != ''">
+    <Error Condition="!Exists('$(ClearinetTestAppPath)')" Text="ClearinetTestAppPath must identify an existing Clearinet.exe." />
+  </Target>
+  <Target Name="UsePackagedRuntimeReferences" BeforeTargets="ResolveAssemblyReferences" Condition="'$(ClearinetTestAppPath)' != ''">
+    <PropertyGroup>
+      <_ClearinetTestAppDirectory>$([System.IO.Path]::GetDirectoryName('$(ClearinetTestAppPath)'))\</_ClearinetTestAppDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+      <Reference Remove="@(Reference)"
+                 Condition="'%(Reference.NuGetPackageId)' != '' and Exists('$(_ClearinetTestAppDirectory)%(Reference.Filename)%(Reference.Extension)')" />
+      <Reference Include="$(_ClearinetTestAppDirectory)*.dll" />
+    </ItemGroup>
+  </Target>
 </Project>
