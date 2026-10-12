@@ -85,8 +85,8 @@ File "..\Content\SAZFile.ico"
 File "..\Clearinet\bin\Release\Ionic.Zip.Reduced.dll"
 File "..\Clearinet\bin\Release\ZstdSharp.dll"
 File "..\Clearinet\bin\Release\BrotliSharpLib.dll"
-File "..\Clearinet\bin\Release\SVG.dll"
-File "..\Clearinet\bin\Release\ExCss.dll"
+File "..\Extensions\bin\Release\SVG.dll"
+File "..\Extensions\bin\Release\ExCss.dll"
   
 ; Microsoft Support Assemblies Zstd and Brotli rely upon:
 File "..\Clearinet\bin\Release\System.Buffers.dll"
@@ -98,13 +98,13 @@ File "..\Clearinet\bin\Release\System.Threading.Tasks.Extensions.dll"
 ; Install default extensions
 
 SetOutPath "$INSTDIR\Extensions\"
-File "\TestExtensions\bin\Release\net481\CAE-TestExtensions.dll"
+File "\Extensions\bin\Release\CAE-Default.dll"
 
 SetOutPath "$INSTDIR\ImportExport\"
-File "..\Clearinet\bin\Release\ImportExport\CAT-Default.dll"
+File "\Transcoders\bin\Release\CAT-Default.dll"
 
 SetOutPath "$INSTDIR\Tools\"
-File "..\Clearinet\bin\Release\Tools\dwebp.exe"
+File "\Content\bundled\dwebp.exe"
 
 ; Install any template scripts/responses/etc
 
@@ -273,7 +273,7 @@ Delete "$INSTDIR\System.Numerics.Vectors.dll"
 Delete "$INSTDIR\System.Runtime.CompilerServices.Unsafe.dll"
 Delete "$INSTDIR\System.Threading.Tasks.Extensions.dll"
 Delete "$INSTDIR\Tools\dwebp.exe"
-Delete "$INSTDIR\Extensions\CAE-TestExtensions.dll"
+Delete "$INSTDIR\Extensions\CAE-Default.dll"
 Delete "$INSTDIR\ImportExport\CAT-Default.dll"
 
 
@@ -281,6 +281,7 @@ Delete "$INSTDIR\ImportExport\CAT-Default.dll"
 DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet"
 Delete "$INSTDIR\uninst.exe"
 
+; TODO: Check that folder not empty??
 RMDir "$INSTDIR"
 
 lbl_UninstallFinished:

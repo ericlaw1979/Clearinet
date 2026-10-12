@@ -6,6 +6,7 @@
     <File Path="../Docs/PREFERENCES.md" />
     <File Path="../Docs/SECURITY.md" />
   </Folder>
+  <Project Path="../Extensions/Extensions.csproj" Id="65effa2f-e1fb-4eb7-95ba-fec7c4887976" />
   <Project Path="../Transcoders/Transcoders.csproj" Id="ff9d8da4-d3e5-4ff9-8d6c-3d02858debd3" />
   <Project Path="Clearinet.csproj" Id="38557fae-6dad-4b56-878e-eaddc455d47b" />
 </Solution>

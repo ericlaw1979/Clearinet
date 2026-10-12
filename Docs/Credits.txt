@@ -5,6 +5,8 @@ The list of those entities will be found here.
 - DotNetZip.Reduced is used for SAZ File support. https://www.nuget.org/packages/DotNetZip.Reduced
 - BrotliSharpLib
 - ZstdSharp.Port
+- SVG.NET (https://github.com/svg-net/SVG)
+- dwebp.exe from Google
 - (More to come)
 
 Beyond these suppliers, code from Clearinet came from:

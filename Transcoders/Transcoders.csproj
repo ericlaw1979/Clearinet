@@ -60,6 +60,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell -Command "$docPath = [Environment]::GetFolderPath('MyDocuments'); Copy-Item -Path '$(TargetPath)' -Destination \"$docPath\Clearinet\ImportExport\" -Force"</PostBuildEvent>
+    <PostBuildEvent>powershell -Command "$docPath = [Environment]::GetFolderPath('MyDocuments'); Copy-Item -Path '$(TargetPath)' -Destination \"$docPath\Clearinet\ImportExport\" -Force"
+</PostBuildEvent>
   </PropertyGroup>
 </Project>

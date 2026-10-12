@@ -1,0 +1,74 @@
+﻿using Clearinet;
+using System;
+using System.Text;
+using System.Windows.Forms;
+
+namespace TestExtensions
+{
+    public sealed class RawRequestInspector : RequestInspectorBase
+    {
+        RawText rtViewer;
+        Encoding encBody;
+        public override string TabTitle => "Raw";
+
+        public override void AddToTab(TabPage tab)
+        {
+            rtViewer = new RawText(this);
+            tab.Controls.Add(rtViewer);
+            rtViewer.Dock = DockStyle.Fill;
+        }
+        public override void SetFontSize(float flSizeInPoints) => rtViewer?.SetFontSize(flSizeInPoints);
+
+        public override int GetOrder()
+        {
+            return 0;
+        }
+
+        public override void Assign(HTTPRequestHeaders hrh, byte[] arrBody, bool bReadOnly)
+        {
+            headers = hrh;
+            body = arrBody;
+            encBody = Encoding.UTF8; // TODO: Get encoding from headers.
+            rtViewer.rtbRaw.Text = hrh.ToString() + encBody.GetString(arrBody);
+        }
+
+        public override void Clear()
+        {
+            rtViewer.Clear();
+        }
+    }
+
+    public sealed class RawResponseInspector : ResponseInspectorBase
+    {
+        RawText rtViewer;
+        Encoding encBody;
+
+        public override string TabTitle => "Raw";
+
+        public override void AddToTab(TabPage tab)
+        {
+            rtViewer = new RawText(this);
+            tab.Controls.Add(rtViewer);
+            rtViewer.Dock = DockStyle.Fill;
+        }
+        public override void SetFontSize(float flSizeInPoints) => rtViewer?.SetFontSize(flSizeInPoints);
+
+        public override int GetOrder()
+        {
+            return 0;
+        }
+
+        public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)
+        {
+            headers = hrh;
+            body = arrBody;
+            encBody = Encoding.UTF8; // TODO: Get encoding from headers.
+            rtViewer.rtbRaw.Text = (hrh?.ToString() ?? string.Empty) + encBody.GetString(arrBody ?? Array.Empty<byte>());
+            rtViewer.rtbRaw.ReadOnly = bReadOnly;
+        }
+        public override void Clear()
+        {
+            rtViewer.Clear();
+        }
+    }
+}
