@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+         xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+         IgnorableNamespaces="uap uap2 uap3 rescap">
+  <Identity Name="EricLaw1979.Clearinet" Publisher="CN=Clearinet Contributors"
+            Version="0.0.2.1" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>Clearinet</DisplayName>
+    <PublisherDisplayName>Clearinet Contributors</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>Clearinet Web Debugger</Description>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19044.0"
+                        MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="en-US" />
+  </Resources>
+  <Applications>
+    <Application Id="Clearinet" Executable="Clearinet.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Clearinet" Description="Clearinet Web Debugger"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png"
+                          BackgroundColor="transparent" />
+      <Extensions>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="clearinet.saz" Parameters="-noattach &quot;%1&quot;">
+            <uap:DisplayName>Clearinet Session Archive</uap:DisplayName>
+            <uap:Logo>Assets\SazLogo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType ContentType="application/x-zip-compressed+sessionarchive">.saz</uap:FileType>
+            </uap:SupportedFileTypes>
+            <uap2:SupportedVerbs>
+              <uap3:Verb Id="open" Parameters="-noattach &quot;%1&quot;">Open</uap3:Verb>
+              <uap3:Verb Id="viewer" Parameters="-viewer &quot;%1&quot;">Open Viewer Mode</uap3:Verb>
+            </uap2:SupportedVerbs>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="clearinet.har" Parameters="&quot;%1&quot;">
+            <uap:DisplayName>HTTP Archive File</uap:DisplayName>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.har</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
