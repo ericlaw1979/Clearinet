@@ -98,58 +98,33 @@ namespace Clearinet
                 CApp.Log.Log($"Script engine is disabled by system policy.");
                 return;
             }
+
+            if (string.IsNullOrWhiteSpace(scriptPath))
+                throw new ArgumentNullException(nameof(scriptPath));
+
+            _scriptPath = Path.GetFullPath(scriptPath);
+            string directory = Path.GetDirectoryName(_scriptPath);
+            string fileName = Path.GetFileName(_scriptPath);
+
+            // Initial failures propagate to the caller; reload failures use script reporting.
+            CompileScript(false);
             try
             {
-                Debug.Assert(scriptPath.HasText());
-                _scriptPath = Path.GetFullPath(scriptPath);
-                string directory = Path.GetDirectoryName(_scriptPath);
-                string fileName = Path.GetFileName(_scriptPath);
-
-                // If we boot and the script file doesn't exist, ensure that its folder exists so that
-                // we can watch for any new script file that may be created later.
-                // If the script file doesn't exist, we will either load the sample script or copy it
-                // to the target folder, depending on the "scripting.delay_create" preference.
-                //
-                if (!File.Exists(_scriptPath))
+                _watcher = new FileSystemWatcher(directory, fileName)
                 {
-                    if (!CApp.Prefs.GetBoolPref("scripting.delay_create", true))
-                    {
-                        EnsureUserScriptExists();
-                    }
-                    else
-                    {
-                        // Ensure we still create the directory so we can watch the path
-                        // for changes.
-                        // else adding the watcher will fail with a DirectoryNotFoundException.
-                        Directory.CreateDirectory(directory);
-                    }
-                }
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
+                    SynchronizingObject = CApp.UI, // Ensure events are raised on the UI thread
+                    EnableRaisingEvents = true
+                };
 
-                try
-                {
-                    _watcher = new FileSystemWatcher(directory, fileName)
-                    {
-                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
-                        SynchronizingObject = CApp.UI, // Ensure events are raised on the UI thread
-                        EnableRaisingEvents = true
-                    };
-
-                    // FileSystemWatcher frequently fires multiple events for a single save.
-                    // We handle this using a debounced event handler.
-                    _watcher.Changed += OnScriptFileChanged;
-                }
-                catch (Exception ex)
-                {
-                    CApp.ReportException(ex, "Failed to initialize script file watcher",
-                        $"There was a problem initializing the script file watcher for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
-                }
-
-                CompileScript();
+                // FileSystemWatcher frequently fires multiple events for a single save.
+                // We handle this using a debounced event handler.
+                _watcher.Changed += OnScriptFileChanged;
             }
             catch (Exception ex)
             {
-                CApp.ReportException(ex, "Failed to initialize script engine",
-                    $"There was a problem initializing the script engine for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
+                CApp.ReportException(ex, "Failed to initialize script file watcher",
+                    $"There was a problem initializing the script file watcher for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
             }
         }
 
@@ -241,19 +216,11 @@ namespace Clearinet
             ReloadScript();
         }
 
-        private void CompileScript()
+        private void CompileScript(bool reportErrors = true)
         {
             try
             {
-                // If the user doesn't have their own customrules.js file, we'll just load the
-                // sample rules. If the user later uses Rules > Customize, we'll create it at that
-                // time.
                 var _sActualPath = _scriptPath;
-                if (!File.Exists(_sActualPath))
-                {
-                    _sActualPath = CONFIG.GetPath("SampleRulesScript");
-                    CApp.Log.Log($"User's script doesn't exist; using default script: `{_sActualPath}`.");
-                }
 
                 CApp.Log.Log($"CompileScript(`{_sActualPath}`)");
                 // Clear any prior script state before compiling the new script.
@@ -319,7 +286,11 @@ namespace Clearinet
                     _RunMainMethod();
                 }
             }
-            catch (Exception ex)
+            catch (IOException ex) when (reportErrors && (ex is FileNotFoundException || ex is DirectoryNotFoundException))
+            {
+                CApp.Log.Log($"Script file not found: {_scriptPath}; scripting is disabled.");
+            }
+            catch (Exception ex) when (reportErrors)
             {
                 _isReadyForCalls = false;
                 _clearCachedHandlerMethods();

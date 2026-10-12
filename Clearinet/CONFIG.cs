@@ -267,7 +267,8 @@ namespace Clearinet
                                                 $"{GetPath("UserFolder")}ImportExport{Path.DirectorySeparatorChar}");
                 case "RulesScript":          // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.script",
-                                                $"{GetPath("UserFolder")}CustomRules_0_1_0_0.js");
+                        CApp.Prefs.GetStringPref("app.paths.rulesscript",
+                                                $"{GetPath("UserFolder")}CustomRules_0_1_0_0.js"));
                 case "SampleRulesScript":    // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.sample_script",
                                                 $"{Application.StartupPath}{Path.DirectorySeparatorChar}SampleRulesALPHA.js");
