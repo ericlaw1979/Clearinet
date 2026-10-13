@@ -64,6 +64,10 @@ namespace Clearinet
             storage.Add(hhi);
             return hhi;
         }
+        public void Remove(string sHeaderName)
+        {
+            storage.RemoveAll(h => h.Name.OICEquals(sHeaderName));
+        }
         public bool Exists(string sHeaderName)
         {
             return storage.Exists(h => h.Name.OICEquals(sHeaderName));
@@ -254,17 +258,10 @@ namespace Clearinet
         public HTTPResponseHeaders Clone()
         {
             HTTPResponseHeaders oClone = (HTTPResponseHeaders)MemberwiseClone();
-            try
+            oClone.storage = new List<HTTPHeaderItem>(storage.Count);
+            foreach (HTTPHeaderItem oItem in storage)
             {
-                oClone.storage = new List<HTTPHeaderItem>(storage.Count);
-                foreach (HTTPHeaderItem oItem in storage)
-                {
-                    oClone.storage.Add(oItem.Clone());
-                }
-            }
-            finally
-            {
-                Debug.Assert(false);
+                oClone.storage.Add(oItem.Clone());
             }
             return oClone;
         }

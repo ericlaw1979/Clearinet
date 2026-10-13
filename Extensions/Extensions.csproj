@@ -87,7 +87,12 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="RawText.Designer.cs" />
+    <Compile Include="ResponseTransformer.cs" />
     <Compile Include="SimpleAppExtension.cs" />
+    <Compile Include="TransformerInspector.cs" />
+    <Compile Include="TransformerView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="HeaderView.resx" />

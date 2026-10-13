@@ -370,17 +370,91 @@ namespace Clearinet
             return Parameterize(sInput, false);
         }
 
+        public static byte[] ZstdCompress(byte[] arrData)
+        {
+            try
+            {
+                return CompressData(arrData, output => new ZstdSharp.CompressionStream(output, leaveOpen: true));
+            }
+            catch (ZstdSharp.ZstdException e)
+            {
+                throw new IOException("The content could not be Zstandard compressed.", e);
+            }
+        }
+
+        public static byte[] BrotliCompress(byte[] arrData)
+        {
+            return CompressData(arrData, output => new BrotliStream(output, CompressionMode.Compress, true));
+        }
+
+        public static byte[] GzipCompress(byte[] arrData)
+        {
+            if (arrData == null) throw new ArgumentNullException(nameof(arrData));
+            // .NET Framework's GZipStream emits no frame for an empty input.
+            if (arrData.Length == 0)
+            {
+                return new byte[] { 0x1F, 0x8B, 8, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            }
+            return CompressData(arrData, output => new GZipStream(output, CompressionMode.Compress, true));
+        }
+
+        /// <summary>
+        /// Compresses HTTP deflate content using an RFC1950 zlib wrapper.
+        /// Use DeflaterCompress for legacy raw DEFLATE output.
+        /// </summary>
+        public static byte[] ZLibDeflaterCompress(byte[] arrData)
+        {
+            if (arrData == null) throw new ArgumentNullException(nameof(arrData));
+            byte[] deflated = arrData.Length == 0 ? new byte[] { 3, 0 } :
+                CompressData(arrData, output => new DeflateStream(output, CompressionMode.Compress, true));
+            using (var output = new MemoryStream())
+            {
+                output.WriteByte(0x78);
+                output.WriteByte(0x9C);
+                output.Write(deflated, 0, deflated.Length);
+                uint a = 1, b = 0;
+                foreach (byte value in arrData)
+                {
+                    a = (a + value) % 65521;
+                    b = (b + a) % 65521;
+                }
+                uint checksum = (b << 16) | a;
+                for (int shift = 24; shift >= 0; shift -= 8) output.WriteByte((byte)(checksum >> shift));
+                return output.ToArray();
+            }
+        }
+
+        private static byte[] CompressData(byte[] arrData, Func<Stream, Stream> createCompressor)
+        {
+            if (arrData == null) throw new ArgumentNullException(nameof(arrData));
+            using (var output = new MemoryStream())
+            {
+                using (Stream compressor = createCompressor(output))
+                {
+                    compressor.Write(arrData, 0, arrData.Length);
+                }
+                return output.ToArray();
+            }
+        }
+
         public static byte[] Zstdexpand(byte[] arrData)
         {
             if (!arrData.HasData()) return Array.Empty<byte>();
-            using (var msInput = new MemoryStream(arrData))
-            using (var msOutput = new MemoryStream())
+            try
             {
-                using (var zstd = new ZstdSharp.DecompressionStream(msInput))
+                using (var msInput = new MemoryStream(arrData))
+                using (var msOutput = new MemoryStream())
                 {
-                    zstd.CopyTo(msOutput);
+                    using (var zstd = new ZstdSharp.DecompressionStream(msInput))
+                    {
+                        zstd.CopyTo(msOutput);
+                    }
+                    return msOutput.ToArray();
                 }
-                return msOutput.ToArray();
+            }
+            catch (ZstdSharp.ZstdException e)
+            {
+                throw new InvalidDataException("The Zstandard content could not be decompressed.", e);
             }
         }
 
@@ -414,20 +488,17 @@ namespace Clearinet
             }
         }
 
+        /// <summary>
+        /// A bare DEFLATE stream without any RFC1950 zlib wrapper. Use ZLibDeflaterCompress for RFC1950-compliant output.
+        /// </summary>
+        /// <param name="arrData"></param>
+        /// <returns></returns>
         public static byte[] DeflaterCompress(byte[] arrData)
         {
             if (!arrData.HasData()) return Array.Empty<byte>();
             try
             {
-                using (var destinationStream = new MemoryStream())
-                {
-                    using (var deflateStream = new DeflateStream(destinationStream, CompressionMode.Compress))
-                    {
-                        deflateStream.Write(arrData, 0, arrData.Length);
-                    }
-
-                    return destinationStream.ToArray();
-                }
+                return CompressData(arrData, output => new DeflateStream(output, CompressionMode.Compress, true));
             }
             catch (Exception e)
             {

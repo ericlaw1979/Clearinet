@@ -7,6 +7,7 @@ The list of those entities will be found here.
 - ZstdSharp.Port
 - SVG.NET (https://github.com/svg-net/SVG)
 - dwebp.exe from Google
+- HexBox from https://github.com/bernharde/hexbox
 - (More to come)
 
 Beyond these suppliers, code from Clearinet came from:
