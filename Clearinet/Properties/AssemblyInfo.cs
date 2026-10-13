@@ -15,5 +15,8 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.1.5")]
+[assembly: AssemblyVersion("0.0.1.6")]
+
+// Selected Release Version History
+// v0.0.1.5 - Oct-13-2026 - First Alpha release (no capture support)
 

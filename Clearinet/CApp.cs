@@ -353,6 +353,12 @@ namespace Clearinet
             {
                 return;
             }
+            if (CApp.UI != null && CApp.UI.InvokeRequired)
+            {
+                CApp.UI.Invoke(new Action(() => ReportException(eX, sTitle, sCallerMessage)));
+                return;
+            }
+
             Debug.Assert(false, eX.Message);
             string sMessage = (sCallerMessage.HasText()) ? sCallerMessage :
             "Clearinet encountered a problem. If you think this is a bug, please copy this message by hitting CTRL+C, and submit a report using the Help menu.";

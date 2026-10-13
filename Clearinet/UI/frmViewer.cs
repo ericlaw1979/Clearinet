@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -386,6 +387,13 @@ namespace Clearinet
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
+
+            // TODO: Move this, and rename miHelp to mnuHelp
+            ToolStripMenuItem miCheckForUpdates = new ToolStripMenuItem("Check for &Updates...");
+            miHelp.DropDownItems.Insert(2, miCheckForUpdates);
+            miCheckForUpdates.Click += (s, ee) => { Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync(true)); };
+
+            Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
         }
 
         private void UpdateStatisticsTab(Exchange[] arrExchanges)
