@@ -51,6 +51,8 @@ namespace Extensions
             var sContentType = headers["Content-Type"];
             bool bHasEncoding = headers.ExistsAny("Content-Encoding", "Transfer-Encoding");
             oView.txtMetadata.Text = sContentType;
+
+            bool bWasWebP = false;
             try
             {
                 // If the response claims to be an image, then proactively remove encoding before
@@ -58,6 +60,14 @@ namespace Extensions
                 if (bHasEncoding && sContentType.StartsWith("image/"))
                 {
                     arrBody = Exchange.DecodeBodyFromHeaders(headers, arrBody);
+                }
+
+                if (sContentType.OICStartsWith("image/webp") || arrBody.Length > 12 &&
+                    arrBody[0] == 'R' && arrBody[1] == 'I' && arrBody[2] == 'F' && arrBody[3] == 'F' &&
+                    arrBody[8] == 'W' && arrBody[9] == 'E' && arrBody[10] == 'B' && arrBody[11] == 'P')
+                {
+                    bWasWebP = true;
+                    arrBody = Utilities.ConvertWebPToPNG(arrBody);
                 }
 
                 if (sContentType.OICStartsWith("image/svg+xml"))

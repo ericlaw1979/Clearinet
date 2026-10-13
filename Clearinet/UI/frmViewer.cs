@@ -548,11 +548,22 @@ namespace Clearinet
                 foreach (string sPath in arrFiles)
                 {
                     if (sPath.OICEndsWith(".saz"))
+                    {
                         actLoadSessionArchive(sPath);
-                    else
+                        e.Effect = DragDropEffects.Copy;
+                        continue;
+
+                    }
+
+                    if (null != CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath)))
+                    {
                         actImportFile(sPath);
-                    e.Effect = DragDropEffects.Copy;
-                    return;
+                        e.Effect = DragDropEffects.Copy;
+                        continue;
+                    }
+
+                    // If we got here, we have no special knowledge of what to do with this.
+                    doAddExchangeForFile(sPath);
                 }
             }
         }
@@ -664,28 +675,25 @@ namespace Clearinet
                 return;
             }
             // TODO: Can we put importer filenames into the MRU and have the right thing happen?
-            if (sPath.OICEndsWithAny(".har", ".json"))
+            TranscoderTuple tt = CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath));
+            if (null == tt)
             {
-                TranscoderTuple tt = CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath));
-                if (null == tt)
-                {
-                    CApp.DoNotifyUser($"No importer found for {Path.GetExtension(sPath)}", "NYI");
-                    return;
-                }
-                IExchangeImporter oImporter = (IExchangeImporter)Activator.CreateInstance(tt.typeTranscoder);
-
-                var dictOptions = new Dictionary<string, object>();
-                dictOptions.Add("Filename", sPath);
-
-                var exchImported = oImporter.ImportExchanges(tt.FormatName, dictOptions,
-                                (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); Application.DoEvents(); });
-
-                foreach (Exchange x in exchImported)
-                {
-                    addExchangeToListView(x);
-                }
-                CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
+                CApp.DoNotifyUser($"No importer found for {Path.GetExtension(sPath)}", "NYI");
+                return;
             }
+            IExchangeImporter oImporter = (IExchangeImporter)Activator.CreateInstance(tt.typeTranscoder);
+
+            var dictOptions = new Dictionary<string, object>();
+            dictOptions.Add("Filename", sPath);
+
+            var exchImported = oImporter.ImportExchanges(tt.FormatName, dictOptions,
+                            (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); Application.DoEvents(); });
+
+            foreach (Exchange x in exchImported)
+            {
+                addExchangeToListView(x);
+            }
+            CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
         }
 
         /// <summary>
@@ -701,6 +709,13 @@ namespace Clearinet
                     CApp.Log.Log($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}. {sazFile.sComment}");
                     SetStatusText($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}");
                     mruRecents.PushFile(sPath);
+
+                    // If we're a viewer instance, show the SAZ file path
+                    if (CONFIG.isViewerMode && tsmiNameViewer.Text == "Viewer")
+                    {
+                        tsmiNameViewer.Text = Path.GetFileNameWithoutExtension(sPath);
+                        tsmiNameViewer.ToolTipText = sPath;
+                    }
 
                     foreach (Exchange x in sazFile.Exchanges)
                     {
@@ -1125,6 +1140,34 @@ namespace Clearinet
             }   // switch
         }
 
+        private void doAddExchangeForFile(string sPath)
+        {
+            byte[] arrBody = File.ReadAllBytes(sPath);
+            string sContentType = Utilities.MimeTypeFromFilename(sPath);
+            AddFauxExchange($"/clipboard/{Path.GetFileName(sPath)}", sContentType, arrBody);
+        }
+        private void doPasteFilesAsExchanges()
+        {
+            try
+            {
+                var arrFiles = Clipboard.GetFileDropList();
+                if (null == arrFiles || arrFiles.Count < 1)
+                {
+                    CApp.DoNotifyUser("The clipboard did not contain any files.", "Paste Failed");
+                    return;
+                }
+                foreach (string sPath in arrFiles)
+                {
+                    if (!File.Exists(sPath)) continue;
+                    doAddExchangeForFile(sPath);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Unable to paste files.");
+            }
+        }
+
         private void doPasteImageAsExchange()
         {
             try
@@ -1244,8 +1287,7 @@ namespace Clearinet
                 }
                 if (Clipboard.ContainsFileDropList())
                 {
-                    // Paste files
-                    // nyi;
+                    doPasteFilesAsExchanges();
                     return;
                 }
                 doPasteTextAsExchange();

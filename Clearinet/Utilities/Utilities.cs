@@ -262,6 +262,94 @@ namespace Clearinet
 
         #endregion
 
+
+        public static string MimeTypeFromFilename(string filename)
+        {
+            if (!filename.HasText()) return "application/octet-stream";
+
+            string ext = Path.GetExtension(filename);
+            if (!ext.HasText()) return "application/octet-stream";
+
+            switch (ext.ToLowerInvariant())
+            {
+                case ".txt": return "text/plain";
+                case ".htm":
+                case ".html": return "text/html";
+                case ".css": return "text/css";
+                case ".js": return "application/javascript";
+                case ".json":
+                case ".har": return "application/json";
+                case ".xml": return "application/xml";
+                case ".csv": return "text/csv";
+
+                case ".png": return "image/png";
+                case ".jpg":
+                case ".jpeg": return "image/jpeg";
+                case ".gif": return "image/gif";
+                case ".bmp": return "image/bmp";
+                case ".webp": return "image/webp";
+                case ".svg": return "image/svg+xml";
+                case ".ico": return "image/x-icon";
+
+                case ".pdf": return "application/pdf";
+                case ".zip": return "application/zip";
+                case ".saz": return "application/x-zip-compressed+SessionArchive";
+                case ".gz": return "application/gzip";
+
+                default: return "application/octet-stream";
+            }
+        }
+
+        /// <summary>
+        /// Returns PNG bytes for WebP input, or the original array otherwise.
+        /// The input array is not modified.
+        /// </summary>
+        public static byte[] ConvertWebPToPNG(byte[] arrData)
+        {
+            if (arrData == null) throw new ArgumentNullException(nameof(arrData));
+
+            if (arrData.Length < 12 ||
+                arrData[0] != 'R' || arrData[1] != 'I' || arrData[2] != 'F' || arrData[3] != 'F' ||
+                arrData[8] != 'W' || arrData[9] != 'E' || arrData[10] != 'B' || arrData[11] != 'P')
+            {
+                return arrData;
+            }
+
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "Clearinet-WebP-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDirectory);
+            try
+            {
+                string inputPath = Path.Combine(tempDirectory, "input.webp");
+                string outputPath = Path.Combine(tempDirectory, "output.png");
+                File.WriteAllBytes(inputPath, arrData);
+
+                using (var process = new Process())
+                {
+                    process.StartInfo = new ProcessStartInfo
+                    {
+                        FileName = Path.Combine(CONFIG.GetPath("Tools"), "dwebp.exe"),
+                        Arguments = $"-quiet \"{inputPath}\" -o \"{outputPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardError = true
+                    };
+                    process.Start();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+                    if (process.ExitCode != 0)
+                    {
+                        throw new IOException($"DWebP conversion failed (exit code {process.ExitCode}): {error.Trim()}");
+                    }
+                }
+
+                return File.ReadAllBytes(outputPath);
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
+        }
+
         public static void LaunchHyperlink(string sURL)
         {
             try
@@ -378,7 +466,7 @@ namespace Clearinet
             }
             catch (ZstdSharp.ZstdException e)
             {
-                throw new IOException("The content could not be Zstandard compressed.", e);
+                throw new IOException("The content could not be Zstd compressed.", e);
             }
         }
 
@@ -390,7 +478,8 @@ namespace Clearinet
         public static byte[] GzipCompress(byte[] arrData)
         {
             if (arrData == null) throw new ArgumentNullException(nameof(arrData));
-            // .NET Framework's GZipStream emits no frame for an empty input.
+            // .NET Framework's GZipStream emits no frame for an empty input, so we'll
+            // add one manually. Note: I don't think Fiddler did this. 
             if (arrData.Length == 0)
             {
                 return new byte[] { 0x1F, 0x8B, 8, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 };

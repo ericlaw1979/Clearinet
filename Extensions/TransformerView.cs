@@ -24,12 +24,12 @@ namespace Extensions
                 FlowDirection = FlowDirection.TopDown,
                 WrapContents = false,
                 AutoScroll = true,
-                Padding = new Padding(12),
-                Margin = new Padding(20)
+                Padding = new Padding(15)
             };
             layout.Controls.Add(new Label
             {
                 AutoSize = true,
+                Margin = new Padding(0, 0, 0, 10),
                 Text = "Changes apply immediately to the selected response."
             });
             AddEncoding(layout, "chunked", "Chunked transfer encoding");
@@ -77,7 +77,7 @@ namespace Extensions
             {
                 assigning = false;
             }
-            lblStatus.Text = message ?? $"Encoded body: {body?.LongLength ?? 0:N0} bytes";
+            lblStatus.Text = message ?? $"Encoded body: {body?.LongLength ?? 0:N0} bytes"; // TODO: Show original and decoded sizes.
             lblStatus.ForeColor = message == null ? SystemColors.ControlText : SystemColors.Highlight;
         }
 

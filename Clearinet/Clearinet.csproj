@@ -220,6 +220,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.ico" />
+    <Content Include="..\Content\Bundled\dwebp.exe">
+      <Link>Tools\dwebp.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\FindIcon.png" />
     <None Include="Resources\PromptQuery.png" />
   </ItemGroup>

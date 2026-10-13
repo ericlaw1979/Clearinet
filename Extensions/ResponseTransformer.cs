@@ -45,6 +45,7 @@ namespace Extensions
             {
                 if (!headers.HTTPVersion.OICEquals("HTTP/1.1"))
                 {
+                    // TODO: Should this actually throw?
                     throw new NotSupportedException("Chunked transfer encoding requires HTTP/1.1.");
                 }
                 if (!transfer.Contains(encoding)) transfer.Add(encoding);
@@ -93,6 +94,11 @@ namespace Extensions
             }
         }
 
+        /// <summary>
+        /// Apply HTTP Chunked encoding to the body.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         private static byte[] Chunk(byte[] input)
         {
             int count = 16;

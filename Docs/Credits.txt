@@ -6,7 +6,7 @@ The list of those entities will be found here.
 - BrotliSharpLib
 - ZstdSharp.Port
 - SVG.NET (https://github.com/svg-net/SVG)
-- dwebp.exe from Google
+- dwebp.exe from Google (https://developers.google.com/speed/webp/download)
 - HexBox from https://github.com/bernharde/hexbox
 - (More to come)
 
