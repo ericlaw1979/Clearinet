@@ -20,7 +20,7 @@ namespace Extensions
             oView = new ImageView();
             o.Controls.Add(oView);
             oView.Dock = DockStyle.Fill;
-            oView.txtMetadata.BackColor = CONFIG.colorDisabledEdit;
+            oView.txtMetadata.BackColor = oView.pbImage.BackColor = CONFIG.colorDisabledEdit;
             oView.pbImage.MouseUp += PbImage_MouseUp;
         }
 
