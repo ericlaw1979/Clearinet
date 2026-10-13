@@ -908,9 +908,13 @@ namespace Clearinet
 
         private void miEdit_DropDownOpening(object sender, EventArgs e)
         {
+            // Requires 1+ Exchange in the list
+            miEditSelectAll.Enabled = miEditCopy.Enabled = miEditMark.Enabled = miEditRemoveSelected.Enabled = (lvExchanges.SelectedCount > 0);
+            // Requires 1+ *selected* Exchange in the list
+            miEditUnlock.Enabled = miEditRemove.Enabled = miEditFind.Enabled = lvExchanges.Items.Count > 0;
+
             miEditPasteAsExchanges.Enabled = Clipboard.ContainsImage() | Clipboard.ContainsText() | Clipboard.ContainsFileDropList();
-            miEditRemove.Enabled = miEditFind.Enabled = lvExchanges.Items.Count > 0;
-            miEditMark.Enabled = lvExchanges.SelectedCount > 0;
+
             miEditUndelete.Enabled = lvExchanges.CanUndelete();
         }
 

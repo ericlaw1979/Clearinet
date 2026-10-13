@@ -18,7 +18,7 @@ namespace Clearinet
     /// </summary>
     public static class CONFIG
     {
-        private static readonly Color COLOR_DEFAULT_DISABLEDEDIT = Color.FromArgb(250, 238, 227);
+        private static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
 
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
