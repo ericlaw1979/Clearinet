@@ -1,17 +1,15 @@
 @title Clearinet Builder
 @powershell -Command "(Get-Item '..\Clearinet\bin\release\clearinet.exe').VersionInfo.FileVersion | Set-Content 'Clearinet.ver'"
-@pushd c:\src\cin\Clearinet\bin\release
 @pause
 @:signing
 @echo Sign Clearinet
 @REM // TODO: For post-quantum security, we want to use SHA384 hashes, but those aren't supported until Win11 or Win10 with a Nov2022 Update.
 @REM //       Standard practice for this scenario would be to dual-sign the files. But since we're still using RSA here, the stronger hash
 @REM //       seems like it would be of questionable value?
-@signtool sign /as /d "Clearinet Web Debugger" /du "https://clearinet.app/" /n "Eric Lawrence" /t http://timestamp.digicert.com /td SHA256 /fd SHA256 ..\bin\release\cin.exe 
+@"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /as /d "Clearinet Web Debugger" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ..\Clearinet\bin\release\Clearinet.exe 
 @echo Sign utilities
-@signtool sign /as /d "Clearinet Updater" /du "https://clearinet.app/" /n "Eric Lawrence" /t http://timestamp.digicert.com /td SHA256 /fd SHA256 ..\Updater\bin\release\UpdateClearinet.exe 
-@signtool sign /as /d "Clearinet Certificate Trust" /du "https://clearinet.app/" /n "Eric Lawrence" /t http://timestamp.digicert.com /td SHA256 /fd SHA256 ..\TrustCert\bin\release\TrustCert.exe 
-@signtool sign /as /d "EnableLoopback for Win AppContainers" /du "https://clearinet.app/" /n "Eric Lawrence" /t http://timestamp.digicert.com /td SHA256 /fd SHA256 ..\EnableLoopback\bin\release\EnableLoopback.exe
+@"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /as /d "Clearinet Extensions" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ..\Extensions\bin\release\CAE-Default.dll 
+@"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /as /d "Clearinet Transcoders" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ..\Transcoders\bin\release\CAT-Default.dll 
 
 @echo Build installer
 @if %ERRORLEVEL%==-1 goto singing
@@ -21,7 +19,7 @@
 @:signsetup
 @CHOICE /M "Sign setup.exe?"
 @if %ERRORLEVEL%==2 goto done
-@signtool sign /as /d "Clearinet Web Debugger" /du "https://clearinet.app/" /n "Eric Lawrence" /t http://timestamp.digicert.com /td SHA256 /fd SHA256 ClearinetSetup.exe 
+@"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /as /d "Clearinet Web Debugger" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ClearinetSetup.exe 
 
 @if %ERRORLEVEL%==-1 goto signsetup
 @pause
