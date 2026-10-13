@@ -397,7 +397,7 @@ namespace Clearinet
                     exch.WriteMetadataToStream(strm);
                 });
                 lro?.UpdateProgress((iX * 100) / exchanges.Length);
-                System.Threading.Thread.Sleep(2000); // Give the UI a moment to update
+                // System.Threading.Thread.Sleep(2000); // Give the UI a moment to update
             }
             #endregion
 

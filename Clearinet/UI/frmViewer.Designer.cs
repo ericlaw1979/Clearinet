@@ -1299,14 +1299,19 @@
             // colMethod
             // 
             this.colMethod.Text = "Method";
+            this.colMethod.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.colMethod.Width = 80;
             // 
             // colHost
             // 
             this.colHost.Text = "Host";
+            this.colHost.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.colHost.Width = 200;
             // 
             // colPath
             // 
             this.colPath.Text = "Path";
+            this.colPath.Width = 500;
             // 
             // txtQuickExec
             // 
