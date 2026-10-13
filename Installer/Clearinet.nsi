@@ -87,6 +87,7 @@ File "..\Clearinet\bin\Release\ZstdSharp.dll"
 File "..\Clearinet\bin\Release\BrotliSharpLib.dll"
 File "..\Extensions\bin\Release\SVG.dll"
 File "..\Extensions\bin\Release\ExCss.dll"
+File "..\Extensions\bin\Release\be.windows.forms.hexbox.dll"
   
 ; Microsoft Support Assemblies Zstd and Brotli rely upon:
 File "..\Clearinet\bin\Release\System.Buffers.dll"
@@ -140,8 +141,6 @@ WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open\command" "" '"$INSTDIR\clearin
 WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open V&iewer Mode\command" "" '"$INSTDIR\clearinet.exe" -viewer "%1"'
 ; TODO: Do we want to use the legacy MIME here?
 WriteRegStr HKCR "Clearinet.ArchiveZip" "Content Type" "application/x-zip-compressed+SessionArchive"
-
-
 
 WriteRegStr HKLM "Software\Classes\Clearinet.HARFile" "" "HTTP Archive File"
 WriteRegStr HKLM "Software\Classes\Clearinet.HARFile" "FriendlyTypeName" "HTTP Archive File"
@@ -268,6 +267,7 @@ Delete "$INSTDIR\BrotliSharpLib.dll"
 Delete "$INSTDIR\System.Buffers.dll"
 Delete "$INSTDIR\SVG.dll"
 Delete "$INSTDIR\ExCSS.dll"
+Delete "$INSTDIR\be.windows.forms.hexbox.dll"
 Delete "$INSTDIR\System.Memory.dll"
 Delete "$INSTDIR\System.Numerics.Vectors.dll"
 Delete "$INSTDIR\System.Runtime.CompilerServices.Unsafe.dll"

@@ -3,7 +3,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace TestExtensions
+namespace Extensions
 {
     public partial class RawText : UserControl
     {
@@ -79,7 +79,7 @@ namespace TestExtensions
         private void txtFind_TextChanged(object sender, EventArgs e)
         {
             if (txtFind.TextLength < 1)
-            {  
+            {
                 txtFind.BackColor = Color.FromKnownColor(KnownColor.Window);
                 rtbRaw.Select(0, 0);  // Ensure next earch stops from the top.
                 return;
@@ -106,7 +106,7 @@ namespace TestExtensions
         private void miPaste_Click(object sender, EventArgs e)
         {
             if (rtbRaw.ReadOnly) return;
-            
+
             // Ensure plaintext paste without formatting.
             rtbRaw.Paste(DataFormats.GetFormat(DataFormats.Text));
         }

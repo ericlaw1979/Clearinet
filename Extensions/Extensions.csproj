@@ -32,6 +32,9 @@
     <PreferNativeArm64>true</PreferNativeArm64>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Be.Windows.Forms.HexBox">
+      <HintPath>..\Clearinet\packages\Be.Windows.Forms.HexBox.1.6.1\lib\net40\Be.Windows.Forms.HexBox.dll</HintPath>
+    </Reference>
     <Reference Include="ExCSS, Version=4.2.3.0, Culture=neutral, PublicKeyToken=bdbe16be9b936b9a, processorArchitecture=MSIL">
       <HintPath>..\Clearinet\packages\ExCSS.4.2.3\lib\net48\ExCSS.dll</HintPath>
     </Reference>
@@ -70,6 +73,9 @@
     </Compile>
     <Compile Include="HeaderView.Designer.cs" />
     <Compile Include="HexInspectors.cs" />
+    <Compile Include="HexView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="ImageInspector.cs" />
     <Compile Include="ImageView.cs">
       <SubType>UserControl</SubType>
@@ -81,7 +87,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="RawText.Designer.cs" />
-    <Compile Include="SimpleAppExtensions.cs" />
+    <Compile Include="SimpleAppExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="HeaderView.resx" />
@@ -100,6 +106,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell -Command "$docPath = [Environment]::GetFolderPath('MyDocuments'); Copy-Item -Path '$(TargetPath)' -Destination \"$docPath\Clearinet\Extensions\" -Force"</PostBuildEvent>
+    <PostBuildEvent>powershell -Command "$docPath = [Environment]::GetFolderPath('MyDocuments'); Copy-Item -Path '$(TargetPath)', '$(TargetDir)Be.Windows.Forms.HexBox.dll' -Destination \"$docPath\Clearinet\Extensions\" -Force"</PostBuildEvent>
   </PropertyGroup>
 </Project>

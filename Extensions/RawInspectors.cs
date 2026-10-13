@@ -3,7 +3,7 @@ using System;
 using System.Text;
 using System.Windows.Forms;
 
-namespace TestExtensions
+namespace Extensions
 {
     public sealed class RawRequestInspector : RequestInspectorBase
     {

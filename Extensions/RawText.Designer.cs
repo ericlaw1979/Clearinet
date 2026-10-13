@@ -1,4 +1,4 @@
-﻿namespace TestExtensions
+﻿namespace Extensions
 {
     partial class RawText
     {

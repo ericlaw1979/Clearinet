@@ -7,7 +7,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
 
-namespace TestExtensions
+namespace Extensions
 {
     public class ImageInspector : ResponseInspectorBase
     {

@@ -3,7 +3,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace TestExtensions
+namespace Extensions
 {
     public partial class HeaderView : UserControl
     {

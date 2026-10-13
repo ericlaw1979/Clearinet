@@ -950,8 +950,8 @@ namespace Clearinet
             if (lvExchanges.SelectedItems.Count == 0)
             {
                 // CLEAR Inspectors.
-                (tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase)?.Clear();
-                (tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase)?.Clear();
+                if (tabsRequest.SelectedIndex >= 0) { (tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase)?.Clear(); }
+                if (tabsResponse.SelectedIndex >= 0) { (tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase)?.Clear(); }
                 ShowSelectOne();
                 return;
             }

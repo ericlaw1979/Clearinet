@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace TestExtensions
+namespace Extensions
 {
     public sealed class RequestHeaderInspector : RequestInspectorBase
     {
@@ -59,7 +59,7 @@ namespace TestExtensions
     public sealed class ResponseHeaderInspector : ResponseInspectorBase
     {
         HeaderView hvViewer;
-        public override string TabTitle => "Raw";
+        public override string TabTitle => "Headers";
 
         public override void AddToTab(TabPage tab)
         {
