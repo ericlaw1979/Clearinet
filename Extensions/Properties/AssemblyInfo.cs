@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: Clearinet.RequiredVersion("0.0.1.4")]
 [assembly: AssemblyTitle("CAE-Extensions")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
@@ -10,6 +9,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright ©2026 Clearinet Contributors")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("0.0.1.5")]
+
+// Specify that we're an extension assembly, and require a minimum version of Clearinet to load us.
+[assembly: Clearinet.RequiredVersion("0.0.1.5")]
