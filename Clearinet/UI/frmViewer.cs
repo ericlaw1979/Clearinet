@@ -486,8 +486,11 @@ namespace Clearinet
         {
             try
             {
-                // TODO
-                string sFilename = Utilities.ObtainOpenFilename("Import Exchanges...", "Common formats|*.har;*.json|Any file|*.*|Password Protected SAZ|*.saz");
+                // TODO: This may not scale well, and doesn't handle the old Fiddler-style calling pattern whereby
+                // the user picked a format first, then it could prompt or not for a file. I imagined that this might
+                // be useful if an Importer could e.g. pull from a database or cloud storage or whatever...
+                string sFilename = Utilities.ObtainOpenFilename("Import Exchanges...",
+                    $"All Importer formats|{CApp.oTranscoders.GetAllImportFilenameExtensions()}|Any file|*.*");
                 if (!sFilename.HasText()) return;
                 actImportFile(sFilename);
             }

@@ -123,6 +123,11 @@ namespace Clearinet
             return false;
         }
 
+        internal string[] AllFilenameExtensions()
+        {
+            return _ofa.getFilenameExtensions();
+        }
+
         public string FormatName
         {
             get { return _ofa.FormatName; }

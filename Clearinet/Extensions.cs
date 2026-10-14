@@ -81,6 +81,23 @@ namespace Clearinet
             return null;
         }
 
+        internal string GetAllImportFilenameExtensions()
+        {
+            EnsureReady();
+            if (!hasImporters) return null;
+            HashSet<string> uniqueExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (TranscoderTuple tt in m_Importers.Values)
+            {
+                // Add all unique extensions to a HashSet to avoid duplicates
+                foreach (string sExt in tt.AllFilenameExtensions())
+                {
+                    uniqueExtensions.Add(sExt);
+                }
+            }
+            // NB: Must include the stars because we're going to feed this into an OpenFileDialog filter string
+            return "*" + string.Join(";*", uniqueExtensions);
+        }
+
         private void EnsureReady()
         {
             // Issue: This doesn't allow us to "refresh" without restart.
