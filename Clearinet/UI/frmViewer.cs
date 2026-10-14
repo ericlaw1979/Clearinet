@@ -402,7 +402,7 @@ namespace Clearinet
             miRules.DropDownItems.Add(miRulesEdit);
             miRulesEdit.Click += (s, ee) =>
             {
-                Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"), CONFIG.GetPath("RulesScript"));
+                Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"), $"\"{CONFIG.GetPath("RulesScript")}\"");
             };
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
