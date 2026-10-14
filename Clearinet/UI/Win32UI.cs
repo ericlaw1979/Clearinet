@@ -85,6 +85,42 @@ namespace Clearinet
         const int LVS_EX_BORDERSELECT = 0x8000;
         const int LVM_SETEXTENDEDLISTVIEWSTYLE = 0x1036;
 
+
+        private const int LVM_FIRST = 0x1000;
+        public const int LVM_GETHEADER = LVM_FIRST + 31;
+
+        public const int HDM_FIRST = 0x1200;
+        public const int HDM_GETITEM = HDM_FIRST + 11;
+        public const int HDM_SETITEM = HDM_FIRST + 12;
+
+        public const int HDI_FORMAT = 0x0004;
+
+        public const int HDF_SORTUP = 0x0400;
+        public const int HDF_SORTDOWN = 0x0200;
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct HDITEM
+        {
+            public int mask;
+            public int cxy;
+            public IntPtr pszText;
+            public IntPtr hbm;
+            public int cchTextMax;
+            public int fmt;
+            public IntPtr lParam;
+            public int iImage;
+            public int iOrder;
+            public uint type;
+            public IntPtr pvFilter;
+            public uint state;
+        }
+
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref HDITEM lParam);
         [StructLayout(LayoutKind.Sequential)]
         public struct NMHDR
         {

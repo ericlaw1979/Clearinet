@@ -1,9 +1,24 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace Clearinet
 {
+    internal enum ColumnSortType
+    {
+        Text,           // case-insensitive string sort
+        Numeric,        // numeric sort
+        DateTime        // date/time sort
+    }
+
+    internal struct ColumnInfo
+    {
+        public ColumnSortType SortType;
+        public Func<Exchange, string> Provider;
+    }
+
     /// <summary>
     /// This is a specialization of the ListView for the primary list of Exchanges at the left of the main UI.
     /// </summary>
@@ -11,6 +26,74 @@ namespace Clearinet
     {
         public event EventHandler ItemShowProperties;
         public EventHandler OnExchangesAdded;
+
+        private LVCSorter sorter;
+
+        public ExchangeListView()
+        {
+            sorter = new LVCSorter();
+            this.ListViewItemSorter = sorter;
+        }
+
+        protected override void OnColumnClick(ColumnClickEventArgs e)
+        {
+            base.OnColumnClick(e);
+            // Toggle sort direction if clicking the same column, otherwise default to Ascending
+            if (e.Column == sorter.SortColumn)
+            {
+                sorter.Order = (sorter.Order == SortOrder.Ascending)
+                    ? SortOrder.Descending
+                    : SortOrder.Ascending;
+            }
+            else
+            {
+                sorter.SortColumn = e.Column;
+                sorter.Order = SortOrder.Ascending;
+            }
+
+            sorter.SortType = (Columns[e.Column].Tag as ColumnInfo?)?.SortType ?? ColumnSortType.Text;
+            SetColumnHeaderSortIcon(sorter.SortColumn, sorter.Order);
+            Trace.WriteLine($"Sorting column {sorter.SortColumn} in {sorter.Order} order with SortType {sorter.SortType}");
+            this.Sort();
+        }
+
+        private void SetColumnHeaderSortIcon(int columnIndex, SortOrder order)
+        {
+            // Obtain handle to the internal Header control
+            IntPtr hHeader = Win32ListViewAPI.SendMessage(this.Handle, Win32ListViewAPI.LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
+            if (hHeader == IntPtr.Zero) return;
+
+            int columnCount = this.Columns.Count;
+
+            for (int i = 0; i < columnCount; i++)
+            {
+                Win32ListViewAPI.HDITEM item = new Win32ListViewAPI.HDITEM();
+                item.mask = Win32ListViewAPI.HDI_FORMAT;
+
+                // Fetch current format flags for the header item
+                Win32ListViewAPI.SendMessage(hHeader, Win32ListViewAPI.HDM_GETITEM, new IntPtr(i), ref item);
+
+                if (i == columnIndex)
+                {
+                    // Clear existing sort flags
+                    item.fmt &= ~(Win32ListViewAPI.HDF_SORTUP | Win32ListViewAPI.HDF_SORTDOWN);
+
+                    // Set requested sort flag
+                    if (order == SortOrder.Ascending)
+                        item.fmt |= Win32ListViewAPI.HDF_SORTUP;
+                    else if (order == SortOrder.Descending)
+                        item.fmt |= Win32ListViewAPI.HDF_SORTDOWN;
+                }
+                else
+                {
+                    // Remove sort arrows from all non-sorted columns
+                    item.fmt &= ~(Win32ListViewAPI.HDF_SORTUP | Win32ListViewAPI.HDF_SORTDOWN);
+                }
+
+                // Apply updated format flags
+                Win32ListViewAPI.SendMessage(hHeader, Win32ListViewAPI.HDM_SETITEM, new IntPtr(i), ref item);
+            }
+        }
 
         WeakReference wrActiveItem;
         WeakReference wrPreviousActiveItem;
@@ -206,6 +289,94 @@ namespace Clearinet
             }
 
             EndUpdate();
+        }
+
+        internal void ConfigureColumn(int ix, ColumnSortType cst)
+        {
+            if (ix > Columns.Count - 1) { Debug.Assert(false); return; }
+            ColumnInfo ci = Columns[ix].Tag as ColumnInfo? ?? new ColumnInfo();
+            ci.SortType = cst;
+            Columns[ix].Tag = ci;
+            Trace.WriteLine($"Configured column #{ix} ({Columns[ix].Text}) with sort mode {cst}");
+        }
+
+        internal void AddBoundColumn(string sTitle, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
+        {
+            this.Columns.Add(sTitle);
+            ColumnInfo ci = new ColumnInfo
+            {
+                SortType = columnSortType,
+                Provider = columnProvider
+            };
+            this.Columns[this.Columns.Count - 1].Tag = ci;
+        }
+
+        internal string PopulateColumn(int i, Exchange x)
+        {
+            if (Columns[i].Tag is ColumnInfo ci && ci.Provider != null)
+            {
+                return ci.Provider(x);
+            }
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Custom IComparer to handle column-based sorting (Numeric vs String).
+    /// </summary>
+    internal sealed class LVCSorter : IComparer
+    {
+        internal int SortColumn { get; set; } = 0;
+        internal SortOrder Order { get; set; } = SortOrder.None;
+
+        private ColumnSortType _sortType = ColumnSortType.Text;
+
+        internal ColumnSortType SortType { get => _sortType; set => _sortType = value; }
+
+        public int Compare(object x, object y)
+        {
+            if (Order == SortOrder.None)
+                return 0;
+
+            var itemX = (ListViewItem)x;
+            var itemY = (ListViewItem)y;
+
+            // Retrieve subitem text defensively
+            string textX = itemX.SubItems.Count > SortColumn ? itemX.SubItems[SortColumn].Text : string.Empty;
+            string textY = itemY.SubItems.Count > SortColumn ? itemY.SubItems[SortColumn].Text : string.Empty;
+
+            int compareResult;
+
+            switch (_sortType)
+            {
+                case ColumnSortType.Numeric:
+                    if (decimal.TryParse(textX, out decimal numX) && decimal.TryParse(textY, out decimal numY))
+                    {
+                        compareResult = numX.CompareTo(numY);
+                    }
+                    else
+                    {
+                        compareResult = string.Compare(textX, textY, StringComparison.OrdinalIgnoreCase);
+                    }
+                    break;
+                case ColumnSortType.DateTime:
+                    if (DateTime.TryParse(textX, out DateTime dtX) && DateTime.TryParse(textY, out DateTime dtY))
+                    {
+                        compareResult = dtX.CompareTo(dtY);
+                    }
+                    else
+                    {
+                        compareResult = string.Compare(textX, textY, StringComparison.OrdinalIgnoreCase);
+                    }
+                    break;
+                case ColumnSortType.Text:
+                default:
+                    compareResult = string.Compare(textX, textY, StringComparison.OrdinalIgnoreCase);
+                    break;
+            }
+
+            // Reverse result for Descending order
+            return (Order == SortOrder.Ascending) ? compareResult : -compareResult;
         }
     }
 }

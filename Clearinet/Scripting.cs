@@ -50,6 +50,7 @@ namespace Clearinet
         private static Dictionary<FieldInfo, string> dictFieldBackingPrefs = new Dictionary<FieldInfo, string>();
 
         private List<BindUITab> listBoundTabs = new List<BindUITab>();
+        private List<BindUIColumn> listBoundColumns = new List<BindUIColumn>();
         private List<PreferenceBag.PrefWatcher> listWeaklyHeldWatchers = new List<PreferenceBag.PrefWatcher>();
 
         private Action<Exchange> _methodOnBeforeRequest;
@@ -198,6 +199,34 @@ namespace Clearinet
             //
             var tsToolbar = CApp.UI.tsToolbar;
 
+            // TODO: iterate the methods only once and look at what attributes they support.
+            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                BindUIColumn b = Attribute.GetCustomAttribute(mi, typeof(BindUIColumn), false) as BindUIColumn;
+                if (null == b) continue;
+
+                MethodInfo methodToInvoke = mi;
+                // 1. Validate that the method signature matches: string MethodName(Exchange exchange)
+                if (mi.ReturnType != typeof(string)) continue;
+
+                ParameterInfo[] parameters = mi.GetParameters();
+                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange)) continue;
+
+                // 2. Create a strongly-typed delegate matching Func<Exchange, string>
+                Func<Exchange, string> columnProvider =
+                    (Func<Exchange, string>)Delegate.CreateDelegate(typeof(Func<Exchange, string>), mi);
+
+                // 3. Register the delegate with your ListView/UI helper
+                CApp.UI.lvExchanges.AddBoundColumn(
+                    b._sTitle,
+                    b._sortNumerically ? ColumnSortType.Numeric : ColumnSortType.Text,
+                    columnProvider
+                );
+
+
+                listBoundColumns.Add(b);
+            }
+
             foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
                 BindUIButton b = Attribute.GetCustomAttribute(mi, typeof(BindUIButton), false) as BindUIButton;
@@ -226,7 +255,6 @@ namespace Clearinet
                 tsToolbar.Items.Insert(0, tsb);
                 htButtonScripts[tsb] = methodToInvoke;
             }
-
 
             // Bind each of the BindUITabs.
             foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))

@@ -21,6 +21,28 @@ namespace Clearinet
         }
     }
 
+
+    /// <summary>
+    /// Bind a new tab to your method. The method should return a string, which will be displayed in the tab.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class BindUIColumn : Attribute
+    {
+        internal string _sTitle;
+        internal bool _sortNumerically;
+
+        public BindUIColumn(string sTitle)
+        {
+            _sTitle = sTitle;
+        }
+
+        public BindUIColumn(string sTitle, bool bSortNumerically)
+        {
+            _sTitle = sTitle;
+            _sortNumerically = bSortNumerically;
+        }
+    }
+
     /// <summary>
     /// Bind a new tab to your method. The method should return a string, which will be displayed in the tab.
     /// </summary>

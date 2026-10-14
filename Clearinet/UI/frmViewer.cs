@@ -18,6 +18,11 @@ namespace Clearinet
         public frmViewer()
         {
             InitializeComponent();
+
+            // TODO: This is a hack. Eventually we will be smarter.
+            lvExchanges.ConfigureColumn(0, ColumnSortType.Numeric); // ID column
+            lvExchanges.ConfigureColumn(1, ColumnSortType.Numeric); // Result column
+
             mruRecents = new MRU(CApp.Prefs.GetInt32Pref("ui.mru.max", 12), CONFIG.GetRegistryPath("MRU"));
             if (CONFIG.isViewerMode)
             {
@@ -749,6 +754,12 @@ namespace Clearinet
             lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
             lvi.SubItems.Add(x.host);
             lvi.SubItems.Add(x.RequestHeaders.RequestPath);
+
+            for (int i = 5; i < lvExchanges.Columns.Count; ++i)
+            {
+                lvi.SubItems.Add(lvExchanges.PopulateColumn(i, x));
+            }
+
             x.ViewItem = lvi;
             lvExchanges.Items.Add(lvi);
         }

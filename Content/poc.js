@@ -19,6 +19,12 @@ class Handlers {
     function LaunchSingleInstance() {
       Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
     }
+    
+     public static BindUIColumn("Content-Type", true)
+      function FillCTColumn(xc: Exchange): String {
+         return xc.ResponseHeaders["Content-Type"];
+      }
+      
       
     public BindUITab("Flags")
     static function FlagsReport(arrEx: Exchange[]):String {
