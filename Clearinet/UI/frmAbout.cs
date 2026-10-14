@@ -75,6 +75,7 @@ namespace Clearinet
             sb.AppendLine($"CPU: {bitness} {architecture}");
             sb.AppendLine($"WorkingSet: {workingSetMB:F1}mb; Private bytes: {privateBytesMB:F1}mb");
             sb.AppendLine($"{runtimeFramework} {osName} {osVersion}");
+            if (PlatformAPI.RunningElevated()) sb.AppendLine("Running ELEVATED");
 
             return sb.ToString();
         }

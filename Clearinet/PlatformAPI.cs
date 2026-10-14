@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 
 namespace Clearinet
@@ -10,6 +11,15 @@ namespace Clearinet
     /// </summary>
     public class PlatformAPI
     {
+        public static bool RunningElevated()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
         // Win32 API declaration
         [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool PathCompactPathExW(
