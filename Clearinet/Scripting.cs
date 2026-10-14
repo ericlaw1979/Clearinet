@@ -71,20 +71,12 @@ namespace Clearinet
                 throw new ArgumentNullException(nameof(scriptPath));
 
             _scriptPath = Path.GetFullPath(scriptPath);
-
-            if (!File.Exists(_scriptPath))
-                throw new FileNotFoundException("Script file not found.", _scriptPath);
-
-            // Initial compile
-            CompileScript();
-
-            // Setup FileSystemWatcher for auto-reloading
             string directory = Path.GetDirectoryName(_scriptPath);
             string fileName = Path.GetFileName(_scriptPath);
 
             _watcher = new FileSystemWatcher(directory, fileName)
             {
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
                 SynchronizingObject = CApp.UI, // Ensure events are raised on the UI thread
                 EnableRaisingEvents = true
             };
@@ -92,6 +84,14 @@ namespace Clearinet
             // FileSystemWatcher frequently fires multiple events for a single save.
             // We handle this using a debounced event handler.
             _watcher.Changed += OnScriptFileChanged;
+            if (File.Exists(_scriptPath))
+            {
+                CompileScript();
+            }
+            else
+            {
+                CApp.Log.Log($"Script file not found: {_scriptPath}");
+            }
         }
 
         private void OnScriptFileChanged(object sender, FileSystemEventArgs e)
@@ -127,63 +127,84 @@ namespace Clearinet
 
         private void CompileScript()
         {
-            _isReadyForCalls = false;
-            string scriptContent;
-            using (var stream = new FileStream(_scriptPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var reader = new StreamReader(stream))
+            try
             {
-                scriptContent = reader.ReadToEnd();
-            }
-            // TODO: What if scriptContent is empty? Should we treat that as a valid script with no handlers, or throw an error?
-
-            var provider = new Microsoft.JScript.JScriptCodeProvider();
-            var compilerParameters = new System.CodeDom.Compiler.CompilerParameters
-            {
-                GenerateInMemory = true,
-                // We must GenerateExecutable for global script statements/functions to compile properly
-                GenerateExecutable = true
-            };
-
-            #region ADD_REFERENCES
-            // Add all assemblies that Rules can use.
-            compilerParameters.ReferencedAssemblies.Add("System.dll");
-            compilerParameters.ReferencedAssemblies.Add("System.Windows.Forms.dll");
-            compilerParameters.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location); // Clearinet
-
-            // TODO: Document this preference and the SECURITY IMPACT of unqualified paths.
-            String[] slAdditionalAssemblies = CApp.Prefs.GetStringPref("scripting.references", String.Empty).Split(';');
-            foreach (string sPath in slAdditionalAssemblies)
-            {
-                string sPathTrimmed = sPath.Trim();
-                if (String.IsNullOrEmpty(sPathTrimmed)) continue;
-                compilerParameters.ReferencedAssemblies.Add(sPathTrimmed);
-            }
-            #endregion ADD_REFERENCES
-
-            // Compile the script.
-            CompilerResults results = provider.CompileAssemblyFromSource(compilerParameters, scriptContent);
-
-            if (results.Errors.HasErrors)
-            {
-                var errorMsg = "JScript Compilation Errors:\n";
-                foreach (System.CodeDom.Compiler.CompilerError error in results.Errors)
+                CApp.Log.Log($"CompileScript(`{_scriptPath}`");
+                // Clear any prior script state before compiling the new script.
+                if (_isReadyForCalls)
                 {
-                    errorMsg += $"Line {error.Line}, Col {error.Column}: {error.ErrorText}\n";
-                    //RulesCompileFailed?.Invoke(ex.Message, error.Line, error.Column, error.Column + 1); // TODO: Determine end column if possible
+                    _ClearCachedHandlerMethods();
+                    ClearPriorScriptButtons(CApp.UI.tsToolbar);
+                    ClearPriorScriptTabs();
+                }
+                _isReadyForCalls = false;
+                string scriptContent;
+                using (var stream = new FileStream(_scriptPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
+                {
+                    scriptContent = reader.ReadToEnd();
+                }
+                // TODO: What if scriptContent is empty? Should we treat that as a valid script with no handlers, or throw an error?
+
+                var provider = new Microsoft.JScript.JScriptCodeProvider();
+                var compilerParameters = new System.CodeDom.Compiler.CompilerParameters
+                {
+                    GenerateInMemory = true,
+                    // We must GenerateExecutable for global script statements/functions to compile properly
+                    GenerateExecutable = true
+                };
+
+                #region ADD_REFERENCES
+                // Add all assemblies that Rules can use.
+                compilerParameters.ReferencedAssemblies.Add("System.dll");
+                compilerParameters.ReferencedAssemblies.Add("System.Windows.Forms.dll");
+                compilerParameters.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location); // Clearinet
+
+                // TODO: Document this preference and the SECURITY IMPACT of unqualified paths.
+                String[] slAdditionalAssemblies = CApp.Prefs.GetStringPref("scripting.references", String.Empty).Split(';');
+                foreach (string sPath in slAdditionalAssemblies)
+                {
+                    string sPathTrimmed = sPath.Trim();
+                    if (String.IsNullOrEmpty(sPathTrimmed)) continue;
+                    compilerParameters.ReferencedAssemblies.Add(sPathTrimmed);
+                }
+                #endregion ADD_REFERENCES
+
+                // Compile the script.
+                CompilerResults results = provider.CompileAssemblyFromSource(compilerParameters, scriptContent);
+
+                if (results.Errors.HasErrors)
+                {
+                    var errorMsg = "JScript Compilation Errors:\n";
+                    foreach (System.CodeDom.Compiler.CompilerError error in results.Errors)
+                    {
+                        errorMsg += $"Line {error.Line}, Col {error.Column}: {error.ErrorText}\n";
+                        //RulesCompileFailed?.Invoke(ex.Message, error.Line, error.Column, error.Column + 1); // TODO: Determine end column if possible
+                    }
+
+                    throw new InvalidOperationException(errorMsg); // TODO: Somebody needs to catch this!
                 }
 
-                throw new InvalidOperationException(errorMsg); // TODO: Somebody needs to catch this!
+                _compiledAssembly = results.CompiledAssembly;
+
+                _typeHandlers = _compiledAssembly.GetType("Handlers");
+                _isReadyForCalls = (null != _typeHandlers);
+                if (_isReadyForCalls)
+                {
+                    _bindUIElements();
+                    _cacheHandlerMethods();
+
+                    CApp.Log.Log($"Script compilation succeeded.");
+
+                    _RunMainMethod();
+                }
             }
-
-            _compiledAssembly = results.CompiledAssembly;
-
-            _typeHandlers = _compiledAssembly.GetType("Handlers");
-            _isReadyForCalls = (null != _typeHandlers);
-            if (_isReadyForCalls)
+            catch (Exception ex)
             {
-                _bindUIElements();
-                _cacheHandlerMethods();
-                _RunMainMethod();
+                _isReadyForCalls = false;
+                _ClearCachedHandlerMethods();
+                CApp.ReportException(ex, "Script Failed to Compile",
+                    $"There appears to be an error in your script file ({PlatformAPI.CompactPath(_scriptPath, 50)}).");
             }
         }
 
