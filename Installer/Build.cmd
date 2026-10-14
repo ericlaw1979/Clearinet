@@ -17,8 +17,6 @@
 @c:\src\nsis\MakeNSIS.EXE Clearinet.nsi
 @if %ERRORLEVEL%==1 goto done
 @:signsetup
-@CHOICE /M "Sign setup.exe?"
-@if %ERRORLEVEL%==2 goto done
 @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /as /d "Clearinet Web Debugger" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ClearinetSetup.exe 
 
 @if %ERRORLEVEL%==-1 goto signsetup

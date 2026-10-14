@@ -37,6 +37,7 @@ ManifestDPIAware true
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "InstallPath"
 
 !include "MultiUser.nsh"
+InstallDir "$PROGRAMFILES64\Clearinet"
 
 ; Directives to the installer
 XPStyle on
@@ -51,11 +52,34 @@ OutFile "ClearinetSetup.exe"
 !insertmacro MUI_PAGE_LICENSE "..\docs\EULA.txt"
 !define MUI_TEXT_LICENSE_SUBTITLE "Accept the friendly license to install and use Clearinet."
 !define MUI_INNERTEXT_LICENSE_BOTTOM "If you accept, click I Agree to continue."
-!define MUI_INNERTEXT_LICENSE_TOP " "	; remove the instructions about reading the whole thing. we're not your mom.
+!define MUI_INNERTEXT_LICENSE_TOP " " ; remove the instructions about how to Page Down. we're not your mom.
+
+; Because we're building a 32-bit setup.exe to install a 64-bit app, the MutiUser.nsh
+; template incorrectly assumes we want to install to 32bit Program Files, and the usual
+; override mechanism doesn't work correctly. So we need to wait for the last moment and
+; then update the $INSTDIR value ourselves.
+;
+!define MULTIUSER_PAGE_CUSTOMFUNCTION_LEAVE SetTargetDirByInstallMode
+Function SetTargetDirByInstallMode
+  ${If} $MultiUser.InstallMode == "AllUsers"
+    StrCpy $INSTDIR "$PROGRAMFILES64\Clearinet"
+  ${EndIf}
+FunctionEnd
 
 !insertmacro MULTIUSER_PAGE_INSTALLMODE  ; <--- Prompts user for CurrentUser vs AllUsers
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
+
+; --- Finish Page with Launch Option ---
+; Use the "explorer.exe target.exe" hack to ensure that an elevated installer launches the app unelevated
+!define MUI_FINISHPAGE_RUN "$WINDIR\explorer.exe"
+!define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\Clearinet.exe$\""
+!define MUI_FINISHPAGE_RUN_TEXT "Launch Clearinet now"
+
+!define MUI_FINISHPAGE_SHOWREADME "https://clearinet.app/r/?clnetinstalledorupdated"
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "Launch Update url"
+
+!insertmacro MUI_PAGE_FINISH
 
 ; Setup Uninstaller Pages
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -149,6 +173,9 @@ goto lbl_WriteUninstall
 lbl_UpdateRegistry:
 ClearErrors
 
+; TODO: Should we need to use the 64-bit Registry View ???
+; SetRegView 64
+
 DetailPrint "Writing Registry"
 WriteRegStr SHCTX "Software\Clearinet" "InstallPath" "$INSTDIR\"
 WriteRegStr SHCTX "Software\Clearinet" "Version" "${VER_App}"
@@ -223,16 +250,6 @@ ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
 IntFmt $0 "0x%08X" $0
 WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "EstimatedSize" "$0"
 
-IfSilent lbl_Finish
-
-; --- Finish Page with Launch Option ---
-; Use the "explorer.exe target.exe" hack to ensure that an elevated installer launches the app unelevated
-!define MUI_FINISHPAGE_RUN "C:\windows\explorer.exe"
-!define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\Clearinet.exe$\" -noattach"
-!define MUI_FINISHPAGE_RUN_TEXT "Launch Clearinet now" 
-
-ExecShell "open" "http://clearinet.app/r/?clnetinstalledorupdated" "" SW_SHOWNORMAL
-
 lbl_Finish:
 
 SectionEnd
@@ -296,17 +313,17 @@ Delete "$INSTDIR\Tools\dwebp.exe"
 Delete "$INSTDIR\Extensions\CAE-Default.dll"
 Delete "$INSTDIR\ImportExport\CAT-Default.dll"
 
-; Remove directories
-; TODO: Validate directory is empty first?
-; RMDir "$INSTDIR\Tools"
-; RMDir "$INSTDIR\Extensions"
-; RMDir "$INSTDIR\ImportExport"
+; Remove directories if empty
+RMDir "$INSTDIR\Tools"
+RMDir "$INSTDIR\Extensions"
+RMDir "$INSTDIR\ImportExport"
 
 ; Remove uninstaller and Uninstall key
 DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet"
 Delete "$INSTDIR\uninst.exe"
 
-; TODO: Validate directory is empty first?
+; TODO: We can specify RMDir /r /REBOOTOK $INSTDIR to wipe all files even if the folder isn't empty.
+; ... but doing that is potentially dangerous and we should prompt first?
 RMDir "$INSTDIR"
 
 lbl_UninstallFinished:
