@@ -26,7 +26,7 @@ ManifestDPIAware true
 !include "MUI2.nsh"
 
 ; Define MultiUser settings before including MultiUser.nsh
-!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_EXECUTIONLEVEL Highest	; Note: An admin cannot just decline to elevate and have setup still run
 !define MULTIUSER_MEMBERPAGE_DISPLAY_OPTION
 ; --- Default to Per-Machine (All Users) Install Mode ---
 !define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS
