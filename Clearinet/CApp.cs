@@ -222,6 +222,30 @@ namespace Clearinet
                 return true;
             }
 
+            if ("lro" == sCmd)
+            {
+                var thread = new Thread(() =>
+                {
+                    var sName = (arrParams.Length > 1) ? arrParams[1] : "Test LRO";
+                    var lro = new LongRunningOperation(sName, true);
+                    for (int i = 0; i < 10; i++)
+                    {
+                        // Fixed typo: calculated percent complete (e.g., 10%, 20%... 100%)
+                        lro.UpdateProgress((i + 1) * 10, $"Step {i + 1} of 10");
+                        Thread.Sleep(1000);
+                    }
+                })
+                {
+                    IsBackground = true,
+                    Name = "LongRunningOperation Test Thread",
+                    Priority = ThreadPriority.BelowNormal
+                };
+
+                thread.Start();
+
+                return true;
+            }
+
             if (scriptRules == null) return false;
             return scriptRules.RunExecAction(arrParams);
         }

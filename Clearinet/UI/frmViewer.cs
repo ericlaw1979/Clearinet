@@ -1570,6 +1570,8 @@ namespace Clearinet
 
         public string OperationName { get; private set; }
 
+        public string StatusText { get; private set; }
+
         private ToolStripProgressBar ProgressUI;
 
         private CancelEventHandler ceh;
@@ -1588,10 +1590,20 @@ namespace Clearinet
                 PlatformAPI.PreventSleep(keepDisplayOn: false);
                 CApp.BeforeAppShutdown += ceh;
             }
+            CreateUI();
+        }
+
+        private void CreateUI()
+        {
+            if (CApp.UI.InvokeRequired)
+            {
+                CApp.UI.Invoke((Action)(() => { CreateUI(); }));
+                return;
+            }
             ProgressUI = new ToolStripProgressBar()
             {
                 Maximum = 100,
-                ToolTipText = sOperationName,
+                ToolTipText = OperationName,
                 Style = ProgressBarStyle.Marquee
             };
 
@@ -1599,18 +1611,40 @@ namespace Clearinet
             Application.DoEvents();
         }
 
-        public void UpdateProgress(int iPercent)
+        public void UpdateProgress(int iPercent, string sStatusText = null)
         {
+            if (sStatusText.HasText()) StatusText = sStatusText;
+            if (iPercent >= 100)
+            {
+                Dispose();
+                return;
+            }
             if (null != ProgressUI)
             {
-                ProgressUI.Style = ProgressBarStyle.Blocks;
-                ProgressUI.Value = iPercent;
-                Application.DoEvents();
+                UpdateUIForProgress(iPercent);
             }
+        }
+
+        private void UpdateUIForProgress(int iPercent)
+        {
+            if (CApp.UI.InvokeRequired)
+            {
+                CApp.UI.Invoke((Action)(() => { UpdateUIForProgress(iPercent); }));
+                return;
+            }
+            ProgressUI.Style = ProgressBarStyle.Blocks;
+            ProgressUI.Value = iPercent;
+            ProgressUI.ToolTipText = $"{OperationName}: {StatusText} ({iPercent:N0}%)";
+            Application.DoEvents();
         }
 
         public void Dispose()
         {
+            if (CApp.UI.InvokeRequired)
+            {
+                CApp.UI.Invoke((Action)(() => { Dispose(); }));
+                return;
+            }
             CApp.UI.tsToolbar.Items.Remove(ProgressUI);
             ProgressUI.Dispose();
             if (PreventSleepOrExit)
