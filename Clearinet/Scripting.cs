@@ -80,6 +80,7 @@ namespace Clearinet
                 if (!File.Exists(_scriptPath))
                 {
                     CApp.Log.Log($"Script file not found: {_scriptPath}; creating from default sample.");
+                    Directory.CreateDirectory(directory);
                     File.Copy(CONFIG.GetPath("SampleRulesScript"), _scriptPath);
                 }
 
