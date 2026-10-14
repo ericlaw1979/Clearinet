@@ -4,7 +4,7 @@
 ; install the program.
 ;
 ; To build, run:
-;  <folder>\nsis\makensis.exe Clearinet.nsi
+;   <folder>\nsis\makensis.exe Clearinet.nsi
 ;
 ; For release builds, you must first sign the binaries
 ; inside the package, then build the installer, then
@@ -12,17 +12,31 @@
 ;
 ; Get NSIS from https://nsis.sourceforge.io/Download
 ; Read the docs for the install script here:
-;    https://nsis.sourceforge.io/Docs/Chapter3.html
+;     https://nsis.sourceforge.io/Docs/Chapter3.html
 ;
 ; Last validated against NSIS 3.13
-; 
+;  
 Name "Clearinet"
-Icon "..\Content\Builtin\setup.ico"
+!define MUI_ICON "..\Content\Builtin\setup.ico"
 ManifestDPIAware true
 
 !include x64.nsh
 !include WinVer.nsh
 !include "FileFunc.nsh"
+!include "MUI2.nsh"
+
+; Define MultiUser settings before including MultiUser.nsh
+!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_MEMBERPAGE_DISPLAY_OPTION
+; --- Default to Per-Machine (All Users) Install Mode ---
+!define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "Software\Clearinet"
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "InstallPath"
+!define MULTIUSER_INSTALLMODE_INSTDIR "Clearinet"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "Software\Clearinet"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "InstallPath"
+
+!include "MultiUser.nsh"
 
 ; Directives to the installer
 XPStyle on
@@ -33,7 +47,27 @@ OutFile "ClearinetSetup.exe"
 !define /file VER_APP Clearinet.ver
 !define /date NOW "%b-%d-%y"
 
+; Setup Installer Pages
+!insertmacro MUI_PAGE_LICENSE "..\docs\EULA.txt"
+!define MUI_TEXT_LICENSE_SUBTITLE "Accept the friendly license to install and use Clearinet."
+!define MUI_INNERTEXT_LICENSE_BOTTOM "If you accept, click I Agree to continue."
+!define MUI_INNERTEXT_LICENSE_TOP " "	; remove the instructions about reading the whole thing. we're not your mom.
+
+!insertmacro MULTIUSER_PAGE_INSTALLMODE  ; <--- Prompts user for CurrentUser vs AllUsers
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+
+; Setup Uninstaller Pages
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+; Language files must be inserted AFTER page macros
+!insertmacro MUI_LANGUAGE "English"
+
 Function .onInit
+  # Initialize MultiUser mode detection
+  !insertmacro MULTIUSER_INIT
+
   # Verify 64-bit OS at startup
   ${If} ${IsNativeAMD64}
   ${OrIf} ${IsNativeARM64}
@@ -44,11 +78,9 @@ Function .onInit
   ${EndIf}
 FunctionEnd
 
-; TODO: Allow user level installations. For now, the installer is machine-wide
-RequestExecutionLevel "admin"
-
-LicenseText "Accept the friendly license to install and use Clearinet."
-LicenseData "..\docs\EULA.txt"
+Function un.onInit
+  !insertmacro MULTIUSER_UNINIT
+FunctionEnd
 
 BrandingText "v${VER_APP} (${NOW})" 
 VIProductVersion "${VER_APP}"
@@ -59,14 +91,8 @@ VIAddVersionKey "LegalCopyright" "©2026 Clearinet Contributors"
 VIAddVersionKey "CompanyName" "Clearinet Contributors"
 VIAddVersionKey "FileDescription" "Installs Clearinet Web Debugger"
 
-InstallDir "$PROGRAMFILES64\Clearinet"
-InstallDirRegKey HKLM "SOFTWARE\Clearinet" "InstallPath"
-DirText "Select installation folder:"
-
 Section "App"
 
-; Install for all users by default
-SetShellVarContext all
 SetOutPath "$INSTDIR"
 
 ; TODO: Check for .NET binaries
@@ -113,7 +139,7 @@ File "..\Content\bundled\dwebp.exe"
 IfErrors +1 lbl_UpdateRegistry
 IfSilent FailWithCode
 
-MessageBox MB_OK "Error: Writing a file failed.$\nAn admin must install this tool."
+MessageBox MB_OK "Error: Writing a file failed."
 goto lbl_UpdateRegistry
 
 FailWithCode:
@@ -124,49 +150,46 @@ lbl_UpdateRegistry:
 ClearErrors
 
 DetailPrint "Writing Registry"
-WriteRegStr HKLM "SOFTWARE\Clearinet" "InstallPath" "$INSTDIR\"
-WriteRegStr HKLM "Software\Clearinet" "Version" "${VER_App}"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe" "" '"$INSTDIR\clearinet.exe"'
-
+WriteRegStr SHCTX "Software\Clearinet" "InstallPath" "$INSTDIR\"
+WriteRegStr SHCTX "Software\Clearinet" "Version" "${VER_App}"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe" "" '"$INSTDIR\clearinet.exe"'
 
 ; Tell the system what we support
-WriteRegStr HKLM "Software\Classes\Applications\Clearinet.exe\SupportedTypes" ".har" ""
-WriteRegStr HKLM "Software\Classes\Applications\Clearinet.exe\SupportedTypes" ".saz" ""
+WriteRegStr SHCTX "Software\Classes\Applications\Clearinet.exe\SupportedTypes" ".har" ""
+WriteRegStr SHCTX "Software\Classes\Applications\Clearinet.exe\SupportedTypes" ".saz" ""
 
-
-; take SAZ File Association
-WriteRegStr HKCR ".saz" "" "Clearinet.ArchiveZip"
-WriteRegStr HKCR "Clearinet.ArchiveZip\DefaultIcon" "" "$INSTDIR\SAZFile.ico"
-WriteRegStr HKCR "Clearinet.ArchiveZip" "" "Clearinet Session Archive"
-WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open\command" "" '"$INSTDIR\clearinet.exe" -noattach "%1"'
-WriteRegStr HKCR "Clearinet.ArchiveZip\Shell\Open V&iewer Mode\command" "" '"$INSTDIR\clearinet.exe" -viewer "%1"'
+; SAZ File Association
+WriteRegStr SHCTX "Software\Classes\.saz" "" "Clearinet.ArchiveZip"
+WriteRegStr SHCTX "Software\Classes\Clearinet.ArchiveZip\DefaultIcon" "" "$INSTDIR\SAZFile.ico"
+WriteRegStr SHCTX "Software\Classes\Clearinet.ArchiveZip" "" "Clearinet Session Archive"
+WriteRegStr SHCTX "Software\Classes\Clearinet.ArchiveZip\Shell\Open\command" "" '"$INSTDIR\clearinet.exe" -noattach "%1"'
+WriteRegStr SHCTX "Software\Classes\Clearinet.ArchiveZip\Shell\Open V&iewer Mode\command" "" '"$INSTDIR\clearinet.exe" -viewer "%1"'
 ; TODO: Do we want to use the legacy MIME here?
-WriteRegStr HKCR "Clearinet.ArchiveZip" "Content Type" "application/x-zip-compressed+SessionArchive"
+WriteRegStr SHCTX "Software\Classes\Clearinet.ArchiveZip" "Content Type" "application/x-zip-compressed+SessionArchive"
 
-WriteRegStr HKLM "Software\Classes\Clearinet.HARFile" "" "HTTP Archive File"
-WriteRegStr HKLM "Software\Classes\Clearinet.HARFile" "FriendlyTypeName" "HTTP Archive File"
+WriteRegStr SHCTX "Software\Classes\Clearinet.HARFile" "" "HTTP Archive File"
+WriteRegStr SHCTX "Software\Classes\Clearinet.HARFile" "FriendlyTypeName" "HTTP Archive File"
 # Associated Icon (using main executable icon at index 0)
-WriteRegStr HKLM "Software\Classes\Clearinet.HARFile\DefaultIcon" "" "$INSTDIR\Clearinet.exe,0"
+WriteRegStr SHCTX "Software\Classes\Clearinet.HARFile\DefaultIcon" "" "$INSTDIR\Clearinet.exe,0"
 # Default "open" verb shell execution command
-WriteRegStr HKLM "Software\Classes\Clearinet.HARFile\shell\open\command" "" '"$INSTDIR\Clearinet.exe" "%1"'
-WriteRegStr HKLM "Software\Classes\.har\OpenWithProgids" "Clearinet.HARFile" ""
-WriteRegStr HKLM "Software\Classes\Applications\Clearinet.exe\shell\open\command" "" '"$INSTDIR\Clearinet.exe" "%1"'
-
+WriteRegStr SHCTX "Software\Classes\Clearinet.HARFile\shell\open\command" "" '"$INSTDIR\Clearinet.exe" "%1"'
+WriteRegStr SHCTX "Software\Classes\.har\OpenWithProgids" "Clearinet.HARFile" ""
+WriteRegStr SHCTX "Software\Classes\Applications\Clearinet.exe\shell\open\command" "" '"$INSTDIR\Clearinet.exe" "%1"'
 
 # Tell Windows Explorer to refresh associated file icons
 System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 
 DetailPrint "Writing Win64 Registry"
 SetRegView 64 
-WriteRegStr HKLM "SOFTWARE\Clearinet" "InstallPath" "$INSTDIR\"
-WriteRegStr HKLM "Software\Clearinet" "Version" "${VER_App}"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe" "" '"$INSTDIR\clearinet.exe"'
+WriteRegStr SHCTX "Software\Clearinet" "InstallPath" "$INSTDIR\"
+WriteRegStr SHCTX "Software\Clearinet" "Version" "${VER_App}"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe" "" '"$INSTDIR\clearinet.exe"'
 
 SetRegView lastused
 
 IfErrors +1 RegistryOK
 IfSilent +2 +1
-MessageBox MB_OK "Warning: Registry update failed.$\nAn admin must install this tool."
+MessageBox MB_OK "Warning: Registry update failed."
 SetErrorLevel 101
 goto lbl_WriteUninstall
 
@@ -174,33 +197,40 @@ RegistryOk:
 
 CreateShortCut "$SMPROGRAMS\Clearinet.lnk" "$INSTDIR\clearinet.exe" "" "$INSTDIR\clearinet.exe" 0
 
-; TODO: Firewall exception
+; TODO: If we're an admin, we should pre-add the Firewall exception
 
 ; TODO: NGEN for better boot performance
 
 lbl_WriteUninstall:
 WriteUninstaller "uninst.exe"
 
-; Add/Remove Programs
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "DisplayName" "Clearinet"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "Publisher" "OSS Contributors"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "Comments" "Clearinet is a web debugger."
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "InstallLocation" "$INSTDIR"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "DisplayVersion" "${VER_APP}"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "UninstallString" '"$INSTDIR\uninst.exe"'
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "DisplayIcon" '"$INSTDIR\clearinet.exe"'
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "HelpLink" "https://clearinet.app/r/?clnethelp"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "URLUpdateInfo" "http://clearinet.app/r/?clnetupdates"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "URLInfoAbout" "http://clearinet.app/"
-WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "NoRepair" 1
-WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "NoModify" 1
+; Add/Remove Programs (Context-sensitive)
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "DisplayName" "Clearinet"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "Publisher" "OSS Contributors"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "Comments" "Clearinet is a web debugger."
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "InstallLocation" "$INSTDIR"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "DisplayVersion" "${VER_APP}"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "UninstallString" '"$INSTDIR\uninst.exe"'
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "DisplayIcon" '"$INSTDIR\clearinet.exe"'
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "HelpLink" "https://clearinet.app/r/?clnethelp"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "URLUpdateInfo" "http://clearinet.app/r/?clnetupdates"
+WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "URLInfoAbout" "http://clearinet.app/"
+WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "NoRepair" 1
+WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "NoModify" 1
 
 ; Get size of install on disk
 ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
 IntFmt $0 "0x%08X" $0
-WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "EstimatedSize" "$0"
+WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet" "EstimatedSize" "$0"
 
 IfSilent lbl_Finish
+
+; --- Finish Page with Launch Option ---
+; Use the "explorer.exe target.exe" hack to ensure that an elevated installer launches the app unelevated
+!define MUI_FINISHPAGE_RUN "C:\windows\explorer.exe"
+!define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\Clearinet.exe$\" -noattach"
+!define MUI_FINISHPAGE_RUN_TEXT "Launch Clearinet now" 
+
 ExecShell "open" "http://clearinet.app/r/?clnetinstalledorupdated" "" SW_SHOWNORMAL
 
 lbl_Finish:
@@ -212,8 +242,6 @@ SetErrorLevel 99
 FunctionEnd
 
 ; ===================================
-UninstallText "This program will uninstall the Clearinet Debugger."
-; ===================================
 Section Uninstall
 
 IfSilent SkipWipe
@@ -222,42 +250,32 @@ IfSilent SkipWipe
 MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Delete all settings?$\n$\n(Choose NO if you intend to install later)" IDNO SkipWipe
 DetailPrint "Removing files and registry keys..."
 
-; Remove HKCU
-DeleteRegKey HKCU "SOFTWARE\Clearinet"
-; TODO: Delete per user stuff
-
 SkipWipe:
 
-SetShellVarContext all
-
-; Remove Start Menu shortcuts and IE Toolbar button
+; Remove Start Menu shortcuts
 Delete "$SMPROGRAMS\Clearinet.lnk"
 
-; Wipe registry HKLM keys
-DeleteRegKey HKLM "SOFTWARE\Clearinet"
+; Wipe registry keys from current context
+DeleteRegKey SHCTX "Software\Clearinet"
 SetRegView 64 
-DeleteRegKey HKLM "SOFTWARE\Clearinet" 
+DeleteRegKey SHCTX "Software\Clearinet" 
 SetRegView lastused
 
-DeleteRegKey HKCR ".saz" 
-DeleteRegKey HKCR "Clearinet.ArchiveZip"
-DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe"
+DeleteRegKey SHCTX "Software\Classes\.saz" 
+DeleteRegKey SHCTX "Software\Classes\Clearinet.ArchiveZip"
+DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\clearinet.exe"
 
 # Remove ProgID association from .har extension
-DeleteRegValue HKLM "Software\Classes\.har\OpenWithProgids" "Clearinet.HARFile"
-
+DeleteRegValue SHCTX "Software\Classes\.har\OpenWithProgids" "Clearinet.HARFile"
 
 # Delete the ProgID registry tree
-DeleteRegKey HKLM "Software\Classes\Clearinet.HARFile"
-DeleteRegKey HKLM "Software\Classes\Applications\Clearinet.exe"
+DeleteRegKey SHCTX "Software\Classes\Clearinet.HARFile"
+DeleteRegKey SHCTX "Software\Classes\Applications\Clearinet.exe"
 
 # Refresh shell cache
 System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 
 ; Remove files
-
-; todo: Remove any NGEN assemblies
-
 Delete "$INSTDIR\clearinet.exe"
 Delete "$INSTDIR\clearinet.exe.config"
 Delete "$INSTDIR\Credits.txt"
@@ -278,12 +296,17 @@ Delete "$INSTDIR\Tools\dwebp.exe"
 Delete "$INSTDIR\Extensions\CAE-Default.dll"
 Delete "$INSTDIR\ImportExport\CAT-Default.dll"
 
+; Remove directories
+; TODO: Validate directory is empty first?
+; RMDir "$INSTDIR\Tools"
+; RMDir "$INSTDIR\Extensions"
+; RMDir "$INSTDIR\ImportExport"
 
-; Remove uninstaller
-DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet"
+; Remove uninstaller and Uninstall key
+DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearinet"
 Delete "$INSTDIR\uninst.exe"
 
-; TODO: Check that folder not empty??
+; TODO: Validate directory is empty first?
 RMDir "$INSTDIR"
 
 lbl_UninstallFinished:
