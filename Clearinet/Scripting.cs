@@ -67,30 +67,50 @@ namespace Clearinet
 
         public JScriptEngine(string scriptPath)
         {
-            if (string.IsNullOrWhiteSpace(scriptPath))
-                throw new ArgumentNullException(nameof(scriptPath));
-
-            _scriptPath = Path.GetFullPath(scriptPath);
-            string directory = Path.GetDirectoryName(_scriptPath);
-            string fileName = Path.GetFileName(_scriptPath);
-
-            _watcher = new FileSystemWatcher(directory, fileName)
+            try
             {
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
-                SynchronizingObject = CApp.UI, // Ensure events are raised on the UI thread
-                EnableRaisingEvents = true
-            };
+                Debug.Assert(scriptPath.HasText());
+                _scriptPath = Path.GetFullPath(scriptPath);
+                string directory = Path.GetDirectoryName(_scriptPath);
+                string fileName = Path.GetFileName(_scriptPath);
 
-            // FileSystemWatcher frequently fires multiple events for a single save.
-            // We handle this using a debounced event handler.
-            _watcher.Changed += OnScriptFileChanged;
-            if (File.Exists(_scriptPath))
-            {
-                CompileScript();
+                // If we boot and the script file doesn't exist, copy the sample script to the expected location.
+                // Ensure we do this BEFORE trying to set up the watchers to ensure the folders are created or
+                // else adding the watcher will fail with a DirectoryNotFoundException.
+                if (!File.Exists(_scriptPath))
+                {
+                    CApp.Log.Log($"Script file not found: {_scriptPath}; creating from default sample.");
+                    File.Copy(CONFIG.GetPath("SampleRulesScript"), _scriptPath);
+                }
+
+                try
+                {
+                    _watcher = new FileSystemWatcher(directory, fileName)
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
+                        SynchronizingObject = CApp.UI, // Ensure events are raised on the UI thread
+                        EnableRaisingEvents = true
+                    };
+
+                    // FileSystemWatcher frequently fires multiple events for a single save.
+                    // We handle this using a debounced event handler.
+                    _watcher.Changed += OnScriptFileChanged;
+                }
+                catch (Exception ex)
+                {
+                    CApp.ReportException(ex, "Failed to initialize script file watcher",
+                        $"There was a problem initializing the script file watcher for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
+                }
+
+                if (File.Exists(_scriptPath))
+                {
+                    CompileScript();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                CApp.Log.Log($"Script file not found: {_scriptPath}");
+                CApp.ReportException(ex, "Failed to initialize script engine",
+                    $"There was a problem initializing the script engine for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
             }
         }
 

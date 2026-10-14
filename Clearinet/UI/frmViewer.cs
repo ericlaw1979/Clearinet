@@ -397,6 +397,13 @@ namespace Clearinet
             ToolStripMenuItem miCheckForUpdates = new ToolStripMenuItem("Check for &Updates...");
             miHelp.DropDownItems.Insert(2, miCheckForUpdates);
             miCheckForUpdates.Click += (s, ee) => { Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync(true)); };
+            // TODO: Same
+            ToolStripMenuItem miRulesEdit = new ToolStripMenuItem("&Customize Rules...");
+            miRules.DropDownItems.Add(miRulesEdit);
+            miRulesEdit.Click += (s, ee) =>
+            {
+                Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"), CONFIG.GetPath("RulesScript"));
+            };
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
         }

@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.1.7")]
+[assembly: AssemblyVersion("0.0.1.8")]
 
 // Selected Release Version History
 // v0.0.1.6 - Oct-14-2026 - Various ExchangeList improvements

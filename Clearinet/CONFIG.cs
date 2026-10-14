@@ -109,27 +109,33 @@ namespace Clearinet
         {
             switch (sWhich)
             {
+                case "Editor.Code":
+                    return CApp.Prefs.GetStringPref("user.paths.editors.code", "notepad.exe");
+
                 case "Extensions":
                     return CApp.Prefs.GetStringPref("app.paths.extensions",
-                      Application.StartupPath + Path.DirectorySeparatorChar + "Extensions" + Path.DirectorySeparatorChar);
+                     $"{Application.StartupPath}{Path.DirectorySeparatorChar}Extensions{Path.DirectorySeparatorChar}");
                 case "Extensions_User":
                     return CApp.Prefs.GetStringPref("app.paths.extensions_user",
-                                                GetPath("UserFolder") + "Extensions" + Path.DirectorySeparatorChar);
+                                               $"{GetPath("UserFolder")}Extensions{Path.DirectorySeparatorChar}");
                 case "Transcoders":
                     return CApp.Prefs.GetStringPref("app.paths.transcoders",
-                      Application.StartupPath + Path.DirectorySeparatorChar + "ImportExport" + Path.DirectorySeparatorChar);
+                      $"{Application.StartupPath}{Path.DirectorySeparatorChar}ImportExport{Path.DirectorySeparatorChar}");
                 case "Transcoders_User":
                     return CApp.Prefs.GetStringPref("app.paths.transcoders_user",
-                                                GetPath("UserFolder") + "ImportExport" + Path.DirectorySeparatorChar);
-                case "RulesScript":    // TODO: Replace with CustomRules.js file
-                    return CApp.Prefs.GetStringPref("app.paths.rulesscript",
-                                                GetPath("UserFolder") + Path.DirectorySeparatorChar + @"CustomRules.js");
+                                                $"{GetPath("UserFolder")}ImportExport{Path.DirectorySeparatorChar}");
+                case "RulesScript":          // TODO: REMOVE ALPHA for v1.0
+                    return CApp.Prefs.GetStringPref("app.paths.rules.script",
+                                                $"{GetPath("UserFolder")}CustomRulesALPHA.js");
+                case "SampleRulesScript":    // TODO: REMOVE ALPHA for v1.0
+                    return CApp.Prefs.GetStringPref("app.paths.rules.sample_script",
+                                                $"{Application.StartupPath}{Path.DirectorySeparatorChar}SampleRulesALPHA.js");
                 case "Root": return Application.StartupPath;
-                case "Scripts":
-                    return GetPath("UserFolder") + "Scripts" + Path.DirectorySeparatorChar;
+                //case "Scripts":
+                //    return GetPath("UserFolder") + "Scripts" + Path.DirectorySeparatorChar;
                 case "Tools":
                     return CApp.Prefs.GetStringPref("app.paths.tools",
-                      Application.StartupPath + Path.DirectorySeparatorChar + "Tools" + Path.DirectorySeparatorChar);
+                      $"{Application.StartupPath}{Path.DirectorySeparatorChar}Tools{Path.DirectorySeparatorChar}");
                 case "UserFolder":
                     return Environment.GetFolderPath(Environment.SpecialFolder.Personal,
                                                      Environment.SpecialFolderOption.DoNotVerify)
