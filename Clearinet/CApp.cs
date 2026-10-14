@@ -126,6 +126,7 @@ namespace Clearinet
         public static void actAttachProxy()
         {
             if (CONFIG.isViewerMode) return;
+            CApp.alert("Sorry!\n\nTraffic capture is not actually implemented yet.\n\nStay tuned!"); // TODO:
             isAttached = true;
             OnProxyAttach();
         }

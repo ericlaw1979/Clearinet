@@ -112,7 +112,7 @@
             this.cbxBigSwitch.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbxBigSwitch.FormattingEnabled = true;
             this.cbxBigSwitch.Items.AddRange(new object[] {
-            "Allow Web Service requests",
+            "Allow Web Service calls",
             "Prompt on every Web Service call",
             "Disallow all Web Service calls"});
             this.cbxBigSwitch.Location = new System.Drawing.Point(17, 35);
@@ -341,6 +341,7 @@
             // lnkHelp
             // 
             this.lnkHelp.AutoSize = true;
+            this.lnkHelp.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.lnkHelp.Location = new System.Drawing.Point(12, 22);
             this.lnkHelp.Name = "lnkHelp";
             this.lnkHelp.Size = new System.Drawing.Size(46, 17);
@@ -361,6 +362,7 @@
             this.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.MinimumSize = new System.Drawing.Size(600, 400);
             this.Name = "frmOptions";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Clearinet Options";

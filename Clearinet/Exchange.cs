@@ -132,6 +132,7 @@ namespace Clearinet
             {
                 if (null == RequestHeaders) return string.Empty;
                 if (RequestHeaders.UriScheme.OICEquals("data")) return "data:" + RequestHeaders.RequestPath;
+                if (RequestHeaders.HTTPMethod.OICEquals("CONNECT")) return $"{RequestHeaders.UriScheme}://{RequestHeaders.RequestPath}";  // TODO: Should it be the host header?
                 return $"{RequestHeaders.UriScheme}://{RequestHeaders["Host"]}{RequestHeaders.RequestPath}";
             }
             set
@@ -222,7 +223,10 @@ namespace Clearinet
         public string this[string sFlagName]
         {
             get => oFlags.TryGetValue(sFlagName, out var value) ? value : null;
-            set => oFlags[sFlagName] = value;
+            set
+            {
+                if (null != value) { oFlags[sFlagName] = value; } else { oFlags.TryRemove(sFlagName, out _); }
+            }
         }
         private ExchangeFlags _bitFlags;
         public ExchangeFlags BitFlags

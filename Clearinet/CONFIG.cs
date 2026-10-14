@@ -37,7 +37,7 @@ namespace Clearinet
         /// </summary>
         public static float flFontSize = 10.0F;
         public static bool isQuietMode { get; set; } = false;
-        public static bool isViewerMode { get; internal set; } = true;
+        public static bool isViewerMode { get; internal set; } = false;
 
         public static int ListenPort { get; internal set; } = 8888;
 
@@ -72,9 +72,9 @@ namespace Clearinet
                     continue;
                 }
 
-                if (sArg.IndexOf("NOTviewer", StringComparison.OrdinalIgnoreCase) == 1)
+                if (sArg.IndexOf("viewer", StringComparison.OrdinalIgnoreCase) == 1)
                 {
-                    isViewerMode = false; // TODO: when we support capture, stop doing this.
+                    isViewerMode = true;
                     continue;
                 }
                 if (sArg.IndexOf("?", StringComparison.OrdinalIgnoreCase) == 1)

@@ -67,11 +67,12 @@
             this.miFileExit = new System.Windows.Forms.ToolStripMenuItem();
             this.miEdit = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopy = new System.Windows.Forms.ToolStripMenuItem();
-            this.miCopyExchange = new System.Windows.Forms.ToolStripMenuItem();
-            this.miCopyURL = new System.Windows.Forms.ToolStripMenuItem();
-            this.miCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
-            this.miCopySummary = new System.Windows.Forms.ToolStripMenuItem();
-            this.miCopyTerseSummary = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyExchange = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyURL = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopySummary = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyForAI = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyTerseSummary = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditPasteAsExchanges = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemove = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveSelected = new System.Windows.Forms.ToolStripMenuItem();
@@ -88,6 +89,7 @@
             this.miEditMarkUnmark = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditFind = new System.Windows.Forms.ToolStripMenuItem();
             this.miRules = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRulesCustomize = new System.Windows.Forms.ToolStripMenuItem();
             this.miTools = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsOptions = new System.Windows.Forms.ToolStripMenuItem();
             this.miTextWizard = new System.Windows.Forms.ToolStripMenuItem();
@@ -105,6 +107,7 @@
             this.miHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpDiscuss = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpBug = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHelpCheckForUpdates = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.ssStatus = new System.Windows.Forms.StatusStrip();
             this.tssbCapture = new System.Windows.Forms.ToolStripSplitButton();
@@ -126,6 +129,10 @@
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
+            this.mnuExchange = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.mnuExchangeCopy = new System.Windows.Forms.ToolStripMenuItem();
+            this.miExchangeCopyUrl = new System.Windows.Forms.ToolStripMenuItem();
+            this.miExchangeCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
@@ -148,10 +155,6 @@
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.mnuExchange = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.mnuExchangeCopy = new System.Windows.Forms.ToolStripMenuItem();
-            this.miExchangeCopyUrl = new System.Windows.Forms.ToolStripMenuItem();
-            this.miExchangeCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
             this.rtbStatistics = new Clearinet.RichTextBoxV5();
             this.lvExchanges = new Clearinet.ExchangeListView();
             this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -179,6 +182,7 @@
             this.tsToolbar.SuspendLayout();
             this.pnlTopGoldbar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
+            this.mnuExchange.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.tabsViews.SuspendLayout();
             this.pageStatistics.SuspendLayout();
@@ -188,7 +192,6 @@
             this.pageAutoResponder.SuspendLayout();
             this.pageComposer.SuspendLayout();
             this.pageLog.SuspendLayout();
-            this.mnuExchange.SuspendLayout();
             this.SuspendLayout();
             // 
             // miViewSplitter3
@@ -244,7 +247,7 @@
             // miHelpSplitter1
             // 
             miHelpSplitter1.Name = "miHelpSplitter1";
-            miHelpSplitter1.Size = new System.Drawing.Size(130, 6);
+            miHelpSplitter1.Size = new System.Drawing.Size(181, 6);
             // 
             // tsmiFileSaveSplitter1
             // 
@@ -305,6 +308,7 @@
             this.miFileAttach.Size = new System.Drawing.Size(189, 22);
             this.miFileAttach.Text = "&Capture Traffic";
             this.miFileAttach.ToolTipText = "Should Clearinet tell the OS to send it traffic?";
+            this.miFileAttach.Click += new System.EventHandler(this.miFileAttach_Click);
             // 
             // miFileNewViewer
             // 
@@ -468,44 +472,57 @@
             // miEditCopy
             // 
             this.miEditCopy.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miCopyExchange,
-            this.miCopyURL,
-            this.miCopyHeaders,
-            this.miCopySummary,
-            this.miCopyTerseSummary});
+            this.miEditCopyExchange,
+            this.miEditCopyURL,
+            this.miEditCopyHeaders,
+            this.miEditCopySummary,
+            this.miEditCopyForAI,
+            this.miEditCopyTerseSummary});
             this.miEditCopy.Name = "miEditCopy";
             this.miEditCopy.Size = new System.Drawing.Size(208, 22);
             this.miEditCopy.Text = "&Copy";
             // 
-            // miCopyExchange
+            // miEditCopyExchange
             // 
-            this.miCopyExchange.Name = "miCopyExchange";
-            this.miCopyExchange.Size = new System.Drawing.Size(165, 22);
-            this.miCopyExchange.Text = "&Exchange";
+            this.miEditCopyExchange.Name = "miEditCopyExchange";
+            this.miEditCopyExchange.Size = new System.Drawing.Size(165, 22);
+            this.miEditCopyExchange.Text = "&Exchange";
+            this.miEditCopyExchange.Click += new System.EventHandler(this.miEditCopyExchange_Click);
             // 
-            // miCopyURL
+            // miEditCopyURL
             // 
-            this.miCopyURL.Name = "miCopyURL";
-            this.miCopyURL.Size = new System.Drawing.Size(165, 22);
-            this.miCopyURL.Text = "Just &Url";
+            this.miEditCopyURL.Name = "miEditCopyURL";
+            this.miEditCopyURL.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.U)));
+            this.miEditCopyURL.Size = new System.Drawing.Size(165, 22);
+            this.miEditCopyURL.Text = "Just &Url";
+            this.miEditCopyURL.Click += new System.EventHandler(this.miEditCopyURL_Click);
             // 
-            // miCopyHeaders
+            // miEditCopyHeaders
             // 
-            this.miCopyHeaders.Name = "miCopyHeaders";
-            this.miCopyHeaders.Size = new System.Drawing.Size(165, 22);
-            this.miCopyHeaders.Text = "&Headers only";
+            this.miEditCopyHeaders.Name = "miEditCopyHeaders";
+            this.miEditCopyHeaders.Size = new System.Drawing.Size(165, 22);
+            this.miEditCopyHeaders.Text = "&Headers only";
             // 
-            // miCopySummary
+            // miEditCopySummary
             // 
-            this.miCopySummary.Name = "miCopySummary";
-            this.miCopySummary.Size = new System.Drawing.Size(165, 22);
-            this.miCopySummary.Text = "&Full Summary";
+            this.miEditCopySummary.Name = "miEditCopySummary";
+            this.miEditCopySummary.Size = new System.Drawing.Size(165, 22);
+            this.miEditCopySummary.Text = "&Full Summary";
+            this.miEditCopySummary.Click += new System.EventHandler(this.miEditCopySummary_Click);
             // 
-            // miCopyTerseSummary
+            // miEditCopyForAI
             // 
-            this.miCopyTerseSummary.Name = "miCopyTerseSummary";
-            this.miCopyTerseSummary.Size = new System.Drawing.Size(165, 22);
-            this.miCopyTerseSummary.Text = "&Terse Summary";
+            this.miEditCopyForAI.Name = "miEditCopyForAI";
+            this.miEditCopyForAI.Size = new System.Drawing.Size(165, 22);
+            this.miEditCopyForAI.Text = "For LLM/&AI";
+            this.miEditCopyForAI.Click += new System.EventHandler(this.miEditCopyForAI_Click);
+            // 
+            // miEditCopyTerseSummary
+            // 
+            this.miEditCopyTerseSummary.Name = "miEditCopyTerseSummary";
+            this.miEditCopyTerseSummary.Size = new System.Drawing.Size(165, 22);
+            this.miEditCopyTerseSummary.Text = "&Terse Summary";
+            this.miEditCopyTerseSummary.Click += new System.EventHandler(this.miEditCopyTerseSummary_Click);
             // 
             // miEditPasteAsExchanges
             // 
@@ -621,9 +638,18 @@
             // 
             // miRules
             // 
+            this.miRules.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miRulesCustomize});
             this.miRules.Name = "miRules";
             this.miRules.Size = new System.Drawing.Size(51, 21);
             this.miRules.Text = "&Rules";
+            // 
+            // miRulesCustomize
+            // 
+            this.miRulesCustomize.Name = "miRulesCustomize";
+            this.miRulesCustomize.Size = new System.Drawing.Size(180, 22);
+            this.miRulesCustomize.Text = "Customize &Rules...";
+            this.miRulesCustomize.Click += new System.EventHandler(this.miRulesCustomize_Click);
             // 
             // miTools
             // 
@@ -757,6 +783,7 @@
             this.miHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miHelpDiscuss,
             this.miHelpBug,
+            this.miHelpCheckForUpdates,
             miHelpSplitter1,
             this.miHelpAbout});
             this.miHelp.Name = "miHelp";
@@ -766,21 +793,28 @@
             // miHelpDiscuss
             // 
             this.miHelpDiscuss.Name = "miHelpDiscuss";
-            this.miHelpDiscuss.Size = new System.Drawing.Size(133, 22);
+            this.miHelpDiscuss.Size = new System.Drawing.Size(184, 22);
             this.miHelpDiscuss.Text = "Dis&cuss";
             this.miHelpDiscuss.Click += new System.EventHandler(this.miHelpDiscuss_Click);
             // 
             // miHelpBug
             // 
             this.miHelpBug.Name = "miHelpBug";
-            this.miHelpBug.Size = new System.Drawing.Size(133, 22);
+            this.miHelpBug.Size = new System.Drawing.Size(184, 22);
             this.miHelpBug.Text = "File a &bug";
             this.miHelpBug.Click += new System.EventHandler(this.miHelpBug_Click);
+            // 
+            // miHelpCheckForUpdates
+            // 
+            this.miHelpCheckForUpdates.Name = "miHelpCheckForUpdates";
+            this.miHelpCheckForUpdates.Size = new System.Drawing.Size(184, 22);
+            this.miHelpCheckForUpdates.Text = "Check for &Updates";
+            this.miHelpCheckForUpdates.Click += new System.EventHandler(this.miHelpCheckForUpdates_Click);
             // 
             // miHelpAbout
             // 
             this.miHelpAbout.Name = "miHelpAbout";
-            this.miHelpAbout.Size = new System.Drawing.Size(133, 22);
+            this.miHelpAbout.Size = new System.Drawing.Size(184, 22);
             this.miHelpAbout.Text = "&About";
             this.miHelpAbout.Click += new System.EventHandler(this.miHelpAbout_Click);
             // 
@@ -895,11 +929,12 @@
             // 
             // tsbComment
             // 
-            this.tsbComment.Image = ((System.Drawing.Image)(resources.GetObject("tsbComment.Image")));
+            this.tsbComment.Image = global::Clearinet.Properties.Resources.PromptQuery;
             this.tsbComment.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbComment.Name = "tsbComment";
             this.tsbComment.Size = new System.Drawing.Size(88, 24);
             this.tsbComment.Text = "Comment";
+            this.tsbComment.Click += new System.EventHandler(this.tsbComment_Click);
             // 
             // tsddbRemove
             // 
@@ -975,6 +1010,38 @@
             this.pnlLeft.Name = "pnlLeft";
             this.pnlLeft.Size = new System.Drawing.Size(357, 518);
             this.pnlLeft.TabIndex = 6;
+            // 
+            // mnuExchange
+            // 
+            this.mnuExchange.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuExchangeCopy});
+            this.mnuExchange.Name = "mnuExchange";
+            this.mnuExchange.ShowImageMargin = false;
+            this.mnuExchange.Size = new System.Drawing.Size(82, 26);
+            this.mnuExchange.Opening += new System.ComponentModel.CancelEventHandler(this.mnuExchange_Opening);
+            // 
+            // mnuExchangeCopy
+            // 
+            this.mnuExchangeCopy.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miExchangeCopyUrl,
+            this.miExchangeCopyHeaders});
+            this.mnuExchangeCopy.Name = "mnuExchangeCopy";
+            this.mnuExchangeCopy.Size = new System.Drawing.Size(81, 22);
+            this.mnuExchangeCopy.Text = "&Copy";
+            // 
+            // miExchangeCopyUrl
+            // 
+            this.miExchangeCopyUrl.Name = "miExchangeCopyUrl";
+            this.miExchangeCopyUrl.Size = new System.Drawing.Size(125, 22);
+            this.miExchangeCopyUrl.Text = "Just &Url";
+            this.miExchangeCopyUrl.Click += new System.EventHandler(this.miExchangeCopyUrl_Click);
+            // 
+            // miExchangeCopyHeaders
+            // 
+            this.miExchangeCopyHeaders.Name = "miExchangeCopyHeaders";
+            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(125, 22);
+            this.miExchangeCopyHeaders.Text = "&Headers";
+            this.miExchangeCopyHeaders.Click += new System.EventHandler(this.miExchangeCopyHeaders_Click);
             // 
             // pnlMain
             // 
@@ -1211,38 +1278,6 @@
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             // 
-            // mnuExchange
-            // 
-            this.mnuExchange.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuExchangeCopy});
-            this.mnuExchange.Name = "mnuExchange";
-            this.mnuExchange.ShowImageMargin = false;
-            this.mnuExchange.Size = new System.Drawing.Size(156, 48);
-            this.mnuExchange.Opening += new System.ComponentModel.CancelEventHandler(this.mnuExchange_Opening);
-            // 
-            // mnuExchangeCopy
-            // 
-            this.mnuExchangeCopy.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miExchangeCopyUrl,
-            this.miExchangeCopyHeaders});
-            this.mnuExchangeCopy.Name = "mnuExchangeCopy";
-            this.mnuExchangeCopy.Size = new System.Drawing.Size(155, 22);
-            this.mnuExchangeCopy.Text = "&Copy";
-            // 
-            // miExchangeCopyUrl
-            // 
-            this.miExchangeCopyUrl.Name = "miExchangeCopyUrl";
-            this.miExchangeCopyUrl.Size = new System.Drawing.Size(180, 22);
-            this.miExchangeCopyUrl.Text = "Just &Url";
-            this.miExchangeCopyUrl.Click += new System.EventHandler(this.miExchangeCopyUrl_Click);
-            // 
-            // miExchangeCopyHeaders
-            // 
-            this.miExchangeCopyHeaders.Name = "miExchangeCopyHeaders";
-            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(180, 22);
-            this.miExchangeCopyHeaders.Text = "&Headers";
-            this.miExchangeCopyHeaders.Click += new System.EventHandler(this.miExchangeCopyHeaders_Click);
-            // 
             // rtbStatistics
             // 
             this.rtbStatistics.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -1295,6 +1330,7 @@
             // colResult
             // 
             this.colResult.Text = "Result";
+            this.colResult.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // colMethod
             // 
@@ -1360,6 +1396,7 @@
             this.pnlTopGoldbar.PerformLayout();
             this.pnlLeft.ResumeLayout(false);
             this.pnlLeft.PerformLayout();
+            this.mnuExchange.ResumeLayout(false);
             this.pnlMain.ResumeLayout(false);
             this.tabsViews.ResumeLayout(false);
             this.pageStatistics.ResumeLayout(false);
@@ -1372,7 +1409,6 @@
             this.pageComposer.ResumeLayout(false);
             this.pageComposer.PerformLayout();
             this.pageLog.ResumeLayout(false);
-            this.mnuExchange.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1425,11 +1461,11 @@
         private System.Windows.Forms.ToolStripMenuItem miViewSquish;
         private System.Windows.Forms.ToolStripMenuItem miViewRefresh;
         private System.Windows.Forms.ToolStripMenuItem miToolsMezer;
-        private System.Windows.Forms.ToolStripMenuItem miCopyExchange;
-        private System.Windows.Forms.ToolStripMenuItem miCopyURL;
-        private System.Windows.Forms.ToolStripMenuItem miCopyHeaders;
-        private System.Windows.Forms.ToolStripMenuItem miCopySummary;
-        private System.Windows.Forms.ToolStripMenuItem miCopyTerseSummary;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyExchange;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyURL;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyHeaders;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopySummary;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyTerseSummary;
         private System.Windows.Forms.ToolStripMenuItem miEditRemoveSelected;
         private System.Windows.Forms.ToolStripMenuItem miEditRemoveUnselected;
         private System.Windows.Forms.ToolStripMenuItem miEditRemoveAll;
@@ -1496,6 +1532,9 @@
         private System.Windows.Forms.ToolStripMenuItem mnuExchangeCopy;
         private System.Windows.Forms.ToolStripMenuItem miExchangeCopyUrl;
         private System.Windows.Forms.ToolStripMenuItem miExchangeCopyHeaders;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyForAI;
+        private System.Windows.Forms.ToolStripMenuItem miHelpCheckForUpdates;
+        private System.Windows.Forms.ToolStripMenuItem miRulesCustomize;
     }
 }
 

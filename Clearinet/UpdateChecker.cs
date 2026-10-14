@@ -9,7 +9,7 @@ public static class UpdateChecker
 {
     public static async Task CheckForUpdatesAsync(bool bAlwaysShowOutcome = false)
     {
-        LongRunningOperation lro;
+        LongRunningOperation lro = null;
         if (bAlwaysShowOutcome)
         {
             lro = new LongRunningOperation("Checking for updates...", false);
@@ -115,12 +115,15 @@ public static class UpdateChecker
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Warning);
                     }));
+                    lro?.Dispose();
                     return;
                 }
 
                 CApp.ReportException(ex, "Update check failed.");
             }
         }
+
+        lro?.Dispose();
     }
 
     private static void PromptUserToUpdate(Version currentVersion, Version latestVersion, string releaseUrl)

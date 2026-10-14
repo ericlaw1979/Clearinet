@@ -267,7 +267,7 @@ namespace Clearinet
                 frmSplashScreen.SetStatusText("Loading script engine...");
                 CApp.CreateScriptEngine();
 
-                SAZFile.SupplyPassword = () =>
+                SAZFile.SupplyPassword = (string sPath) =>
                 {
                     var fpo = new frmPrompt.PromptOptions()
                     {
@@ -275,7 +275,7 @@ namespace Clearinet
                         OwnerWindow = CApp.UI,
                         ReturnNullOnCancel = true,
                         Title = "Password-Protected Session Archive",
-                        PromptText = "Enter the password to decrypt this Session Archive:"
+                        PromptText = $"The archive '{PlatformAPI.CompactPath(sPath, 50)}' is encrypted.\r\n\r\nEnter the password to load it:"
                     };
                     return frmPrompt.GetUserString(fpo);
                 };
@@ -378,7 +378,7 @@ namespace Clearinet
             frmSplashScreen.CloseSplashScreen();
             CApp.OnAppBoot();
 
-            if (CApp.Prefs.GetBoolPref("app.attach_on_startup", true)
+            if (CApp.Prefs.GetBoolPref("app.attach_on_startup", false)  // TODO: Change after we have a proxy
                 && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
 
             timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
@@ -393,19 +393,13 @@ namespace Clearinet
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             ImportAnyStartupArchives();
 
-            // TODO: Move this, and rename miHelp to mnuHelp
-            ToolStripMenuItem miCheckForUpdates = new ToolStripMenuItem("Check for &Updates...");
-            miHelp.DropDownItems.Insert(2, miCheckForUpdates);
-            miCheckForUpdates.Click += (s, ee) => { Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync(true)); };
-            // TODO: Same
-            ToolStripMenuItem miRulesEdit = new ToolStripMenuItem("Customize &Rules...");
-            miRules.DropDownItems.Add(miRulesEdit);
-            miRulesEdit.Click += (s, ee) =>
-            {
-                Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"), $"\"{CONFIG.GetPath("RulesScript")}\"");
-            };
-
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
+        }
+
+        private async void miHelpCheckForUpdates_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem miCheckForUpdates = new ToolStripMenuItem("Check for &Updates...");
+            await UpdateChecker.CheckForUpdatesAsync(true);
         }
 
         private void UpdateStatisticsTab(Exchange[] arrExchanges)
@@ -484,9 +478,12 @@ namespace Clearinet
 
         private void miFileLoadSAZ_Click(object sender, EventArgs e)
         {
-            var sFilename = Utilities.ObtainOpenFilename("Open SAZ", "SAZ Files (*.saz)|*.saz");
-            if (!sFilename.HasText()) return;
-            actLoadSessionArchive(sFilename);
+            var sFilenames = Utilities.ObtainOpenFilenames("Open SAZ", "SAZ Files (*.saz)|*.saz");
+            if ((sFilenames?.Length ?? 0) == 0) return;
+            foreach (var sFilename in sFilenames)
+            {
+                actLoadSessionArchive(sFilename);
+            }
         }
 
         private void miFileImport_Click(object sender, EventArgs e)
@@ -932,7 +929,10 @@ namespace Clearinet
             // Requires 1+ Exchange in the list
             miEditSelectAll.Enabled = miEditCopy.Enabled = miEditMark.Enabled = miEditRemoveSelected.Enabled = (lvExchanges.SelectedCount > 0);
             // Requires 1+ *selected* Exchange in the list
-            miEditUnlock.Enabled = miEditRemove.Enabled = miEditFind.Enabled = lvExchanges.Items.Count > 0;
+            miEditUnlock.Enabled = miEditRemove.Enabled = miEditFind.Enabled =
+                miEditCopyForAI.Enabled = miEditCopyExchange.Enabled = miEditCopyHeaders.Enabled =
+                miEditCopySummary.Enabled = miEditCopyTerseSummary.Enabled = miEditCopyURL.Enabled =
+                (lvExchanges.Items.Count > 0);
 
             miEditPasteAsExchanges.Enabled = Clipboard.ContainsImage() | Clipboard.ContainsText() | Clipboard.ContainsFileDropList();
 
@@ -1571,6 +1571,76 @@ namespace Clearinet
                 sbAllHeaders.AppendLine("==================================");
             }
             Clipboard.SetText(sbAllHeaders.ToString());
+        }
+
+        private void miEditCopyForAI_Click(object sender, EventArgs e)
+        {
+            Exchange[] arrExch = GetSelectedExchanges();
+            if (arrExch.Length < 1) return;
+            StringBuilder sbAllHeaders = new StringBuilder();
+            for (var ix = 0; ix < arrExch.Length; ++ix)
+            {
+                sbAllHeaders.AppendLine("```http");
+                sbAllHeaders.AppendLine(arrExch[ix].RequestHeaders?.ToString());
+                sbAllHeaders.AppendLine(arrExch[ix].ResponseHeaders?.ToString());
+                sbAllHeaders.AppendLine("```");
+            }
+            Clipboard.SetText(sbAllHeaders.ToString());
+        }
+
+        private void miEditCopyExchange_Click(object sender, EventArgs e)
+        {
+            /* TODO: NYI */
+        }
+
+        private void miEditCopyURL_Click(object sender, EventArgs e)
+        {
+            Exchange[] xc = GetSelectedExchanges();
+            if (xc.Length < 1) return;
+            if (xc.Length == 1)
+            {
+                Clipboard.SetText(xc[0].fullUrl);
+                return;
+            }
+            StringBuilder sbAllUrls = new StringBuilder();
+            for (int i = 0; i < xc.Length; i++)
+            {
+                sbAllUrls.AppendLine(xc[i].fullUrl);
+            }
+            Clipboard.SetText(sbAllUrls.ToString());
+        }
+
+        private void miEditCopySummary_Click(object sender, EventArgs e)
+        {
+            /* TODO: NYI */
+        }
+
+        private void miEditCopyTerseSummary_Click(object sender, EventArgs e)
+        {
+            /* TODO: NYI */
+        }
+        private void miRulesCustomize_Click(object sender, EventArgs e)
+        {
+            Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"), $"\"{CONFIG.GetPath("RulesScript")}\"");
+        }
+
+        private void tsbComment_Click(object sender, EventArgs e)
+        {
+            Exchange[] arrExch = GetSelectedExchanges();
+            if (arrExch.Length < 1) return;
+            string sExistingComment = arrExch[0]["ui-comments"];
+            frmPrompt.PromptOptions po = new frmPrompt.PromptOptions
+            {
+                Title = "Add Comment",
+                PromptText = "Enter a comment for the selected Exchanges:",
+                DefaultValue = sExistingComment,
+                ReturnNullOnCancel = true,
+            };
+            var sNewComment = frmPrompt.GetUserString(po);
+            foreach (Exchange exch in arrExch)
+            {
+                exch["ui-comments"] = sNewComment;
+            }
         }
     }
 

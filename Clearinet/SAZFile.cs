@@ -52,7 +52,7 @@ namespace Clearinet
         /// If set, this function is called to supply a password, either because one
         /// wasn't set or because it was incorrect. Return null to cancel the operation.
         /// </summary>
-        public static Func<string> SupplyPassword { get; set; }
+        public static Func<string, string> SupplyPassword { get; set; }
 
         /// <summary>
         /// Set of Exchanges saved inside this SAZ File. Only meaningful for Loading... This API is probably not designed right
@@ -122,7 +122,7 @@ namespace Clearinet
                     // The SAZ may be encrypted and require a password.
                     if (eRequest.UsesEncryption && !sazFile._sPassword.HasText())
                     {
-                        sazFile._sPassword = SupplyPassword?.Invoke();
+                        sazFile._sPassword = SupplyPassword?.Invoke(sazFile.sFilename);
                         if (sazFile._sPassword == null) throw new Exception("Password required to open SAZ file.");
                         zf.Password = sazFile._sPassword;
                     }
@@ -135,7 +135,7 @@ namespace Clearinet
                     }
                     catch (Ionic.Zip.BadPasswordException)
                     {
-                        sazFile._sPassword = SupplyPassword?.Invoke();
+                        sazFile._sPassword = SupplyPassword?.Invoke(sazFile.sFilename);
                         if (!sazFile._sPassword.HasText()) throw new Exception("Load Canceled: The encrypted SAZ file required a password.");
                         zf.Password = sazFile._sPassword;
                         goto RetryPassword;

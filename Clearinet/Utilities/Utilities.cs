@@ -431,13 +431,20 @@ namespace Clearinet
 
         public static string ObtainOpenFilename(string sDialogTitle, string sFilter, string sInitialDirectory = null)
         {
-            string sFilename = null;
+            var sFilenames = ObtainOpenFilenames(sDialogTitle, sFilter, sInitialDirectory, true);
+            if (sFilenames == null || sFilenames.Length < 1) return null;
+            Debug.Assert(sFilenames.Length == 1, "Expected a single filename");
+            return sFilenames[0];
+        }
 
-            using (FileDialog oFileDialog = new OpenFileDialog())
+        public static string[] ObtainOpenFilenames(string sDialogTitle, string sFilter, string sInitialDirectory = null, bool bSingle = false)
+        {
+            using (OpenFileDialog oFileDialog = new OpenFileDialog())
             {
                 oFileDialog.Title = sDialogTitle;
                 oFileDialog.Filter = sFilter;
                 oFileDialog.CheckFileExists = true;
+                oFileDialog.Multiselect = !bSingle;
                 if (!String.IsNullOrEmpty(sInitialDirectory))
                 {
                     oFileDialog.InitialDirectory = sInitialDirectory;
@@ -446,11 +453,11 @@ namespace Clearinet
 
                 if (DialogResult.OK == oFileDialog.ShowDialog(CApp.UI))
                 {
-                    sFilename = oFileDialog.FileName;
+                    return oFileDialog.FileNames;
                 }
             }
 
-            return sFilename;
+            return null;
         }
 
         public static string[] Parameterize(string sInput)

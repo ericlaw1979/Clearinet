@@ -15,9 +15,10 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.1.8")]
+[assembly: AssemblyVersion("0.0.1.9")]
 
 // Selected Release Version History
+// v0.0.1.9 - Oct-14-2026 - Improvements all over :)
 // v0.0.1.6 - Oct-14-2026 - Various ExchangeList improvements
 // v0.0.1.5 - Oct-13-2026 - First Alpha release (no capture support)
 
