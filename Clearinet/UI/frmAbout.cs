@@ -11,11 +11,19 @@ namespace Clearinet
 {
     public partial class frmAbout : Form
     {
+        private static Keys[] kc = new Keys[]
+        {
+            Keys.Up, Keys.Up, Keys.Down, Keys.Down,
+            Keys.Left, Keys.Right, Keys.Left, Keys.Right,
+            Keys.B, Keys.A
+        };
+        int kcix = 0;
+
         public frmAbout()
         {
             InitializeComponent();
+            PlatformAPI.FreeUpMemory();
             txtAbout.Text = $"{GetAppEnvironmentInfo()}\r\n\r\nCopyright ©2026 Clearinet Contributors";
-            // TODO: Add Easter egg (konami code).
         }
 
         protected override void OnShown(EventArgs e)
@@ -24,13 +32,25 @@ namespace Clearinet
             ActiveControl = null; // Prevent focus on the textbox.
         }
 
-        // Close on ESC
+        // Close on ESC or Spacebar
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (keyData == Keys.Escape)
+            if ((keyData == Keys.Escape) || (keyData == Keys.Space))
             {
                 Close();
                 return true;
+            }
+            if (keyData == kc[kcix])
+            {
+                kcix++;
+                if (kcix >= kc.Length)
+                {
+                    txtAbout.Text = Encoding.UTF8.GetString(Convert.FromBase64String("8J+OifCfjonwn46J8J+OiQ0KVGhhbmsgeW91IGZvciB1c2luZyBDbGVhcmluZXQhDQrwn46J8J+OifCfjonwn46J"));
+                }
+            }
+            else
+            {
+                kcix = 0; // Reset if the sequence is broken
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }

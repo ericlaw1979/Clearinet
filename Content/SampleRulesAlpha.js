@@ -26,19 +26,19 @@ class Handlers {
     }
       
     public BindUITab("Flags")
-    static function FlagsReport(arrEx: Exchange[]):String {
+    static function FlagsReport(arrXC: Exchange[]):String {
       var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
-      for (var i:int = 0; i<arrEx.Length; ++i)
+      for (var i:int = 0; i<arrXC.Length; ++i)
       {
         sbOut.AppendLine("FLAGS");
-        sbOut.AppendFormat("Exchange Flags #{0} (for '{1}')\n", arrEx[i].id, arrEx[i].fullUrl);
-        for(var sFlag in arrEx[i].oFlags)
+        sbOut.AppendFormat("Exchange Flags #{0} (for '{1}')\n", arrXC[i].id, arrXC[i].fullUrl);
+        for(var sFlag in arrXC[i].oFlags)
             sbOut.AppendFormat("\t{0}:\t\t{1}\n", sFlag.Key, sFlag.Value);
         
-        sbOut.AppendFormat("\n BitFlags: {0}\n\n", arrEx[i].BitFlags);
+        sbOut.AppendFormat("\n BitFlags: {0}\n\n", arrXC[i].BitFlags);
         
-        if (arrEx[i].ResponseHeaders.Exists("Content-Encoding")) {
-          var strDecoded = arrEx[i].GetResponseBodyAsString();
+        if (arrXC[i].ResponseHeaders.Exists("Content-Encoding")) {
+          var strDecoded = arrXC[i].GetResponseBodyAsString();
           sbOut.AppendLine("== Content was compressed.========== \nDecoded content is " + strDecoded.Length.ToString()+ " bytes.\n");
           sbOut.AppendLine("Decoded content: " + strDecoded.slice(0, 2048));
         }

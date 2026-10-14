@@ -1,6 +1,5 @@
 ﻿using Clearinet;
 using System;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -10,11 +9,13 @@ public static class UpdateChecker
 {
     public static async Task CheckForUpdatesAsync(bool bAlwaysShowOutcome = false)
     {
-        if (bAlwaysShowOutcome && CONFIG.isQuietMode)
+        LongRunningOperation lro;
+        if (bAlwaysShowOutcome)
         {
-            Debug.Assert(false);
-            bAlwaysShowOutcome = false;
+            lro = new LongRunningOperation("Checking for updates...", false);
         }
+
+        CApp.Log.LogFormat($"Checking for new version...");
 
         // All service traffic from Clearinet is gated by the `app.service_traffic` preference.
         // If sBigSwitchState is "prompt", then directly confirm with the user if the version check
@@ -100,9 +101,23 @@ public static class UpdateChecker
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Update check failed: {ex.Message}");
+            CApp.Log.LogFormat($"Update check failed:{ex.Message}");
             if (bAlwaysShowOutcome)
             {
+                if (ex is TaskCanceledException)
+                {
+                    CApp.UIInvokeAsync(new Action(() =>
+                    {
+                        MessageBox.Show(
+                            CApp.UI,
+                            "The update check timed out. Please check your network connection or try again later.",
+                            "Update Check Timed Out",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                    }));
+                    return;
+                }
+
                 CApp.ReportException(ex, "Update check failed.");
             }
         }
@@ -111,8 +126,8 @@ public static class UpdateChecker
     private static void PromptUserToUpdate(Version currentVersion, Version latestVersion, string releaseUrl)
     {
         string message = $"A new version of Clearinet is available!\n\n" +
-                         $"Current Version: {currentVersion}\n" +
-                         $"Latest Version:  {latestVersion}\n\n";
+                         $"Current Version:\t{currentVersion}\n" +
+                         $"Latest Version:\t{latestVersion}\n\n";
         if (CONFIG.isQuietMode)
         {
             CApp.Log.Log(message);

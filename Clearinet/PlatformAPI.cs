@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
@@ -11,6 +12,36 @@ namespace Clearinet
     /// </summary>
     public class PlatformAPI
     {
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern bool SetProcessWorkingSetSize(IntPtr process, IntPtr minimumWorkingSetSize, IntPtr maximumWorkingSetSize);
+
+        internal static void FreeUpMemory()
+        {
+            // 1. Force LOH compaction on the next full GC
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+
+            // 2. Trigger a full blocking GC for all generations (Gen 0, 1, and 2)
+            GC.Collect(
+                generation: GC.MaxGeneration,
+                mode: GCCollectionMode.Forced,
+                blocking: true,
+                compacting: true);
+
+            // 3. Wait for finalizers to run
+            GC.WaitForPendingFinalizers();
+
+            // 4. Collect again to clean up objects that were just finalized
+            GC.Collect(
+                generation: GC.MaxGeneration,
+                mode: GCCollectionMode.Forced,
+                blocking: true,
+                compacting: true);
+
+            SetProcessWorkingSetSize(Process.GetCurrentProcess().Handle, (IntPtr)(-1), (IntPtr)(-1));
+        }
+
+
         public static bool RunningElevated()
         {
             using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
