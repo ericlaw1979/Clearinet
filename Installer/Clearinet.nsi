@@ -132,7 +132,7 @@ Function .onInit
   ${OrIf} ${IsNativeARM64}
     # Proceed normally on 64-bit OS
   ${Else}
-    MessageBox MB_OK|MB_ICONSTOP "TODO: Clearinet's installer currently runs only on 64-bit Windows."
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION "Clearinet's installer currently only works on 64-bit Windows.$\r$\n$\r$\nInstall anyway?" IDYES +2
     Abort
   ${EndIf}
 FunctionEnd
