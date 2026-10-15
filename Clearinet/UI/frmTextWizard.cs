@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,6 +19,15 @@ namespace Clearinet
         /// output of the conversion will be passed to a context that requires the original bytes (e.g. saving to a file).
         /// </summary>
         byte[] arrLatestOutput = null;
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
+                return cp;
+            }
+        }
 
         private void Recalc()
         {
@@ -204,6 +214,47 @@ namespace Clearinet
                         }
                         break;
 
+                    case 22: // epoch
+                        if (TimestampConverter.TryParseToUtc(sText, out DateTimeOffset dto))
+                        {
+                            var sb = new StringBuilder();
+                            TimestampResult result = TimestampConverter.Convert(dto);
+
+                            sb.AppendLine($"ISO UTC:\t\t{result.Iso8601Utc}");
+                            sb.AppendLine($"Local Time:\t{result.Iso8601Local}");
+                            sb.AppendLine($"Seconds:\t\t{result.UnixSeconds}");
+                            sb.AppendLine($"Millisec:\t\t{result.UnixMilliseconds}");
+                            sb.AppendLine($".NET ticks:\t{result.NetTicks}");
+                            sOutput = sb.ToString();
+                        }
+                        else
+                        {
+                            sOutput = $"Error: Unable to parse '{sText}' as a valid timestamp.";
+                        }
+                        break;
+
+                    case 23: // JWT
+                        try
+                        {
+                            JwtDecodeResult result = JwtDecoder.Decode(sText);
+                            var sb = new StringBuilder();
+                            sb.AppendLine("=== HEADER ===");
+                            sb.AppendLine(result.HeaderJson);
+
+                            sb.AppendLine("\n=== PAYLOAD ===");
+                            sb.AppendLine(result.PayloadJson);
+
+                            sb.AppendLine("\n=== SIGNATURE (HEX) ===");
+                            sb.AppendLine(result.SignatureHex);
+                            sOutput = sb.ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            sOutput = $"Failed to decode JWT: {ex.Message}";
+                        }
+
+                        break;
+
                     default:
                         Debug.Assert(false, "Not reachable");
                         throw new IndexOutOfRangeException("Invalid conversion requested");
@@ -292,7 +343,7 @@ namespace Clearinet
             return sOutput;
         }
 
-        //TODO: Offer an overload that specifies the encoding by search string
+        //TODO: Offer an overload that specifies the Transormation to select by its name
         internal frmTextWizard(string sInput)
         {
             InitializeComponent();
@@ -301,6 +352,10 @@ namespace Clearinet
 
             txtOutput.Font = new Font(txtOutput.Font.FontFamily, CONFIG.flFontSize);
             txtOutput.BackColor = CONFIG.colorDisabledEdit;
+
+            // TODO:Fix
+            cbxTransforms.Items.Add("Epoch");
+            cbxTransforms.Items.Add("JWT Token Decoder");
 
             try
             {
@@ -421,6 +476,181 @@ namespace Clearinet
             // Ensure we use a monospaced font for the output box when viewing bytes, and a Unicode font otherwise.
             txtOutput.Font = new Font((cbViewBytes.Checked ? "Consolas" : "Arial Unicode MS"), CONFIG.flFontSize);
             Recalc();
+        }
+    }
+
+    public static class TimestampConverter
+    {
+        private static readonly DateTimeOffset Epoch = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        /// <summary>
+        /// Parses an epoch numeric value (seconds, milliseconds, or microseconds) 
+        /// or an ISO 8601 string into a DateTimeOffset (UTC).
+        /// </summary>
+        public static bool TryParseToUtc(string input, out DateTimeOffset result)
+        {
+            result = default(DateTimeOffset);
+
+            if (string.IsNullOrWhiteSpace(input))
+                return false;
+
+            input = input.Trim();
+
+            // Handle numeric epoch values (seconds, ms, us, ticks)
+            if (long.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out long numericValue))
+            {
+                // 1. Seconds (e.g., 1735689600 -> 10 digits)
+                if (Math.Abs(numericValue) < 32503680000L)
+                {
+                    result = DateTimeOffset.FromUnixTimeSeconds(numericValue);
+                    return true;
+                }
+
+                // 2. Milliseconds (e.g., 1735689600000 -> 13 digits)
+                if (Math.Abs(numericValue) < 32503680000000L)
+                {
+                    result = DateTimeOffset.FromUnixTimeMilliseconds(numericValue);
+                    return true;
+                }
+
+                // 3. Microseconds (e.g., 1735689600000000 -> 16 digits)
+                if (Math.Abs(numericValue) < 32503680000000000L)
+                {
+                    long seconds = numericValue / 1000000L;
+                    long micro = numericValue % 1000000L;
+                    result = DateTimeOffset.FromUnixTimeSeconds(seconds).AddTicks(micro * 10);
+                    return true;
+                }
+
+                // 4. .NET Ticks (100-nanosecond intervals since 0001-01-01)
+                if (numericValue >= 0 && numericValue <= DateTimeOffset.MaxValue.Ticks)
+                {
+                    result = new DateTimeOffset(numericValue, TimeSpan.Zero);
+                    return true;
+                }
+
+                return false;
+            }
+
+            // Handle string representation (ISO 8601, RFC 1123, etc.)
+            if (DateTimeOffset.TryParse(input, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTimeOffset parsedDate))
+            {
+                result = parsedDate;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Converts a DateTimeOffset to unix seconds, milliseconds, and formatted string representations.
+        /// </summary>
+        public static TimestampResult Convert(DateTimeOffset dto)
+        {
+            DateTimeOffset utc = dto.ToUniversalTime();
+
+            return new TimestampResult(
+                unixSeconds: utc.ToUnixTimeSeconds(),
+                unixMilliseconds: utc.ToUnixTimeMilliseconds(),
+                unixMicroseconds: (utc.Ticks - Epoch.Ticks) / 10,
+                netTicks: utc.Ticks,
+                iso8601Utc: utc.ToString("o", CultureInfo.InvariantCulture),
+                iso8601Local: dto.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff zzz", CultureInfo.InvariantCulture)
+            );
+        }
+    }
+    public struct TimestampResult
+    {
+        public long UnixSeconds { get; }
+        public long UnixMilliseconds { get; }
+        public long UnixMicroseconds { get; }
+        public long NetTicks { get; }
+        public string Iso8601Utc { get; }
+        public string Iso8601Local { get; }
+
+        public TimestampResult(
+            long unixSeconds,
+            long unixMilliseconds,
+            long unixMicroseconds,
+            long netTicks,
+            string iso8601Utc,
+            string iso8601Local)
+        {
+            UnixSeconds = unixSeconds;
+            UnixMilliseconds = unixMilliseconds;
+            UnixMicroseconds = unixMicroseconds;
+            NetTicks = netTicks;
+            Iso8601Utc = iso8601Utc;
+            Iso8601Local = iso8601Local;
+        }
+    }
+
+    public static class JwtDecoder
+    {
+        public static JwtDecodeResult Decode(string jwt)
+        {
+            if (string.IsNullOrWhiteSpace(jwt))
+                throw new ArgumentException("JWT cannot be empty.");
+
+            string[] parts = jwt.Trim().Split('.');
+            if (parts.Length < 2 || parts.Length > 3)
+                throw new FormatException("Invalid JWT format. Expected 3 dot-separated segments.");
+
+            string headerJson = Base64UrlDecode(parts[0]);
+            string payloadJson = Base64UrlDecode(parts[1]);
+            string signatureHex = parts.Length == 3 ? PartsToHex(parts[2]) : string.Empty;
+
+            return new JwtDecodeResult(headerJson, payloadJson, signatureHex);
+        }
+
+        private static string Base64UrlDecode(string input)
+        {
+            // Convert Base64URL to standard Base64
+            string base64 = input.Replace('-', '+').Replace('_', '/');
+
+            // Restore required Base64 padding
+            switch (base64.Length % 4)
+            {
+                case 2: base64 += "=="; break;
+                case 3: base64 += "="; break;
+            }
+
+            byte[] bytes = System.Convert.FromBase64String(base64);
+            return System.Text.Encoding.UTF8.GetString(bytes);
+        }
+
+        private static string PartsToHex(string input)
+        {
+            string base64 = input.Replace('-', '+').Replace('_', '/');
+            switch (base64.Length % 4)
+            {
+                case 2: base64 += "=="; break;
+                case 3: base64 += "="; break;
+            }
+
+            try
+            {
+                byte[] bytes = System.Convert.FromBase64String(base64);
+                return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+            }
+            catch
+            {
+                return input; // Fallback to raw string if signature is non-standard
+            }
+        }
+    }
+
+    public struct JwtDecodeResult
+    {
+        public string HeaderJson { get; }
+        public string PayloadJson { get; }
+        public string SignatureHex { get; }
+
+        public JwtDecodeResult(string headerJson, string payloadJson, string signatureHex)
+        {
+            HeaderJson = headerJson;
+            PayloadJson = payloadJson;
+            SignatureHex = signatureHex;
         }
     }
 }
