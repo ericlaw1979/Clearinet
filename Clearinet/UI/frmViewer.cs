@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,6 +78,29 @@ namespace Clearinet
         {
             frmFind.BeginFinding();
         }
+
+        public void actSelectExchangesMatchingCriteria(int iMatchAtMost, Func<Exchange, bool?> oCriteriaChecker)
+        {
+            CApp.PauseReporting = true;
+            lvExchanges.BeginUpdate();
+            lvExchanges.SelectedItems.Clear();
+            int iMatches = 0;
+            foreach (ListViewItem lvi in lvExchanges.Items)
+            {
+                Exchange x = lvi.Tag as Exchange;
+                if (oCriteriaChecker(x) == true)
+                {
+                    ++iMatches;
+                    lvi.Selected = true;
+                    if (iMatches >= iMatchAtMost) break;
+                }
+            }
+            lvExchanges.EndUpdate();
+
+            CApp.PauseReporting = false;
+            actUpdateInspector(true, true);
+        }
+
 
         public void actShowTextWizard(string sText)
         {
@@ -1650,22 +1674,56 @@ namespace Clearinet
 
         private void tsmiRemoveDuplicateResponseBodies_Click(object sender, EventArgs e)
         {
-            /*todo*/
+            CApp.PauseReporting = true;
+            lvExchanges.BeginUpdate();
+            lvExchanges.SelectedItems.Clear();
+            var hasherMD5 = MD5.Create();
+            HashSet<string> setHashes = new HashSet<string>();
+            Exchange[] arrXC = GetAllExchanges();
+            // For each exchange, if there's a response body, calculate its MD5 hash (collision is wildly implausible and
+            // basically harmless) and store it in a HashSet. If we see it again, then we found a duplicate and we
+            // should select it for removal.
+            foreach (Exchange exch in arrXC)
+            {
+                if (exch.ResponseBody?.Length > 0)
+                {
+                    byte[] hash = hasherMD5.ComputeHash(exch.ResponseBody);
+                    string hashString = Convert.ToBase64String(hash);
+
+                    if (!setHashes.Add(hashString))
+                    {
+                        ListViewItem lvi = exch.ViewItem;
+                        if (null != lvi) lvi.Selected = true;
+                    }
+                }
+            }
+
+            lvExchanges.RemoveSelected();
+            lvExchanges.EndUpdate();
+            CApp.PauseReporting = false;
+            actUpdateInspector(true, true);
+            CApp.Log.Log("Removed Exchanges with duplicate response bodies.");
         }
 
         private void tsmiRemoveImages_Click(object sender, EventArgs e)
         {
-
+            actSelectExchangesMatchingCriteria(int.MaxValue, (exch) => exch.ResponseHeaders?.ExistsAndContains("Content-Type", "image/"));
+            lvExchanges.RemoveSelected();
+            CApp.Log.Log("Removed Exchanges with image responses.");
         }
 
         private void tsmiNon200Response_Click(object sender, EventArgs e)
         {
-
+            actSelectExchangesMatchingCriteria(int.MaxValue, (exch) => exch.ResponseHeaders?.StatusCode != 200);
+            lvExchanges.RemoveSelected();
+            CApp.Log.Log("Removed Exchanges with non-HTTP/200 responses.");
         }
 
         private void tsmiRemoveConnects_Click(object sender, EventArgs e)
         {
-
+            actSelectExchangesMatchingCriteria(int.MaxValue, (exch) => exch.RequestHeaders?.HTTPMethod.OICEquals("CONNECT"));
+            lvExchanges.RemoveSelected();
+            CApp.Log.Log("Removed Exchanges with HTTP CONNECT requests.");
         }
     }
 
