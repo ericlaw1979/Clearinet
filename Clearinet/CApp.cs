@@ -261,7 +261,7 @@ namespace Clearinet
                 return true;
             }
 
-            if (sCommand.StartsWith("?"))
+            if (sCommand.StartsWith("?")) // TODO: "Find as you type"
             {
                 var sFind = sCommand.Substring(1).Trim();
                 UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
