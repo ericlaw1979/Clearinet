@@ -258,6 +258,15 @@ namespace Clearinet
                     case 24: // CBOR
                         try
                         {
+                            sText = sText.Trim();
+                            if (sText.OICStartsWith("0x"))
+                            {
+                                sText = HexToBase64(sText.Substring(2));
+                            }
+                            else if (IsHexString(sText))
+                            {
+                                sText = HexToBase64(sText);
+                            }
                             // if sText contains '[' or '{', it's likely a JSON representation
                             // of CBOR, so we can try to parse it as JSON first:
                             if (sText.Contains("{") || sText.Contains("["))
@@ -319,8 +328,11 @@ namespace Clearinet
             }
         }
 
+        // Parse a Hex string into bytes, no matter how we delimit the text
         private string ParseBytes(string sText)
         {
+            sText = sText.Trim();
+            if (sText.OICStartsWith("0x")) sText = sText.Substring(2);
             string sOutput;
             MemoryStream oMS = new MemoryStream();
             int iLast = -1;
@@ -427,8 +439,8 @@ namespace Clearinet
 
             try
             {
-                string sTarget = CApp.Prefs.GetStringPref("textwizard.LastTransform", "URLDecode");
                 // Select the last used transform if it exists in the list, otherwise default to the first item.
+                string sTarget = CApp.Prefs.GetStringPref("textwizard.LastTransform", "URLDecode");
                 int iIndex = cbxTransforms.Items.IndexOf(sTarget);
                 if (iIndex < 0) iIndex = 0;
                 this.cbxTransforms.SelectedIndex = iIndex;
@@ -511,6 +523,51 @@ namespace Clearinet
         private void lnkToClipboard_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Clipboard.SetText(txtOutput.Text);
+        }
+
+        // TODO: Find a better home for this?
+        public static bool IsHexString(string input)
+        {
+            if (string.IsNullOrEmpty(input) || (input.Length & 1) != 0)
+                return false;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                char c = input[i];
+
+                // Checks '0'-'9', 'A'-'F', and 'a'-'f' using range bounds
+                bool isValidHex = (c >= '0' && c <= '9') ||
+                                  (c >= 'A' && c <= 'F') ||
+                                  (c >= 'a' && c <= 'f');
+
+                if (!isValidHex)
+                    return false;
+            }
+
+            return true;
+        }
+        public static string HexToBase64(string hex)
+        {
+            if (hex.Length % 2 != 0)
+                throw new ArgumentException("Hex string must have an even length.", nameof(hex));
+
+            byte[] bytes = new byte[hex.Length / 2];
+
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                int hi = GetHexNibble(hex[i * 2]);
+                int lo = GetHexNibble(hex[i * 2 + 1]);
+                bytes[i] = (byte)((hi << 4) | lo);
+            }
+
+            return Convert.ToBase64String(bytes);
+        }
+
+        private static int GetHexNibble(char c)
+        {
+            int val = c;
+            // Handles '0'-'9', 'A'-'F', 'a'-'f'
+            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
     }
 
