@@ -477,6 +477,11 @@ namespace Clearinet
             txtOutput.Font = new Font((cbViewBytes.Checked ? "Consolas" : "Arial Unicode MS"), CONFIG.flFontSize);
             Recalc();
         }
+
+        private void lnkToClipboard_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Clipboard.SetText(txtOutput.Text);
+        }
     }
 
     public static class TimestampConverter
@@ -590,7 +595,7 @@ namespace Clearinet
         public static JwtDecodeResult Decode(string jwt)
         {
             if (string.IsNullOrWhiteSpace(jwt))
-                throw new ArgumentException("JWT cannot be empty.");
+                return new JwtDecodeResult(string.Empty, string.Empty, string.Empty);
 
             string[] parts = jwt.Trim().Split('.');
             if (parts.Length < 2 || parts.Length > 3)
