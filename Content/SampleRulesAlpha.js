@@ -20,11 +20,16 @@ class Handlers {
       Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
     }
     
-    public static BindUIColumn("Content-Type", true)
+    public static BindUIColumn("Content-Type", false)
     function FillCTColumn(xc: Exchange): String {
       return xc.ResponseHeaders["Content-Type"];
     }
-      
+
+    // Use Numeric sorting
+    public static BindUIColumn("ResponseBody", true)
+    function FillSizeColumn(xc: Exchange): String {
+      return xc.ResponseBody.Length.ToString("N0");
+    }
     public BindUITab("Flags")
     static function FlagsReport(arrXC: Exchange[]):String {
       var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
