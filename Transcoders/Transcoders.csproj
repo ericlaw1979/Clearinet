@@ -49,6 +49,9 @@
     <Compile Include="HARImporter.cs" />
     <Compile Include="NetLogImporter.cs" />
     <Compile Include="NetLogImportInterface.cs" />
+    <Compile Include="PcapDecoder.cs" />
+    <Compile Include="PcapImporter.cs" />
+    <Compile Include="PcapReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Service Include="{94E38DFF-614B-4cbd-B67C-F211BB35CE8B}" />
   </ItemGroup>
