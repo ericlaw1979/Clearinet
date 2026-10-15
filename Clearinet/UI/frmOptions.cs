@@ -26,6 +26,13 @@ namespace Clearinet
                     cbCheckForUpdates.Checked = false;
                     break;
             }
+
+            if (CONFIG.isViewerMode)
+            {
+                Text = Text += " (Readonly - Viewer Mode)";
+                btnOk.Enabled = false;
+                btnOk.Text = "View Only";
+            }
         }
 
         private void lnkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
