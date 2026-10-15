@@ -248,7 +248,72 @@ namespace Clearinet
                 return true;
             }
 
-            if (scriptRules == null) return false;
+            if (sCmd == "select")
+            {
+                if (arrParams.Length < 2)
+                {
+                    CApp.DoNotifyUser(CApp.UI, "Usage: select <Content-Type>", "Invalid Parameters", MessageBoxIcon.Error);
+                    return true;
+                }
+                string sMIME = arrParams[1];
+                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) => xc.ResponseMIMEType.OICContains(sMIME));
+                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                return true;
+            }
+
+            if (sCommand.StartsWith("?")) // TODO: "Find as you type"
+            {
+                var sFind = sCommand.Substring(1).Trim();
+                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
+                    xc.fullUrl.OICContains(sFind));
+
+                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                return true;
+            }
+
+            if (sCommand.StartsWith("="))
+            {
+                if (Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal))
+                {
+                    UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) => (xc.responseCode == iVal));
+                }
+                else
+                {
+                    var sMethod = sCommand.Substring(1).Trim();
+                    UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
+                        xc.RequestMethod.OICEquals(sMethod));
+                }
+                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                return true;
+            }
+
+            if (sCommand.StartsWith(">"))
+            {
+                Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
+                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
+                { return xc.ResponseBody?.Length > iVal; });
+                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                return true;
+            }
+
+            if (sCommand.StartsWith("<"))
+            {
+                Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
+                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
+                { return xc.ResponseBody?.Length < iVal; });
+                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                return true;
+            }
+            if (sCommand.StartsWith("@"))
+            {
+                string sHost = sCommand.Substring(1).Trim();
+                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
+                { return xc.hostname.OICEquals(sHost); });
+                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                return true;
+            }
+
+            if (null == scriptRules) return false;
             return scriptRules.RunExecAction(arrParams);
         }
 
