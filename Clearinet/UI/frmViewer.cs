@@ -1642,6 +1642,31 @@ namespace Clearinet
                 exch["ui-comments"] = sNewComment;
             }
         }
+
+        private void tsmiRemoveAll_Click(object sender, EventArgs e)
+        {
+            lvExchanges.ClearExchanges();
+        }
+
+        private void tsmiRemoveDuplicateResponseBodies_Click(object sender, EventArgs e)
+        {
+            /*todo*/
+        }
+
+        private void tsmiRemoveImages_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tsmiNon200Response_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tsmiRemoveConnects_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public class LongRunningOperation : IDisposable

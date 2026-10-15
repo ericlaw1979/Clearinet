@@ -294,7 +294,7 @@ namespace Clearinet
                     }
                 };
 
-                tsToolbar.Items.Insert(0, tsb);
+                tsToolbar.Items.Insert(tsToolbar.Items.IndexOf(CApp.UI.tssAfterExt), tsb);
                 htButtonScripts[tsb] = methodToInvoke;
             }
 
