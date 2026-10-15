@@ -255,6 +255,30 @@ namespace Clearinet
 
                         break;
 
+                    case 24: // CBOR
+                        try
+                        {
+                            // if sText contains '[' or '{', it's likely a JSON representation
+                            // of CBOR, so we can try to parse it as JSON first:
+                            if (sText.Contains("{") || sText.Contains("["))
+                            {  // JSON to CBOR
+                                var cborObject = PeterO.Cbor.CBORObject.FromJSONString(sText);
+                                arrLatestOutput = cborObject.EncodeToBytes();
+                                sOutput = Convert.ToBase64String(arrLatestOutput);
+                            }
+                            else  // CBOR to JSON
+                            {
+                                byte[] cborBytes = Convert.FromBase64String(sText);
+                                var cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(cborBytes);
+                                sOutput = cborObject.ToJSONString();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            sOutput = $"Failed to convert CBOR: {ex.Message}";
+                        }
+                        break;
+
                     default:
                         Debug.Assert(false, "Not reachable");
                         throw new IndexOutOfRangeException("Invalid conversion requested");
@@ -356,11 +380,11 @@ namespace Clearinet
             // TODO:Fix
             cbxTransforms.Items.Add("Epoch");
             cbxTransforms.Items.Add("JWT Token Decoder");
+            cbxTransforms.Items.Add("CBOR");
 
             try
             {
                 encodingInput = Encoding.GetEncoding(CApp.Prefs.GetStringPref("textwizard.InputEncoding", "UTF-8"));
-                throw new NotImplementedException("preferences are not yet implemented.");
             }
             catch
             {
@@ -403,7 +427,11 @@ namespace Clearinet
 
             try
             {
-                this.cbxTransforms.SelectedIndex = CApp.Prefs.GetInt32Pref("textwizard.LastTransform", 0);
+                string sTarget = CApp.Prefs.GetStringPref("textwizard.LastTransform", "URLDecode");
+                // Select the last used transform if it exists in the list, otherwise default to the first item.
+                int iIndex = cbxTransforms.Items.IndexOf(sTarget);
+                if (iIndex < 0) iIndex = 0;
+                this.cbxTransforms.SelectedIndex = iIndex;
             }
             catch { }
         }
@@ -411,13 +439,15 @@ namespace Clearinet
         private void txtInput_TextChanged(object sender, EventArgs e)
         {
             Recalc();
-            this.Text = $"TextWizard [ {txtInput.TextLength} => {txtOutput.TextLength} characters]";
+            var sByteInfo = (arrLatestOutput != null) ? $"({arrLatestOutput.Length} bytes) " : string.Empty;
+            this.Text = $"TextWizard [ {txtInput.TextLength} => {txtOutput.TextLength} characters {sByteInfo}]";
         }
 
         private void frmTextWizard_KeyUp(object sender, KeyEventArgs e)
         {
             if (Keys.Escape == e.KeyCode)
             {
+                e.SuppressKeyPress = e.Handled = true;
                 Close();
             }
         }
@@ -453,7 +483,7 @@ namespace Clearinet
         private void cbxTransforms_SelectedIndexChanged(object sender, EventArgs e)
         {
             Recalc();
-            CApp.Prefs.SetInt32Pref("textwizard.LastTransform", cbxTransforms.SelectedIndex);
+            CApp.Prefs.SetStringPref("textwizard.LastTransform", cbxTransforms.Text);
         }
 
         private void btnSetInputFromOutput_Click(object sender, EventArgs e)

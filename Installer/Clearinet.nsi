@@ -37,10 +37,8 @@ ManifestDPIAware true
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "InstallPath"
 
 !include "MultiUser.nsh"
-InstallDir "$PROGRAMFILES64\Clearinet"
 
 ; Directives to the installer
-XPStyle on
 SetCompressor /solid lzma
 OutFile "ClearinetSetup.exe"
 
@@ -136,6 +134,11 @@ File "..\Content\SampleRulesAlpha.js"
 File "..\Clearinet\bin\Release\Ionic.Zip.Reduced.dll"
 File "..\Clearinet\bin\Release\ZstdSharp.dll"
 File "..\Clearinet\bin\Release\BrotliSharpLib.dll"
+
+File "..\Clearinet\bin\Release\CBOR.dll"
+File "..\Clearinet\bin\Release\Numbers.dll"
+File "..\Clearinet\bin\Release\URIUtility.dll"
+
 File "..\Extensions\bin\Release\SVG.dll"
 File "..\Extensions\bin\Release\ExCss.dll"
 File "..\Extensions\bin\Release\be.windows.forms.hexbox.dll"
@@ -312,8 +315,11 @@ Delete "$INSTDIR\System.Threading.Tasks.Extensions.dll"
 Delete "$INSTDIR\Tools\dwebp.exe"
 Delete "$INSTDIR\Extensions\CAE-Default.dll"
 Delete "$INSTDIR\ImportExport\CAT-Default.dll"
+Delete "$INSTDIR\CBOR.dll"
+Delete "$INSTDIR\Numbers.dll"
+Delete "$INSTDIR\URIUtility.dll"
 
-; Remove directories if empty
+; Remove directories iff empty
 RMDir "$INSTDIR\Tools"
 RMDir "$INSTDIR\Extensions"
 RMDir "$INSTDIR\ImportExport"
