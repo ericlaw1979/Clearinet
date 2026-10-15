@@ -70,6 +70,9 @@ namespace Extensions
             try
             {
                 byte[] bytes = Convert.FromBase64String(auth.Parameter);
+                output.AppendLine("Parsed authentication token:");
+                AuthTokenDecoder.Append(output, bytes);
+                output.AppendLine();
                 output.AppendLine($"Decoded token ({bytes.Length} bytes):");
                 output.Append(Utilities.ByteArrayToHexView(bytes, 0, 16, bytes.Length, true));
             }
