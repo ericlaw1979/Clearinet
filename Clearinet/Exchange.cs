@@ -164,7 +164,31 @@ namespace Clearinet
             }
         }
 
-        public string hostname { get; set; }
+        public string ResponseMIMEType
+        {
+            get
+            {
+                if (null == ResponseHeaders) return string.Empty;
+                return ResponseHeaders["Content-Type"].TrimAfter(';').Trim();
+            }
+            set
+            {
+                if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
+                ResponseHeaders["Content-Type"] = value.TrimAfter(';').Trim(); ;
+            }
+        }
+
+        public string hostname
+        {
+            get
+            {
+                return host.TrimAfter(';').Trim();
+            }
+            set
+            {
+                host = value.TrimAfter(';').Trim();
+            }
+        }
         public int port { get; set; }
         public string clientIP { get; set; }
         public int responseCode
