@@ -461,7 +461,8 @@ namespace Clearinet
 
         private void frmTextWizard_KeyUp(object sender, KeyEventArgs e)
         {
-            if (Keys.Escape == e.KeyCode)
+            if ((Keys.Escape == e.KeyCode) &&
+                !(this.ActiveControl is ComboBox))
             {
                 e.SuppressKeyPress = e.Handled = true;
                 Close();

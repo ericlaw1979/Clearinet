@@ -683,7 +683,7 @@
             this.miTextWizard.Name = "miTextWizard";
             this.miTextWizard.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
             this.miTextWizard.Size = new System.Drawing.Size(193, 22);
-            this.miTextWizard.Text = "&TextWizard...";
+            this.miTextWizard.Text = "T&extWizard...";
             this.miTextWizard.ToolTipText = "The TextWizard encodes and decodes text.";
             this.miTextWizard.Click += new System.EventHandler(this.miTextWizard_Click);
             // 

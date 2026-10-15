@@ -15,10 +15,10 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.2.0")]
+[assembly: AssemblyVersion("0.0.2.1")]
 
 // Selected Release Version History
-// v0.0.2.0 - Oct-15-2026 - Added Auth and WebView inspectors
+// v0.0.2.0 - Oct-15-2026 - Added Auth and WebView inspectors, QuickExec selection operators
 // v0.0.1.9 - Oct-14-2026 - Improvements all over :)
 // v0.0.1.6 - Oct-14-2026 - Various ExchangeList improvements
 // v0.0.1.5 - Oct-13-2026 - First Alpha release (no capture support)
