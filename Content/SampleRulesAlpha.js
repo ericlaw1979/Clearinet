@@ -20,6 +20,11 @@ class Handlers {
       Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
     }
     
+    public static BindTextCodec("to lowercase")
+    function codecToLower(input: String): String {
+      return input.ToLower();
+    }
+     
     public static BindUIColumn("Content-Type", false)
     function FillCTColumn(xc: Exchange): String {
       return xc.ResponseHeaders["Content-Type"];

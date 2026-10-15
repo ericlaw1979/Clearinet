@@ -51,6 +51,8 @@ namespace Clearinet
 
         private List<BindUITab> listBoundTabs = new List<BindUITab>();
         private List<BindUIColumn> listBoundColumns = new List<BindUIColumn>();
+
+        private List<BindTextCodec> listBoundTextCodecs = new List<BindTextCodec>();
         private List<PreferenceBag.PrefWatcher> listWeaklyHeldWatchers = new List<PreferenceBag.PrefWatcher>();
 
         private Action<Exchange> _methodOnBeforeRequest;
@@ -133,8 +135,6 @@ namespace Clearinet
                 try
                 {
                     BeforeRulesCompile?.Invoke(_scriptPath);
-                    ClearPriorScriptButtons(CApp.UI.tsToolbar);
-                    ClearPriorScriptTabs();
                     CompileScript();
                     AfterRulesCompile?.Invoke();
                 }
@@ -157,6 +157,11 @@ namespace Clearinet
                     _ClearCachedHandlerMethods();
                     ClearPriorScriptButtons(CApp.UI.tsToolbar);
                     ClearPriorScriptTabs();
+
+                    // TODO: The old script engine is still alive and clearing here doesn't
+                    // drop the reference to the old script. TODO: Notify any open textwizard to refresh?
+                    listBoundTextCodecs.Clear();
+                    //listWeaklyHeldWatchers.ForEach(w => w.Dispose());
                 }
                 _isReadyForCalls = false;
                 string scriptContent;
@@ -242,6 +247,27 @@ namespace Clearinet
             var tsToolbar = CApp.UI.tsToolbar;
 
             // TODO: iterate the methods only once and look at what attributes they support.
+            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                var b = Attribute.GetCustomAttribute(mi, typeof(BindTextCodec), false) as BindTextCodec;
+                if (null == b) continue;
+
+                MethodInfo methodToInvoke = mi;
+                // 1. Validate that the method signature matches: string MethodName(string input)
+                if (mi.ReturnType != typeof(string)) continue;
+
+                ParameterInfo[] parameters = mi.GetParameters();
+                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string)) continue;
+
+                // 2. Create a strongly-typed delegate matching Func<string, string>
+                Func<string, string> CodecMethod =
+                    (Func<string, string>)Delegate.CreateDelegate(typeof(Func<string, string>), mi);
+
+                b.Method = CodecMethod;
+
+                listBoundTextCodecs.Add(b);
+            }
+
             foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
                 BindUIColumn b = Attribute.GetCustomAttribute(mi, typeof(BindUIColumn), false) as BindUIColumn;
@@ -446,6 +472,37 @@ namespace Clearinet
                 CApp.ReportException(eX, "QuickExec failure");
                 return false;
             }
+        }
+
+        internal string[] AvailableTextCodecs()
+        {
+            return listBoundTextCodecs.ConvertAll(b => b.Name).ToArray();
+        }
+
+        internal bool RunTextCodec(string codecName, string input, out string sOutput, out byte[] arrLatestOutput)
+        {
+            sOutput = string.Empty;
+            arrLatestOutput = null;
+            if (!_isReadyForCalls) return false;
+            Debug.Assert(null != this._typeHandlers);
+            foreach (BindTextCodec b in listBoundTextCodecs)
+            {
+                if (b.Name.Equals(codecName, StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        sOutput = b.Method.Invoke(input);
+                        return true;
+                    }
+                    catch (Exception eX)
+                    {
+                        CApp.DoNotifyUser("Error in your Script.\n\n" +
+                            eX.Message + "\n" + eX.StackTrace + "\n\n" + eX.InnerException, $"Error calling {b.Name}");
+                        return false;
+                    }
+                }
+            }
+            return false;
         }
 
         /*

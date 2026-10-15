@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -289,8 +288,11 @@ namespace Clearinet
                         break;
 
                     default:
-                        Debug.Assert(false, "Not reachable");
-                        throw new IndexOutOfRangeException("Invalid conversion requested");
+                        if (!CApp.scriptRules.RunTextCodec(cbxTransforms.Text, sText, out sOutput, out arrLatestOutput))
+                        {
+                            sOutput = $"Error: No text codec found for '{cbxTransforms.Text}'";
+                        }
+                        break;
                 }
 
                 Text = String.Format("TextWizard [{0} => {1} chars]", txtInput.TextLength, sOutput.Length);
@@ -393,6 +395,8 @@ namespace Clearinet
             cbxTransforms.Items.Add("Epoch");
             cbxTransforms.Items.Add("JWT Token Decoder");
             cbxTransforms.Items.Add("CBOR");
+
+            cbxTransforms.Items.AddRange(CApp.scriptRules.AvailableTextCodecs());
 
             try
             {

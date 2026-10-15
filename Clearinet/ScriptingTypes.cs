@@ -124,4 +124,16 @@ namespace Clearinet
     }
 
 
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class BindTextCodec : Attribute
+    {
+        internal string Name { get; private set; }
+
+        internal Func<string, string> Method { get; set; }
+        public BindTextCodec(string sCodecName)
+        {
+            Name = sCodecName;
+        }
+    }
+
 }
