@@ -46,6 +46,43 @@ OutFile "ClearinetSetup.exe"
 !define /file VER_APP Clearinet.ver
 !define /date NOW "%b-%d-%y"
 
+
+; ========================================================================
+!include "LogicLib.nsh"
+
+; .NET Framework 4.8.1 Minimum Release Key
+!define NET481_RELEASE_BUILD 533320
+!define NET481_DOWNLOAD_URL "https://go.microsoft.com/fwlink/?LinkId=2203304"
+
+Function CheckAndInstallDotNet481
+    DetailPrint "Checking for .NET Framework 4.8.1..."
+    
+    Push $0
+    
+    ; Save current registry view and inspect the 32-bit setup key
+    SetRegView 32
+    ReadRegDWORD $0 HKLM "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" "Release"
+    SetRegView lastused
+
+    ${If} $0 >= ${NET481_RELEASE_BUILD}
+        DetailPrint ".NET Framework 4.8.1 is already installed ($0)."
+        Pop $0
+        Return
+    ${EndIf}
+
+    ; Prompt user to download .NET 4.8.1 manually without stopping setup
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION \
+        "Clearinet requires .NET Framework 4.8.1 or higher, which does not appear to be installed.$\n$\nWould you like to open your browser to download it now?$\nYou will need to install it before continuing." \
+        IDNO continue_setup
+
+    ExecShell "open" "${NET481_DOWNLOAD_URL}"
+
+continue_setup:
+    DetailPrint "Continuing installation..."
+    Pop $0
+FunctionEnd
+# ========================================================================
+
 ; Setup Installer Pages
 !insertmacro MUI_PAGE_LICENSE "..\docs\EULA.txt"
 !define MUI_TEXT_LICENSE_SUBTITLE "Accept the friendly license to install and use Clearinet."
@@ -117,7 +154,9 @@ Section "App"
 
 SetOutPath "$INSTDIR"
 
-; TODO: Check for .NET binaries
+; Check for .NET Framework
+Call CheckAndInstallDotNet481
+
 ; TODO: Check for running version
 
 DetailPrint "Installing Clearinet"
