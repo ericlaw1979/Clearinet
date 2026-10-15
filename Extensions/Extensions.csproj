@@ -131,6 +131,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell -Command "$docPath = [Environment]::GetFolderPath('MyDocuments'); Copy-Item -Path '$(TargetPath)', '$(TargetDir)Be.Windows.Forms.HexBox.dll' -Destination \"$docPath\Clearinet\Extensions\" -Force"</PostBuildEvent>
+    <PostBuildEvent>powershell -Command "$destDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Clearinet\Extensions'; if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }; Copy-Item -Path '$(TargetPath)', '$(TargetDir)Be.Windows.Forms.HexBox.dll' -Destination $destDir -Force"</PostBuildEvent>
   </PropertyGroup>
 </Project>
