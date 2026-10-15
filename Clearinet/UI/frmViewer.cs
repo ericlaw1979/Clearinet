@@ -171,24 +171,12 @@ namespace Clearinet
 
         public Exchange[] GetSelectedExchanges()
         {
-            int iSelCount = lvExchanges.SelectedItems.Count;
-            Exchange[] arrExchanges = new Exchange[iSelCount];
-            for (int ix = 0; ix < iSelCount; ++ix)
-            {
-                arrExchanges[ix] = lvExchanges.SelectedItems[ix].Tag as Exchange;
-            }
-            return arrExchanges;
+            return lvExchanges.GetSelectedExchanges();
         }
 
         public Exchange[] GetAllExchanges()
         {
-            int iCount = lvExchanges.Items.Count;
-            Exchange[] arrExchanges = new Exchange[iCount];
-            for (int ix = 0; ix < iCount; ++ix)
-            {
-                arrExchanges[ix] = lvExchanges.Items[ix].Tag as Exchange;
-            }
-            return arrExchanges;
+            return lvExchanges.GetAllExchanges();
         }
 
         /// <summary>

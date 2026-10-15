@@ -33,6 +33,37 @@ namespace Clearinet
         {
             sorter = new LVCSorter();
             this.ListViewItemSorter = sorter;
+            this.ItemDrag += ExchangeListView_ItemDrag;
+        }
+        public Exchange[] GetAllExchanges()
+        {
+            int iCount = Items.Count;
+            Exchange[] arrExchanges = new Exchange[iCount];
+            for (int ix = 0; ix < iCount; ++ix)
+            {
+                arrExchanges[ix] = Items[ix].Tag as Exchange;
+            }
+            return arrExchanges;
+        }
+
+        public Exchange[] GetSelectedExchanges()
+        {
+            int iSelCount = SelectedItems.Count;
+            Exchange[] arrExchanges = new Exchange[iSelCount];
+            for (int ix = 0; ix < iSelCount; ++ix)
+            {
+                arrExchanges[ix] = SelectedItems[ix].Tag as Exchange;
+            }
+            return arrExchanges;
+        }
+
+        private void ExchangeListView_ItemDrag(object sender, ItemDragEventArgs e)
+        {
+            var XC = GetSelectedExchanges();
+            DataObject dragData = new DataObject("Clearinet.Exchange[]", XC);
+
+            // Initiate drag
+            DoDragDrop(dragData, DragDropEffects.Copy);
         }
 
         protected override void OnColumnClick(ColumnClickEventArgs e)

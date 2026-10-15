@@ -71,10 +71,6 @@
     <Compile Include="AuthView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="AuthInspectors.cs" />
-    <Compile Include="AuthView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
     <Compile Include="HeaderInspectors.cs" />
     <Compile Include="HeaderView.cs">
       <SubType>UserControl</SubType>
