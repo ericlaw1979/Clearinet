@@ -22,6 +22,15 @@ namespace Clearinet
 
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
+        // This session only override settings (set by command line)
+        internal struct structOverrides
+        {
+            internal bool NoAttachOnStartup;
+            internal bool DisableScript;
+        }
+        internal static structOverrides Overrides;
+
+
         public static Color GetColor(string sPref, Color colorDefault)
         {
             string sColor = CApp.Prefs.GetStringPref(sPref, null);
@@ -38,7 +47,6 @@ namespace Clearinet
         public static float flFontSize = 10.0F;
         public static bool isQuietMode { get; set; } = false;
         public static bool isViewerMode { get; internal set; } = false;
-        public static bool isScriptDisabled { get; internal set; } = false;
 
         public static int ListenPort { get; internal set; } = 8888;
 
@@ -77,7 +85,6 @@ namespace Clearinet
                     continue;
                 }
 
-                // TODO:   "-noattach
 
                 if (sSwitch.OICEquals("viewer"))
                 {
@@ -85,9 +92,15 @@ namespace Clearinet
                     continue;
                 }
 
+                if (sSwitch.OICEquals("noattach"))
+                {
+                    Overrides.NoAttachOnStartup = true;
+                    continue;
+                }
+
                 if (sSwitch.OICEquals("noscript"))
                 {
-                    isScriptDisabled = true;
+                    Overrides.DisableScript = true;
                     continue;
                 }
 

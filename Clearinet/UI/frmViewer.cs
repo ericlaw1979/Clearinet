@@ -431,7 +431,7 @@ namespace Clearinet
             CApp.OnAppBoot();
 
             if (CApp.Prefs.GetBoolPref("app.attach_on_startup", false)  // TODO: Change after we have a proxy
-                && !Environment.CommandLine.OICContains("noattach")) { CApp.actAttachProxy(); }
+                && !CONFIG.Overrides.NoAttachOnStartup) { CApp.actAttachProxy(); }
 
             timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
             timerReportUpdater.Tick += new EventHandler(timerReportUpdater_Tick);

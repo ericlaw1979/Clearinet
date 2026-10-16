@@ -69,7 +69,7 @@ namespace Clearinet
 
         public JScriptEngine(string scriptPath)
         {
-            if (CONFIG.isScriptDisabled)
+            if (CONFIG.Overrides.DisableScript)
             {
                 CApp.Log.Log($"Script engine is disabled by command-line argument.");
                 return;
