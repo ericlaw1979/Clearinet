@@ -256,8 +256,9 @@ namespace Clearinet
                     return true;
                 }
                 string sMIME = arrParams[1];
-                UI.actSelectExchangesMatchingCriteria((xc) => xc.MediaTypeIs(sMIME));
+                UI.actSelectExchangesMatchingCriteria((xc) => xc.MediaType.OICContains(sMIME));
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with Content-Type containing '{sMIME}'");
                 return true;
             }
 
@@ -268,6 +269,8 @@ namespace Clearinet
                     xc.fullUrl.OICContains(sFind));
 
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with URL containing '{sFind}'");
+
                 return true;
             }
 
@@ -276,11 +279,14 @@ namespace Clearinet
                 if (Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal))
                 {
                     UI.actSelectExchangesMatchingCriteria((xc) => (xc.responseCode == iVal));
+                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response code '{iVal}'");
                 }
                 else
                 {
                     var sMethod = sCommand.Substring(1).Trim();
                     UI.actSelectExchangesMatchingCriteria((xc) => xc.RequestMethod.OICEquals(sMethod));
+                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with Method '{sMethod}'");
+
                 }
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
                 return true;
@@ -292,6 +298,8 @@ namespace Clearinet
                 UI.actSelectExchangesMatchingCriteria((xc) =>
                 { return xc.ResponseBody?.Length > iVal; });
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response size > '{iVal}'");
+
                 return true;
             }
 
@@ -300,6 +308,8 @@ namespace Clearinet
                 Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
                 UI.actSelectExchangesMatchingCriteria((xc) => { return xc.ResponseBody?.Length < iVal; });
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response size < '{iVal}'");
+
                 return true;
             }
             if (sCommand.StartsWith("@"))
@@ -307,6 +317,7 @@ namespace Clearinet
                 string sHost = sCommand.Substring(1).Trim();
                 UI.actSelectExchangesMatchingCriteria((xc) => { return xc.hostname.OICEquals(sHost); });
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges to host '{sHost}'");
                 return true;
             }
 
