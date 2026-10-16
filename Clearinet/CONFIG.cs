@@ -38,6 +38,7 @@ namespace Clearinet
         public static float flFontSize = 10.0F;
         public static bool isQuietMode { get; set; } = false;
         public static bool isViewerMode { get; internal set; } = false;
+        public static bool isScriptDisabled { get; internal set; } = false;
 
         public static int ListenPort { get; internal set; } = 8888;
 
@@ -56,7 +57,10 @@ namespace Clearinet
             {
                 if (!sArg.OICStartsWithAny("/", "-")) continue;
 
-                if (sArg.IndexOf("port:", StringComparison.OrdinalIgnoreCase) == 1)
+                var sSwitch = sArg.Substring(1);
+                if (!sSwitch.HasText()) continue;
+
+                if (sSwitch.IndexOf("port:", StringComparison.OrdinalIgnoreCase) == 1)
                 {
                     if (int.TryParse(sArg.Substring(sArg.IndexOf("port:", StringComparison.OrdinalIgnoreCase) + 5),
                         NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out int iPort))
@@ -66,22 +70,27 @@ namespace Clearinet
                     continue;
                 }
 
-                if (sArg.IndexOf("quiet", StringComparison.OrdinalIgnoreCase) == 1)
+                if (sSwitch.OICEquals("quiet"))
                 {
                     isQuietMode = true;
                     continue;
                 }
 
-                if (sArg.IndexOf("viewer", StringComparison.OrdinalIgnoreCase) == 1)
+                // TODO:   "-noattach
+
+                if (sSwitch.OICEquals("viewer"))
                 {
                     isViewerMode = true;
                     continue;
                 }
-                if (sArg.IndexOf("?", StringComparison.OrdinalIgnoreCase) == 1)
+
+                if (sSwitch.OICEquals("noscript"))
                 {
-                    _ShowValidArgs();
+                    isScriptDisabled = true;
                     continue;
                 }
+
+                _ShowValidArgs();
             }
         }
 
@@ -148,10 +157,11 @@ namespace Clearinet
 
         private static void _ShowValidArgs()
         {
-            string sValidOptions = "Usage:\n\tcin.exe [options] [Traffic.saz]\n\nOptions:\n\n" +
+            string sValidOptions = "Usage:\n\tclearinet.exe [options] [Traffic.saz]\n\nOptions:\n\n" +
             "-viewer\t\tOpen a non-proxy 'Viewer' mode\n" +
             "-quiet\t\tShow as little UI as possible\n" +
-            "-noattach\t\tDo not attach as the system proxy on boot\n" +
+            "-noattach\tDo not attach as the system proxy on boot\n" +
+            "-noscript\t\tDisable the script engine (for troubleshooting)\n" +
             "-port:####\tUse the specified port to listen\n" +
             "-?\t\tShow this list\n";
 
