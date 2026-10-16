@@ -62,9 +62,13 @@ namespace Clearinet
         }
     }
 
-    public abstract class InspectorBase : IAppExtension
+    public abstract class InspectorBase
     {
         internal InspectorBase() { }
+
+        // todo: Do we want to add these?
+        // public virtual void OnLoad() { }
+        // public virtual void OnBeforeUnload() { }
         public virtual string TabTitle
         {
             get

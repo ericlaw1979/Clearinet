@@ -277,7 +277,7 @@ namespace Clearinet
                 frmSplashScreen.SetStatusText("Loading extensions...");
                 CApp.oExtensions = new Extensions();
                 CApp.oTranscoders = new Transcoders();
-                doPopulateInspectorTabs();
+                doPopulateInspectorTabs(CApp.UI.tabsRequest, CApp.UI.tabsResponse, "MainWindow");
 
                 frmSplashScreen.SetStatusText("Loading script engine...");
                 CApp.CreateScriptEngine();
@@ -300,34 +300,52 @@ namespace Clearinet
             }
         }
 
-        private static void doPopulateInspectorTabs()
+        // Called by both the main UI *and* in the InspectInNewWindow
+
+        internal static void doPopulateInspectorTabs(TabControl tabsRequest, TabControl tabsResponse, string Context)
         {
-            foreach (RequestInspectorBase oRI in CApp.oExtensions.m_RequestInspectors.Values)
+            foreach (Type tRI in CApp.oExtensions.m_RequestInspectors.Values)
             {
                 try
                 {
+                    RequestInspectorBase oRI = (RequestInspectorBase)Activator.CreateInstance(tRI);
+                    if ((oRI.GetFlags().HasFlag(InspectorFlags.HideInNewWindow) &&
+                        Context == "NewWindow") ||
+                        (oRI.GetFlags().HasFlag(InspectorFlags.HideInAutoResponder) &&
+                        Context == "AutoResponder"))
+                    {
+                        continue;
+                    }
                     TabPage oPage = new TabPage
                     {
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
                     oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
-                    CApp.UI.tabsRequest.TabPages.Add(oPage);
+                    tabsRequest.TabPages.Add(oPage);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
             }
 
-            foreach (ResponseInspectorBase oRI in CApp.oExtensions.m_ResponseInspectors.Values)
+            foreach (Type tRI in CApp.oExtensions.m_ResponseInspectors.Values)
             {
                 try
                 {
+                    ResponseInspectorBase oRI = (ResponseInspectorBase)Activator.CreateInstance(tRI);
+                    if ((oRI.GetFlags().HasFlag(InspectorFlags.HideInNewWindow) &&
+                        Context == "NewWindow") ||
+                        (oRI.GetFlags().HasFlag(InspectorFlags.HideInAutoResponder) &&
+                        Context == "AutoResponder"))
+                    {
+                        continue;
+                    }
                     TabPage oPage = new TabPage
                     {
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
                     oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
-                    CApp.UI.tabsResponse.TabPages.Add(oPage);
+                    tabsResponse.TabPages.Add(oPage);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
             }
@@ -407,12 +425,27 @@ namespace Clearinet
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
 
+            // TODO: Move
+            mnuExchange.Items.Add("Inspect in &New Window");
+            mnuExchange.Click += (s, ea) =>
+            {
+                actInspectInNewWindow();
+            };
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
             ImportAnyStartupArchives();
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
             new HiddenExecActionTargetWindow(components);
+        }
+
+        private void actInspectInNewWindow()
+        {
+            // TODO: Should we do this for ALL selected exchanges if the number is reasonable?
+            Exchange x = GetFirstSelectedExchange();
+            if (null == x) return;
+            frmInspect f = new frmInspect(x);
+            f.Show();
         }
 
         private async void miHelpCheckForUpdates_Click(object sender, EventArgs e)
@@ -451,18 +484,18 @@ namespace Clearinet
                 }
 
                 rtbStatistics.Text = $"{sPriorDayWarning}Exchange Timers\r\n{arrExchanges[0].Timers.ToString(true)}\r\n" +
-                $"\r\nRequest Headers:\t{cRequestHeaderBytes:N0} bytes" +
-                $"\r\nRequest Body:\t{cRequestBodyBytes:N0} bytes" +
-                $"\r\nResponse Headers:\t{cResponseHeaderBytes:N0} bytes" +
-                $"\r\nResponse Body:\t{cResponseBodyBytes:N0} bytes";
+                $"\r\nRequest Headers:  {cRequestHeaderBytes:N0} bytes" +
+                $"\r\nRequest Body:     {cRequestBodyBytes:N0} bytes" +
+                $"\r\nResponse Headers: {cResponseHeaderBytes:N0} bytes" +
+                $"\r\nResponse Body:    {cResponseBodyBytes:N0} bytes";
                 return;
             }
 
             rtbStatistics.Text = $"You've selected {arrExchanges.Length} Exchanges\r\n" +
-                $"\r\nRequest Headers:\t{cRequestHeaderBytes:N0} bytes" +
-                $"\r\nRequest Bodies:\t{cRequestBodyBytes:N0} bytes" +
-                $"\r\nResponse Headers:\t{cResponseHeaderBytes:N0} bytes" +
-                $"\r\nResponse Bodies:\t{cResponseBodyBytes:N0} bytes";
+                $"\r\nRequest Headers:  {cRequestHeaderBytes:N0} bytes" +
+                $"\r\nRequest Bodies:   {cRequestBodyBytes:N0} bytes" +
+                $"\r\nResponse Headers: {cResponseHeaderBytes:N0} bytes" +
+                $"\r\nResponse Bodies:  {cResponseBodyBytes:N0} bytes";
         }
 
         private void timerReportUpdater_Tick(object sender, EventArgs e)
@@ -1175,8 +1208,17 @@ namespace Clearinet
             {
                 actInspectSession();
                 e.SuppressKeyPress = e.Handled = true;
-                // TODO: Alt+Enter => Properties; ShifT+Enter =>InspectInTornoff
                 return;
+            }
+
+            if (e.Modifiers == Keys.Alt)
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    actInspectInNewWindow();
+                    e.SuppressKeyPress = e.Handled = true;
+                    return;
+                }
             }
 
             if (e.KeyCode == Keys.Delete)
@@ -1197,10 +1239,6 @@ namespace Clearinet
                 }
             }
 
-            if (e.Modifiers == Keys.Alt)
-            {
-                // 
-            }
 
             switch (e.KeyCode)
             {

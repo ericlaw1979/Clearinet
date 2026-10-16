@@ -168,13 +168,19 @@ namespace Clearinet
         private static void AppendTimer(StringBuilder sb, string name, DateTime value, string sSep)
         {
             if (value == DateTime.MinValue) return;
-            sb.Append($"{name}:\t{value.ToString("HH:mm:ss.fff")}{sSep}");
+            if (Environment.NewLine == sSep)  // TODO: hacky, binds sep to fixed width
+                sb.Append($"{name,23}: {value.ToString("HH:mm:ss.fff")}{sSep}");
+            else
+                sb.Append($"{name}: {value.ToString("HH:mm:ss.fff")}{sSep}");
         }
 
         private static void AppendDuration(StringBuilder sb, string name, int value, string sSep)
         {
             if (value <= 0) return;
-            sb.Append($"{name}:{value}ms{sSep}");
+            if (Environment.NewLine == sSep)  // TODO: hacky, binds sep to fixed width
+                sb.Append($"{name,23}: {value}ms{sSep}");
+            else
+                sb.Append($"{name}: {value}ms{sSep}");
         }
 
         internal void WriteToSAZMetadata(XmlTextWriter oXML)

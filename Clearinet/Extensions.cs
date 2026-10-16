@@ -225,8 +225,8 @@ namespace Clearinet
         private Dictionary<Guid, IAutoTamper> m_AutoTamperers = new Dictionary<Guid, IAutoTamper>();
 
         //TODO: Fix accessiblity of these dictionaries. They should be private, but the UI needs to access them to add tabs for each Inspector.
-        internal Dictionary<Guid, RequestInspectorBase> m_RequestInspectors = new Dictionary<Guid, RequestInspectorBase>();
-        internal Dictionary<Guid, ResponseInspectorBase> m_ResponseInspectors = new Dictionary<Guid, ResponseInspectorBase>();
+        internal Dictionary<Guid, Type> m_RequestInspectors = new Dictionary<Guid, Type>();
+        internal Dictionary<Guid, Type> m_ResponseInspectors = new Dictionary<Guid, Type>();
 
         internal Extensions()
         {
@@ -359,6 +359,14 @@ namespace Clearinet
                                 CApp.Log.LogFormat("! Failed to instantiate extension {0} from {1}: {2}", t.Name, fi.FullName, eX.Message);
                             }
                         }
+                        else if (typeof(RequestInspectorBase).IsAssignableFrom(t))
+                        {
+                            m_RequestInspectors.Add(t.GUID, t);
+                        }
+                        else if (typeof(ResponseInspectorBase).IsAssignableFrom(t))
+                        {
+                            m_ResponseInspectors.Add(t.GUID, t);
+                        }
                     }
                 }
             }
@@ -375,8 +383,6 @@ namespace Clearinet
             IAppExtension iae = (IAppExtension)Activator.CreateInstance(t);
             m_Extensions.Add(t.GUID, iae);
             if (iae is IAutoTamper) m_AutoTamperers.Add(t.GUID, (IAutoTamper)iae);
-            if (iae is RequestInspectorBase) m_RequestInspectors.Add(t.GUID, (RequestInspectorBase)iae);
-            if (iae is ResponseInspectorBase) m_ResponseInspectors.Add(t.GUID, (ResponseInspectorBase)iae);
 
             // If extension has loaded and the app is already booted, call OnLoad() immediately.
             // Otherwise, it will be called when the app boots.
