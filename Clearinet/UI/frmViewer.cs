@@ -1,4 +1,4 @@
-﻿using Clearinet.UI;
+using Clearinet.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -48,11 +48,14 @@ namespace Clearinet
             }
         }
 
+        /// <summary>
+        /// Used to tell the user to Select one or more Exchanges to inspect
+        /// </summary>
         private Label lblInspectorInstruction;
-        private MRU mruRecents;
+        private readonly MRU mruRecents;
 
 
-        private static System.Windows.Forms.Timer timerReportUpdater = new System.Windows.Forms.Timer();
+        private readonly static System.Windows.Forms.Timer timerReportUpdater = new System.Windows.Forms.Timer();
 
         private void miFileExit_Click(object sender, EventArgs e)
         {
@@ -219,10 +222,10 @@ namespace Clearinet
         static void Main(string[] arrArgs)
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(frmViewer.UnhandledExceptionHandler);
-            frmViewer.RunApp(arrArgs);
+            frmViewer.RunApp();
         }
 
-        private static void RunApp(string[] arrArgs)
+        private static void RunApp()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);   // TODO: Do we want this?
@@ -409,11 +412,11 @@ namespace Clearinet
             ImportAnyStartupArchives();
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
+            new HiddenExecActionTargetWindow(components);
         }
 
         private async void miHelpCheckForUpdates_Click(object sender, EventArgs e)
         {
-            ToolStripMenuItem miCheckForUpdates = new ToolStripMenuItem("Check for &Updates...");
             await UpdateChecker.CheckForUpdatesAsync(true);
         }
 
@@ -692,8 +695,10 @@ namespace Clearinet
                 }
                 IExchangeExporter oExporter = (IExchangeExporter)Activator.CreateInstance(tt.typeTranscoder);
 
-                var dictOptions = new Dictionary<string, object>();
-                dictOptions.Add("Filename", sFilename);
+                var dictOptions = new Dictionary<string, object>
+                {
+                    { "Filename", sFilename }
+                };
 
                 var exchImported = oExporter.ExportExchanges(tt.FormatName, arrExchanges, dictOptions,
                                 (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); });
@@ -718,8 +723,10 @@ namespace Clearinet
             }
             IExchangeImporter oImporter = (IExchangeImporter)Activator.CreateInstance(tt.typeTranscoder);
 
-            var dictOptions = new Dictionary<string, object>();
-            dictOptions.Add("Filename", sPath);
+            var dictOptions = new Dictionary<string, object>
+            {
+                { "Filename", sPath }
+            };
 
             var exchImported = oImporter.ImportExchanges(tt.FormatName, dictOptions,
                             (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); Application.DoEvents(); });
@@ -1230,7 +1237,7 @@ namespace Clearinet
 
                 var oMS = new MemoryStream();
                 imageToPaste.Save(oMS, ImageFormat.Png);
-                AddFauxExchange($"/clipboard/{DateTime.Now.ToString("H-mm-ss")}.png", "image/png", oMS.ToArray());
+                AddFauxExchange($"/clipboard/{DateTime.Now:H-mm-ss}.png", "image/png", oMS.ToArray());
             }
             catch (Exception eX)
             {
@@ -1265,9 +1272,11 @@ namespace Clearinet
                     return;
                 }
 
-                var headersRequest = new HTTPRequestHeaders($"/clipboard/{DateTime.Now.ToString("H-mm-ss")}.txt", new[] { "Host: localhost" });
-                var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
-                exchNew.ResponseHeaders = new HTTPResponseHeaders(200, "Pasted", null);
+                var headersRequest = new HTTPRequestHeaders($"/clipboard/{DateTime.Now:H-mm-ss}.txt", new[] { "Host: localhost" });
+                var exchNew = new Exchange(headersRequest, Array.Empty<byte>())
+                {
+                    ResponseHeaders = new HTTPResponseHeaders(200, "Pasted", null)
+                };
                 if (sText.TrimStart().StartsWith("data:"))
                 {
                     _FillExchangeFromDataURL(exchNew, sText);
@@ -1728,7 +1737,7 @@ namespace Clearinet
 
         private ToolStripProgressBar ProgressUI;
 
-        private CancelEventHandler ceh;
+        private readonly CancelEventHandler ceh;
 
         public LongRunningOperation(string sOperationName, bool bPreventSleepOrExit)
         {

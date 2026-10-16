@@ -208,6 +208,7 @@ File "..\Transcoders\bin\Release\CAT-Default.dll"
 
 SetOutPath "$INSTDIR\Tools\"
 File "..\Content\bundled\dwebp.exe"
+File "..\Content\bundled\CallExecAction.ps1"
 
 ; Install any template scripts/responses/etc
 
@@ -360,7 +361,11 @@ Delete "$INSTDIR\System.Memory.dll"
 Delete "$INSTDIR\System.Numerics.Vectors.dll"
 Delete "$INSTDIR\System.Runtime.CompilerServices.Unsafe.dll"
 Delete "$INSTDIR\System.Threading.Tasks.Extensions.dll"
+
+
 Delete "$INSTDIR\Tools\dwebp.exe"
+Delete "$INSTDIR\Tools\CallExecAction.ps1"
+
 Delete "$INSTDIR\Extensions\CAE-Default.dll"
 Delete "$INSTDIR\Extensions\Microsoft.Web.WebView2.Core.dll"
 Delete "$INSTDIR\Extensions\Microsoft.Web.WebView2.WinForms.dll"
@@ -370,6 +375,7 @@ Delete "$INSTDIR\Extensions\runtimes\win-arm64\native\WebView2Loader.dll"
 Delete "$INSTDIR\ImportExport\CAT-Default.dll"
 Delete "$INSTDIR\CBOR.dll"
 Delete "$INSTDIR\Numbers.dll"
+Delete "$INSTDIR\URIUtility.dll"
 Delete "$INSTDIR\URIUtility.dll"
 
 ; Remove directories iff empty

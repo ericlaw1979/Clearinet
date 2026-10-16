@@ -109,6 +109,9 @@
     <Compile Include="UI\ExchangeListView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="UI\HiddenExecActionTargetWindow.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\FindPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -230,6 +233,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.ico" />
+    <Content Include="..\Content\Bundled\CallExecAction.ps1">
+      <Link>Tools\CallExecAction.ps1</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\Content\Bundled\dwebp.exe">
       <Link>Tools\dwebp.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
