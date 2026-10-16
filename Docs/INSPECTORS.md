@@ -23,13 +23,21 @@ Exchange as quickly as possible.
 
 ## Data request and response inspectors
 
-The read-only Data tab displays XML and JSON bodies in a tree, including XML attributes and text, JSON properties,
-array indices, and primitive values. Both inspectors score 75 for `application/json`, `application/xml`, and media types
-ending in `+xml`, except `image/svg+xml`. Content-Type matching is case-insensitive and accepts charset parameters.
+The read-only Data tab displays XML, JSON, and BSON bodies in a tree, including XML attributes and text, document properties,
+array indices, and primitive values. Both inspectors score 75 for `application/json`, `application/xml`, `application/bson`,
+`application/x-bson`, and media types ending in `+xml`, except `image/svg+xml`. Content-Type matching is case-insensitive and accepts charset parameters.
 Other content types can be inspected manually; without a recognized type, the body is detected as XML or JSON.
-HTTP content and transfer encodings are decoded before parsing. HTTP charsets and byte-order marks are honored;
-XML without an HTTP charset also honors its encoding declaration. Parsing uses only .NET Framework readers.
+HTTP content and transfer encodings are decoded before parsing. HTTP charsets and byte-order marks are honored for text;
+XML without an HTTP charset also honors its encoding declaration. XML and JSON parsing uses .NET Framework readers.
 XML DTDs and external entity resolution are disabled. Invalid documents display a parse error instead of stale data.
+
+BSON is parsed directly from decoded bytes when its Content-Type is declared; no external libraries are required.
+Nested documents and arrays use the same search and expansion controls as JSON. BSON-specific values retain their types:
+integers, doubles, ObjectIds, binary subtypes and hex payloads, regexes, timestamps, JavaScript (including scope), symbols,
+DBPointers, undefined, and MinKey/MaxKey. Dates show signed milliseconds since the Unix epoch; Decimal128 values show
+all 16 bytes as little-endian hex to preserve their exact representation. Code is displayed, never executed.
+Invalid lengths, terminators, UTF-8, array indices, booleans, trailing bytes, and unknown element types produce errors.
+BSON nesting is limited to 128 document levels.
 
 Type in the Find box at the bottom to select and scroll to the first matching node, including collapsed descendants.
 Matching is case-insensitive. Enter or Next advances to the next match; Shift+Enter goes to the previous match,

@@ -74,7 +74,7 @@ namespace Extensions
         {
             if (!MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue type)) return -1;
             string mime = type.MediaType;
-            return string.Equals(mime, "application/json", StringComparison.OrdinalIgnoreCase) ||
+            return IsBson(mime) || string.Equals(mime, "application/json", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(mime, "application/xml", StringComparison.OrdinalIgnoreCase) ||
                 (mime.EndsWith("+xml", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(mime, "image/svg+xml", StringComparison.OrdinalIgnoreCase)) ? 75 : -1;
@@ -92,6 +92,21 @@ namespace Extensions
                 if (!string.IsNullOrWhiteSpace(contentType) && !MediaTypeHeaderValue.TryParse(contentType, out type))
                     throw new FormatException("Invalid Content-Type: " + contentType);
                 byte[] decoded = headers == null ? body : Exchange.DecodeBodyFromHeaders(headers, body);
+                if (IsBson(type?.MediaType))
+                {
+                    TreeNode root = BsonDocument.Parse(decoded);
+                    tree.Nodes.Add(root);
+                    var pending = new Stack<TreeNode>();
+                    pending.Push(root);
+                    while (pending.Count > 0)
+                    {
+                        TreeNode node = pending.Pop();
+                        documentNodes.Add(node);
+                        for (int i = node.Nodes.Count - 1; i >= 0; i--) pending.Push(node.Nodes[i]);
+                    }
+                    ShowTree();
+                    return;
+                }
                 var document = new XmlDocument { XmlResolver = null };
                 bool json;
                 using (var stream = new MemoryStream(decoded, false))
@@ -128,22 +143,30 @@ namespace Extensions
                     }
                 }
                 PopulateTree(document, json);
-                message.Visible = false;
-                tree.Visible = true;
-                if (tree.Nodes.Count > 0) tree.Nodes[0].Expand();
+                ShowTree();
             }
-            catch (Exception ex) when (ex is XmlException || ex is SerializationException || ex is IOException ||
+            catch (Exception ex) when (ex is XmlException || ex is SerializationException || ex is IOException || ex is InvalidDataException ||
                 ex is ArgumentException || ex is FormatException || ex is NotSupportedException)
             {
                 tree.Nodes.Clear();
                 documentNodes.Clear();
                 CApp.Log.Log("Data inspector parsing failed: " + ex.Message);
-                ShowMessage("Unable to display this body as XML or JSON.\r\n" + ex.Message);
+                ShowMessage("Unable to display this body as XML, JSON, or BSON.\r\n" + ex.Message);
             }
             finally
             {
                 tree.EndUpdate();
             }
+        }
+
+        private static bool IsBson(string mime) => string.Equals(mime, "application/bson", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(mime, "application/x-bson", StringComparison.OrdinalIgnoreCase);
+
+        private void ShowTree()
+        {
+            message.Visible = false;
+            tree.Visible = true;
+            if (tree.Nodes.Count > 0) tree.Nodes[0].Expand();
         }
 
         private static XmlReaderSettings XmlSettings() => new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
@@ -230,7 +253,7 @@ namespace Extensions
             }
         }
 
-        private static string DisplayText(string text) => text.Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
+        internal static string DisplayText(string text) => text.Replace("\\", "\\\\").Replace("\0", "\\0").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
 
         private void FindMatches()
         {

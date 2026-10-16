@@ -81,6 +81,7 @@
     <Compile Include="AuthView.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="BsonDocument.cs" />
     <Compile Include="DataInspectors.cs" />
     <Compile Include="DataView.cs">
       <SubType>UserControl</SubType>

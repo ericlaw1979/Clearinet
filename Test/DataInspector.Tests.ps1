@@ -11,6 +11,7 @@ $null = [Reflection.Assembly]::LoadFrom($corePath)
 $null = [Reflection.Assembly]::LoadFrom($extensionPath)
 $tests = @'
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -34,12 +35,108 @@ public static class DataInspectorTests
     static string[] Children(TreeNode node) { return node.Nodes.Cast<TreeNode>().Select(n => n.Text).ToArray(); }
     static void Equal(string[] actual, params string[] expected) { Check(actual.SequenceEqual(expected), "Expected [" + string.Join(", ", expected) + "]; got [" + string.Join(", ", actual) + "]"); }
 
+    static byte[] Join(params byte[][] parts) { return parts.SelectMany(part => part).ToArray(); }
+    static byte[] Int32(int value) { return BitConverter.GetBytes(value); }
+    static byte[] CString(string value) { return Join(Encoding.UTF8.GetBytes(value), new byte[] { 0 }); }
+    static byte[] BsonString(string value)
+    {
+        byte[] bytes = CString(value);
+        return Join(Int32(bytes.Length), bytes);
+    }
+    static byte[] Element(byte type, string name, params byte[][] payload) { return Join(new byte[] { type }, CString(name), Join(payload)); }
+    static byte[] Bson(params byte[][] elements)
+    {
+        byte[] content = Join(elements);
+        return Join(Int32(content.Length + 5), content, new byte[] { 0 });
+    }
+    static void RunBson(DataResponseInspector response, DataView view)
+    {
+        TreeView tree = Field<TreeView>(view, "tree");
+        TextBox search = Field<TextBox>(view, "search");
+        Label status = Field<Label>(view, "searchStatus");
+        Label message = Field<Label>(view, "message");
+        byte[] oid = Enumerable.Range(0, 12).Select(i => (byte)i).ToArray();
+        byte[] bytes = Bson(
+            Element(2, "name", BsonString("caf\u00e9\0line\n")),
+            Element(3, "nested", Bson(Element(2, "find", BsonString("needle")))),
+            Element(4, "list", Bson(Element(0x10, "0", Int32(42)), Element(8, "1", new byte[] { 1 }), Element(0x0a, "2"))),
+            Element(1, "double", BitConverter.GetBytes(1.25)),
+            Element(5, "binary", Int32(3), new byte[] { 0x80, 0, 0xff, 0x20 }),
+            Element(5, "legacy", Int32(6), new byte[] { 2 }, Int32(2), new byte[] { 0xab, 0xcd }),
+            Element(5, "empty", Int32(0), new byte[] { 0 }),
+            Element(6, "undefined"), Element(7, "id", oid), Element(8, "false", new byte[] { 0 }),
+            Element(9, "date", BitConverter.GetBytes(long.MinValue)),
+            Element(0x0b, "regex", CString("a.*b"), CString("im")),
+            Element(0x0c, "pointer", BsonString("collection"), oid),
+            Element(0x0d, "code", BsonString("return 1;")), Element(0x0e, "symbol", BsonString("s")),
+            Element(0x10, "int", Int32(int.MinValue)),
+            Element(0x11, "timestamp", Int32(-1), Int32(int.MinValue)),
+            Element(0x12, "long", BitConverter.GetBytes(long.MaxValue)),
+            Element(0x13, "decimal", Enumerable.Range(0, 16).Select(i => (byte)i).ToArray()),
+            Element(0x7f, "max"), Element(0xff, "min"), Element(2, "", BsonString("empty key")));
+        response.Assign(Headers("APPLICATION/BSON; charset=ignored"), bytes, true);
+        Check(tree.Nodes.Count == 1 && tree.Nodes[0].Text == "$: {}", "BSON root");
+        Equal(Children(tree.Nodes[0]), "name: \"caf\u00e9\\0line\\n\"", "nested: {}", "list: []", "double: Double(1.25)",
+            "binary: Binary(subtype=0x80, hex=00ff20)", "legacy: Binary(subtype=0x02, hex=abcd)", "empty: Binary(subtype=0x00, hex=)",
+            "undefined: Undefined", "id: ObjectId(000102030405060708090a0b)", "false: false", "date: DateTime(-9223372036854775808 ms since Unix epoch)",
+            "regex: Regex(\"a.*b\", \"im\")", "pointer: DBPointer(\"collection\", ObjectId(000102030405060708090a0b))",
+            "code: JavaScript(\"return 1;\")", "symbol: Symbol(\"s\")", "int: Int32(-2147483648)",
+            "timestamp: Timestamp(seconds=2147483648, increment=4294967295)", "long: Int64(9223372036854775807)",
+            "decimal: Decimal128(little-endian hex=000102030405060708090a0b0c0d0e0f)", "max: MaxKey", "min: MinKey", ": \"empty key\"");
+        Equal(Children(tree.Nodes[0].Nodes[2]), "[0]: Int32(42)", "[1]: true", "[2]: null");
+        tree.CollapseAll();
+        search.Text = "needle";
+        Check(tree.SelectedNode.Text == "find: \"needle\"" && tree.SelectedNode.IsVisible && status.Text == "1 of 1", "BSON search reveals nested values");
+        byte[] scope = Bson(Element(0x10, "x", Int32(7)));
+        byte[] code = BsonString("return x;");
+        response.Assign(Headers("application/x-bson"), Bson(Element(0x0f, "scoped", Int32(4 + code.Length + scope.Length), code, scope)), true);
+        TreeNode scoped = tree.Nodes[0].Nodes[0];
+        Check(scoped.Text == "scoped: JavaScript(\"return x;\")" && scoped.Nodes[0].Text == "Scope: {}", "BSON code scope");
+        Equal(Children(scoped.Nodes[0]), "x: Int32(7)");
+        var compressedHeaders = Headers("application/bson");
+        compressedHeaders["Content-Encoding"] = "gzip";
+        byte[] compressed = Utilities.GzipCompress(bytes);
+        response.Assign(compressedHeaders, compressed, false);
+        Check(tree.Nodes[0].Nodes.Count == 22 && ReferenceEquals(response.body, compressed), "Compressed BSON retains captured bytes");
+        byte[] chunkBody = Bson(Element(2, "chunk", BsonString("decoded")));
+        var chunkHeaders = Headers("application/bson");
+        chunkHeaders["Transfer-Encoding"] = "chunked";
+        response.Assign(chunkHeaders, Join(Encoding.ASCII.GetBytes(chunkBody.Length.ToString("x") + "\r\n"), chunkBody, Encoding.ASCII.GetBytes("\r\n0\r\n\r\n")), true);
+        Equal(Children(tree.Nodes[0]), "chunk: \"decoded\"");
+        response.Assign(Headers("application/bson"), new byte[] { 5, 0, 0, 0, 0 }, true);
+        Check(tree.Nodes.Count == 1 && tree.Nodes[0].Nodes.Count == 0, "Empty BSON document");
+        byte[] badTerminator = Bson(); badTerminator[4] = 1;
+        byte[] wrongLength = Bson(); wrongLength[0] = 6;
+        byte[] badString = Bson(Element(2, "x", Int32(2), new byte[] { 65, 66 }));
+        byte[] invalidUtf8 = Bson(Element(2, "x", Int32(2), new byte[] { 0xff, 0 }));
+        byte[] tooDeep = Bson();
+        for (int i = 0; i < 128; i++) tooDeep = Bson(Element(3, "child", tooDeep));
+        foreach (byte[] invalid in new[] {
+            new byte[] { 1 }, new byte[] { 4, 0, 0, 0, 0 }, wrongLength, badTerminator, Join(Bson(), new byte[] { 0 }),
+            Bson(Element(0x20, "unknown")), Bson(Element(8, "b", new byte[] { 2 })), Bson(Element(0x12, "n", Int32(1))),
+            Bson(Element(2, "s", Int32(-1))), badString, invalidUtf8, Bson(new byte[] { 2, 0xff, 0 }),
+            Bson(Element(4, "a", Bson(Element(0x0a, "1")))), Bson(Element(3, "d", new byte[] { 0xff, 0xff, 0xff, 0x7f })),
+            Bson(Element(5, "b", Int32(-1), new byte[] { 0 })), Bson(Element(5, "b", Int32(5), new byte[] { 2 }, Int32(2), new byte[] { 0 })),
+            Bson(Element(0x0f, "s", Int32(15), BsonString(""), Bson())), tooDeep })
+        {
+            response.Assign(Headers("application/bson"), invalid, true);
+            Check(tree.Nodes.Count == 0 && message.Text.StartsWith("Unable to display") && message.Visible, "Malformed BSON has an explicit error and no partial tree");
+            search.Text = "needle";
+            Check(status.Text == "No matches", "Malformed BSON clears search nodes");
+        }
+        for (int i = 1; i < bytes.Length; i++)
+        {
+            response.Assign(Headers("application/bson"), bytes.Take(i).ToArray(), true);
+            Check(tree.Nodes.Count == 0 && message.Text.StartsWith("Unable to display"), "Truncated BSON prefix length " + i);
+        }
+    }
+
     public static void Run()
     {
         foreach (InspectorBase inspector in new InspectorBase[] { new DataRequestInspector(), new DataResponseInspector() })
         {
             Check(inspector.TabTitle == "Data", "Data tab title");
-            foreach (string mime in new[] { "application/json", "application/xml", "application/atom+xml", "APPLICATION/SOAP+XML; charset=utf-8", "application/json; charset=\"utf-8\"", "application/xhtml+xml" })
+            foreach (string mime in new[] { "application/bson", "APPLICATION/X-BSON; charset=utf-8", "application/json", "application/xml", "application/atom+xml", "APPLICATION/SOAP+XML; charset=utf-8", "application/json; charset=\"utf-8\"", "application/xhtml+xml" })
                 Check(inspector.ScoreForContentType(mime) == 75, "Exact supported score: " + mime);
             foreach (string mime in new[] { "image/svg+xml", "IMAGE/SVG+XML; charset=utf-8", "application/problem+json", "text/xml", "text/plain", "application/jsonp", "application/xmlstuff", "invalid", "", null })
                 Check(inspector.ScoreForContentType(mime) < 0, "Unsupported score: " + mime);
@@ -58,6 +155,7 @@ public static class DataInspectorTests
             TextBox search = Field<TextBox>(view, "search");
             Label status = Field<Label>(view, "searchStatus");
             Label message = Field<Label>(view, "message");
+            RunBson(response, view);
             Assign(response, "application/json", "{\"person\":{\"name\":\"Alice\"},\"items\":[42,true,null,\"\",{},[]],\"odd name\":\"line\\nvalue\",\"item\":false,\"\":1,\"a:b\":2}");
             Check(tree.Nodes.Count == 1 && tree.Nodes[0].Text == "$: {}", "JSON root");
             TreeNode root = tree.Nodes[0];
@@ -168,6 +266,11 @@ public static class DataInspectorTests
             var tree = Field<TreeView>(tab.Controls[0], "tree");
             Equal(Children(tree.Nodes[0]), "request: true");
             Check(ReferenceEquals(request.headers, headers) && ReferenceEquals(request.body, body), "Request assignment state");
+            headers["Content-Type"] = "application/bson";
+            body = Bson(Element(0x10, "request", Int32(123)));
+            request.Assign(headers, body, false);
+            Equal(Children(tree.Nodes[0]), "request: Int32(123)");
+            Check(ReferenceEquals(request.body, body), "BSON request preserves captured bytes");
             request.Clear();
             Check(request.headers == null && request.body == null && tree.Nodes.Count == 0, "Request clear");
         }
