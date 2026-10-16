@@ -71,7 +71,7 @@ namespace Extensions
         {
             if (!HasHeaderNodeSelected()) return;
             var n = tvNVP.SelectedNode;
-            n.BackColor = (n.BackColor == Color.Yellow) ? n.BackColor = tvNVP.BackColor : Color.Yellow;
+            n.BackColor = (n.BackColor == CONFIG.colorHighlight) ? n.BackColor = tvNVP.BackColor : CONFIG.colorHighlight;
             tvNVP.SelectedNode = tvNVP.SelectedNode.Parent ?? tvNVP.Nodes[0];
         }
 

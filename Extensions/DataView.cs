@@ -66,6 +66,20 @@ namespace Extensions
                 SelectMatch(e.Shift ? -1 : 1);
                 e.SuppressKeyPress = true;
             };
+            tree.KeyDown += (sender, e) =>
+            {
+                if (e.KeyCode == Keys.F3)
+                {
+                    SelectMatch(e.Shift ? -1 : 1);
+                    e.SuppressKeyPress = true;
+                }
+                if (e.KeyData == Keys.Space)
+                {
+                    var n = tree.SelectedNode;
+                    n.BackColor = (n.BackColor == CONFIG.colorHighlight) ? n.BackColor = tree.BackColor : CONFIG.colorHighlight;
+                    e.SuppressKeyPress = true;
+                }
+            };
             SetFontSize(CONFIG.flFontSize);
             Clear();
         }

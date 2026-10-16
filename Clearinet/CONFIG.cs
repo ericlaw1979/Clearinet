@@ -46,6 +46,7 @@ namespace Clearinet
         /// Color for disabled editors app UI.
         /// </summary>
         public static Color colorDisabledEdit = COLOR_DEFAULT_DISABLEDEDIT;
+        public static Color colorHighlight = Color.Yellow;
 
         internal static PreferenceBag pbPrefs
         {

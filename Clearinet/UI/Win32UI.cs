@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -250,7 +249,7 @@ namespace Clearinet
                 while (ixLastFound > -1)
                 {
                     ixLastFound++;
-                    SelectionBackColor = Color.Yellow;  // TODO: Control via Preferences
+                    SelectionBackColor = CONFIG.colorHighlight;
 
                     if (ixLastFound >= TextLength) break;
 
