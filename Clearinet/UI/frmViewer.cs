@@ -79,7 +79,7 @@ namespace Clearinet
             frmFind.BeginFinding();
         }
 
-        public void actSelectExchangesMatchingCriteria(int iMatchAtMost, Func<Exchange, bool?> oCriteriaChecker)
+        public void actSelectExchangesMatchingCriteria(Func<Exchange, bool?> oCriteriaChecker, int iMatchAtMost = Int32.MaxValue)
         {
             CApp.PauseReporting = true;
             lvExchanges.BeginUpdate();
@@ -1695,21 +1695,21 @@ namespace Clearinet
 
         private void tsmiRemoveImages_Click(object sender, EventArgs e)
         {
-            actSelectExchangesMatchingCriteria(int.MaxValue, (exch) => exch.ResponseHeaders?.ExistsAndContains("Content-Type", "image/"));
+            actSelectExchangesMatchingCriteria((exch) => exch.MediaType.OICStartsWith("image/"));
             lvExchanges.RemoveSelected();
             CApp.Log.Log("Removed Exchanges with image responses.");
         }
 
         private void tsmiNon200Response_Click(object sender, EventArgs e)
         {
-            actSelectExchangesMatchingCriteria(int.MaxValue, (exch) => exch.ResponseHeaders?.StatusCode != 200);
+            actSelectExchangesMatchingCriteria((exch) => exch.responseCode != 200);
             lvExchanges.RemoveSelected();
             CApp.Log.Log("Removed Exchanges with non-HTTP/200 responses.");
         }
 
         private void tsmiRemoveConnects_Click(object sender, EventArgs e)
         {
-            actSelectExchangesMatchingCriteria(int.MaxValue, (exch) => exch.RequestHeaders?.HTTPMethod.OICEquals("CONNECT"));
+            actSelectExchangesMatchingCriteria((exch) => exch.RequestHeaders?.HTTPMethod.OICEquals("CONNECT"));
             lvExchanges.RemoveSelected();
             CApp.Log.Log("Removed Exchanges with HTTP CONNECT requests.");
         }

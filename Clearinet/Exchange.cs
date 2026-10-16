@@ -164,7 +164,7 @@ namespace Clearinet
             }
         }
 
-        public string ResponseMIMEType
+        public string MediaType
         {
             get
             {
@@ -174,8 +174,17 @@ namespace Clearinet
             set
             {
                 if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
-                ResponseHeaders["Content-Type"] = value.TrimAfter(';').Trim(); ;
+                ResponseHeaders["Content-Type"] = value.TrimAfter(';').Trim();
             }
+        }
+
+        public bool MediaTypeIs(params string[] sTestFor)
+        {
+            foreach (string s in sTestFor)
+            {
+                if (MediaType.OICEquals(s)) return true;
+            }
+            return false;
         }
 
         public string hostname

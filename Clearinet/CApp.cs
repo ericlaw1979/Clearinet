@@ -256,7 +256,7 @@ namespace Clearinet
                     return true;
                 }
                 string sMIME = arrParams[1];
-                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) => xc.ResponseMIMEType.OICContains(sMIME));
+                UI.actSelectExchangesMatchingCriteria((xc) => xc.MediaTypeIs(sMIME));
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
                 return true;
             }
@@ -264,7 +264,7 @@ namespace Clearinet
             if (sCommand.StartsWith("?")) // TODO: "Find as you type"
             {
                 var sFind = sCommand.Substring(1).Trim();
-                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
+                UI.actSelectExchangesMatchingCriteria((xc) =>
                     xc.fullUrl.OICContains(sFind));
 
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
@@ -275,13 +275,12 @@ namespace Clearinet
             {
                 if (Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal))
                 {
-                    UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) => (xc.responseCode == iVal));
+                    UI.actSelectExchangesMatchingCriteria((xc) => (xc.responseCode == iVal));
                 }
                 else
                 {
                     var sMethod = sCommand.Substring(1).Trim();
-                    UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
-                        xc.RequestMethod.OICEquals(sMethod));
+                    UI.actSelectExchangesMatchingCriteria((xc) => xc.RequestMethod.OICEquals(sMethod));
                 }
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
                 return true;
@@ -290,7 +289,7 @@ namespace Clearinet
             if (sCommand.StartsWith(">"))
             {
                 Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
-                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
+                UI.actSelectExchangesMatchingCriteria((xc) =>
                 { return xc.ResponseBody?.Length > iVal; });
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
                 return true;
@@ -299,16 +298,14 @@ namespace Clearinet
             if (sCommand.StartsWith("<"))
             {
                 Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
-                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
-                { return xc.ResponseBody?.Length < iVal; });
+                UI.actSelectExchangesMatchingCriteria((xc) => { return xc.ResponseBody?.Length < iVal; });
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
                 return true;
             }
             if (sCommand.StartsWith("@"))
             {
                 string sHost = sCommand.Substring(1).Trim();
-                UI.actSelectExchangesMatchingCriteria(Int32.MaxValue, (xc) =>
-                { return xc.hostname.OICEquals(sHost); });
+                UI.actSelectExchangesMatchingCriteria((xc) => { return xc.hostname.OICEquals(sHost); });
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
                 return true;
             }

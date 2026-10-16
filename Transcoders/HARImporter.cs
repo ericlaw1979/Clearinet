@@ -190,7 +190,7 @@ namespace TestExtensions
         private static bool ContentTypeIs(string sContentType, string sMediaType)
         {
             if (!sContentType.HasText()) return false;
-            return sMediaType.OICEquals(sContentType.TrimAfter(';'));
+            return sMediaType.OICEquals(sContentType.TrimAfter(';').Trim());
         }
 
         private static void ReadHeaders(object value, HTTPHeaders headers)

@@ -15,11 +15,19 @@ namespace Extensions
         public override string TabTitle => "Transformer";
         public override int GetOrder() => 200;
         public override InspectorFlags GetFlags() => InspectorFlags.AlwaysCommitUpdates;
-
         public override void AddToTab(TabPage tab)
         {
             view = new TransformerView(this) { Dock = DockStyle.Fill };
             tab.Controls.Add(view);
+        }
+
+        public override int ScoreForExchange(Exchange oX)
+        {
+            if (!oX.ResponseBody.HasData()) return 0;
+            // If there's a body and it's encoded, we're more relevant than the Header inspector,
+            // but many Inspectors can now deal with decoding responses, so let's not get too aggressive. 
+            if (oX.ResponseHeaders.ExistsAny("Content-Encoding", "Transfer-Encoding")) return 21;
+            return 0;
         }
 
         public override void AssignExchange(Exchange oX)
@@ -91,7 +99,6 @@ namespace Extensions
         }
 
         public override void SetFontSize(float flSizeInPoints) => view?.SetFontSize(flSizeInPoints);
-
         public override void Clear()
         {
             exchange = null;

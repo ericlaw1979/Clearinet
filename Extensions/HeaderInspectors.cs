@@ -86,7 +86,8 @@ namespace Extensions
             // If there's no response body, we're pretty relevant:
             if (!oX.ResponseBody.HasData()) return 60;
 
-            return ScoreForContentType(oX.ResponseHeaders?["Content-Type"]);
+            // Return a low score above zero, so unknown types are more likely to end up on us.
+            return 5;
         }
 
         public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)

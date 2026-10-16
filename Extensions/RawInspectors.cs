@@ -44,8 +44,7 @@ namespace Extensions
         Encoding encBody;
 
         public override string TabTitle => "Raw";
-        public override int ScoreForContentType(string sMIME) => (sMIME.OICStartsWith("text/") ? 60 : -1);
-
+        public override int ScoreForContentType(string sMIME) => (sMIME.OICStartsWith("text/") ? 50 : -1);
 
         public override void AddToTab(TabPage tab)
         {

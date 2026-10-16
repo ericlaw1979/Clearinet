@@ -167,17 +167,15 @@ namespace Clearinet
             if (this is RequestInspectorBase)
             {
                 if (!oX.RequestBody.HasData()) return 0;
-                contentType = oX.RequestHeaders["Content-Type"];
+                contentType = oX.RequestHeaders["Content-Type"].TrimAfter(';');
             }
             else
             {
                 Debug.Assert(this is ResponseInspectorBase);
                 if (!oX.ResponseBody.HasData()) return 0;
-                contentType = oX.ResponseHeaders["Content-Type"];
+                contentType = oX.MediaType;
             }
 
-            // Trim any MIME type parameters (e.g. "; charset=utf-8")
-            contentType = contentType.TrimAfter(';');
             return ScoreForContentType(contentType);
         }
 
