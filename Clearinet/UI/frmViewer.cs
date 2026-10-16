@@ -403,6 +403,9 @@ namespace Clearinet
             rtbLog.Font = new Font("Consolas", CONFIG.flFontSize);
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
+
+
+            CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
             ImportAnyStartupArchives();
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
