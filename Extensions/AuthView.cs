@@ -28,15 +28,30 @@ namespace Extensions
             SetFontSize(CONFIG.flFontSize);
         }
 
-        internal void Assign(IEnumerable<HTTPHeaderItem> headers, string headerName)
+        internal void Assign(IEnumerable<HTTPHeaderItem> headers, string sServerHeaderName, string sProxyHeaderName)
         {
             var output = new StringBuilder();
+            bool bServerHeaderFound = false;
+            bool bProxyHeaderFound = false;
+
             if (headers != null)
             {
                 foreach (HTTPHeaderItem header in headers)
                 {
-                    if (!header.Name.OICEquals(headerName)) continue;
+                    if (!header.Name.OICEquals(sServerHeaderName)) continue;
                     output.AppendLine(header.ToString());
+                    bServerHeaderFound = true;
+                    foreach (string challenge in SplitChallenges(header.Value ?? string.Empty))
+                    {
+                        AppendChallenge(output, challenge);
+                    }
+                    output.AppendLine();
+                }
+                foreach (HTTPHeaderItem header in headers)
+                {
+                    if (!header.Name.OICEquals(sProxyHeaderName)) continue;
+                    output.AppendLine(header.ToString());
+                    bProxyHeaderFound = true;
                     foreach (string challenge in SplitChallenges(header.Value ?? string.Empty))
                     {
                         AppendChallenge(output, challenge);
@@ -44,7 +59,11 @@ namespace Extensions
                     output.AppendLine();
                 }
             }
-            txtAuth.Text = output.Length == 0 ? $"No {headerName} header." : output.ToString();
+            if (!bServerHeaderFound && !bProxyHeaderFound)
+            {
+                output.AppendLine($"No '{sServerHeaderName}' or '{sProxyHeaderName}' headers found.");
+            }
+            txtAuth.Text = output.ToString();
             txtAuth.SelectionStart = 0;
             txtAuth.SelectionLength = 0;
         }

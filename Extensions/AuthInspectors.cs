@@ -21,8 +21,8 @@ namespace Extensions
         public override void Assign(HTTPRequestHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
             headers = hrh;
-            body = arrBody;
-            authViewer.Assign(hrh, "Authorization");
+            // We should never need a body. body = arrBody;
+            authViewer.Assign(hrh, "Authorization", "Proxy-Authorization");
         }
 
         public override void Clear()
@@ -52,8 +52,8 @@ namespace Extensions
         public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
             headers = hrh;
-            body = arrBody;
-            authViewer.Assign(hrh, "WWW-Authenticate");
+            // We should never need the body. body = arrBody;
+            authViewer.Assign(hrh, "WWW-Authenticate", "Proxy-Authenticate");
         }
 
         public override void Clear()
