@@ -28,10 +28,16 @@ namespace TestExtensions
                 filename = Utilities.ObtainOpenFilename("Import Packet Capture", "Packet captures (*.pcap, *.pcapng, *.cap)|*.pcap;*.pcapng;*.cap");
                 if (String.IsNullOrEmpty(filename)) return null;
             }
+
+            // Throttle status updates to once per percent.
+            int lastPct = -1;
+
             try
             {
-                Func<int, string, bool> progress = delegate(int percent, string status)
+                Func<int, string, bool> progress = delegate (int percent, string status)
                 {
+                    if (percent == lastPct) return true;
+                    lastPct = percent;
                     ProgressEventArgs args = new ProgressEventArgs(percent / 100f, status);
                     if (evtProgress != null) evtProgress(this, args);
                     return !args.CancellationRequested;
@@ -83,7 +89,9 @@ namespace TestExtensions
             // BuildFromData synthesizes a 200 if passed null: missing captures must instead remain visibly unsuccessful.
             HTTPResponseHeaders response = item.ResponseHeaders == null ? new HTTPResponseHeaders
             {
-                HTTPVersion = request.HTTPVersion, StatusCode = 0, StatusText = "Response not captured"
+                HTTPVersion = request.HTTPVersion,
+                StatusCode = 0,
+                StatusText = "Response not captured"
             } : HTTPParser.ParseResponse(item.ResponseHeaders);
             ExchangeFlags flags = ExchangeFlags.ImportedFromOtherTool;
             if (request.UriScheme == "https") flags |= ExchangeFlags.IsHTTPS;

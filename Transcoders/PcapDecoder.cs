@@ -132,6 +132,7 @@ namespace TestExtensions
 
         private void CheckWork()
         {
+            // TODO: This doesn't look right.
             if ((++work & 1023) == 0) Progress(80, "Processing captured TCP/HTTP bytes.");
         }
 
@@ -277,7 +278,7 @@ namespace TestExtensions
         private TcpStream Assemble(Direction direction)
         {
             TcpStream stream = new TcpStream();
-            direction.Segments.Sort(delegate(Segment a, Segment b)
+            direction.Segments.Sort(delegate (Segment a, Segment b)
             {
                 int compare = a.Start.CompareTo(b.Start);
                 return compare == 0 ? a.Order.CompareTo(b.Order) : compare;
@@ -359,11 +360,18 @@ namespace TestExtensions
                 if (exchanges.Count >= MaxExchanges) throw new InvalidDataException("HTTP exchange resource limit exceeded");
                 PcapExchange exchange = new PcapExchange
                 {
-                    RequestHeaders = request.Headers, ResponseHeaders = response == null ? null : response.Headers,
-                    Method = request.Method, Target = request.Target,
-                    RequestBody = request.Body, ResponseBody = response == null ? new byte[0] : response.Body,
-                    RequestIncomplete = !request.Complete, ResponseIncomplete = response == null || !response.Complete,
-                    ClientIP = client.Address, ClientPort = client.Port, ServerIP = server.Address, ServerPort = server.Port,
+                    RequestHeaders = request.Headers,
+                    ResponseHeaders = response == null ? null : response.Headers,
+                    Method = request.Method,
+                    Target = request.Target,
+                    RequestBody = request.Body,
+                    ResponseBody = response == null ? new byte[0] : response.Body,
+                    RequestIncomplete = !request.Complete,
+                    ResponseIncomplete = response == null || !response.Complete,
+                    ClientIP = client.Address,
+                    ClientPort = client.Port,
+                    ServerIP = server.Address,
+                    ServerPort = server.Port,
                     RequestStart = requests.Time(request.Start, request.BodyStart, true),
                     RequestHeadersTime = requests.Time(request.Start, request.BodyStart, false),
                     RequestEnd = requests.Time(request.Start, request.End, false),

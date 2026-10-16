@@ -700,10 +700,17 @@ namespace Clearinet
                     { "Filename", sFilename }
                 };
 
-                var exchImported = oExporter.ExportExchanges(tt.FormatName, arrExchanges, dictOptions,
-                                (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); });
+                using (var lro = new LongRunningOperation($"Exporting {tt.FormatName}...", true))
+                {
+                    var exchImported = oExporter.ExportExchanges(tt.FormatName, arrExchanges, dictOptions,
+                                (s, pcea) =>
+                                {
+                                    if (pcea.CompletionPercentage > 0) lro.UpdateProgress(pcea.CompletionPercentage);
+                                    CApp.Log.Log($"Exporting {tt.FormatName}: {pcea.CurrentStatus} {pcea.CompletionPercentage}%");
+                                });
 
-                CApp.UI.SetStatusText($"Exported {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 32)} using the '{tt.FormatName}' exporter.");
+                    CApp.UI.SetStatusText($"Exported {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 32)} using the '{tt.FormatName}' exporter.");
+                }
             }
         }
 
@@ -728,14 +735,24 @@ namespace Clearinet
                 { "Filename", sPath }
             };
 
-            var exchImported = oImporter.ImportExchanges(tt.FormatName, dictOptions,
-                            (s, pcea) => { CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus}"); Application.DoEvents(); });
-
-            foreach (Exchange x in exchImported)
+            using (var lro = new LongRunningOperation($"Importing {tt.FormatName}...", true))
             {
-                addExchangeToListView(x);
+                var exchImported = oImporter.ImportExchanges(tt.FormatName, dictOptions,
+                            (s, pcea) =>
+                            {
+                                if (pcea.CompletionPercentage > 0) lro.UpdateProgress(pcea.CompletionPercentage);
+                                CApp.Log.Log($"Importing {tt.FormatName}: {pcea.CurrentStatus} {pcea.CompletionPercentage}%");
+
+                                Application.DoEvents();
+                            });
+
+                foreach (Exchange x in exchImported)
+                {
+                    addExchangeToListView(x);
+                }
+
+                CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
             }
-            CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
         }
 
         /// <summary>
@@ -1779,7 +1796,8 @@ namespace Clearinet
             if (sStatusText.HasText()) StatusText = sStatusText;
             if (iPercent >= 100)
             {
-                Dispose();
+                iPercent = 100;
+                //Dispose();
                 return;
             }
             if (null != ProgressUI)
@@ -1795,6 +1813,8 @@ namespace Clearinet
                 CApp.UI.Invoke((Action)(() => { UpdateUIForProgress(iPercent); }));
                 return;
             }
+            if (null == ProgressUI) return;
+
             ProgressUI.Style = ProgressBarStyle.Blocks;
             ProgressUI.Value = iPercent;
             ProgressUI.ToolTipText = $"{OperationName}: {StatusText} ({iPercent:N0}%)";
@@ -1808,8 +1828,9 @@ namespace Clearinet
                 CApp.UI.Invoke((Action)(() => { Dispose(); }));
                 return;
             }
+            CApp.Log.Log($"Long-running operation '{OperationName}' completed.");
             CApp.UI.tsToolbar.Items.Remove(ProgressUI);
-            ProgressUI.Dispose();
+            ProgressUI.Dispose(); ProgressUI = null;
             if (PreventSleepOrExit)
             {
                 PlatformAPI.RestoreSleep();

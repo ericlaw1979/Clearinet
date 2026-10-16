@@ -44,27 +44,28 @@ namespace TestExtensions
                 {
                     if (!NotifyProgress(evtProgress, 0, $"Reading HTTP Archive data from '{filename}'.")) return null;
                     content = File.ReadAllText(filename, Encoding.UTF8);
-                    if (!NotifyProgress(evtProgress, 1, "HTTP Archive file read completed.")) return null;
+                    if (!NotifyProgress(evtProgress, 0.01f, "HTTP Archive file read completed.")) return null;
                 }
 
-                if (!NotifyProgress(evtProgress, 2, "Parsing HAR JSON...")) return null;
+                if (!NotifyProgress(evtProgress, .02f, "Parsing HAR JSON...")) return null;
                 object parsed = JSON.JsonDecode(content.TrimStart('\uFEFF'), out JSON.JSONParseErrors errors);
                 if (errors.iErrorIndex >= 0)
                     throw new InvalidDataException($"Invalid HAR JSON at character {errors.iErrorIndex}.");
 
-                if (!NotifyProgress(evtProgress, 5, $"JSON parsing completed.")) return null;
+                if (!NotifyProgress(evtProgress, .05f, $"JSON parsing completed.")) return null;
                 Hashtable root = RequireObject(parsed, "HAR");
                 Hashtable log = RequireObject(root["log"], "log");
                 ArrayList entries = RequireArray(log["entries"], "log.entries");
                 List<Exchange> exchanges = new List<Exchange>(entries.Count);
                 for (int i = 0; i < entries.Count; i++)
                 {
-                    if (!NotifyProgress(evtProgress, (float)i / entries.Count,
-                        $"Importing HAR entry {i + 1} of {entries.Count}.")) return null;
+                    var flCompletion = .05f + (float)i / (float)entries.Count * .95f;
                     exchanges.Add(ReadEntry(RequireObject(entries[i], $"entry {i + 1}")));
+                    if (!NotifyProgress(evtProgress, flCompletion,
+                        $"Imported HAR entry {i + 1} of {entries.Count}.")) return null;
                 }
 
-                if (!NotifyProgress(evtProgress, 100, $"Imported {exchanges.Count} HAR entries.")) return null;
+                if (!NotifyProgress(evtProgress, 1f, $"Imported {exchanges.Count} HAR entries.")) return null;
                 return exchanges.ToArray();
             }
             catch (IOException eX)

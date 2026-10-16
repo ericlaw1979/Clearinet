@@ -39,8 +39,6 @@ namespace TestExtensions
                 HashSet<string> pageRefs = new HashSet<string>(StringComparer.Ordinal);
                 for (int i = 0; i < arrExchanges.Length; i++)
                 {
-                    if (!NotifyProgress(evtProgress, (float)i / arrExchanges.Length,
-                        $"Exporting HAR entry {i + 1} of {arrExchanges.Length}.")) return false;
                     Exchange exchange = arrExchanges[i] ??
                         throw new InvalidDataException($"Exchange {i + 1} is null.");
                     Hashtable entry = WriteEntry(exchange);
@@ -55,6 +53,9 @@ namespace TestExtensions
                             ["pageTimings"] = new Hashtable { ["onContentLoad"] = -1, ["onLoad"] = -1 }
                         });
                     }
+
+                    if (!NotifyProgress(evtProgress, .8f * ((float)i / (float)arrExchanges.Length),
+                        $"Exporting HAR entry {i + 1} of {arrExchanges.Length}.")) return false;
                 }
 
                 Hashtable archive = new Hashtable
@@ -73,8 +74,9 @@ namespace TestExtensions
                 };
                 string json = JSON.JsonEncode(archive) ??
                     throw new InvalidDataException("Unable to serialize HTTP Archive.");
-                if (!NotifyProgress(evtProgress, 1, "Writing HTTP Archive.")) return false;
                 File.WriteAllText(filename, json, new UTF8Encoding(false));
+                if (!NotifyProgress(evtProgress, 1, "Wrote HTTP Archive.")) return false;
+
                 return true;
             }
             catch (IOException eX)

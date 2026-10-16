@@ -64,7 +64,10 @@ namespace Clearinet
                 }
 
                 COPYDATASTRUCT data = Marshal.PtrToStructure<COPYDATASTRUCT>(m.LParam);
+
+                // "Magic" token value, chosen by random dice roll ;)
                 if (data.dwData != new UIntPtr(61178)) return;
+
                 if (data.cbData == 0 || data.cbData > int.MaxValue || data.lpData == IntPtr.Zero)
                 {
                     CApp.Log.Log("Rejected WM_COPYDATA command: invalid payload length or pointer.");

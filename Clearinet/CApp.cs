@@ -447,7 +447,7 @@ namespace Clearinet
                 return;
             }
 
-            Debug.Assert(false, eX.Message);
+            Debug.Assert(false, "Assert'ed to enter debugger");
             string sMessage = (sCallerMessage.HasText()) ? sCallerMessage :
             "Clearinet encountered a problem. If you think this is a bug, please copy this message by hitting CTRL+C, and submit a report using the Help menu.";
 

@@ -2,6 +2,7 @@
 // simple porting from extensions based on the legacy Fiddler API.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Clearinet
 {
@@ -164,12 +165,19 @@ namespace Clearinet
         /// <param name="sProgressText">Short explanation of current activity</param>
         public ProgressEventArgs(float flCompletion, string sCurrentStatus)
         {
+            if (flCompletion < 0) { Debug.Assert(false, "Completion cannot be below 0"); flCompletion = 0; }
+            if (flCompletion > 1) { Debug.Assert(false, "Completion cannot exceed 1"); flCompletion = 1; }
             _CompletionPercentage = (int)Math.Truncate(100 * Math.Max(0, Math.Min(flCompletion, 1)));
             CurrentStatus = sCurrentStatus ?? string.Empty;
         }
 
         public string CurrentStatus { get; internal set; }
 
+        /// <summary>
+        /// The integer percent complete.
+        /// ISSUE: Callers are commonly confused that they put in a float between 0 and 1 and get
+        /// back an integer between 0 and 100.
+        /// </summary>
         public int CompletionPercentage
         {
             get
