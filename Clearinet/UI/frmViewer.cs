@@ -389,20 +389,39 @@ namespace Clearinet
             if (miViewStayOnTop.Checked) TopMost = true;
 
             miViewAutoScroll.Checked = CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true);
+
+            splitRequestResponse.SplitPosition =
+                CApp.Prefs.GetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
+            splitterMain.SplitPosition = CApp.Prefs.GetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
+
+            CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
+
+            if (CApp.Prefs.GetBoolPref("app.ui.darkmode", false)) ThemeManager.ApplyDarkMode(this);
+
         }
+
 
         private void frmViewer_Load(object sender, EventArgs e)
         {
-            CONFIG.RetrieveLayout(this);
+            try
+            {
+                CONFIG.RetrieveLayout(this);
+                SuspendLayout();
+                InitializeUIFromPrefs();
+
+                // one-offs
+                rtbLog.Font = new Font("Consolas", CONFIG.flFontSize);
+            }
+            finally
+            {
+                ResumeLayout();
+            }
+
 
             // TODO: Add event handlers for allow back/forward mouse buttons to change between active tabs
             // TODO: Grab system network config
             // TODO: Start the core Proxy listener
 
-            InitializeUIFromPrefs();
-            CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
-
-            if (CApp.Prefs.GetBoolPref("app.ui.darkmode", false)) ThemeManager.ApplyDarkMode(this);
 
             rtbStatistics.BackColor = rtbLog.BackColor = CONFIG.colorDisabledEdit;
             CApp.ProxyAttach += HandleProxyAttached;
@@ -421,7 +440,6 @@ namespace Clearinet
             this.lvExchanges.DragDrop += lvExchanges_DragDrop;
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
-            rtbLog.Font = new Font("Consolas", CONFIG.flFontSize);
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
 
@@ -858,6 +876,11 @@ namespace Clearinet
         {
             if (!CApp.OnBeforeShutdown()) { e.Cancel = true; return; }
             timerReportUpdater.Stop();
+            // Freeze anything else we can.
+
+            CApp.Prefs.SetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
+            CApp.Prefs.SetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
+
             CApp.OnAppShutdown();
         }
 
