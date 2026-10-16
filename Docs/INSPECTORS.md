@@ -21,6 +21,24 @@ more responsive, but doing so will cause problems for the user who is intentiona
 this situation will probably be decided for you at the app level; we'll only call Assign() on you when we want you to inspect the
 Exchange as quickly as possible.
 
+## Data request and response inspectors
+
+The read-only Data tab displays XML and JSON bodies in a tree, including XML attributes and text, JSON properties,
+array indices, and primitive values. Both inspectors score 75 for `application/json`, `application/xml`, and media types
+ending in `+xml`, except `image/svg+xml`. Content-Type matching is case-insensitive and accepts charset parameters.
+Other content types can be inspected manually; without a recognized type, the body is detected as XML or JSON.
+HTTP content and transfer encodings are decoded before parsing. HTTP charsets and byte-order marks are honored;
+XML without an HTTP charset also honors its encoding declaration. Parsing uses only .NET Framework readers.
+XML DTDs and external entity resolution are disabled. Invalid documents display a parse error instead of stale data.
+
+Type in the Find box at the bottom to select and scroll to the first matching node, including collapsed descendants.
+Matching is case-insensitive. Enter or Next advances to the next match; Shift+Enter goes to the previous match,
+wrapping at either end. Ctrl+F focuses the search box. The match count (or No matches) appears beside it.
+The footer's Expand All and Collapse All buttons expand or collapse every node in the document tree.
+
+Run the Data inspector regressions with Windows PowerShell after building the Extensions project:
+`powershell.exe -NoProfile -STA -File .\Test\DataInspector.Tests.ps1`.
+
 ## WebView response inspector
 
 The WebView tab uses the system Microsoft Edge WebView2 Evergreen Runtime, initialized only when a supported response is viewed.

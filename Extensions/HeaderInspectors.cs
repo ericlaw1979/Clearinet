@@ -31,6 +31,15 @@ namespace Extensions
             return 5;
         }
 
+        public override int ScoreForExchange(Exchange oX)
+        {
+            // If there's no request body, we're pretty relevant:
+            if (!oX.ResponseBody.HasData()) return 50;
+
+            // Return a low score above zero, so unknown types are more likely to end up on us.
+            return 5;
+        }
+
         public override void Assign(HTTPRequestHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
             try
