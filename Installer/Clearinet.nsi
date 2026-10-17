@@ -165,9 +165,12 @@ SetOverwrite on
 
 File "..\Clearinet\bin\Release\Clearinet.exe"
 File "..\Clearinet\bin\Release\Clearinet.exe.config"
+
+; Building Clearinet copies the SampleRules file from the original in \Content\Bundled\ to the Release folder.
+File "..\Clearinet\bin\Release\SampleRulesAlpha.js"    
+
 File "..\Docs\Credits.txt"
 File "..\Content\SAZFile.ico"
-File "..\Content\SampleRulesAlpha.js"
 
 ; Install any 3P dependencies
 File "..\Clearinet\bin\Release\Ionic.Zip.Reduced.dll"
