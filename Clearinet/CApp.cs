@@ -262,6 +262,19 @@ namespace Clearinet
                 return true;
             }
 
+            if (sCmd == "tail")
+            {
+                if ((arrParams.Length < 2) || !Int32.TryParse(arrParams[1], out int iVal))
+                {
+                    CApp.DoNotifyUser(CApp.UI, "Usage: tail <#ExchangesToKeep>", "Invalid Parameters", MessageBoxIcon.Error);
+                    return true;
+                }
+
+                CApp.UI.lvExchanges.Tail(iVal);
+                CApp.UI.SetStatusText($"Kept only the most recent {iVal} exchanges");
+                return true;
+            }
+
             if (sCommand.StartsWith("?")) // TODO: "Find as you type"
             {
                 var sFind = sCommand.Substring(1).Trim();

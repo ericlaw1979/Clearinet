@@ -31,7 +31,11 @@ namespace Clearinet
 
         public ExchangeListView()
         {
-            sorter = new LVCSorter();
+            sorter = new LVCSorter()
+            {
+                SortType = ColumnSortType.Numeric,
+                Order = SortOrder.Ascending,
+            };
             this.ListViewItemSorter = sorter;
             this.ItemDrag += ExchangeListView_ItemDrag;
         }
@@ -287,13 +291,41 @@ namespace Clearinet
             EndUpdate();
         }
 
+        internal void Tail(int iToKeep)
+        {
+            if (iToKeep >= Items.Count) return;
+            if (iToKeep < 1)
+            {
+                ClearExchanges();
+                return;
+            }
+
+            // TODO: For perf, we need to ensure we're not firing events during this process.
+            BeginUpdate();
+
+            // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the
+            // list of SelectedIndicies and delete all but them downward.
+
+            SelectedItems.Clear();
+            int iX = Items.Count - 1; // Start at the end.
+            while (iX >= 0 && (iToKeep > 0))
+            {
+                Items[iX].Selected = true;
+                --iToKeep;
+                --iX;
+            }
+
+            RemoveUnselected();
+            SelectedItems.Clear();
+            EndUpdate();
+        }
+
         internal void RemoveUnselected()
         {
             int cSelected = SelectedCount;
             int cToDelete = Items.Count - cSelected;
             if (cToDelete == 0) return; // nothing to do.
 
-            // TODO: Cache items using a "Weak" store to enable undelete
             if (0 == cSelected)
             {
                 ClearExchanges();
