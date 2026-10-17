@@ -15,9 +15,11 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.2.1")]
+[assembly: AssemblyVersion("0.0.2.2")]
 
 // Selected Release Version History
+// v0.0.2.2 -             - DelayLoad Inspectors' UI pages
+// v0.0.2.1 - Oct-16-2026 - Add Inspect-in-New-Window
 // v0.0.2.0 - Oct-15-2026 - Added Auth and WebView inspectors, QuickExec selection operators
 // v0.0.1.9 - Oct-14-2026 - Improvements all over :)
 // v0.0.1.6 - Oct-14-2026 - Various ExchangeList improvements
