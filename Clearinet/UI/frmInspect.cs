@@ -42,13 +42,20 @@ namespace Clearinet.UI
 
         private void UpdateInspectors(bool bRequest, bool bResponse)
         {
-            if (bRequest && tabsInspectRequest.SelectedIndex >= 0)
+            if (CApp.isClosing) return;
+            if (bRequest && tabsInspectRequest.SelectedIndex > -1)
             {
-                (tabsInspectRequest.TabPages[tabsInspectRequest.SelectedIndex].Tag as RequestInspectorBase)?.AssignExchange(XC);
+                var page = tabsInspectRequest.TabPages[tabsInspectRequest.SelectedIndex];
+                RequestInspectorBase ibRequest = page.Tag as RequestInspectorBase;
+                ibRequest.EnsureTabReady(page);
+                ibRequest?.AssignExchange(XC);
             }
-            if (bResponse && tabsInspectResponse.SelectedIndex >= 0)
+            if (bResponse && tabsInspectResponse.SelectedIndex > -1)
             {
-                (tabsInspectResponse.TabPages[tabsInspectResponse.SelectedIndex].Tag as ResponseInspectorBase)?.AssignExchange(XC);
+                var page = tabsInspectResponse.TabPages[tabsInspectResponse.SelectedIndex];
+                ResponseInspectorBase ibResponse = page.Tag as ResponseInspectorBase;
+                ibResponse.EnsureTabReady(page);
+                ibResponse?.AssignExchange(XC);
             }
         }
         private void tabsInspectRequest_SelectedIndexChanged(object sender, System.EventArgs e)
