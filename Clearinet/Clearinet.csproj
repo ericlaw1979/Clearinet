@@ -250,6 +250,9 @@
       <Link>Tools\dwebp.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="SampleRulesAlpha.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\FindIcon.png" />
     <None Include="Resources\PromptQuery.png" />
   </ItemGroup>

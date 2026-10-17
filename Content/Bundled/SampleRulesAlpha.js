@@ -7,11 +7,13 @@ import Clearinet;
 class Handlers {
     static var bCanClose: boolean = true;
     static var sMyInfo: String;
+    
+    // This function runs on every compile of the script.
     static function Main() {
         var today: Date = new Date();
         sMyInfo = today.toString();
-      if (!CONFIG.isViewerMode) CApp.PlaySound("C:\\Windows\\Media\\notify.wav");
-        if (!CONFIG.isViewerMode) CApp.alert(sMyInfo+"\n"+CApp.VersionString);
+      	// if (!CONFIG.isViewerMode) CApp.PlaySound("C:\\Windows\\Media\\notify.wav");
+        // if (!CONFIG.isViewerMode) CApp.alert("Hello from script!\n\n" + sMyInfo+"\n"+CApp.VersionString);
         CApp.UI.SetStatusText("Your script has compiled and loaded!");
     }
 
