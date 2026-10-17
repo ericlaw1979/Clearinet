@@ -295,6 +295,7 @@ namespace Clearinet
                 case ".zip": return "application/zip";
                 case ".saz": return "application/x-zip-compressed+SessionArchive";
                 case ".gz": return "application/gzip";
+                case ".bson": return "application/bson";
 
                 default: return "application/octet-stream";
             }

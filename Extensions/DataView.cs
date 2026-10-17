@@ -56,8 +56,10 @@ namespace Extensions
             next.Click += (sender, e) => SelectMatch(1);
             expandAll.Click += (sender, e) =>
             {
-                tree.SelectedNode?.EnsureVisible();
+                tree.BeginUpdate();
                 tree.ExpandAll();
+                tree.SelectedNode?.EnsureVisible();
+                tree.EndUpdate();
             };
             collapseAll.Click += (sender, e) => tree.CollapseAll();
             search.KeyDown += (sender, e) =>
