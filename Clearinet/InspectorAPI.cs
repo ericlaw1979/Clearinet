@@ -66,6 +66,22 @@ namespace Clearinet
     {
         internal InspectorBase() { }
 
+        // We only tell the extension to create its UI when its tab is activated.
+        private bool isTabReady = false;
+        internal void EnsureTabReady(TabPage oTarget)
+        {
+            if (isTabReady) return;
+            try
+            {
+                AddToTab(oTarget);
+                isTabReady = true;
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Adding Inspector to Tab Failed");
+            }
+        }
+
         // todo: Do we want to add these?
         // public virtual void OnLoad() { }
         // public virtual void OnBeforeUnload() { }
@@ -106,7 +122,7 @@ namespace Clearinet
             if (CApp.isTracing) Trace.WriteLine($"Unloading Inspector {this}");
         }
 
-        public abstract void AddToTab(TabPage o);
+        public abstract void AddToTab(TabPage o);  // After calling this, set isTabReady=true; 
         public abstract int GetOrder();
 
         public virtual void SetFontSize(float flSize)

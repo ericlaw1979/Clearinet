@@ -54,7 +54,6 @@ namespace Clearinet
         private Label lblInspectorInstruction;
         private readonly MRU mruRecents;
 
-
         private readonly static System.Windows.Forms.Timer timerReportUpdater = new System.Windows.Forms.Timer();
 
         private void miFileExit_Click(object sender, EventArgs e)
@@ -103,7 +102,6 @@ namespace Clearinet
             CApp.PauseReporting = false;
             actUpdateInspector(true, true);
         }
-
 
         public void actShowTextWizard(string sText)
         {
@@ -300,7 +298,7 @@ namespace Clearinet
             }
         }
 
-        // Called by both the main UI *and* in the InspectInNewWindow
+        // Called by both the main UI *and* in InspectInNewWindow
 
         internal static void doPopulateInspectorTabs(TabControl tabsRequest, TabControl tabsResponse, string Context)
         {
@@ -310,18 +308,17 @@ namespace Clearinet
                 {
                     RequestInspectorBase oRI = (RequestInspectorBase)Activator.CreateInstance(tRI);
                     if ((oRI.GetFlags().HasFlag(InspectorFlags.HideInNewWindow) &&
-                        Context == "NewWindow") ||
-                        (oRI.GetFlags().HasFlag(InspectorFlags.HideInAutoResponder) &&
-                        Context == "AutoResponder"))
+                        Context == "NewWindow"))
                     {
                         continue;
                     }
+                    // Create a Tab with the title, but don't tell the Inspector about
+                    // its tab yet. We'll only do that if the user actively selects that tab.
                     TabPage oPage = new TabPage
                     {
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
-                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
                     tabsRequest.TabPages.Add(oPage);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
@@ -339,12 +336,13 @@ namespace Clearinet
                     {
                         continue;
                     }
+                    // Create a Tab with the title, but don't tell the Inspector about
+                    // its tab yet. We'll only do that if the user actively selects that tab.
                     TabPage oPage = new TabPage
                     {
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
-                    oRI.AddToTab(oPage);  // TODO: We should change this to delay load the UI as UI components will frequently be heavy.
                     tabsResponse.TabPages.Add(oPage);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
@@ -1122,13 +1120,17 @@ namespace Clearinet
 
             if (bUpdateRequest && (tabsRequest.SelectedIndex > -1))
             {
-                RequestInspectorBase ibRequest = tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase;
+                var page = tabsRequest.TabPages[tabsRequest.SelectedIndex];
+                RequestInspectorBase ibRequest = page.Tag as RequestInspectorBase;
+                ibRequest.EnsureTabReady(page);
                 if (null != x) ibRequest.AssignExchange(x); else ibRequest.Clear();
             }
 
             if (bUpdateResponse && (tabsResponse.SelectedIndex > -1))
             {
-                ResponseInspectorBase ibResponse = tabsResponse.TabPages[tabsResponse.SelectedIndex].Tag as ResponseInspectorBase;
+                var page = tabsResponse.TabPages[tabsResponse.SelectedIndex];
+                ResponseInspectorBase ibResponse = page.Tag as ResponseInspectorBase;
+                ibResponse.EnsureTabReady(page);
                 if (null != x) ibResponse.AssignExchange(x); else ibResponse.Clear();
             }
             pageInspectors.ResumeLayout();
