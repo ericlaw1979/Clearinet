@@ -107,6 +107,7 @@
     <Compile Include="ExchangeTimers.cs" />
     <Compile Include="ExtensionAPI.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="HttpClientBridge.cs" />
     <Compile Include="InspectorAPI.cs" />
     <Compile Include="SAZFile.cs" />
     <Compile Include="UI\CheckedComboBox.cs">

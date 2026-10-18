@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -53,7 +54,9 @@ namespace Clearinet
                 XC.ResponseHeaders = new HTTPResponseHeaders(200, "NOT YET IMPLEMENTED", new[] { "Connection: close", "Content-Length: 0" });
                 XC.EnsureID();
                 XC.state = ExchangeState.Done;
-                CApp.UI.ComposerAddHACKTODO(XC);
+                // CApp.UI.ComposerAddHACKTODO(XC);
+                Task.Run(async () => await new HTTPClientBridge().SendAndReceiveRawAsync(XC));
+
 
                 // Given the HTTP Headers and body, use the HttpClient to send a request
                 // to the URL and wait for the response. 
