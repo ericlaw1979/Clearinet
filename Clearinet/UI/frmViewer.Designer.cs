@@ -161,7 +161,6 @@
             this.pageAutoResponder = new System.Windows.Forms.TabPage();
             this.label1 = new System.Windows.Forms.Label();
             this.pageComposer = new System.Windows.Forms.TabPage();
-            this.label2 = new System.Windows.Forms.Label();
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
@@ -1322,7 +1321,6 @@
             // 
             // pageComposer
             // 
-            this.pageComposer.Controls.Add(this.label2);
             this.pageComposer.Location = new System.Drawing.Point(4, 25);
             this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
             this.pageComposer.Name = "pageComposer";
@@ -1330,17 +1328,6 @@
             this.pageComposer.TabIndex = 3;
             this.pageComposer.Text = "Composer";
             this.pageComposer.UseVisualStyleBackColor = true;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Tahoma", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.Red;
-            this.label2.Location = new System.Drawing.Point(145, 228);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(389, 33);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "This tab is not yet implemented";
             // 
             // pageLog
             // 
@@ -1569,7 +1556,6 @@
         public ExchangeListView lvExchanges;
         private RichTextBoxV5 rtbStatistics;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveRequest;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveRequestFull;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveRequestBody;

@@ -1168,7 +1168,7 @@ namespace Clearinet
             if (tabsViews.SelectedTab == pageInspectors) actUpdateInspector(true, true);
             if (tabsViews.SelectedTab == pageComposer)
             {
-                if (pageComposer.Controls.Count < 2)
+                if (0 == pageComposer.Controls.Count)
                 {
                     ComposerView cv = new ComposerView();
                     pageComposer.Controls.Add(cv);

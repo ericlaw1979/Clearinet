@@ -26,6 +26,10 @@ namespace Clearinet
                 {
                     txtURL.Text = "https://" + txtURL.Text.Trim();
                 }
+
+                // TODO: Fixup header block, looking for empty lines, missing colon, etc
+                // TODO: Fixup Content-Length on request header
+
                 var (method, path, version, headerList, origin) =
                     Parser.ParseRequestHeaders(
                         $"{cbxMethod.Text} {txtURL.Text} {cbxHTTPVersion.Text}\r\n" +
