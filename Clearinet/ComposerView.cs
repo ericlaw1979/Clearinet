@@ -48,18 +48,11 @@ namespace Clearinet
                     }
                 }
                 Exchange XC = new Exchange(rqh, Encoding.UTF8.GetBytes(txtBody.Text));
-                XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet |
-                              ExchangeFlags.ResponseGeneratedByClearinet; // For now.
-                XC.ResponseBody = Array.Empty<byte>();
-                XC.ResponseHeaders = new HTTPResponseHeaders(200, "NOT YET IMPLEMENTED", new[] { "Connection: close", "Content-Length: 0" });
+                XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet;
                 XC.EnsureID();
-                XC.state = ExchangeState.Done;
-                // CApp.UI.ComposerAddHACKTODO(XC);
+                XC.state = ExchangeState.AutoTamperRequestBefore;
+                if ((Control.ModifierKeys & Keys.Shift) != 0) XC["x-breakrequest"] = "Shift+Click";
                 Task.Run(async () => await new HTTPClientBridge().SendAndReceiveRawAsync(XC));
-
-
-                // Given the HTTP Headers and body, use the HttpClient to send a request
-                // to the URL and wait for the response. 
             }
             catch (Exception ex)
             {

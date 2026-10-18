@@ -1277,7 +1277,6 @@ namespace Clearinet
                 }
             }
 
-
             switch (e.KeyCode)
             {
                 case Keys.Back:
@@ -1285,7 +1284,30 @@ namespace Clearinet
                     lvExchanges.ActivatePreviousItem();
                     break;
 
+                case Keys.R:
+                    e.SuppressKeyPress = e.Handled = true;
+                    actReplaySelected(e.Modifiers == Keys.Shift);
+                    break;
             }   // switch
+        }
+
+        private void actReplaySelected(bool bBreakOnRequest)
+        {
+            Exchange[] arrXC = lvExchanges.GetSelectedExchanges();
+            if (arrXC.Length < 1) return;
+            CApp.UI.SetStatusText($"Replaying {arrXC.Length} Exchanges...");
+            Task.Run(async () =>
+            {
+                for (var ix = 0; ix < arrXC.Length; ++ix)
+                {
+                    Exchange XC = new Exchange(arrXC[ix].RequestHeaders.Clone(), arrXC[ix].RequestBody.FastClone());
+                    XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet;
+                    XC.EnsureID();
+                    XC.state = ExchangeState.AutoTamperRequestBefore;
+                    if (bBreakOnRequest) XC["x-breakrequest"] = "Shift+R replay";
+                    await new HTTPClientBridge().SendAndReceiveRawAsync(XC);
+                }
+            });
         }
 
         private void doAddExchangeForFile(string sPath)
