@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -14,7 +15,7 @@ namespace Clearinet
             cbxMethod.SelectedIndex = 0;
 
             Win32UI.SetCueText(txtURL, "Request URL");
-            txtURL.Text = "https://debugtheweb.com/echo.aspx";
+            txtURL.Text = "https://debugtheweb.com/echo2.aspx";
             Win32UI.SetCueText(txtHeaders, "Message headers");
             Win32UI.SetCueText(txtBody, "Request body");
         }
@@ -28,13 +29,35 @@ namespace Clearinet
                     txtURL.Text = "https://" + txtURL.Text.Trim();
                 }
 
+                var bHeadersFixed = false;
+
                 // TODO: Fixup header block, looking for empty lines, missing colon, etc
-                // TODO: Fixup Content-Length on request header
+                List<String> lines = new List<string>();
+                foreach (string line in txtHeaders.Lines)
+                {
+                    if (line.Trim().Length == 0)
+                    {
+                        bHeadersFixed = true;
+                        continue;
+                    }
+                    if (!line.Contains(":"))
+                    {
+                        bHeadersFixed = true;
+                        continue;
+                    }
+                    if (line.OICStartsWithAny(" ", "\t"))
+                    {
+                        lines.Add(line.Trim());
+                        bHeadersFixed = true;
+                        continue;
+                    }
+                    lines.Add(line);
+                }
 
                 var (method, path, version, headerList, origin) =
                     Parser.ParseRequestHeaders(
                         $"{cbxMethod.Text} {txtURL.Text} {cbxHTTPVersion.Text}\r\n" +
-                        txtHeaders.Text.Trim());
+                        string.Join("\r\n", lines));
                 HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
                 rqh.HTTPVersion = version;
                 rqh.HTTPMethod = method;
@@ -44,10 +67,22 @@ namespace Clearinet
                     if (!rqh.Exists("Host"))
                     {
                         rqh["Host"] = origin.TrimBefore("://");
-                        txtHeaders.Text = rqh.ToString(false, false);
+                        bHeadersFixed = true;
                     }
                 }
-                Exchange XC = new Exchange(rqh, Encoding.UTF8.GetBytes(txtBody.Text));
+
+                byte[] arrBody = Encoding.UTF8.GetBytes(txtBody.Text);
+                if (arrBody.Length > 0)
+                {
+                    rqh["Content-Length"] = arrBody.Length.ToString();
+                    bHeadersFixed = true;
+                }
+
+                if (bHeadersFixed)
+                {
+                    txtHeaders.Text = rqh.ToString(false, false);
+                }
+                Exchange XC = new Exchange(rqh, arrBody);
                 XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet;
                 XC.EnsureID();
                 XC.state = ExchangeState.AutoTamperRequestBefore;
