@@ -93,6 +93,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyBuiltDateAttribute.cs" />
+    <Compile Include="ComposerView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ComposerView.Designer.cs">
+      <DependentUpon>ComposerView.cs</DependentUpon>
+    </Compile>
     <Compile Include="ExtensionMethods\ByteArrayExtensions.cs" />
     <Compile Include="CApp.cs" />
     <Compile Include="CONFIG.cs" />
@@ -182,6 +188,9 @@
     <Compile Include="Utilities\Utilities.cs" />
     <Compile Include="UI\Win32UI.cs" />
     <Compile Include="Utilities\JSON.cs" />
+    <EmbeddedResource Include="ComposerView.resx">
+      <DependentUpon>ComposerView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\FindPanel.resx">
       <DependentUpon>FindPanel.cs</DependentUpon>
     </EmbeddedResource>

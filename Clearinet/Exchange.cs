@@ -296,7 +296,8 @@ namespace Clearinet
 
         public string GetRequestBodyAsString()
         {
-            return string.Empty;
+            byte[] decompressed = DecodeBodyFromHeaders(RequestHeaders, RequestBody);
+            return Encoding.UTF8.GetString(decompressed); // TODO: Use the charset from the Content-Type header if present.
         }
         public string GetResponseBodyAsString()
         {

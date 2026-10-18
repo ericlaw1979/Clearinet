@@ -839,6 +839,10 @@ namespace Clearinet
             }
         }
 
+        internal void ComposerAddHACKTODO(Exchange xc)
+        {
+            addExchangeToListView(xc);
+        }
         private void addExchangeToListView(Exchange x)
         {
             ListViewItem lvi = new ListViewItem(x.id.ToString())
@@ -1162,6 +1166,15 @@ namespace Clearinet
         private void tabsViews_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (tabsViews.SelectedTab == pageInspectors) actUpdateInspector(true, true);
+            if (tabsViews.SelectedTab == pageComposer)
+            {
+                if (pageComposer.Controls.Count < 2)
+                {
+                    ComposerView cv = new ComposerView();
+                    pageComposer.Controls.Add(cv);
+                    cv.Dock = DockStyle.Fill;
+                }
+            }
         }
 
 
