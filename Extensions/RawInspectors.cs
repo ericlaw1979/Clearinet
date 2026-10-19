@@ -34,7 +34,7 @@ namespace Extensions
 
         public override void Clear()
         {
-            rtViewer.Clear();
+            rtViewer?.Clear();
         }
     }
 
@@ -69,7 +69,7 @@ namespace Extensions
         }
         public override void Clear()
         {
-            rtViewer.Clear();
+            rtViewer?.Clear();
         }
     }
 }

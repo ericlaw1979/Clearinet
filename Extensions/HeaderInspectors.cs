@@ -61,7 +61,7 @@ namespace Extensions
 
         public override void Clear()
         {
-            hvViewer.Clear();
+            hvViewer?.Clear();
         }
     }
 
@@ -125,7 +125,7 @@ namespace Extensions
 
         public override void Clear()
         {
-            hvViewer.Clear();
+            hvViewer?.Clear();
         }
     }
 

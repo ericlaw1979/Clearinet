@@ -31,7 +31,7 @@ namespace Extensions
         {
             headers = null;
             body = null;
-            hvViewer.Clear();
+            hvViewer?.Clear();
         }
     }
 
@@ -63,7 +63,7 @@ namespace Extensions
         {
             headers = null;
             body = null;
-            hvViewer.Clear();
+            hvViewer?.Clear();
         }
     }
 }
