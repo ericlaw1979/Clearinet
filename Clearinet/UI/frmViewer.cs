@@ -1395,9 +1395,35 @@ namespace Clearinet
                 {
                     case Keys.X:
                         lvExchanges.ClearExchanges();
+                        e.SuppressKeyPress = e.Handled = true;
                         break;
                     case Keys.Z:
                         lvExchanges.UndeleteItems();
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+
+                    case Keys.Oemplus:
+                    case Keys.Add:
+                        {
+                            float flSize = Math.Min((float)(CONFIG.flFontSize + 1.0), 36f);
+                            actSetFontSize(flSize);
+                            e.SuppressKeyPress = e.Handled = true;
+                            break;
+                        }
+
+                    case Keys.OemMinus:
+                    case Keys.Subtract:
+                        {
+                            float flSize = Math.Max((float)(CONFIG.flFontSize - 1.0), 6f);
+                            actSetFontSize(flSize);
+                            e.SuppressKeyPress = e.Handled = true;
+                            break;
+                        }
+
+                    case Keys.D0:
+                    case Keys.NumPad0:
+                        actSetFontSize(10f);
+                        e.SuppressKeyPress = e.Handled = true;
                         break;
                 }
             }
@@ -1419,6 +1445,13 @@ namespace Clearinet
                     miEditCopyExchange.PerformClick();
                     break;
             }   // switch
+        }
+
+        private void actSetFontSize(float v)
+        {
+            // TODO: Should this be resizing the window bounds? Probably not, but it does.
+            CONFIG.flFontSize = v;
+            this.Font = new Font(this.Font.FontFamily, CONFIG.flFontSize, this.Font.Style);
         }
 
         private void actReplaySelected(bool bBreakOnRequest)
