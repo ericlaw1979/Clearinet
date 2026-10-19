@@ -1165,7 +1165,11 @@ namespace Clearinet
 
         private void tabsViews_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabsViews.SelectedTab == pageInspectors) actUpdateInspector(true, true);
+            if (tabsViews.SelectedTab == pageInspectors)
+            {
+                actUpdateInspector(true, true);
+                return;
+            }
             if (tabsViews.SelectedTab == pageComposer)
             {
                 if (0 == pageComposer.Controls.Count)
@@ -1174,6 +1178,11 @@ namespace Clearinet
                     pageComposer.Controls.Add(cv);
                     cv.Dock = DockStyle.Fill;
                 }
+                return;
+            }
+            if (tabsViews.SelectedTab?.Tag is BindUITab bindtab)
+            {
+                bindtab.RunDelegate(lvExchanges.GetSelectedExchanges());
             }
         }
 
@@ -1288,6 +1297,11 @@ namespace Clearinet
                     e.SuppressKeyPress = e.Handled = true;
                     actReplaySelected(e.Modifiers == Keys.Shift);
                     break;
+
+                case Keys.C:
+                    e.SuppressKeyPress = e.Handled = true;
+                    miEditCopyExchange.PerformClick();
+                    break;
             }   // switch
         }
 
@@ -1305,7 +1319,7 @@ namespace Clearinet
                     XC.EnsureID();
                     XC.state = ExchangeState.AutoTamperRequestBefore;
                     if (bBreakOnRequest) XC["x-breakrequest"] = "Shift+R replay";
-                    await new HTTPClientBridge().SendAndReceiveRawAsync(XC);
+                    XC.state = ExchangeState.HandTamperRequest;
                 }
             });
         }
@@ -1729,7 +1743,16 @@ namespace Clearinet
 
         private void miEditCopyExchange_Click(object sender, EventArgs e)
         {
-            /* TODO: NYI */
+            Exchange[] xc = GetSelectedExchanges();
+            if (xc.Length < 1) return;
+
+            StringBuilder sbAllExchanges = new StringBuilder();
+            for (int i = 0; i < xc.Length; i++)
+            {
+                sbAllExchanges.AppendLine(xc[i].ToLongString());
+                if (i < xc.Length - 1) sbAllExchanges.AppendLine("---------------------");
+            }
+            Clipboard.SetText(sbAllExchanges.ToString());
         }
 
         private void miEditCopyURL_Click(object sender, EventArgs e)
@@ -1756,8 +1779,24 @@ namespace Clearinet
 
         private void miEditCopyTerseSummary_Click(object sender, EventArgs e)
         {
-            /* TODO: NYI */
+            Exchange[] xc = GetSelectedExchanges();
+            if (xc.Length < 1) return;
+            Clipboard.SetText(SummarizeExchanges(xc));
         }
+
+        private static string SummarizeExchanges(Exchange[] xc)
+        {
+            StringBuilder sbSummary = new StringBuilder();
+            for (int i = 0; i < xc.Length; i++)
+            {
+                sbSummary.AppendLine($"{xc[i].RequestHeaders?.HTTPMethod} {xc[i].fullUrl}");
+
+                sbSummary.AppendLine($"<- {xc[i].SummarizeResponse()}");
+                sbSummary.AppendLine();
+            }
+            return sbSummary.ToString();
+        }
+
         private void miRulesCustomize_Click(object sender, EventArgs e)
         {
             Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"), $"\"{CONFIG.GetPath("RulesScript")}\"");

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -31,7 +30,7 @@ namespace Clearinet
 
                 var bHeadersFixed = false;
 
-                // TODO: Fixup header block, looking for empty lines, missing colon, etc
+                // Fixup header block, looking for empty lines, missing colon, etc
                 List<String> lines = new List<string>();
                 foreach (string line in txtHeaders.Lines)
                 {
@@ -87,7 +86,7 @@ namespace Clearinet
                 XC.EnsureID();
                 XC.state = ExchangeState.AutoTamperRequestBefore;
                 if ((Control.ModifierKeys & Keys.Shift) != 0) XC["x-breakrequest"] = "Shift+Click";
-                Task.Run(async () => await new HTTPClientBridge().SendAndReceiveRawAsync(XC));
+                XC.state = ExchangeState.HandTamperRequest;
             }
             catch (Exception ex)
             {

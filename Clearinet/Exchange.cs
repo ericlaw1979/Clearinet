@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -40,6 +41,21 @@ namespace Clearinet
         }
         #endregion 'id' property
 
+        public override string ToString()
+        {
+            return $"Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]";
+        }
+
+        public string ToLongString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(RequestHeaders?.ToString(true, true));
+            if (RequestBody.HasData()) sb.AppendLine($"(Elided {RequestBody.Length:N0} bytes of body data)");
+            sb.Append(ResponseHeaders?.ToString(true, true));
+            if (ResponseBody.HasData()) sb.AppendLine($"(Elided {ResponseBody.Length:N0} bytes of body data)");
+            return sb.ToString();
+        }
+
         // Reset the Exchange counter to 0. In a perfect world, we'd never do this,
         // but users expect the counter to be at 0 when they clear the Exchange list.
         internal static void ResetSessionCounter()
@@ -67,6 +83,23 @@ namespace Clearinet
             {
                 return oFlags.TryGetValue("X-ProcessInfo", out var s) ? s : string.Empty;
             }
+        }
+
+        public string SummarizeResponse()
+        {
+            if (null == ResponseHeaders) return "(No response)";
+            if (responseCode >= 300 && responseCode < 400 && responseCode != 304)
+            {
+                return $"{responseCode} to {ResponseHeaders["Location"]}";
+            }
+            if (ResponseBody.HasData() &&
+                responseCode >= 200 && responseCode < 300 && responseCode != 304 &&
+                ResponseHeaders.Exists("Content-Type"))
+            {
+                return $"{responseCode} with {ResponseBody.Length:N0} bytes of '{this.MediaType}'";
+            }
+
+            return $"{responseCode} {ResponseHeaders.StatusText}";
         }
 
         public bool bypassGateway
@@ -213,10 +246,14 @@ namespace Clearinet
         public void PoisonServerPipe() { } // TODO: Prevent server connection reuse
         public void PoisonClientPipe() { } // TODO: Prevent client connection reuse
 
-        internal void Abort() { } // Move state to Aborted and stop processing
+        internal void Abort()
+        {
+            // TODO: Kill everything.
+            state = ExchangeState.Aborted;
+        }
 
         // LEGACY API: SyntacticSugar
-        public bool bHasResponse { get => false; } // TODO: implement
+        public bool bHasResponse { get => null != ResponseHeaders; }
 
         public ExchangeState state
         {
@@ -226,12 +263,45 @@ namespace Clearinet
                 ExchangeState statePrior = _state;
                 _state = value;
 
-                /* TODO: Full state machine goes in here!!! */
+                // TODO: Remove this. It'll be super-noisy!
+                Trace.WriteLine($"Exchange #{_id} state changed from {statePrior} to {_state}");
                 OnStateChanged?.Invoke(this, new StateChangeEventArgs(statePrior, _state));
 
-                if (_state >= ExchangeState.Done)
+                /* TODO: Full state machine goes in here!!! We need to rewrite this to ASYNC */
+                switch (_state)
                 {
-                    OnStateChanged = null;
+                    case ExchangeState.AutoTamperResponseBefore:
+                        CApp.UIInvokeAsync(() =>
+                        {
+                            CApp.UI.ComposerAddHACKTODO(this);
+                        });
+                        break;
+
+                    case ExchangeState.HandTamperRequest:
+                        // TODO: Call Autotampers
+                        if (!oFlags.ContainsKey("x-breakrequest"))
+                            ++state;
+                        break;
+
+                    case ExchangeState.AutoTamperRequestAfter:
+                        ++state;
+                        break;
+
+                    case ExchangeState.SendingRequest:
+                        Task.Run(async () =>
+                        {
+                            await new HTTPClientBridge().SendAndReceiveRawAsync(this);
+                            ++state;
+                        });
+                        break;
+                    case ExchangeState.HandTamperResponse:
+                        if (!oFlags.ContainsKey("x-breakresponse"))
+                            ++state;
+                        break;
+                    case ExchangeState.Done:
+                    case ExchangeState.Aborted:
+                        OnStateChanged = null;
+                        break;
                 }
             }
         }

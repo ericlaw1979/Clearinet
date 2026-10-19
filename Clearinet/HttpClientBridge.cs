@@ -31,7 +31,8 @@ public class HTTPClientBridge
                     request,
                     HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 {
-                    // 4. Access untouched server response headers
+                    XC.state = ExchangeState.ReadingResponse; // TODO: Should this be earlier?
+
                     HttpResponseHeaders responseHeaders = response.Headers;
                     HttpContentHeaders contentHeaders = response.Content.Headers;
 
@@ -55,10 +56,8 @@ public class HTTPClientBridge
                         // TODO: re-chunk the body with pseudo chunks.
                     }
 
-                    // 5. Stream the raw un-decoded body bytes directly
                     using (Stream rawResponseBodyStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                     {
-                        // Example: Write directly to file or memory stream without string decoding
                         using (MemoryStream ms = new MemoryStream())
                         {
                             await rawResponseBodyStream.CopyToAsync(ms).ConfigureAwait(false);
@@ -69,16 +68,13 @@ public class HTTPClientBridge
             }
             catch (Exception ex)
             {
-                XC.ResponseHeaders = new HTTPResponseHeaders(500, "Send Failed", new[] { $"X-Error: {ex.Message}" });
-                XC.ResponseBody = System.Text.Encoding.UTF8.GetBytes($"Error: {ex.Message}");
+                XC.ResponseHeaders = new HTTPResponseHeaders(500, "Send Failed", new[] { $"X-Error: {ex.Message}", "Content-Type: text/plain; charset=utf-8" });
+                XC.utilSetResponseBody($"Error: {ex.Message}\n{ex.InnerException?.Message}");
                 XC.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
             }
             finally
             {
-                CApp.UIInvokeAsync(() =>
-                {
-                    CApp.UI.ComposerAddHACKTODO(XC);
-                });
+                XC.state = ExchangeState.AutoTamperResponseBefore;
             }
         }
     }
