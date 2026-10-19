@@ -81,6 +81,13 @@ namespace Extensions
             {
                 miHighlightHeader_Click(null, null);
                 e.Handled = e.SuppressKeyPress = true;
+                return;
+            }
+            if (e.KeyCode == Keys.C && e.Modifiers == Keys.Control)
+            {
+                Clipboard.SetText(tvNVP.SelectedNode?.Text);
+                e.Handled = e.SuppressKeyPress = true;
+                return;
             }
         }
 
