@@ -7,12 +7,28 @@ using System.Windows.Forms;
 
 public static class UpdateChecker
 {
-    public static async Task CheckForUpdatesAsync(bool bAlwaysShowOutcome = false)
+    public static async Task CheckForUpdatesAsync(bool bManualCheck = false)
     {
         LongRunningOperation lro = null;
-        if (bAlwaysShowOutcome)
+        if (bManualCheck)
         {
             lro = new LongRunningOperation("Checking for updates...", false);
+        }
+        else
+        {
+            // If this is an automatic check, we can skip it if the last successful check was recent enough.
+            if (DateTimeOffset.TryParse(CApp.Prefs.GetStringPref("app.updater.last_successful", string.Empty),
+                out DateTimeOffset lastChecked))
+            {
+                TimeSpan elapsedTime = DateTimeOffset.UtcNow - lastChecked;
+
+                if (TimeSpan.FromMinutes(CApp.Prefs.GetInt32Pref("app.updater.freshness_minutes", 30)) > elapsedTime)
+                {
+                    CApp.Log.LogFormat($"Skipping update check because last successful check was {elapsedTime.TotalMinutes} minutes ago.");
+                    return;
+                }
+            }
+
         }
 
         CApp.Log.LogFormat($"Checking for new version...");
@@ -23,7 +39,7 @@ public static class UpdateChecker
         var sBigSwitchState = CApp.Prefs.GetStringPref("app.service_traffic", "allowed");
         if (!"allowed".OICEquals(sBigSwitchState))
         {
-            if (!bAlwaysShowOutcome)
+            if (!bManualCheck)
             {
                 CApp.Log.LogFormat($"Version check disallowed because `app.service_traffic` is not set to `allowed`.");
                 return;
@@ -68,6 +84,8 @@ public static class UpdateChecker
                     throw new System.IO.InvalidDataException("The response from the update server did not contain a valid version tag.");
                 }
 
+                CApp.Prefs.SetStringPref("app.updater.last_successful", DateTime.UtcNow.ToString("O"));
+
                 if (latestVersion > currentVersion)
                 {
                     string releaseUrl = urlMatch.Success ? urlMatch.Groups[1].Value : "https://github.com/ericlaw1979/clearinet/releases";
@@ -80,7 +98,7 @@ public static class UpdateChecker
                 {
                     CApp.Log.Log($"You are running the latest version of Clearinet. Current Version: {currentVersion}, Latest Version: {latestVersion}");
 
-                    if (bAlwaysShowOutcome && !CONFIG.isQuietMode)
+                    if (bManualCheck && !CONFIG.isQuietMode)
                     {
                         CApp.UIInvokeAsync(new Action(() =>
                         {
@@ -98,7 +116,7 @@ public static class UpdateChecker
         catch (Exception ex)
         {
             CApp.Log.LogFormat($"Update check failed:{ex.Message}");
-            if (bAlwaysShowOutcome)
+            if (bManualCheck)
             {
                 if (ex is TaskCanceledException)
                 {
