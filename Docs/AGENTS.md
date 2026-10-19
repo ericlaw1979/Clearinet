@@ -1,3 +1,14 @@
+Porting extensions from the legacy Fiddler extension API to the new Clearinet extension API is designed to be straightforward.
+
+### Paths
+- Replace References to `Fiddler.exe` with references to `Clearinet.exe`.
+- Extensions are loaded from the \Extensions\ subfolders of the app's folder and the user's Documents\Clearinet\ folder (Fiddler used the `Scripts` subfolder)
+- Extension DLLs' filenames must start with "CAE-" (ClearinetAppExtension) to load.
+- Transcoder DLLs' filenames must start with "CAT-" (ClearinetAppTranscoder) to load.
+
+### Namespace Mappings
+- Replace `using Fiddler;` with `using Clearinet`
+
 ### Class & Interface Mappings
 - Replace `FiddlerApplication` with `CApp`.
 - Replace `Session` with `Exchange` in almost all comments, variable names, class names, etc.
@@ -20,22 +31,13 @@
   IRequestInspector2 or IResponseInspector2 to add an accessor for the proper type of Headers. In Clearinet,
   your Inspector extension simply inherits from either RequestInspectorBase or ResponseInspectorBase. 
 
-### Paths
-- Replace `Fiddler.exe` with `Clearinet.exe`.
-- Extensions are loaded from the \Extensions\ subfolders of the app's folder and the user's Documents\Clearinet folder (Fiddler used a `Scripts` subfolder)
-- Extension DLLs filenames must start with "CAE-" (ClearinetAppExtension) to load.
-- Transcoder DLLs filenames must start with "CAT-" (ClearinetAppTranscoder) to load.
-
-### Namespace Mappings
-- Replace `using Fiddler;` with `using Clearinet`
-
 ### Preference names
-- Preference names that start with `fiddler.ui` should be changed to start with `app.ui`
+- Preference names that started with `fiddler.ui` should be changed to start with `app.ui`
 
 ### Threading implications
 Fiddler's UI would set `CheckForIllegalCrossThreadCalls=false` which would allow any thread to manipulate UI elements, potentially causing corruption. Clearinet's UI does not set this, meaning that any cross-thread call will result in an immediate exception. 
-To fix this, code should call UIInvokeAsync if Winforms UI interaction is needed.
+To fix this, code should call the UI's `UIInvokeAsync` method if Winforms UI interaction is needed.
 
 ### Other deltas vs. Fiddler Classic
 - Raw Inspector allows searching in case-sensitive manner with `exact:` prefix
-- Attempting to create a Header with an empty name will now throw an exception. Fiddler would allow this.
+- Attempting to create a Header with an empty name will now throw an exception. Fiddler would not throw an exception.
