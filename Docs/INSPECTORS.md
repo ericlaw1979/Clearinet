@@ -47,6 +47,32 @@ The footer's Expand All and Collapse All buttons expand or collapse every node i
 Run the Data inspector regressions with Windows PowerShell after building the Extensions project:
 `powershell.exe -NoProfile -STA -File .\Test\DataInspector.Tests.ps1`.
 
+## Image response inspector
+
+The Images tab shows file metadata in the scrollable textbox beside the image. JPEG, PNG/APNG, GIF, WebP, and classic TIFF
+are analyzed from the original file bytes after HTTP content/transfer decoding, before WebP conversion. It lists the file size,
+pixel dimensions, and color depth. The non-rendering metadata byte total and percentage are shown only when the total exceeds
+512 bytes. Indexed images report bits per palette index; other depths include all channels, including alpha. For other renderable
+formats, dimensions and decoded pixel depth are shown, and byte accounting is explicitly marked unsupported.
+
+Accounting includes known optional metadata and its segment/chunk/extension framing, without double-counting overlapping ranges.
+It excludes compressed pixel data, palettes, transparency, animation controls, color profiles, and Adobe JPEG color transforms.
+Exif with a non-default orientation retains its container framing and orientation entry; known optional fields and thumbnails
+within it are still counted. Orientation-bearing XMP packets are conservatively retained as a whole. TIFF accounting includes
+optional tag entries and their out-of-line values, not primary image directories or pixels. Unknown PNG ancillary chunks are
+retained conservatively rather than assumed to be removable.
+
+APNG and GIF frame counts and progressive JPEG encoding are identified. Embedded Exif, JFIF/JFXX, and Photoshop thumbnails
+show byte sizes and absolute offsets (decimal and hexadecimal) within the HTTP-decoded image file. Exif GPS and XMP location
+coordinates are displayed as signed decimal `[latitude, longitude]`. JPEG COM, PNG text (including compressed/international text),
+GIF comments, Exif descriptions/user comments, XMP descriptions, and IPTC captions are previewed. The combined preview is limited
+to the first 1,024 text bytes, with `...` when truncated; compressed text is bounded during decompression. XMP parsing disables
+DTDs/external entities and is limited to 1 MB. Malformed or incomplete metadata produces an explicit notice and no misleading
+complete byte total; metadata remains available even when the image renderer cannot open the file.
+
+Run the Image inspector regressions after building the Extensions project:
+`powershell.exe -NoProfile -STA -File .\Test\ImageInspector.Tests.ps1`.
+
 ## WebView response inspector
 
 The WebView tab uses the system Microsoft Edge WebView2 Evergreen Runtime, initialized only when a supported response is viewed.

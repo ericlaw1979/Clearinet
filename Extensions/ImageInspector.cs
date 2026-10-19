@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Extensions
@@ -50,23 +51,23 @@ namespace Extensions
             if (null == headers || !arrBody.HasData()) { Debug.Assert(false); Clear(); return; }
             var sContentType = headers["Content-Type"];
             bool bHasEncoding = headers.ExistsAny("Content-Encoding", "Transfer-Encoding");
+            Clear();
             oView.txtMetadata.Text = sContentType;
-
-            bool bWasWebP = false;
+            byte[] imageBytes = null;
             try
             {
-                // If the response claims to be an image, then proactively remove encoding before
+                // If the response claims to be an image, then proactively remove any encoding before
                 // trying to render it.
-                if (bHasEncoding && sContentType.StartsWith("image/"))
+                if (bHasEncoding && sContentType.OICStartsWith("image/"))
                 {
                     arrBody = Exchange.DecodeBodyFromHeaders(headers, arrBody);
                 }
+                imageBytes = arrBody;
 
                 if (sContentType.OICStartsWith("image/webp") || arrBody.Length > 12 &&
                     arrBody[0] == 'R' && arrBody[1] == 'I' && arrBody[2] == 'F' && arrBody[3] == 'F' &&
                     arrBody[8] == 'W' && arrBody[9] == 'E' && arrBody[10] == 'B' && arrBody[11] == 'P')
                 {
-                    bWasWebP = true;
                     arrBody = Utilities.ConvertWebPToPNG(arrBody);
                 }
 
@@ -83,20 +84,25 @@ namespace Extensions
                     imageRendered = new Bitmap(new MemoryStream(arrBody));
                 }
                 oView.pbImage.Image = imageRendered;
+                oView.txtMetadata.Text = sContentType + "\r\n\r\n" + ImageMetadata.Analyze(imageBytes, imageRendered);
             }
-            catch
+            catch (Exception e) when (e is ArgumentException || e is ExternalException || e is IOException ||
+                e is InvalidOperationException || e is System.Xml.XmlException || e is OutOfMemoryException ||
+                e is System.ComponentModel.Win32Exception || e is FormatException || e is NotSupportedException)
             {
-                oView.pbImage.Image = null;
+                Clear();
                 var sEncodingWarning = bHasEncoding ? "HTTP ENCODING PRESENT.\r\n" : string.Empty;
-                oView.txtMetadata.Text = $"Not an image?\r\n\r\n{sEncodingWarning}Content-Type: {sContentType}";
+                oView.txtMetadata.Text = $"Unable to render image: {e.Message}\r\n\r\n{sEncodingWarning}Content-Type: {sContentType}";
+                if (imageBytes != null) oView.txtMetadata.AppendText("\r\n\r\n" + ImageMetadata.Analyze(imageBytes));
             }
         }
 
         public override void Clear()
         {
             oView.txtMetadata.Text = string.Empty;
-            imageRendered = null;
             oView.pbImage.Image = null;
+            imageRendered?.Dispose();
+            imageRendered = null;
             oView.pbImage.Cursor = Cursors.Default;
         }
 

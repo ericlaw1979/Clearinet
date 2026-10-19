@@ -98,6 +98,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ImageInspector.cs" />
+    <Compile Include="ImageMetadata.cs" />
     <Compile Include="ImageView.cs">
       <SubType>UserControl</SubType>
     </Compile>
