@@ -9,3 +9,6 @@ Below is a list of some preferences, their defaults, and what they control
 "app.ui.toolbar.lookupurl", "https://developer.mozilla.org/en-US/search?q=$W$" => The target of the lookup tool in the toolbar.
 "app.high_resolution_clock", true => Whether the app should tell Windows to increase timer resolution for improved accuracy in timing scenarios.
 "inspectors.headers.highlighted_names", "content-type,content-length,host" => change the color of more important headers
+
+
+You can find all of the Preferences checked by Clearinet by [Searching the code](https://github.com/search?q=repo%3Aericlaw1979%2Fclearinet+%2FGet.*Pref%5C%28%2F&type=code)
