@@ -27,7 +27,21 @@ namespace Clearinet
             if (_Instance == null)
             {
                 _Instance = new frmSplashScreen();
-                if (!CONFIG.isQuietMode) _Instance.Show();
+                if (!CONFIG.isQuietMode)
+                {
+                    _Instance.Show();
+                    Label lblVer = new Label()
+                    {
+                        AutoSize = true,
+                        BackColor = System.Drawing.Color.Transparent,
+                        ForeColor = System.Drawing.Color.LimeGreen,
+                        Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point),
+                        Text = $"v{Application.ProductVersion}",
+                    };
+                    _Instance.Controls.Add(lblVer);
+                    lblVer.Location = new System.Drawing.Point(_Instance.Width - lblVer.Width - 5, 5);
+                    lblVer.BringToFront();
+                }
             }
         }
 
