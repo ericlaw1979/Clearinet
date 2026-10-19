@@ -895,6 +895,12 @@ namespace Clearinet
                 }
 
                 CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
+                // If we're an unnamed viewer instance, show the file path
+                if (CONFIG.isViewerMode && tsmiNameViewer.Text == "Viewer")
+                {
+                    tsmiNameViewer.Text = Path.GetFileNameWithoutExtension(sPath);
+                    tsmiNameViewer.ToolTipText = sPath;
+                }
             }
         }
 
