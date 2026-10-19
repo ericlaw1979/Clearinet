@@ -310,7 +310,7 @@ namespace Clearinet
                         OnStateChanged = null;
                         CApp.UIInvokeAsync(() =>
                         {
-                            CApp.UI.UpdateViewItem(this);
+                            CApp.UI?.UpdateViewItem(this);
                         });
                         break;
                 }

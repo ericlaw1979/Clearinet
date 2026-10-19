@@ -11,6 +11,10 @@ Clearinet will be a locally-running web debugging application designed to visual
 #### Status: Development underway
 A .NET WinForms application that has the look-and-feel of an 2010-era Windows application. The UI should be instantly familiar to users of prior tools. The object model and API should be familiar and allow easy porting of extensions and scripts that targeted prior tools.
 
+The request and response **Cookies** inspectors display `Cookie`/`Cookie2` and `Set-Cookie`/`Set-Cookie2` headers in a read-only text view. Each cookie appears separately, with response attributes on individual lines. The request inspector shows the total character count of all cookie header values (including separators, excluding header names) and each cookie's `name=value` character count (excluding surrounding whitespace; quotes and escapes count as displayed).
+
+The NetLog importer accepts Chromium's JSON and JSONL captures, including gzip-compressed files and JSON/JSONL entries in ZIP archives. JSONL records use the same analysis as JSON captures; a capture without a final `end` record can be imported if all records are complete. Malformed JSONL records abort the import with an error.
+
 ### Clearinet Cap
 #### Status: Blocked on Clearinet Core
 A trivial capture app designed to be as simple as possible for a non-technical end user to generate a SAZ capture of web traffic. There are many interesting features we could add that would go beyond what FiddlerCap offered (including e.g. org branding, integrated upload, etc), but the minimum offering only needs to match the basic capture scenario.

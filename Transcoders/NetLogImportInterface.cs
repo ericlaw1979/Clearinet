@@ -9,10 +9,10 @@ using System.Text;
 namespace ImportNetlog
 {
     [OfferFormat("NetLog JSON",
-                   "Chromium's JSON-based event log format (v1.3.7). See https://textslashplain.com/2020/01/17/capture-network-logs-from-edge-and-chrome/ for more info.",
-                   // We handle import of JSON files, whether uncompressed, or compressed with ZIP or GZ. I'm not completely sure I remember the implications
+                   "Chromium's JSON-based event log format (v1.4). See https://textslashplain.com/2020/01/17/capture-network-logs-from-edge-and-chrome/ for more info.",
+                   // We handle import of JSON/JSONL files, whether uncompressed, or compressed with ZIP or GZ. I'm not completely sure I remember the implications
                    // of declaring .gz here, nor why .zip isn't mentioned. Is this about the drag/drop import feature?
-                   ".json;.gz"
+                   ".jsonl;.json;.gz"
                   )]
     public class NetLogFormatImport : IExchangeImporter
     {
@@ -36,7 +36,7 @@ namespace ImportNetlog
 
             if ((null == strmContent) && string.IsNullOrEmpty(sFilename))
             {
-                sFilename = Clearinet.Utilities.ObtainOpenFilename("Import " + sFormat, "NetLog JSON (*.json[.gz], *.zip)|*.json;*.json.gz;*.zip");
+                sFilename = Clearinet.Utilities.ObtainOpenFilename("Import " + sFormat, "NetLog JSON/JSONL (*.json[.gz], *.jsonl[.gz], *.zip)|*.json;*.jsonl;*.json.gz;*.jsonl.gz;*.zip");
             }
 
             if ((null != strmContent) || !String.IsNullOrEmpty(sFilename))
@@ -52,7 +52,7 @@ namespace ImportNetlog
                     }
                     else
                     {
-                        Stream oFS = File.OpenRead(sFilename);
+                        Stream oFS = File.Open(sFilename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                         CApp.Log.LogFormat("!NetLog Importer is loading {0}", sFilename);
                         // Check to see if this file data was GZIP'd or PKZIP'd.
                         bool bWasGZIP = false;
@@ -76,11 +76,12 @@ namespace ImportNetlog
                         }
                         else if (bWasPKZIP)
                         {
-                            // Open the first JSON file.
+                            // Open the first JSON or JSONL file.
                             ZipArchive oZA = new ZipArchive(oFS, ZipArchiveMode.Read, false, Encoding.UTF8);
                             foreach (ZipArchiveEntry oZE in oZA.Entries)
                             {
-                                if (oZE.FullName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                                if (oZE.FullName.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ||
+                                    oZE.FullName.EndsWith(".jsonl", StringComparison.OrdinalIgnoreCase))
                                 {
                                     oFS = oZE.Open();
                                     break;

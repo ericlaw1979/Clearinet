@@ -114,7 +114,7 @@ namespace Clearinet
         internal static void UIInvokeAsync(Action oDel)
         {
             if (isClosing) return;
-            _frmMain.BeginInvoke(oDel);
+            _frmMain?.BeginInvoke(oDel);
         }
 
         public static IClearinetPreferences Prefs

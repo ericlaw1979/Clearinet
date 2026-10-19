@@ -120,10 +120,22 @@ namespace ImportNetlog
             _listExchanges = listExchanges;
             _evtProgressNotifications = evtProgressNotifications;
             Stopwatch oSW = Stopwatch.StartNew();
-            string sJSONData = oSR.ReadToEnd();
-            NotifyProgress(0.0f, "Begin parsing Netlog.json file.");
+            NotifyProgress(0.0f, "Begin parsing NetLog file.");
 
-            Hashtable htFile = JSON.JsonDecode(sJSONData, out _) as Hashtable;
+            string sFirstLine;
+            int iLine = 0;
+            do
+            {
+                sFirstLine = oSR.ReadLine();
+                ++iLine;
+            }
+            while (sFirstLine != null && String.IsNullOrWhiteSpace(sFirstLine));
+            Hashtable htFirstRecord = JSON.JsonDecode(sFirstLine ?? String.Empty, out _) as Hashtable;
+            bool bJSONLines = (htFirstRecord?["type"] as string) == "constants";
+            string sJSONData = bJSONLines ? null : sFirstLine + "\n" + oSR.ReadToEnd();
+            Hashtable htFile = bJSONLines
+                ? ReadJSONLines(oSR, htFirstRecord, iLine)
+                : JSON.JsonDecode(sJSONData, out _) as Hashtable;
             // If JSON-parsing failed, it's possible that the file was truncated either during capture or transfer.
             // Try repairing the end of file by replacing the last (incomplete) line.
             // This strategy is borrowed from the online "Catapult" netlog viewer app.
@@ -165,6 +177,57 @@ namespace ImportNetlog
                     ExtractExchangesFromTraceJSON(alTraceEvents);
                 }
             }
+        }
+
+        private static Hashtable ReadJSONLines(TextReader reader, Hashtable htFirstRecord, int iLine)
+        {
+            if (!(htFirstRecord["constants"] is Hashtable htConstants))
+            {
+                throw new FormatException($"NetLog JSONL constants record must contain a constants object at line {iLine}.");
+            }
+
+            ArrayList alEvents = new ArrayList();
+            Hashtable htFile = new Hashtable { ["constants"] = htConstants, ["events"] = alEvents };
+            bool bEnded = false;
+            string sLine;
+            while ((sLine = reader.ReadLine()) != null)
+            {
+                ++iLine;
+                if (String.IsNullOrWhiteSpace(sLine)) continue;
+                if (bEnded)
+                {
+                    throw new FormatException($"Unexpected data after NetLog JSONL end record at line {iLine}.");
+                }
+                Hashtable htRecord = JSON.JsonDecode(sLine, out _) as Hashtable;
+                if (htRecord == null)
+                {
+                    throw new FormatException($"Invalid NetLog JSONL record at line {iLine}.");
+                }
+                string sType = htRecord["type"] as string;
+                switch (sType)
+                {
+                    case "event":
+                        if (!(htRecord["event"] is Hashtable htEvent))
+                        {
+                            throw new FormatException($"Missing NetLog JSONL event object at line {iLine}.");
+                        }
+                        alEvents.Add(htEvent);
+                        break;
+                    case "polledData":
+                        if (!(htRecord["polledData"] is Hashtable htPolledData) || htFile.ContainsKey("polledData"))
+                        {
+                            throw new FormatException($"Invalid NetLog JSONL polledData record at line {iLine}.");
+                        }
+                        htFile["polledData"] = htPolledData;
+                        break;
+                    case "end":
+                        bEnded = true;
+                        break;
+                    default:
+                        throw new FormatException($"Unexpected NetLog JSONL record type '{sType}' at line {iLine}.");
+                }
+            }
+            return htFile;
         }
 
         private void ExtractExchangesFromTraceJSON(ArrayList alTraceEvents)
