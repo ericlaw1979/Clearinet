@@ -47,6 +47,8 @@ namespace Clearinet
                 CreateHandle(new CreateParams { Caption = "Clearinet.ExecActionTarget" });
             }
 
+            // TODO: This should probably have an event handler `OnMessageReceived` that 
+            // the UI subscribes to.
             protected override void WndProc(ref Message m)
             {
                 if (m.Msg != WM_COPYDATA)
@@ -66,7 +68,7 @@ namespace Clearinet
                 COPYDATASTRUCT data = Marshal.PtrToStructure<COPYDATASTRUCT>(m.LParam);
 
                 // "Magic" token value, chosen by random dice roll ;)
-                if (data.dwData != new UIntPtr(61178)) return;
+                if (data.dwData != new UIntPtr(61177) && data.dwData != new UIntPtr(61178)) return;
 
                 if (data.cbData == 0 || data.cbData > int.MaxValue || data.lpData == IntPtr.Zero)
                 {
@@ -97,8 +99,61 @@ namespace Clearinet
                     return;
                 }
 
-                m.Result = CApp.RunExecAction(command) ? new IntPtr(1) : IntPtr.Zero;
+                if (data.dwData == new UIntPtr(61178))
+                {
+                    m.Result = CApp.RunExecAction(command) ? new IntPtr(1) : IntPtr.Zero;
+                }
+                else
+                {
+                    var tokens = command.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    CApp.Log.LogFormat($"Received {tokens.Length} arguments from second instance:\n```\n{command}\n```");
+                    CApp.UI.LoadAnyFiles(tokens);
+                    m.Result = new IntPtr(1);
+                }
             }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CopyData
+        {
+            public UIntPtr dwData;
+            public uint cbData;
+            public IntPtr lpData;
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr FindWindow(string className, string title);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr SendMessageTimeout(IntPtr window, uint message, IntPtr sender,
+            ref CopyData data, uint flags, uint timeout, out UIntPtr result);
+
+        internal static bool SendToRunningInstance(string sMessage)
+        {
+            IntPtr window = FindWindow(null, "Clearinet.ExecActionTarget");
+            if (window == IntPtr.Zero) return false;
+            byte[] bytes = new UTF8Encoding(false, true).GetBytes(sMessage + "\0");
+            IntPtr payload = Marshal.AllocHGlobal(bytes.Length);
+            try
+            {
+                Marshal.Copy(bytes, 0, payload, bytes.Length);
+                CopyData data = new CopyData
+                {
+                    dwData = new UIntPtr(61177),
+                    cbData = (uint)bytes.Length,
+                    lpData = payload
+                };
+                UIntPtr result;
+                // Abort after 15 seconds if the UI is busy; never retry a potentially executed command.
+                if (SendMessageTimeout(window, 0x004A, IntPtr.Zero, ref data, 0x0003, 15000, out result) == IntPtr.Zero)
+                    return false; // Didn't send
+                if (result == UIntPtr.Zero) return false;   // Sent, but not handled
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(payload);
+            }
+            return true;
         }
     }
 }

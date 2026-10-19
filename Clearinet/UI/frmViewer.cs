@@ -222,10 +222,10 @@ namespace Clearinet
         static void Main(string[] arrArgs)
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(frmViewer.UnhandledExceptionHandler);
-            frmViewer.RunApp();
+            frmViewer.RunApp(arrArgs);
         }
 
-        private static void RunApp()
+        private static void RunApp(string[] arrArgs)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);   // TODO: Do we want this?
@@ -268,6 +268,7 @@ namespace Clearinet
                 {
                     bMutexAcquired = false;
                     frmSplashScreen.CloseSplashScreen();
+                    activatePriorInstance(arrArgs);
                     Win32UI.BringTitledWindowToForeground("Clearinet Web Debugger");
                     return;
                 }
@@ -297,6 +298,15 @@ namespace Clearinet
 
                 Application.Run(CApp._frmMain);
                 if (bMutexAcquired) oMutex.ReleaseMutex();
+            }
+        }
+
+        private static void activatePriorInstance(string[] arrArgs)
+        {
+            string sMessage = string.Join("\n", arrArgs);
+            if (!HiddenExecActionTargetWindow.SendToRunningInstance(sMessage))
+            {
+                Trace.WriteLine("[Clearinet] Failed to send command to running instance.");
             }
         }
 
@@ -488,10 +498,9 @@ namespace Clearinet
                 }
             };
 
-
-
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
-            ImportAnyStartupArchives();
+
+            LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
             new HiddenExecActionTargetWindow(components);
@@ -740,17 +749,15 @@ namespace Clearinet
             if (null != bestPage) tabs.SelectedTab = bestPage;
         }
 
-        private void ImportAnyStartupArchives()
+        internal void LoadAnyFiles(string[] arrTokens, bool bSkipFirst = false)
         {
-            string[] arrTokens = Environment.GetCommandLineArgs();
-            for (int i = 1; i < arrTokens.Length; ++i)
+            for (int i = bSkipFirst ? 1 : 0; i < arrTokens.Length; ++i)
             {
-                // Filenames have a dot.
+                if (arrTokens[i].StartsWith("-") || arrTokens[i].StartsWith("/")) continue;
                 if (!arrTokens[i].Contains(".")) continue;
                 if (arrTokens[i].OICEndsWith(".saz"))
                 {
                     actLoadSessionArchive(arrTokens[i]);
-                    break;
                 }
                 else
                 {
@@ -805,7 +812,7 @@ namespace Clearinet
             }
         }
 
-        private void actImportFile(string sPath)
+        internal void actImportFile(string sPath)
         {
             if (sPath.OICEndsWith(".saz"))
             {

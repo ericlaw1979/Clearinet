@@ -1,6 +1,5 @@
 @title Clearinet Builder
 @powershell -Command "(Get-Item '..\Clearinet\bin\release\clearinet.exe').VersionInfo.FileVersion | Set-Content 'Clearinet.ver'"
-@pause
 @:signing
 @REM // TODO: For post-quantum security, we want to use SHA384 hashes, but those aren't supported until Win11 or Win10 with a Nov2022 Update.
 @REM //       Standard practice for this scenario would be to dual-sign the files. But since we're still using RSA here, the stronger hash
@@ -17,6 +16,8 @@
 @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /as /d "Clearinet Web Debugger" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 ClearinetSetup.exe 
 
 @if %ERRORLEVEL%==-1 goto signsetup
-@pause
+@CHOICE /M "Would you like to run it?"
+@if %ERRORLEVEL%==2 goto done
+clearinetsetup.exe
 @:done
 @title Command Prompt
