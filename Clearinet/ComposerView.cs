@@ -59,6 +59,8 @@ namespace Clearinet
                 HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
                 rqh.HTTPVersion = version;
                 rqh.HTTPMethod = method;
+
+                bool bBase64Body = rqh.ExistsAndContains("Clearinet-Composer-Body-Base64", "true");
                 if ((origin != null) && origin.Contains(":"))
                 {
                     rqh.UriScheme = origin.TrimAfter(":");
@@ -69,7 +71,16 @@ namespace Clearinet
                     }
                 }
 
-                byte[] arrBody = Encoding.UTF8.GetBytes(txtBody.Text);
+                byte[] arrBody;
+
+                if (bBase64Body)
+                {
+                    arrBody = Encoding.UTF8.GetBytes(txtBody.Text);
+                }
+                else
+                {
+                    arrBody = Convert.FromBase64String(txtBody.Text);
+                }
                 if (arrBody.Length > 0)
                 {
                     rqh["Content-Length"] = arrBody.Length.ToString();
@@ -80,6 +91,11 @@ namespace Clearinet
                 {
                     txtHeaders.Text = rqh.ToString(false, false);
                 }
+                if (bBase64Body)
+                {
+                    rqh.Remove("Clearinet-Composer-Body-Base64");
+                }
+
                 Exchange XC = new Exchange(rqh, arrBody);
                 XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet;
                 XC.EnsureID();
@@ -120,11 +136,24 @@ namespace Clearinet
                 }
 
                 if (arrXC?.Length < 1) return;
-                txtHeaders.Text = arrXC[0].RequestHeaders?.ToString(false, false);
-                txtBody.Text = arrXC[0].GetRequestBodyAsString();
-                txtURL.Text = arrXC[0].fullUrl;
-                cbxMethod.Text = arrXC[0].RequestHeaders?.HTTPMethod ?? "GET";
-                cbxHTTPVersion.Text = arrXC[0].RequestHeaders?.HTTPVersion ?? "HTTP/1.1";
+                Exchange XC = arrXC[0];
+                txtHeaders.Text = XC.RequestHeaders?.ToString(false, false);
+                if (XC.RequestBody.HasData())
+                {
+                    if (XC.RequestBody.HasNonTextData())
+                    {
+                        txtBody.Text = Convert.ToBase64String(XC.RequestBody);
+                        txtHeaders.Text += "Clearinet-Composer-Body-Base64: true\r\n";
+                    }
+                    else
+                    {
+                        txtBody.Text = XC.GetRequestBodyAsString();
+                    }
+                }
+
+                txtURL.Text = XC.fullUrl;
+                cbxMethod.Text = XC.RequestHeaders?.HTTPMethod ?? "GET";
+                cbxHTTPVersion.Text = XC.RequestHeaders?.HTTPVersion ?? "HTTP/1.1";
             }
         }
 

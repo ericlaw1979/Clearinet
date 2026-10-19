@@ -475,7 +475,10 @@ namespace Clearinet
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
 
-            // TODO: Move
+            // =========================== Move TODOs ===========================
+            // Today, I only use the VS Designer on a 100% DPI device because otherwise
+            // the VS designer corrupts the layout. So when working on other devices, I
+            // have to manually add these event handlers until I can move them later.
             mnuExchange.Items.Add("Inspect in &New Window").Click += (s, ea) =>
             {
                 actInspectInNewWindow();
@@ -506,6 +509,29 @@ namespace Clearinet
                     actUpdateInspector(true, true);
                 }
             };
+            tabsViews.AllowDrop = true;
+            tabsViews.DragOver += (s, ea) =>
+            {
+                // If dragging a file or Exchanges over the tabset, switch to the tab underneath.
+                try
+                {
+                    Point ptOver = tabsViews.PointToClient(new Point(ea.X, ea.Y));
+                    if (ptOver.Y < tabsViews.DisplayRectangle.Top) // Only switch if the mouse is over the tab strip, not the tab content area.
+                    {
+                        TabPage tp = Win32UI.GetPageFromPoint(tabsViews, ptOver);
+                        if ((null != tp) && (tp != tabsViews.SelectedTab))
+                        {
+                            tabsViews.SelectedTab = tp;
+                            // TODO: If we have multiple rows, things get weird.
+                        }
+                    }
+                }
+                catch
+                {
+                    // Eat it
+                }
+            };
+            // =========================== /End Move TODOs ===========================
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
 

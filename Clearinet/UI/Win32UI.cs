@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -70,6 +71,16 @@ namespace Clearinet
                     return;
                 }
             }
+        }
+
+        public static TabPage GetPageFromPoint(TabControl tabSet, Point p)
+        {
+            for (int i = 0; i < tabSet.TabPages.Count; i++)
+            {
+                if (tabSet.GetTabRect(i).Contains(p))
+                    return tabSet.TabPages[i];
+            }
+            return null;
         }
     }
 

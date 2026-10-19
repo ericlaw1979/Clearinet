@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace Clearinet
 {
@@ -30,5 +29,16 @@ namespace Clearinet
         }
 
         public static bool HasData(this byte[] source) => source?.Length > 0;
+
+        public static bool HasNonTextData(this byte[] source)
+        {
+            // TODO: This needs to be smarter because 2-byte Unicode...
+            if (source == null || source.Length == 0) return false;
+            foreach (byte b in source)
+            {
+                if (b < 32 && b != 9 && b != 10 && b != 13) return true;
+            }
+            return false;
+        }
     }
 }
