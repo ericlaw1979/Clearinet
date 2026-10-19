@@ -15,8 +15,6 @@ namespace Clearinet
 
             Win32UI.SetCueText(txtURL, "Request URL");
             txtURL.Text = "https://debugtheweb.com/echo2.aspx";
-            Win32UI.SetCueText(txtHeaders, "Message headers");
-            Win32UI.SetCueText(txtBody, "Request body");
         }
 
         private void btnSend_Click(object sender, System.EventArgs e)
@@ -27,6 +25,7 @@ namespace Clearinet
                 {
                     txtURL.Text = "https://" + txtURL.Text.Trim();
                 }
+                cbxMethod.Text = cbxMethod.Text.Trim().ToUpperInvariant();
 
                 var bHeadersFixed = false;
 
@@ -126,6 +125,15 @@ namespace Clearinet
                 txtURL.Text = arrXC[0].fullUrl;
                 cbxMethod.Text = arrXC[0].RequestHeaders?.HTTPMethod ?? "GET";
                 cbxHTTPVersion.Text = arrXC[0].RequestHeaders?.HTTPVersion ?? "HTTP/1.1";
+            }
+        }
+
+        private void txtURL_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnSend_Click(sender, e);
+                e.Handled = e.SuppressKeyPress = true;
             }
         }
     }

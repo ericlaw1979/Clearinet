@@ -351,6 +351,50 @@ namespace Clearinet
             }
         }
 
+        public static void DiffExchanges(Exchange x1, Exchange x2)
+        {
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "Clearinet-Diff-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDirectory);
+            Utilities.CleanupOnExit(tempDirectory);
+            try
+            {
+                string path1 = Path.Combine(tempDirectory, x1.id + ".exchange");
+                string path2 = Path.Combine(tempDirectory, x2.id + ".exchange");
+
+                using (var file1 = File.Create(path1))
+                {
+                    x1.WriteTrafficToStream(file1);
+                }
+                using (var file2 = File.Create(path2))
+                {
+                    x2.WriteTrafficToStream(file2);
+                }
+
+                using (var process = new Process())
+                {
+                    process.StartInfo = new ProcessStartInfo
+                    {
+                        FileName = CONFIG.GetPath("Tools.Diff"),
+                        Arguments = CApp.Prefs.GetStringPref("app.tools.diff.args", $"--diff \"{path1}\" \"{path2}\""),
+                    };
+                    process.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                CApp.DoNotifyUser($"Unable to launch the diff tool:\n\n{ex.Message}", "Clearinet");
+            }
+        }
+
+        static List<string> directoriesToRemove = new List<string>();
+        private static void CleanupOnExit(string tempDirectory)
+        {
+            directoriesToRemove.Add(tempDirectory);
+            // TODO: Implement cleanup logic if needed, such as deleting temporary files on application exit.
+
+            //             Directory.Delete(tempDirectory, recursive: true);
+        }
+
         public static void LaunchHyperlink(string sURL)
         {
             try

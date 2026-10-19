@@ -826,6 +826,31 @@ namespace Clearinet
             }
             return ms.ToArray();
         }
+
+        internal void WriteTrafficToStream(Stream sTarget)
+        {
+            if (null != RequestHeaders)
+            {
+                byte[] arrHeaders = RequestHeaders.ToByteArray();
+                sTarget.Write(arrHeaders, 0, arrHeaders.Length);
+            }
+            if (null != RequestBody)
+            {
+                sTarget.Write(RequestBody, 0, RequestBody.Length);
+            }
+            var arrSplitter = Encoding.ASCII.GetBytes("\r\n\r\n=============================================================\r\n\r\n");
+            sTarget.Write(arrSplitter, 0, arrSplitter.Length);
+            if (null != ResponseHeaders)
+            {
+                byte[] arrHeaders = ResponseHeaders.ToByteArray();
+                sTarget.Write(arrHeaders, 0, arrHeaders.Length);
+            }
+            if (null != ResponseBody)
+            {
+                sTarget.Write(ResponseBody, 0, ResponseBody.Length);
+            }
+        }
+
     }
 
 

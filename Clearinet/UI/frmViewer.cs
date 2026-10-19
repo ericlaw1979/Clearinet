@@ -430,6 +430,8 @@ namespace Clearinet
 
         }
 
+        // TODO: MOVE
+        ToolStripMenuItem miExchangeDiff;
 
         private void frmViewer_Load(object sender, EventArgs e)
         {
@@ -474,11 +476,18 @@ namespace Clearinet
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
 
             // TODO: Move
-            mnuExchange.Items.Add("Inspect in &New Window");
-            mnuExchange.Click += (s, ea) =>
+            mnuExchange.Items.Add("Inspect in &New Window").Click += (s, ea) =>
             {
                 actInspectInNewWindow();
             };
+
+            miExchangeDiff = new ToolStripMenuItem("Diff...");
+            mnuExchange.Items.Add(miExchangeDiff);
+            miExchangeDiff.Click += (s, ea) =>
+            {
+                actDiffExchanges();
+            };
+
             btnRunToComplete.Click += (s, ea) =>
             {
                 if (GetFirstSelectedExchange() is Exchange x)
@@ -504,6 +513,16 @@ namespace Clearinet
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
             new HiddenExecActionTargetWindow(components);
+        }
+
+        private void actDiffExchanges()
+        {
+            if (lvExchanges.SelectedCount != 2) return;
+            Exchange x1 = lvExchanges.SelectedItems[0].Tag as Exchange;
+            Exchange x2 = lvExchanges.SelectedItems[1].Tag as Exchange;
+            if (null == x1 || null == x2) return;
+            CApp.UI.SetStatusText($"Diffing Exchange #{x1.id} and Exchange #{x2.id}...");
+            Utilities.DiffExchanges(x1, x2);
         }
 
         private void actInspectInNewWindow()
@@ -1764,6 +1783,7 @@ namespace Clearinet
         private void mnuExchange_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
             mnuExchangeCopy.Enabled = lvExchanges.SelectedCount > 0;
+            miExchangeDiff.Enabled = lvExchanges.SelectedCount == 2;
         }
 
         private void miExchangeCopyUrl_Click(object sender, EventArgs e)

@@ -134,7 +134,8 @@ namespace Clearinet
             {
                 case "Editor.Code":
                     return CApp.Prefs.GetStringPref("user.paths.editors.code", "notepad.exe");
-
+                case "Tools.Diff":
+                    return CApp.Prefs.GetStringPref("user.paths.tools.diff", "code.exe");
                 case "Extensions":
                     return CApp.Prefs.GetStringPref("app.paths.extensions",
                      $"{Application.StartupPath}{Path.DirectorySeparatorChar}Extensions{Path.DirectorySeparatorChar}");

@@ -32,9 +32,9 @@
             this.cbxHTTPVersion = new System.Windows.Forms.ComboBox();
             this.txtURL = new System.Windows.Forms.TextBox();
             this.pnlMessage = new System.Windows.Forms.Panel();
-            this.txtHeaders = new System.Windows.Forms.TextBox();
-            this.txtBody = new System.Windows.Forms.TextBox();
             this.splitCompose = new System.Windows.Forms.Splitter();
+            this.txtBody = new System.Windows.Forms.TextBox();
+            this.txtHeaders = new System.Windows.Forms.TextBox();
             this.btnSend = new System.Windows.Forms.Button();
             this.pnlMessage.SuspendLayout();
             this.SuspendLayout();
@@ -58,7 +58,8 @@
             // cbxHTTPVersion
             // 
             this.cbxHTTPVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbxHTTPVersion.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.cbxHTTPVersion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxHTTPVersion.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cbxHTTPVersion.FormattingEnabled = true;
             this.cbxHTTPVersion.Items.AddRange(new object[] {
             "HTTP/1.1",
@@ -79,6 +80,7 @@
             this.txtURL.Name = "txtURL";
             this.txtURL.Size = new System.Drawing.Size(717, 28);
             this.txtURL.TabIndex = 0;
+            this.txtURL.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtURL_KeyDown);
             // 
             // pnlMessage
             // 
@@ -93,16 +95,15 @@
             this.pnlMessage.Size = new System.Drawing.Size(1060, 719);
             this.pnlMessage.TabIndex = 4;
             // 
-            // txtHeaders
+            // splitCompose
             // 
-            this.txtHeaders.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtHeaders.Dock = System.Windows.Forms.DockStyle.Top;
-            this.txtHeaders.Location = new System.Drawing.Point(0, 0);
-            this.txtHeaders.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.txtHeaders.Multiline = true;
-            this.txtHeaders.Name = "txtHeaders";
-            this.txtHeaders.Size = new System.Drawing.Size(1060, 160);
-            this.txtHeaders.TabIndex = 2;
+            this.splitCompose.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.splitCompose.Dock = System.Windows.Forms.DockStyle.Top;
+            this.splitCompose.Location = new System.Drawing.Point(0, 160);
+            this.splitCompose.Name = "splitCompose";
+            this.splitCompose.Size = new System.Drawing.Size(1060, 3);
+            this.splitCompose.TabIndex = 6;
+            this.splitCompose.TabStop = false;
             // 
             // txtBody
             // 
@@ -115,15 +116,17 @@
             this.txtBody.Size = new System.Drawing.Size(1060, 559);
             this.txtBody.TabIndex = 3;
             // 
-            // splitCompose
+            // txtHeaders
             // 
-            this.splitCompose.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.splitCompose.Dock = System.Windows.Forms.DockStyle.Top;
-            this.splitCompose.Location = new System.Drawing.Point(0, 160);
-            this.splitCompose.Name = "splitCompose";
-            this.splitCompose.Size = new System.Drawing.Size(1060, 3);
-            this.splitCompose.TabIndex = 6;
-            this.splitCompose.TabStop = false;
+            this.txtHeaders.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtHeaders.Dock = System.Windows.Forms.DockStyle.Top;
+            this.txtHeaders.Location = new System.Drawing.Point(0, 0);
+            this.txtHeaders.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.txtHeaders.Multiline = true;
+            this.txtHeaders.Name = "txtHeaders";
+            this.txtHeaders.Size = new System.Drawing.Size(1060, 160);
+            this.txtHeaders.TabIndex = 2;
+            this.txtHeaders.Text = "Host: debugtheweb.com";
             // 
             // btnSend
             // 
