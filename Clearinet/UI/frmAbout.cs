@@ -102,7 +102,7 @@ namespace Clearinet
 
         private void lnkWebsite_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Utilities.LaunchHyperlink("https://clearinet.app/");
+            Utilities.LaunchHyperlink(CONFIG.GetURL("Homepage"));
         }
     }
 }

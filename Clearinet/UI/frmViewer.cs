@@ -560,6 +560,16 @@ namespace Clearinet
                     // Eat it
                 }
             };
+
+            miEditMarkBlue.Click += (s, ea) =>
+            {
+                MarkSessions(GetSelectedExchanges());
+            };
+
+            ToolStripMenuItem miHelpViewHelp = new ToolStripMenuItem("View &Help...");
+            miHelpViewHelp.Click += miHelpViewHelp_Click;
+            miHelpViewHelp.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.F1)));
+            miHelp.DropDownItems.Insert(0, miHelpViewHelp);
             // =========================== /End Move TODOs ===========================
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
@@ -568,6 +578,11 @@ namespace Clearinet
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
             new HiddenExecActionTargetWindow(components);
+        }
+
+        private void miHelpViewHelp_Click(object sender, EventArgs e)
+        {
+            Utilities.LaunchHyperlink(CONFIG.GetURL("Help"));
         }
 
         private void actDiffExchanges()
@@ -1457,6 +1472,7 @@ namespace Clearinet
                     e.SuppressKeyPress = e.Handled = true;
                     return;
                 }
+                return;
             }
 
             if (e.KeyCode == Keys.Delete)
@@ -1468,6 +1484,11 @@ namespace Clearinet
             {
                 switch (e.KeyCode)
                 {
+                    case Keys.C:
+                        e.SuppressKeyPress = e.Handled = true;
+                        miEditCopyExchange.PerformClick();
+                        break;
+
                     case Keys.X:
                         lvExchanges.ClearExchanges();
                         e.SuppressKeyPress = e.Handled = true;
@@ -1501,6 +1522,8 @@ namespace Clearinet
                         e.SuppressKeyPress = e.Handled = true;
                         break;
                 }
+
+                return; // We don't want CTRL+ other keys below to be processed.
             }
 
             switch (e.KeyCode)
@@ -1513,11 +1536,6 @@ namespace Clearinet
                 case Keys.R:
                     e.SuppressKeyPress = e.Handled = true;
                     actReplaySelected(e.Modifiers == Keys.Shift);
-                    break;
-
-                case Keys.C:
-                    e.SuppressKeyPress = e.Handled = true;
-                    miEditCopyExchange.PerformClick();
                     break;
             }   // switch
         }

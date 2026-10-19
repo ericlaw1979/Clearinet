@@ -128,6 +128,20 @@ namespace Clearinet
             }
         }
 
+        public static string GetURL(string sWhich)
+        {
+            // TODO: Policy/Pref override of baseURL
+            switch (sWhich)
+            {
+                case "Homepage":
+                    return "https://clearinet.app/";
+                case "Help":
+                    return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HELP.md";
+            }
+            Trace.WriteLine($"Failed to find URL `{sWhich}`.");
+            return $"https://clearinet.app/?missing_GetURL_code={sWhich}";
+        }
+
         public static string GetPath(string sWhich)
         {
             switch (sWhich)

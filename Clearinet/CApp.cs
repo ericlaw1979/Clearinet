@@ -202,7 +202,16 @@ namespace Clearinet
 
             if ("help" == sCmd)
             {
-                MessageBox.Show("One day, this will show cool things", "TODO: Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Built-in commands:\n" +
+                    "? <findtext> - Select exchanges with URL containing <findtext>\n" +
+                    "= <responsecode|method> - Select exchanges with response code or method\n" +
+                    "prefs <set|show|remove|dump> <prefname> <prefval>" +
+                    "lm - lists loaded modules" +
+                    "cls" +
+                    "select <mime>" +
+                    "tail <#>" +
+                    "lro <TestLongRunningOperation name>",
+                    "TODO: Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
             }
 
@@ -224,7 +233,13 @@ namespace Clearinet
                 return true;
             }
 
-            if ("lro" == sCmd)
+            if ("cls" == sCmd)
+            {
+                UI.lvExchanges.ClearExchanges();
+                return true;
+            }
+
+            if ("lro" == sCmd) /* TODO: For Testing Purposes Only */
             {
                 var thread = new Thread(() =>
                 {
@@ -232,7 +247,6 @@ namespace Clearinet
                     var lro = new LongRunningOperation(sName, true);
                     for (int i = 0; i < 10; i++)
                     {
-                        // Fixed typo: calculated percent complete (e.g., 10%, 20%... 100%)
                         lro.UpdateProgress((i + 1) * 10, $"Step {i + 1} of 10");
                         Thread.Sleep(1000);
                     }
@@ -248,7 +262,7 @@ namespace Clearinet
                 return true;
             }
 
-            if (sCmd == "select")
+            if (sCmd == "select") // TODO: Fiddler offered more selection options
             {
                 if (arrParams.Length < 2)
                 {
@@ -361,13 +375,14 @@ namespace Clearinet
 
             // Format multiline string
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{"Assembly Name",-45} | {"Version",-15}");
-            sb.AppendLine(new string('-', 63));
+            sb.AppendLine($"\r\n{new string('-', 22)} Currently Loaded Modules {new string('-', 22)}");
+            sb.AppendLine($"{"Assembly Name",-30} | {"Version",-10} | CodeBase");
+            sb.AppendLine(new string('-', 70));
 
             for (int i = 0; i < nameList.Count; i++)
             {
                 AssemblyName name = nameList[i];
-                sb.AppendLine($"{name.Name,-45} | {name.Version,-15}");
+                sb.AppendLine($"{name.Name,-30} | {name.Version,-10} | {name.CodeBase}");
             }
 
             Log.Log(sb.ToString());

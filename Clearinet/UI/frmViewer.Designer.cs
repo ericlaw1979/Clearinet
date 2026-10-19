@@ -580,9 +580,9 @@
             // miEditSelectAll
             // 
             this.miEditSelectAll.Name = "miEditSelectAll";
-            this.miEditSelectAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
             this.miEditSelectAll.Size = new System.Drawing.Size(208, 22);
             this.miEditSelectAll.Text = "Select &all...";
+            this.miEditSelectAll.ShortcutKeyDisplayString = "Ctrl+A";
             this.miEditSelectAll.Click += new System.EventHandler(this.miEditSelectAll_Click);
             // 
             // miEditUnlock
@@ -656,6 +656,7 @@
             this.miRulesCustomize.Name = "miRulesCustomize";
             this.miRulesCustomize.Size = new System.Drawing.Size(180, 22);
             this.miRulesCustomize.Text = "Customize &Rules...";
+            this.miRulesCustomize.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
             this.miRulesCustomize.Click += new System.EventHandler(this.miRulesCustomize_Click);
             // 
             // miTools
@@ -1350,6 +1351,7 @@
             this.rtbLog.Size = new System.Drawing.Size(678, 489);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
+            this.rtbLog.WordWrap = false;
             this.rtbLog.KeyDown += new System.Windows.Forms.KeyEventHandler(this.rtbLog_KeyDown);
             // 
             // imglistIcons
