@@ -1979,14 +1979,31 @@ namespace Clearinet
             Clipboard.SetText(sbAllUrls.ToString());
         }
 
+        // TODO: "Full Summary" should be named "Summary Table" or something.
         private void miEditCopySummary_Click(object sender, EventArgs e)
         {
-            /* TODO: What is this supposed to do? */
-            Exchange[] xc = GetSelectedExchanges();
-            if (xc.Length < 1) return;
-            Clipboard.SetText(
-                $"Summary of {xc.Length} Exchanges:\n\n" +
-                SummarizeExchanges(xc) + "\n\n================================");
+            Exchange[] arrXC = GetSelectedExchanges();
+            if (arrXC.Length < 1) return;
+
+            // Create a stringbuilder, and copy to it a tab-delimited set of columns. On the first line,
+            // copy the column titles, and on each subsequent line, copy the values in that column for each exchange.
+            StringBuilder sbSummary = new StringBuilder();
+            foreach (ColumnHeader column in lvExchanges.Columns)
+            {
+                sbSummary.Append(column.Text).Append('\t');
+            }
+            sbSummary.AppendLine();
+            foreach (var xc in arrXC)
+            {
+                ListViewItem oLVI = xc.ViewItem;
+                if (null == oLVI) continue;
+                for (var x = 0; x < oLVI.SubItems.Count; x++)
+                {
+                    sbSummary.Append(oLVI.SubItems[x].Text).Append('\t');
+                }
+                sbSummary.AppendLine();
+            }
+            Clipboard.SetText(sbSummary.ToString());
         }
 
         private void miEditCopyTerseSummary_Click(object sender, EventArgs e)
