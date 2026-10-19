@@ -9,7 +9,7 @@ namespace Extensions
 
         public override string TabTitle => "Data";
         public override int GetOrder() => 0;
-        public override int ScoreForContentType(string contentType) => DataView.ScoreForContentType(contentType);
+        public override int ScoreForContentType(string contentType) => DataView.ScoreForContentType(contentType, true);
 
         public override void AddToTab(TabPage tab)
         {

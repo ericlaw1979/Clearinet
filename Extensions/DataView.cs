@@ -92,11 +92,11 @@ namespace Extensions
             Clear();
         }
 
-        internal static int ScoreForContentType(string contentType)
+        internal static int ScoreForContentType(string contentType, bool request = false)
         {
             if (!MediaTypeHeaderValue.TryParse(contentType, out MediaTypeHeaderValue type)) return -1;
             string mime = type.MediaType;
-            return IsBson(mime) || string.Equals(mime, "application/json", StringComparison.OrdinalIgnoreCase) ||
+            return (request && IsForm(mime)) || IsBson(mime) || string.Equals(mime, "application/json", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(mime, "application/xml", StringComparison.OrdinalIgnoreCase) ||
                 (mime.EndsWith("+xml", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(mime, "image/svg+xml", StringComparison.OrdinalIgnoreCase)) ? 75 : -1;
@@ -105,7 +105,23 @@ namespace Extensions
         internal void Assign(HTTPHeaders headers, byte[] body)
         {
             Clear();
-            if (body == null || body.Length == 0) return;
+            var request = headers as HTTPRequestHeaders;
+            if (request != null)
+            {
+                string path = request.RequestPath;
+                int fragment = path.IndexOf('#');
+                if (fragment >= 0) path = path.Substring(0, fragment);
+                int query = path.IndexOf('?');
+                if (query >= 0) AddNameValuePairs("QueryString", path.Substring(query + 1), Encoding.UTF8);
+            }
+            if (body == null || body.Length == 0)
+            {
+                if (request != null && MediaTypeHeaderValue.TryParse(request["Content-Type"], out MediaTypeHeaderValue emptyType) && IsForm(emptyType.MediaType))
+                    AddNameValuePairs("Body", string.Empty, Encoding.UTF8);
+                if (tree.Nodes.Count > 0) ShowTree();
+                return;
+            }
+            int queryNodeCount = documentNodes.Count;
             tree.BeginUpdate();
             try
             {
@@ -148,6 +164,12 @@ namespace Extensions
                         Encoding encoding = string.IsNullOrEmpty(type?.CharSet) ? Encoding.UTF8 : Encoding.GetEncoding(type.CharSet.Trim('"'));
                         string text;
                         using (var reader = new StreamReader(stream, encoding, true)) text = reader.ReadToEnd();
+                        if (request != null && IsForm(mime))
+                        {
+                            AddNameValuePairs("Body", text, encoding);
+                            ShowTree();
+                            return;
+                        }
                         json = string.Equals(mime, "application/json", StringComparison.OrdinalIgnoreCase) ||
                             mime.EndsWith("+json", StringComparison.OrdinalIgnoreCase) ||
                             (!xml && !text.TrimStart().StartsWith("<", StringComparison.Ordinal));
@@ -170,16 +192,51 @@ namespace Extensions
             catch (Exception ex) when (ex is XmlException || ex is SerializationException || ex is IOException || ex is InvalidDataException ||
                 ex is ArgumentException || ex is FormatException || ex is NotSupportedException)
             {
-                tree.Nodes.Clear();
-                documentNodes.Clear();
+                while (tree.Nodes.Count > (queryNodeCount > 0 ? 1 : 0)) tree.Nodes.RemoveAt(tree.Nodes.Count - 1);
+                documentNodes.RemoveRange(queryNodeCount, documentNodes.Count - queryNodeCount);
                 CApp.Log.Log("Data inspector parsing failed: " + ex.Message);
-                ShowMessage("Unable to display this body as XML, JSON, or BSON.\r\n" + ex.Message);
+                string error = "Unable to display this body as XML, JSON, or BSON" + (request != null ? ", or form data" : string.Empty) + ".";
+                if (queryNodeCount > 0)
+                {
+                    var node = new TreeNode("Body: " + error + " " + DisplayText(ex.Message));
+                    tree.Nodes.Add(node);
+                    documentNodes.Add(node);
+                    ShowTree();
+                }
+                else ShowMessage(error + "\r\n" + ex.Message);
             }
             finally
             {
                 tree.EndUpdate();
             }
         }
+
+        private void AddNameValuePairs(string title, string text, Encoding encoding)
+        {
+            var root = new TreeNode(title);
+            root.NodeFont = new Font(tree.Font, FontStyle.Underline);
+            tree.Nodes.Add(root);
+            documentNodes.Add(root);
+            foreach (string pair in text.Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                int separator = pair.IndexOf('=');
+                string name = separator < 0 ? pair : pair.Substring(0, separator);
+                string value = separator < 0 ? string.Empty : pair.Substring(separator + 1);
+                var node = new TreeNode(DisplayText(Utilities.UrlDecode(name, encoding)));
+                if (value.Length > 0)
+                {
+                    var valuenode = new TreeNode(DisplayText(Utilities.UrlDecode(value, encoding)));
+                    documentNodes.Add(valuenode);
+                    node.Nodes.Add(valuenode);
+                }
+                root.Nodes.Add(node);
+                node.ExpandAll();
+                documentNodes.Add(node);
+            }
+            root.Expand();
+        }
+
+        private static bool IsForm(string mime) => string.Equals(mime, "application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase);
 
         private static bool IsBson(string mime) => string.Equals(mime, "application/bson", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(mime, "application/x-bson", StringComparison.OrdinalIgnoreCase);
