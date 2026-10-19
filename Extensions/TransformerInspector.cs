@@ -13,7 +13,7 @@ namespace Extensions
         bool dirty;
 
         public override string TabTitle => "Transformer";
-        public override int GetOrder() => 200;
+        public override int GetOrder() => -100;
         public override InspectorFlags GetFlags() => InspectorFlags.AlwaysCommitUpdates;
         public override void AddToTab(TabPage tab)
         {

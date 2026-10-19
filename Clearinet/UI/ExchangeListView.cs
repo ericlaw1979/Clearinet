@@ -412,6 +412,7 @@ namespace Clearinet
 
             switch (_sortType)
             {
+                // ISSUE: Does this support NumberStyles.AllowThousands | NumberStyles.AllowLeadingSign?
                 case ColumnSortType.Numeric:
                     if (decimal.TryParse(textX, out decimal numX) && decimal.TryParse(textY, out decimal numY))
                     {

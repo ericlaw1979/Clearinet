@@ -177,9 +177,9 @@ namespace Clearinet
                     oClone.storage.Add(oItem.Clone());
                 }
             }
-            finally
+            catch (Exception eX)
             {
-                Debug.Assert(false);
+                Debug.Assert(false, eX.Message);
             }
             return oClone;
         }

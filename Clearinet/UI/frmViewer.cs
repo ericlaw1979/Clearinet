@@ -166,8 +166,10 @@ namespace Clearinet
         {
             actRefreshUI(false);
             Exchange[] arrEx = GetSelectedExchanges();
-            // TODO: and for each, call RefreshListViewItem to ensure
-            // all column data is up-to-date.
+            foreach (Exchange xc in arrEx)
+            {
+                UpdateViewItem(xc);
+            }
         }
 
         public Exchange[] GetSelectedExchanges()
@@ -300,8 +302,19 @@ namespace Clearinet
 
         // Called by both the main UI *and* in InspectInNewWindow
 
+        private static void AddInspectorPageInOrder(List<KeyValuePair<int, TabPage>> pages, int order, TabPage page)
+        {
+            int index = 0;
+            while (index < pages.Count && pages[index].Key <= order)
+            {
+                index++;
+            }
+            pages.Insert(index, new KeyValuePair<int, TabPage>(order, page));
+        }
+
         internal static void doPopulateInspectorTabs(TabControl tabsRequest, TabControl tabsResponse, string Context)
         {
+            var requestPages = new List<KeyValuePair<int, TabPage>>();
             foreach (Type tRI in CApp.oExtensions.m_RequestInspectors.Values)
             {
                 try
@@ -319,11 +332,16 @@ namespace Clearinet
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
-                    tabsRequest.TabPages.Add(oPage);
+                    AddInspectorPageInOrder(requestPages, oRI.GetOrder(), oPage);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
             }
+            foreach (KeyValuePair<int, TabPage> page in requestPages)
+            {
+                tabsRequest.TabPages.Add(page.Value);
+            }
 
+            var responsePages = new List<KeyValuePair<int, TabPage>>();
             foreach (Type tRI in CApp.oExtensions.m_ResponseInspectors.Values)
             {
                 try
@@ -343,9 +361,13 @@ namespace Clearinet
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
-                    tabsResponse.TabPages.Add(oPage);
+                    AddInspectorPageInOrder(responsePages, oRI.GetOrder(), oPage);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
+            }
+            foreach (KeyValuePair<int, TabPage> page in responsePages)
+            {
+                tabsResponse.TabPages.Add(page.Value);
             }
         }
 
@@ -447,6 +469,26 @@ namespace Clearinet
             {
                 actInspectInNewWindow();
             };
+            btnRunToComplete.Click += (s, ea) =>
+            {
+                if (GetFirstSelectedExchange() is Exchange x)
+                {
+                    x.oFlags.TryRemove("x-breakresponse", out _);
+                    ++x.state;
+                    actUpdateInspector(true, true);
+                }
+            };
+            btnBreakAtResponse.Click += (s, ea) =>
+            {
+                if (GetFirstSelectedExchange() is Exchange x)
+                {
+                    x["x-breakresponse"] = "BreakAtButton";
+                    ++x.state;
+                    actUpdateInspector(true, true);
+                }
+            };
+
+
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
             ImportAnyStartupArchives();
@@ -839,27 +881,49 @@ namespace Clearinet
             }
         }
 
-        internal void ComposerAddHACKTODO(Exchange xc)
+        internal void UpdateViewItem(Exchange xc)
         {
-            addExchangeToListView(xc);
+            updateLVI(xc);
         }
-        private void addExchangeToListView(Exchange x)
+
+        private void updateLVI(Exchange xc)
         {
-            ListViewItem lvi = new ListViewItem(x.id.ToString())
+            if (null == xc.ViewItem)
             {
-                Tag = x
-            };
-            lvi.SubItems.Add(x.responseCode.ToString());
-            lvi.SubItems.Add(x.RequestHeaders.HTTPMethod);
-            lvi.SubItems.Add(x.host);
-            lvi.SubItems.Add(x.RequestHeaders.RequestPath);
+                addExchangeToListView(xc);
+                return;
+            }
+
+            xc.ViewItem.SubItems[1].Text = xc.bHasResponse ? xc.responseCode.ToString() : "-";
+            xc.ViewItem.SubItems[2].Text = xc.RequestHeaders.HTTPMethod;
+            xc.ViewItem.SubItems[3].Text = xc.host;
+            xc.ViewItem.SubItems[4].Text = xc.RequestHeaders.RequestPath;
 
             for (int i = 5; i < lvExchanges.Columns.Count; ++i)
             {
-                lvi.SubItems.Add(lvExchanges.PopulateColumn(i, x));
+                xc.ViewItem.SubItems[i].Text = lvExchanges.PopulateColumn(i, xc);
+            }
+        }
+
+        private void addExchangeToListView(Exchange xc)
+        {
+            if (xc.ViewItem != null) return; // Already added.
+            ListViewItem lvi = new ListViewItem(xc.id.ToString())
+            {
+                Tag = xc
+            };
+            xc.ViewItem = lvi;
+
+            lvi.SubItems.Add(xc.bHasResponse ? xc.responseCode.ToString() : "-");
+            lvi.SubItems.Add(xc.RequestHeaders.HTTPMethod);
+            lvi.SubItems.Add(xc.host);
+            lvi.SubItems.Add(xc.RequestHeaders.RequestPath);
+
+            for (int i = 5; i < lvExchanges.Columns.Count; ++i)
+            {
+                lvi.SubItems.Add(lvExchanges.PopulateColumn(i, xc));
             }
 
-            x.ViewItem = lvi;
             lvExchanges.Items.Add(lvi);
         }
 
@@ -1774,7 +1838,12 @@ namespace Clearinet
 
         private void miEditCopySummary_Click(object sender, EventArgs e)
         {
-            /* TODO: NYI */
+            /* TODO: What is this supposed to do? */
+            Exchange[] xc = GetSelectedExchanges();
+            if (xc.Length < 1) return;
+            Clipboard.SetText(
+                $"Summary of {xc.Length} Exchanges:\n\n" +
+                SummarizeExchanges(xc) + "\n\n================================");
         }
 
         private void miEditCopyTerseSummary_Click(object sender, EventArgs e)

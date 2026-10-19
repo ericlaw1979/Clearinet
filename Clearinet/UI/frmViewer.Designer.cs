@@ -1062,7 +1062,7 @@
             // 
             // colID
             // 
-            this.colID.Text = "ID";
+            this.colID.Text = "#";
             this.colID.Width = 30;
             // 
             // colResult

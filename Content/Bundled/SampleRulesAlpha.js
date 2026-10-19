@@ -29,14 +29,17 @@ class Handlers {
      
     public static BindUIColumn("Content-Type", false)
     function FillCTColumn(xc: Exchange): String {
-      return xc.ResponseHeaders["Content-Type"];
+        if (xc.bHasResponse) return xc.ResponseHeaders["Content-Type"];
+        return String.Empty;
     }
 
     // Use Numeric sorting
     public static BindUIColumn("ResponseBody", true)
     function FillSizeColumn(xc: Exchange): String {
-      return xc.ResponseBody.Length.ToString("N0");
+        if (xc.bHasResponse) return xc.ResponseBody.Length.ToString("N0");
+        return 0;
     }
+
     public BindUITab("Flags")
     static function FlagsReport(arrXC: Exchange[]):String {
       var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();

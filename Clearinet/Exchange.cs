@@ -270,17 +270,17 @@ namespace Clearinet
                 /* TODO: Full state machine goes in here!!! We need to rewrite this to ASYNC */
                 switch (_state)
                 {
-                    case ExchangeState.AutoTamperResponseBefore:
+
+                    case ExchangeState.AutoTamperRequestBefore:
                         CApp.UIInvokeAsync(() =>
                         {
-                            CApp.UI.ComposerAddHACKTODO(this);
+                            CApp.UI.UpdateViewItem(this);
                         });
                         break;
 
                     case ExchangeState.HandTamperRequest:
                         // TODO: Call Autotampers
-                        if (!oFlags.ContainsKey("x-breakrequest"))
-                            ++state;
+                        if (!oFlags.ContainsKey("x-breakrequest")) ++state;
                         break;
 
                     case ExchangeState.AutoTamperRequestAfter:
@@ -294,13 +294,24 @@ namespace Clearinet
                             ++state;
                         });
                         break;
+                    case ExchangeState.AutoTamperResponseBefore:
+                        CApp.UIInvokeAsync(() =>
+                        {
+                            CApp.UI.UpdateViewItem(this);
+                        });
+                        break;
                     case ExchangeState.HandTamperResponse:
                         if (!oFlags.ContainsKey("x-breakresponse"))
                             ++state;
                         break;
+
                     case ExchangeState.Done:
                     case ExchangeState.Aborted:
                         OnStateChanged = null;
+                        CApp.UIInvokeAsync(() =>
+                        {
+                            CApp.UI.UpdateViewItem(this);
+                        });
                         break;
                 }
             }
