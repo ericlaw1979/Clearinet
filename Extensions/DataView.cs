@@ -73,13 +73,19 @@ namespace Extensions
                 if (e.KeyCode == Keys.F3)
                 {
                     SelectMatch(e.Shift ? -1 : 1);
-                    e.SuppressKeyPress = true;
+                    e.SuppressKeyPress = e.Handled = true;
                 }
                 if (e.KeyData == Keys.Space)
                 {
                     var n = tree.SelectedNode;
                     n.BackColor = (n.BackColor == CONFIG.colorHighlight) ? n.BackColor = tree.BackColor : CONFIG.colorHighlight;
-                    e.SuppressKeyPress = true;
+                    e.SuppressKeyPress = e.Handled = true;
+                }
+                if (e.KeyCode == Keys.C && e.Modifiers == Keys.Control)
+                {
+                    var n = tree.SelectedNode;
+                    Clipboard.SetText(n?.Text ?? string.Empty);  // TODO: What we really want to do is copy the entire subtree in the data model...
+                    e.SuppressKeyPress = e.Handled = true;
                 }
             };
             SetFontSize(CONFIG.flFontSize);
