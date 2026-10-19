@@ -376,9 +376,16 @@ namespace Clearinet
 
         internal string PopulateColumn(int i, Exchange x)
         {
-            if (Columns[i].Tag is ColumnInfo ci && ci.Provider != null)
+            try
             {
-                return ci.Provider(x);
+                if (Columns[i].Tag is ColumnInfo ci && ci.Provider != null)
+                {
+                    return ci.Provider(x);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.Log.LogFormat($"Failed to populate column {i} for Exchange {x.id} due to {eX.Message}");
             }
             return string.Empty;
         }

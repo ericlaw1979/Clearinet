@@ -73,7 +73,7 @@ namespace Clearinet
 
                 byte[] arrBody;
 
-                if (bBase64Body)
+                if (!bBase64Body)
                 {
                     arrBody = Encoding.UTF8.GetBytes(txtBody.Text);
                 }
@@ -103,9 +103,9 @@ namespace Clearinet
                 if ((Control.ModifierKeys & Keys.Shift) != 0) XC["x-breakrequest"] = "Shift+Click";
                 XC.state = ExchangeState.HandTamperRequest;
             }
-            catch (Exception ex)
+            catch (Exception eX)
             {
-                CApp.Log.Log($"Composer failed: {ex.Message}");
+                CApp.ReportException(eX, "Composer Failed");
             }
         }
 
