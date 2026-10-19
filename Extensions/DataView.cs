@@ -123,7 +123,7 @@ namespace Extensions
                     ShowTree();
                     return;
                 }
-                var document = new XmlDocument { XmlResolver = null };
+                var document = new XmlDocument { XmlResolver = new CustomLocalResolver(dummyDtd) };
                 bool json;
                 using (var stream = new MemoryStream(decoded, false))
                 {
@@ -185,7 +185,7 @@ namespace Extensions
             if (tree.Nodes.Count > 0) tree.Nodes[0].Expand();
         }
 
-        private static XmlReaderSettings XmlSettings() => new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
+        private static XmlReaderSettings XmlSettings() => new XmlReaderSettings { DtdProcessing = DtdProcessing.Parse, XmlResolver = new CustomLocalResolver(dummyDtd) };
 
         private static void RejectTrailingJson(string text)
         {
@@ -335,5 +335,34 @@ namespace Extensions
             base.Dispose(disposing);
             if (disposing) viewFont?.Dispose();
         }
+
+
+        #region OfflineXMLEntities
+
+        // ISSUE: Fetching DTDs from the network can be a security issue, and
+        // it can also cause hangs if the network is slow or unavailable. Maybe
+        // we should have a button to allow the user to explicitly approve a fetch?
+        const string dummyDtd = @"
+            <!ENTITY nbsp '&#160;'>
+            <!ENTITY copy '&#169;'>
+            <!ENTITY eacute '&#233;'>";
+
+        public class CustomLocalResolver : XmlUrlResolver
+        {
+            private readonly string _dtdContent;
+
+            public CustomLocalResolver(string dtdContent)
+            {
+                _dtdContent = dtdContent;
+            }
+
+            public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
+            {
+                // Intercept the request and return the hardcoded DTD string as a stream
+                byte[] byteArray = Encoding.UTF8.GetBytes(_dtdContent);
+                return new MemoryStream(byteArray);
+            }
+        }
+        #endregion
     }
 }
