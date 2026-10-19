@@ -95,7 +95,7 @@
   <ItemGroup>
     <Content Include="..\Content\Bundled\CallExecAction.ps1" Link="Tools\CallExecAction.ps1" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\Content\Bundled\dwebp.exe" Link="Tools\dwebp.exe" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\Content\Bundled\SampleRulesAlpha.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Content\Bundled\SampleRulesAlpha.js" Condition="'$(EnableMsixTooling)' != 'true'" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="GenerateAssemblyBuiltDate" BeforeTargets="CoreCompile">
     <PropertyGroup>

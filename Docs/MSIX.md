@@ -66,7 +66,7 @@ are included in the MSIX as well.
 ## No installed rules script
 
 Neither the package nor first launch installs, generates, or copies
-`CustomRulesALPHA.js`, `SampleRules.js`, or `poc.js`. A missing script or script
+`CustomRulesALPHA.js`, `SampleRules.js`, `SampleRulesAlpha.js`, or `poc.js`. A missing script or script
 directory is a supported state, including normal startup, built-in features,
 and shutdown cancellation through app events.
 
@@ -102,7 +102,7 @@ Explorer activation or MSIX registry virtualization.
 Check the produced archive without signing, extracting, or installing it:
 
 ```powershell
-.\Test\Test-MsixPackage.ps1 -PackagePath .\Clearinet\AppPackages\Clearinet_0.0.2.1_x64_Test\Clearinet_0.0.2.1_x64.msix
+.\Test\Test-MsixPackage.ps1 -PackagePath .\Clearinet\AppPackages\Clearinet_0.0.2.3_x64_Test\Clearinet_0.0.2.3_x64.msix
 ```
 
 This checks the payload, unsigned state, absence of rules scripts/signing
