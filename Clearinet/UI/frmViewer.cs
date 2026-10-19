@@ -53,6 +53,8 @@ namespace Clearinet
         /// </summary>
         private Label lblInspectorInstruction;
         private readonly MRU mruRecents;
+        private NotifyIcon trayIcon;
+        private FormWindowState trayRestoreState;
 
         private readonly static System.Windows.Forms.Timer timerReportUpdater = new System.Windows.Forms.Timer();
 
@@ -70,8 +72,35 @@ namespace Clearinet
         #region ACTIONS
         private void actMinimizeToTray()
         {
-            throw new NotImplementedException();
+            if (trayIcon == null)
+            {
+                trayIcon = new NotifyIcon(components) { Icon = this.Icon };
+                trayIcon.MouseClick += trayIcon_MouseClick;
+            }
+            if (!trayIcon.Visible)
+            {
+                trayRestoreState = WindowState == FormWindowState.Minimized ? FormWindowState.Normal : WindowState;
+            }
+            UpdateTrayTooltip();
+            trayIcon.Visible = true;
+            WindowState = FormWindowState.Minimized;
+            Hide();
         }
+
+        private void UpdateTrayTooltip()
+        {
+            trayIcon.Text = $"Clearinet Web Debugger\nCapture: {(CApp.isAttached ? "Attached" : "Not Attached")}\nExchanges: {lvExchanges.TotalCount:N0}";
+        }
+
+        private void trayIcon_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+            Show();
+            WindowState = trayRestoreState;
+            Activate();
+            trayIcon.Visible = false;
+        }
+
         public void actActivateTab(string sTabTitle)
         {
             Win32UI.activateTitledTab(sTabTitle, tabsViews);
