@@ -57,6 +57,11 @@ namespace Clearinet
         internal TabPage _pageTab;
         internal CalculateReportHandler _delegate;
 
+        internal void RunDelegate(Exchange[] arrXC)
+        {
+            _delegate?.Invoke(arrXC);
+        }
+
         public BindUITab(string sTitle)
         {
             _sTitle = sTitle;

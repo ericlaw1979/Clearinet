@@ -337,7 +337,8 @@ namespace Clearinet
 
                 TabPage page = new TabPage
                 {
-                    Text = tab._sTitle
+                    Text = tab._sTitle,
+                    Tag = tab
                 };
 
                 // TODO: Support HTML tabs. For now, we just create a RichTextBox tab for each BindUITab.
@@ -354,8 +355,11 @@ namespace Clearinet
                 {
                     try
                     {
-                        object oResult = mi.Invoke(null, new object[] { arrExchanges });
-                        rtb.Text = oResult as string ?? String.Empty;
+                        if (page == CApp.UI.tabsViews.SelectedTab)
+                        {
+                            object oResult = mi.Invoke(null, new object[] { arrExchanges });
+                            rtb.Text = oResult as string ?? String.Empty;
+                        }
                     }
                     catch (Exception eX)
                     {
