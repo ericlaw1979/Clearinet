@@ -155,6 +155,22 @@ namespace TestExtensions
                 if (protocol != 0x0800 && protocol != 0x86dd) { Warn("Non-IP Ethernet traffic skipped"); return; }
                 if (ip >= end || data[ip] >> 4 != (protocol == 0x0800 ? 4 : 6)) { Warn("Invalid Ethernet IP version"); return; }
             }
+            else if (link == 105)
+            {
+                if (end < 24) { Warn("Truncated 802.11 header"); return; }
+                ushort control = PcapReader.U16(data, 0, true);
+                if ((control & 12) != 8) { Warn("Non-data 802.11 traffic skipped"); return; }
+                if ((control & 0x4000) != 0) { Warn("Encrypted 802.11 traffic skipped"); return; }
+                bool qos = (control & 0x0080) != 0;
+                ip = 24 + ((control & 0x0300) == 0x0300 ? 6 : 0) + (qos ? 2 : 0) + (qos && (control & 0x8000) != 0 ? 4 : 0);
+                if (end - ip < 8) { Warn("Truncated 802.11 LLC header"); return; }
+                if (qos && (data[ip - ((control & 0x8000) != 0 ? 6 : 2)] & 0x80) != 0) { Warn("Aggregated 802.11 traffic skipped"); return; }
+                bool snap = data[ip] == 0xaa && data[ip + 1] == 0xaa && data[ip + 2] == 3 && data[ip + 3] == 0 && data[ip + 4] == 0 && (data[ip + 5] == 0 || data[ip + 5] == 0xf8);
+                ushort protocol = PcapReader.U16(data, ip + 6, false);
+                ip += 8;
+                if (!snap || (protocol != 0x0800 && protocol != 0x86dd)) { Warn("Non-IP 802.11 traffic skipped"); return; }
+                if (ip >= end || data[ip] >> 4 != (protocol == 0x0800 ? 4 : 6)) { Warn("Invalid 802.11 IP version"); return; }
+            }
             else if (link != 101 && link != 12 && link != 228 && link != 229)
             {
                 Warn("Unsupported capture link type " + link.ToString(CultureInfo.InvariantCulture));

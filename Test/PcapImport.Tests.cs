@@ -35,13 +35,14 @@ namespace TestExtensions
                 Check(items.Count == 1 && !items[0].ResponseIncomplete, "Classic endian/resolution HTTP");
                 Check(items[0].RequestStart == Epoch.AddSeconds(10).AddTicks(nano ? 1234567 : 1234560), "Classic timestamp precision");
             }
-            foreach (uint link in new uint[] { 1, 12, 101, 228, 229 })
+            foreach (uint link in new uint[] { 1, 12, 101, 105, 228, 229 })
             {
                 bool ipv6 = link == 229;
                 byte[][] pair = Pair(Request, Response, ipv6);
                 if (link == 1) pair = new[] { Ethernet(pair[0], true), Ethernet(pair[1], true) };
+                if (link == 105) pair = new[] { Wifi(pair[0], false), Wifi(pair[1], true) };
                 IList<PcapExchange> items = Decode(Classic(true, false, link, pair));
-                Check(items.Count == 1 && items[0].RequestBody.Length == 0, "Raw IP / VLAN Ethernet");
+                Check(items.Count == 1 && items[0].RequestBody.Length == 0, "Raw IP / VLAN Ethernet / 802.11");
                 if (ipv6) Check(items[0].ServerIP == "2001:db8::2", "IPv6 endpoint");
             }
             byte[] extension = Packet(true, 100, 0x18, Request, true);
@@ -173,6 +174,9 @@ namespace TestExtensions
             Check(Decode(Classic(true, false, 101, Pair(Text("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"), new byte[0]))).Count == 0 && summary.Contains("HTTP/2"), "h2 preface is not an HTTP/1 request");
             Check(Decode(Classic(true, false, 101, Pair(new byte[] { 22, 3, 3, 0, 0 }, new byte[0]))).Count == 0 && summary.Contains("TLS"), "TLS explicitly skipped");
             Check(Decode(Classic(true, false, 999, Pair(Request, Response))).Count == 0 && summary.Contains("link type"), "Unsupported link diagnostic");
+            Check(Decode(Classic(true, false, 105, new byte[23])).Count == 0 && summary.Contains("Truncated 802.11"), "Truncated 802.11 diagnostic");
+            byte[] encryptedWifi = Wifi(Packet(true, 100, 24, Request), false); encryptedWifi[1] |= 0x40;
+            Check(Decode(Classic(true, false, 105, encryptedWifi)).Count == 0 && summary.Contains("Encrypted 802.11"), "Encrypted 802.11 diagnostic");
             Check(Decode(Classic(true, false, 101, Packet(false, 200, 24, Response))).Count == 0, "Response-only capture does not invent a request");
             Check(Decode(Classic(true, false, 101, Pair(Text("GET unsupported-target HTTP/1.1\r\nHost: h\r\n\r\n"), Response))).Count == 0 && summary.Contains("request-target"), "Unsupported target form diagnosed");
             byte[] fragment = Packet(true, 100, 24, Request); fragment[6] = 32;
@@ -296,6 +300,15 @@ namespace TestExtensions
             Put16(frame, 12, vlan ? 0x88a8u : 0x0800u, false);
             if (vlan) { Put16(frame, 16, 0x8100, false); Put16(frame, 20, 0x0800, false); }
             Buffer.BlockCopy(ip, 0, frame, frame.Length - ip.Length, ip.Length); return frame;
+        }
+        private static byte[] Wifi(byte[] ip, bool qosWds)
+        {
+            int header = qosWds ? 36 : 24;
+            byte[] frame = new byte[header + 8 + ip.Length];
+            Put16(frame, 0, qosWds ? 0x8388u : 0x0008u, true);
+            frame[header] = frame[header + 1] = 0xaa; frame[header + 2] = 3;
+            Put16(frame, header + 6, ip[0] >> 4 == 6 ? 0x86ddu : 0x0800u, false);
+            Buffer.BlockCopy(ip, 0, frame, header + 8, ip.Length); return frame;
         }
         private static byte[] Classic(bool little, bool nano, uint link, params byte[][] packets)
         {
