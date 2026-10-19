@@ -49,7 +49,8 @@ namespace Extensions
                 StringViewVisible = true,
                 ContextMenuStrip = contextMenu,
                 GroupSeparatorVisible = true,
-                HexCasing = HexCasing.Lower
+                HexCasing = HexCasing.Lower,
+                VScrollBarVisible = true        // Needed to autoscroll
             };
             lblOffset = new ToolStripStatusLabel()
             {
@@ -63,8 +64,9 @@ namespace Extensions
             hexBox.SelectionStartChanged += (sender, e) => UpdateOffsetAndSelection();
             hexBox.SelectionLengthChanged += (sender, e) => UpdateOffsetAndSelection();
 
-            UpdateOffsetAndSelection();
             hexBox.GroupSize = 128;
+            UpdateOffsetAndSelection();
+
         }
 
         internal void Assign(byte[] arrHeaders, byte[] arrBody)
@@ -90,13 +92,27 @@ namespace Extensions
         private void UpdateOffsetAndSelection()
         {
             long offset = hexBox.ByteProvider == null ? 0 : Math.Max(0, hexBox.SelectionStart);
+            var sOfWhat = string.Empty;
+
+            if (miShowHeaders.Checked)
+            {
+                if (offset >= headerBytes.Length)
+                {
+                    offset -= headerBytes.Length;
+                    sOfWhat = " (of body)";
+                }
+                else
+                {
+                    sOfWhat = " (of headers)";
+                }
+            }
             if (hexBox.SelectionLength <= 1)
             {
-                lblOffset.Text = $"{offset:N0} (0x{offset:x})";
+                lblOffset.Text = $"{offset:N0} (0x{offset:x}){sOfWhat}";
             }
             else
             {
-                lblOffset.Text = $"Selection: {hexBox.SelectionLength}bytes @ Offset: {offset:N0} (0x{offset:x})";
+                lblOffset.Text = $"Selection: {hexBox.SelectionLength}bytes @ Offset: {offset:N0} (0x{offset:x}){sOfWhat}";
             }
         }
 
