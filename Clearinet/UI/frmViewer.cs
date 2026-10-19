@@ -955,6 +955,31 @@ namespace Clearinet
             {
                 xc.ViewItem.SubItems[i].Text = lvExchanges.PopulateColumn(i, xc);
             }
+
+            {
+                if (xc["ui-backcolor"] is string sColor)
+                {
+                    try
+                    {
+                        Color c = ColorTranslator.FromHtml(sColor);
+                        xc.ViewItem.BackColor = c;
+                    }
+                    catch { }
+                }
+            }
+            {
+                if (xc["ui-color"] is string sColor)
+                {
+                    try
+                    {
+                        Color c = ColorTranslator.FromHtml(sColor);
+                        xc.ViewItem.ForeColor = c;
+                    }
+                    catch { }
+                }
+            }
+            if (xc["ui-strikeout"] != null) xc.ViewItem.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
+            if (xc["ui-bold"] != null) xc.ViewItem.Font = new Font(lvExchanges.Font, FontStyle.Bold);
         }
 
         private void addExchangeToListView(Exchange xc)
@@ -1367,6 +1392,21 @@ namespace Clearinet
         }
         private void lvExchanges_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyData == Keys.Oemplus)
+            {
+                DateTime dt = DateTime.Now;
+                e.Handled = e.SuppressKeyPress = true;
+                var XC = AddFauxExchange($"/SPLITTER/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes($"User hit = to create a split line at\n{dt.ToLongTimeString()}"));
+                XC.oFlags["ui-strikeout"] = "splitter";
+                XC.oFlags["ui-backcolor"] = "OrangeRed";
+                return;
+            }
+            if (e.KeyCode == Keys.D1 && e.Modifiers == Keys.Control)
+            {
+                MarkSessions(lvExchanges.GetSelectedExchanges());
+                e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
             if (e.KeyData == Keys.Enter)
             {
                 actInspectSession();
@@ -1447,6 +1487,16 @@ namespace Clearinet
             }   // switch
         }
 
+        private void MarkSessions(Exchange[] exchanges)
+        {
+            foreach (var xc in exchanges)
+            {
+                xc.oFlags["ui-bold"] = "marked";
+                xc.oFlags["ui-color"] = "blue";
+                updateLVI(xc);
+            }
+        }
+
         private void actSetFontSize(float v)
         {
             // TODO: Should this be resizing the window bounds? Probably not, but it does.
@@ -1523,9 +1573,9 @@ namespace Clearinet
             }
         }
 
-        internal void AddFauxExchange(string sURL, string sContentType, byte[] arrBody)
+        internal Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
         {
-            var headersRequest = new HTTPRequestHeaders(sURL, new[] { "Host: localhost" });
+            var headersRequest = new HTTPRequestHeaders(sRequestPath, new[] { "Host: localhost" });
             var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
 
             var headersResponse = new HTTPResponseHeaders(200, "Pasted", new[] { $"Content-Type: {sContentType}", $"Content-Length: {arrBody.Length}" });
@@ -1536,6 +1586,7 @@ namespace Clearinet
             exchNew.EnsureID();
             exchNew.state = ExchangeState.Done;
             addExchangeToListView(exchNew);
+            return exchNew;
         }
 
         // Paste the clipboard text as a new Exchange; if the text is a data URL, parse it.
