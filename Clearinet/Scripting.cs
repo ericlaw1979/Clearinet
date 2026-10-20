@@ -423,6 +423,15 @@ namespace Clearinet
             //_methodOnWebSocketMessage = null;
         }
 
+        internal void RunOnBeforeRequest(Exchange exchange)
+        {
+            _methodOnBeforeRequest?.Invoke(exchange);
+        }
+        internal void RunOnBeforeResponse(Exchange exchange)
+        {
+            _methodOnBeforeResponse?.Invoke(exchange);
+        }
+
         private void _RunMainMethod()
         {
             try

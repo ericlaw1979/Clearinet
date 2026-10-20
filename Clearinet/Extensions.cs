@@ -391,5 +391,42 @@ namespace Clearinet
                 _FireOnload(iae);
             }
         }
+
+        internal void CallAutoTamperRequestBefore(Exchange XC)
+        {
+            if (XC.isFlagSet(ExchangeFlags.Ignored)) return; // We're ignoring this!
+
+            foreach (IAutoTamper iat in this.m_AutoTamperers.Values)
+            {
+                try
+                {
+                    iat.AutoTamperRequestBefore(XC);
+                }
+                catch (Exception eX)
+                {
+                    CApp.Log.Log($"AutoTamperRequestBefore failed: {eX.Message}");
+                }
+            }
+
+            CApp.scriptRules?.RunOnBeforeRequest(XC);
+        }
+        internal void CallAutoTamperResponseBefore(Exchange XC)
+        {
+            if (XC.isFlagSet(ExchangeFlags.Ignored)) return; // We're ignoring this!
+
+            foreach (IAutoTamper iat in this.m_AutoTamperers.Values)
+            {
+                try
+                {
+                    iat.AutoTamperResponseBefore(XC);
+                }
+                catch (Exception eX)
+                {
+                    CApp.Log.Log($"AutoTamperResponseBefore failed: {eX.Message}");
+                }
+            }
+
+            CApp.scriptRules?.RunOnBeforeResponse(XC);
+        }
     }
 }

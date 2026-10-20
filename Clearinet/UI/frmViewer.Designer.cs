@@ -618,7 +618,7 @@
             this.miEditSelectAll.Name = "miEditSelectAll";
             this.miEditSelectAll.ShortcutKeyDisplayString = "Ctrl+A";
             this.miEditSelectAll.Size = new System.Drawing.Size(208, 22);
-            this.miEditSelectAll.Text = "Select &all";
+            this.miEditSelectAll.Text = "Select &All";
             this.miEditSelectAll.Click += new System.EventHandler(this.miEditSelectAll_Click);
             // 
             // miEditUnlock

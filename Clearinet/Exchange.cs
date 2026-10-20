@@ -272,6 +272,7 @@ namespace Clearinet
                 {
 
                     case ExchangeState.AutoTamperRequestBefore:
+                        CApp.oExtensions.CallAutoTamperRequestBefore(this);
                         CApp.UIInvokeAsync(() =>
                         {
                             CApp.UI.UpdateViewItem(this);
@@ -279,11 +280,19 @@ namespace Clearinet
                         break;
 
                     case ExchangeState.HandTamperRequest:
-                        // TODO: Call Autotampers
                         if (!oFlags.ContainsKey("x-breakrequest")) ++state;
+                        CApp.UIInvokeAsync(() =>
+                        {
+                            CApp.UI.UpdateViewItem(this);
+                        });
                         break;
 
                     case ExchangeState.AutoTamperRequestAfter:
+                        if (null != this["X-ReplyWithFile"])
+                        {
+                            doReplaceResponseWithFile();
+                        }
+
                         ++state;
                         break;
 
@@ -295,6 +304,12 @@ namespace Clearinet
                         });
                         break;
                     case ExchangeState.AutoTamperResponseBefore:
+                        if (null != this["X-ReplyWithFile"])
+                        {
+                            doReplaceResponseWithFile();
+                        }
+                        CApp.oExtensions.CallAutoTamperResponseBefore(this);
+
                         CApp.UIInvokeAsync(() =>
                         {
                             CApp.UI.UpdateViewItem(this);
@@ -315,6 +330,27 @@ namespace Clearinet
                         break;
                 }
             }
+        }
+
+        private void doReplaceResponseWithFile()
+        {
+            var sFilename = this["x-replywithfile"];
+            if (!File.Exists(sFilename))
+            {
+                this["x-replywithfile"] = $"FileNotFound: {sFilename}";
+                return;
+            }
+
+            byte[] arrBody = File.ReadAllBytes(sFilename);
+            string sContentType = Utilities.MimeTypeFromFilename(sFilename);
+            ResponseBody = arrBody;
+            ResponseHeaders = new HTTPResponseHeaders(200, "Clearinet X-RepliedWithFile", new[] { $"Content-Length: {arrBody.Length}", $"Content-Type: {sContentType}" });
+
+            this["x-repliedwithfile"] = sFilename;
+
+            state = ExchangeState.AutoTamperResponseBefore;
+            BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+            oFlags.TryRemove("x-replywithfile", out _);
         }
 
         // 

@@ -5,6 +5,16 @@ import System.Windows.Forms;
 import Clearinet;
 
 class Handlers {
+
+    static function OnBeforeRequest(XC: Exchange) {
+   	 // XC["x-replywithfile"] = "C:\\temp\\foo.html";
+        XC["ui-backcolor"] = "LimeGreen";
+    }
+
+    static function OnBeforeResponse(XC: Exchange) {
+        XC["ui-backcolor"] = "#FFF5DD";
+    }
+
     static var bCanClose: boolean = true;
     static var sMyInfo: String;
     
