@@ -13,7 +13,7 @@ namespace Clearinet.UI
             rtbProperties.BackColor = CONFIG.colorDisabledEdit;
             rtbProperties.Text = Summarize();
             frmViewer.doPopulateInspectorTabs(tabsInspectRequest, tabsInspectResponse, "NewWindow");
-            this.Text = $"{Text}{XC.id}";
+            this.Text = $"{Text}{XC.id} - {XC.fullUrl}";
         }
 
         private string Summarize()
