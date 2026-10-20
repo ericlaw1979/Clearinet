@@ -130,6 +130,7 @@
             this.rtbRaw.Size = new System.Drawing.Size(872, 709);
             this.rtbRaw.TabIndex = 1;
             this.rtbRaw.Text = "";
+            this.rtbRaw.WordWrap = false;
             this.rtbRaw.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.rtbRaw_LinkClicked);
             this.rtbRaw.ReadOnlyChanged += new System.EventHandler(this.rtbRaw_ReadOnlyChanged);
             this.rtbRaw.KeyDown += new System.Windows.Forms.KeyEventHandler(this.rtbRaw_KeyDown);

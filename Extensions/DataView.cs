@@ -150,9 +150,9 @@ namespace Extensions
                 using (var stream = new MemoryStream(decoded, false))
                 {
                     string mime = type?.MediaType ?? string.Empty;
-                    bool xml = string.Equals(mime, "application/xml", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(mime, "text/xml", StringComparison.OrdinalIgnoreCase) ||
-                        mime.EndsWith("+xml", StringComparison.OrdinalIgnoreCase);
+                    bool xml = mime.OICEquals("application/xml") ||
+                        mime.OICEquals("text/xml") ||
+                        mime.OICEndsWith("+xml");
                     // Without an HTTP charset, the XML reader must see the original BOM and encoding declaration.
                     if (xml && string.IsNullOrEmpty(type.CharSet))
                     {
@@ -170,9 +170,18 @@ namespace Extensions
                             ShowTree();
                             return;
                         }
-                        json = string.Equals(mime, "application/json", StringComparison.OrdinalIgnoreCase) ||
-                            mime.EndsWith("+json", StringComparison.OrdinalIgnoreCase) ||
+                        json = mime.OICEquals("application/json") ||
+                            mime.OICEndsWith("+json") ||
                             (!xml && !text.TrimStart().StartsWith("<", StringComparison.Ordinal));
+
+                        // Google sends JSON as JavaScript with a preamble to prevent XSSI attacks. See https://docs.angularjs.org/api/ng/service/$http#cross-site-request-forgery-xsrf-protection
+                        if ((mime.OICEquals("text/javascript") ||
+                             mime.OICEquals("application/javascript"))
+                            && text.StartsWith(")]}'"))
+                        {
+                            text = text.TrimStart().Substring(4);
+                            json = true;
+                        }
                         if (json)
                         {
                             byte[] utf8 = Encoding.UTF8.GetBytes(text);
