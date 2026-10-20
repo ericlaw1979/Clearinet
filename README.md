@@ -34,7 +34,9 @@ Where possible, we should aim to fix some of the [Fiddler Mistakes](https://text
 To aid in AI-powered porting/modernization of code, an [AGENTS.md](/Docs/AGENTS.md) file is available.
 
 ## Commentary and Motivation
-This application is the spiritual successor to the Fiddler Web Debugger, a tool which was acquired by Telerik in 2012 with the promise that it would remain free forever. Progress Software acquired Telerik at the end of 2014. In 2016, Fiddler's maintainer left Telerik/Progress and the Fiddler Web Debugger, later renamed to Fiddler Classic, saw few updates over the following 10 years. In August 2026, Progress announced that they were reneging on earlier promises and changing the tool's license to preclude any commercial use. They also refuse to offer for sale any license for such use. More discussion can be found in the [Fiddler in 2026 blog post](https://textslashplain.com/2026/08/05/fiddler-in-2026/).
+This application is the _spiritual_ successor to the Fiddler Web Debugger, a tool which was acquired by Telerik in 2012 with the promise that it would remain free forever. Progress Software acquired Telerik at the end of 2014. In 2016, Fiddler's maintainer left Telerik/Progress and the Fiddler Web Debugger, later renamed to Fiddler Classic, saw few updates over the following 10 years. In August 2026, Progress announced that they were reneging on earlier promises and changing the tool's license to preclude any commercial use. They also refuse to offer for sale any license for such use. More discussion can be found in the [Fiddler in 2026 blog post](https://textslashplain.com/2026/08/05/fiddler-in-2026/).
+
+Clearinet is NOT owned/maintained/supported or otherwise sanctioned by Progress Software, Telerik, or any other corporate entity. It's open-source freeware, gifted to the world.
 
 ## Get Involved
 - [Clearinet Community](https://groups.google.com/group/clearinet)
