@@ -15,9 +15,10 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.2.3")]
+[assembly: AssemblyVersion("0.0.2.4")]
 
 // Selected Release Version History
+// v0.0.2.3 - Oct-19-2026 - about:config; NetLog(JSONL) format; Improve Hex/Data/Image inspectors; Sign all dependencies.
 // v0.0.2.2 - Oct-19-2026 - Add Composer/Replay, add Differ, Improve performance, fix bugs
 // v0.0.2.1 - Oct-16-2026 - Add Inspect-in-New-Window
 // v0.0.2.0 - Oct-15-2026 - Added Auth and WebView inspectors, QuickExec selection operators
