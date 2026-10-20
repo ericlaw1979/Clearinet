@@ -132,7 +132,7 @@
             this.Font = new System.Drawing.Font("Tahoma", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "frmInspect";
-            this.Text = "Inspecting Exchange #";
+            this.Text = "Exchange #";
             this.tabsInspect.ResumeLayout(false);
             this.pageProperties.ResumeLayout(false);
             this.pageRequest.ResumeLayout(false);

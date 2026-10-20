@@ -674,11 +674,29 @@ namespace Clearinet
 
         private void actInspectInNewWindow()
         {
-            // TODO: Should we do this for ALL selected exchanges if the number is reasonable?
-            Exchange x = GetFirstSelectedExchange();
-            if (null == x) return;
-            frmInspect f = new frmInspect(x);
-            f.Show();
+            Exchange[] xc = GetSelectedExchanges();
+            if (xc?.Length < 1) return;
+            int iXOffset = 0;
+            int iYOffset = 0;
+
+            // "Tile" the windows so that they don't all appear in the same location. Limit the number of windows to avoid overwhelming the user.
+            for (int x = 0; x < Math.Min(xc.Length, CApp.Prefs.GetInt32Pref("app.limits.max_new_inspect_windows", 5)); ++x)
+            {
+                Form f = new frmInspect(xc[x]);
+                f.Show();
+                if (x == 0)
+                {
+                    iXOffset = f.Left + 40;
+                    iYOffset = f.Top + 40;
+                }
+                else
+                {
+                    f.Left = iXOffset;
+                    f.Top = iYOffset;
+                    iXOffset += 40;
+                    iYOffset += 40;
+                }
+            }
         }
 
         private async void miHelpCheckForUpdates_Click(object sender, EventArgs e)
@@ -2332,6 +2350,11 @@ namespace Clearinet
         private void miExchangeInsertSplitter_Click(object sender, EventArgs e)
         {
             actAddFauxSplitter();
+        }
+
+        private void miExchangeReplayBrowser_Click(object sender, EventArgs e)
+        {
+            Utilities.LaunchHyperlink(GetFirstSelectedExchange()?.fullUrl);
         }
     }
 
