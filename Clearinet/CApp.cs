@@ -29,6 +29,7 @@ namespace Clearinet
 
         internal static JScriptEngine scriptRules;
 
+        internal static ComposerView oComposer;
         public static bool isBooted { get; private set; } = false;
         public static bool isClosing { get; private set; } = false;
 

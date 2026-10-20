@@ -49,10 +49,10 @@
             "POST",
             "HEAD",
             "DELETE"});
-            this.cbxMethod.Location = new System.Drawing.Point(13, 14);
+            this.cbxMethod.Location = new System.Drawing.Point(13, 15);
             this.cbxMethod.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxMethod.Name = "cbxMethod";
-            this.cbxMethod.Size = new System.Drawing.Size(119, 29);
+            this.cbxMethod.Size = new System.Drawing.Size(119, 24);
             this.cbxMethod.TabIndex = 4;
             // 
             // cbxHTTPVersion
@@ -64,10 +64,10 @@
             this.cbxHTTPVersion.Items.AddRange(new object[] {
             "HTTP/1.1",
             "HTTP/1.0"});
-            this.cbxHTTPVersion.Location = new System.Drawing.Point(861, 12);
+            this.cbxHTTPVersion.Location = new System.Drawing.Point(861, 13);
             this.cbxHTTPVersion.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxHTTPVersion.Name = "cbxHTTPVersion";
-            this.cbxHTTPVersion.Size = new System.Drawing.Size(131, 29);
+            this.cbxHTTPVersion.Size = new System.Drawing.Size(131, 24);
             this.cbxHTTPVersion.TabIndex = 5;
             // 
             // txtURL
@@ -78,7 +78,7 @@
             this.txtURL.Location = new System.Drawing.Point(138, 14);
             this.txtURL.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtURL.Name = "txtURL";
-            this.txtURL.Size = new System.Drawing.Size(717, 28);
+            this.txtURL.Size = new System.Drawing.Size(717, 24);
             this.txtURL.TabIndex = 0;
             this.txtURL.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtURL_KeyDown);
             // 
@@ -97,11 +97,11 @@
             // 
             // splitCompose
             // 
-            this.splitCompose.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.splitCompose.BackColor = System.Drawing.Color.LightSlateGray;
             this.splitCompose.Dock = System.Windows.Forms.DockStyle.Top;
             this.splitCompose.Location = new System.Drawing.Point(0, 160);
             this.splitCompose.Name = "splitCompose";
-            this.splitCompose.Size = new System.Drawing.Size(1060, 3);
+            this.splitCompose.Size = new System.Drawing.Size(1060, 6);
             this.splitCompose.TabIndex = 6;
             this.splitCompose.TabStop = false;
             // 
@@ -142,7 +142,7 @@
             // ComposerView
             // 
             this.AllowDrop = true;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.btnSend);
             this.Controls.Add(this.pnlMessage);
