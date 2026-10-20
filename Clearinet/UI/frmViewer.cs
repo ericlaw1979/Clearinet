@@ -509,18 +509,6 @@ namespace Clearinet
             // Today, I only use the VS Designer on a 100% DPI device because otherwise
             // the VS designer corrupts the layout. So when working on other devices, I
             // have to manually add these event handlers until I can move them later.
-            mnuExchange.Items.Add("Inspect in &New Window").Click += (s, ea) =>
-            {
-                actInspectInNewWindow();
-            };
-
-            miExchangeDiff = new ToolStripMenuItem("Diff...");
-            mnuExchange.Items.Add(miExchangeDiff);
-            miExchangeDiff.Click += (s, ea) =>
-            {
-                actDiffExchanges();
-            };
-
             btnRunToComplete.Click += (s, ea) =>
             {
                 if (GetFirstSelectedExchange() is Exchange x)
@@ -539,38 +527,7 @@ namespace Clearinet
                     actUpdateInspector(true, true);
                 }
             };
-            tabsViews.AllowDrop = true;
-            tabsViews.DragOver += (s, ea) =>
-            {
-                // If dragging a file or Exchanges over the tabset, switch to the tab underneath.
-                try
-                {
-                    Point ptOver = tabsViews.PointToClient(new Point(ea.X, ea.Y));
-                    if (ptOver.Y < tabsViews.DisplayRectangle.Top) // Only switch if the mouse is over the tab strip, not the tab content area.
-                    {
-                        TabPage tp = Win32UI.GetPageFromPoint(tabsViews, ptOver);
-                        if ((null != tp) && (tp != tabsViews.SelectedTab))
-                        {
-                            tabsViews.SelectedTab = tp;
-                            // TODO: If we have multiple rows, things get weird.
-                        }
-                    }
-                }
-                catch
-                {
-                    // Eat it
-                }
-            };
 
-            miEditMarkBlue.Click += (s, ea) =>
-            {
-                MarkSessions(GetSelectedExchanges());
-            };
-
-            ToolStripMenuItem miHelpViewHelp = new ToolStripMenuItem("View &Help...");
-            miHelpViewHelp.Click += miHelpViewHelp_Click;
-            miHelpViewHelp.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.F1)));
-            miHelp.DropDownItems.Insert(0, miHelpViewHelp);
             // =========================== /End Move TODOs ===========================
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
@@ -2027,7 +1984,6 @@ namespace Clearinet
             Clipboard.SetText(sbAllUrls.ToString());
         }
 
-        // TODO: "Full Summary" should be named "Summary Table" or something.
         private void miEditCopySummary_Click(object sender, EventArgs e)
         {
             Exchange[] arrXC = GetSelectedExchanges();
@@ -2155,6 +2111,78 @@ namespace Clearinet
             actSelectExchangesMatchingCriteria((exch) => exch.RequestHeaders?.HTTPMethod.OICEquals("CONNECT"));
             lvExchanges.RemoveSelected();
             CApp.Log.Log("Removed Exchanges with HTTP CONNECT requests.");
+        }
+
+        private void miEditCopyCurl_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void miEditMarkStrikeout_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void miEditMarkRed_Click(object sender, EventArgs e)
+        {
+            MarkSessions(GetSelectedExchanges()); // TODO:Color
+        }
+
+        private void miEditMarkBlue_Click(object sender, EventArgs e)
+        {
+            MarkSessions(GetSelectedExchanges());
+        }
+
+        private void miEditMarkGold_Click(object sender, EventArgs e)
+        {
+            MarkSessions(GetSelectedExchanges()); // TODO:Color
+        }
+
+        private void miEditMarkUnmark_Click(object sender, EventArgs e)
+        {
+            // TODO: MarkSessions(GetSelectedExchanges());
+        }
+
+        private void tabsViews_DragOver(object sender, DragEventArgs e)
+        {
+            // If dragging a file or Exchanges over the tabset, switch to the tab underneath.
+            try
+            {
+                Point ptOver = tabsViews.PointToClient(new Point(e.X, e.Y));
+                if (ptOver.Y < tabsViews.DisplayRectangle.Top) // Only switch if the mouse is over the tab strip, not the tab content area.
+                {
+                    TabPage tp = Win32UI.GetPageFromPoint(tabsViews, ptOver);
+                    if ((null != tp) && (tp != tabsViews.SelectedTab))
+                    {
+                        tabsViews.SelectedTab = tp;
+                        // TODO: If we have multiple rows, things get weird.
+                    }
+                }
+            }
+            catch
+            {
+                // Eat it
+            }
+        }
+
+        private void miExchangeProperties_Click(object sender, EventArgs e)
+        {
+            actInspectInNewWindow();
+        }
+
+        private void miExchangeDiffer_Click(object sender, EventArgs e)
+        {
+            actDiffExchanges();
+        }
+
+        private void miReplayReplay_Click(object sender, EventArgs e)
+        {
+            actReplaySelected(Control.ModifierKeys == Keys.Shift);
+        }
+
+        private void miReplayWithComposer_Click(object sender, EventArgs e)
+        {
+            // TODO: Send to composer.
         }
     }
 
