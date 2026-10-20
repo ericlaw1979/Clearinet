@@ -258,6 +258,7 @@ namespace Clearinet
                         lro.UpdateProgress((i + 1) * 10, $"Step {i + 1} of 10");
                         Thread.Sleep(1000);
                     }
+                    lro.Dispose();
                 })
                 {
                     IsBackground = true,

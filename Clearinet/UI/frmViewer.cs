@@ -1033,25 +1033,28 @@ namespace Clearinet
         {
             try
             {
-                using (SAZFile sazFile = SAZFile.LoadFrom(sPath))
+                using (var lro = new LongRunningOperation($"Loading {PlatformAPI.CompactPath(sPath, 32)}...", false))
                 {
-                    CApp.Log.Log($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}. {sazFile.sComment}");
-                    SetStatusText($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}");
-                    mruRecents.PushFile(sPath);
-
-                    // If we're a viewer instance, show the SAZ file path
-                    if (CONFIG.isViewerMode && tsmiNameViewer.Text == "Viewer")
+                    using (SAZFile sazFile = SAZFile.LoadFrom(sPath))
                     {
-                        tsmiNameViewer.Text = Path.GetFileNameWithoutExtension(sPath);
-                        tsmiNameViewer.ToolTipText = sPath;
-                    }
+                        CApp.Log.Log($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}. {sazFile.sComment}");
+                        SetStatusText($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}");
+                        mruRecents.PushFile(sPath);
 
-                    foreach (Exchange x in sazFile.Exchanges)
-                    {
-                        addExchangeToListView(x);
+                        // If we're a viewer instance, show the SAZ file path
+                        if (CONFIG.isViewerMode && tsmiNameViewer.Text == "Viewer")
+                        {
+                            tsmiNameViewer.Text = Path.GetFileNameWithoutExtension(sPath);
+                            tsmiNameViewer.ToolTipText = sPath;
+                        }
+
+                        foreach (Exchange x in sazFile.Exchanges)
+                        {
+                            addExchangeToListView(x);
+                        }
                     }
+                    return true;
                 }
-                return true;
             }
             catch (Exception eX)
             {
@@ -2355,7 +2358,9 @@ namespace Clearinet
                     CApp.UI.SetStatusText($"Please wait for the operation ('{OperationName}') to complete before exiting.");
                     e.Cancel = true;
                 };
+                //                Stopwatch oSW = Stopwatch.StartNew();
                 PlatformAPI.PreventSleep(keepDisplayOn: false);
+                //                Trace.WriteLine($"LongRunningOperation calling PreventSleep took {oSW.ElapsedMilliseconds}ms.");
                 CApp.BeforeAppShutdown += ceh;
             }
             CreateUI();
