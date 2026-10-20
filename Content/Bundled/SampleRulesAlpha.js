@@ -97,7 +97,7 @@ class Handlers {
        var sAction = sArgs[0].toLowerCase();
         switch (sAction) {
         case "find":
-           if (sArgs.length>1) frmFind.BeginFinding(sArgs[1]); else frmFind.BeginFinding();
+           if (sArgs.length>1) CApp.UI.actBeginFinding(sArgs[1]); else CApp.UI.actBeginFinding();
            break;
            
         case "stayalive":

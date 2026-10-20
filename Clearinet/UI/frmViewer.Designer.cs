@@ -158,6 +158,7 @@
             this.miExchangeProperties = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.miExchangeInsertSplitter = new System.Windows.Forms.ToolStripMenuItem();
+            this.pnlLeftBottom = new System.Windows.Forms.Panel();
             this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
@@ -1098,6 +1099,7 @@
             // pnlLeft
             // 
             this.pnlLeft.Controls.Add(this.lvExchanges);
+            this.pnlLeft.Controls.Add(this.pnlLeftBottom);
             this.pnlLeft.Controls.Add(this.txtQuickExec);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Location = new System.Drawing.Point(0, 78);
@@ -1128,7 +1130,7 @@
             this.lvExchanges.Location = new System.Drawing.Point(0, 0);
             this.lvExchanges.Margin = new System.Windows.Forms.Padding(4);
             this.lvExchanges.Name = "lvExchanges";
-            this.lvExchanges.Size = new System.Drawing.Size(357, 498);
+            this.lvExchanges.Size = new System.Drawing.Size(357, 476);
             this.lvExchanges.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvExchanges.TabIndex = 4;
             this.lvExchanges.UseCompatibleStateImageBehavior = false;
@@ -1268,6 +1270,15 @@
             this.miExchangeInsertSplitter.Size = new System.Drawing.Size(182, 22);
             this.miExchangeInsertSplitter.Text = "Insert Divider";
             this.miExchangeInsertSplitter.Click += new System.EventHandler(this.miExchangeInsertSplitter_Click);
+            // 
+            // pnlLeftBottom
+            // 
+            this.pnlLeftBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlLeftBottom.Location = new System.Drawing.Point(0, 476);
+            this.pnlLeftBottom.Name = "pnlLeftBottom";
+            this.pnlLeftBottom.Size = new System.Drawing.Size(357, 22);
+            this.pnlLeftBottom.TabIndex = 5;
+            this.pnlLeftBottom.Visible = false;
             // 
             // txtQuickExec
             // 
@@ -1709,6 +1720,7 @@
         private System.Windows.Forms.ToolStripMenuItem miExchangeInsertSplitter;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem miExchangeReplayBrowser;
+        private System.Windows.Forms.Panel pnlLeftBottom;
     }
 }
 

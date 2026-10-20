@@ -25,77 +25,98 @@ namespace Clearinet.UI
             if (bSelectMatches) exch.ViewItem.Selected = true;
         }
 
-        private void btnFind_Click(object sender, EventArgs e)
+        private void ExecuteFind()
         {
-            string sSearchFor = txtToFind.Text; // trim?
-            CApp.Prefs.SetStringPref("app.find.lastfind.text.ephemeral", sSearchFor);
-            CApp.Prefs.SetStringPref("app.find.lastfind.findin", string.Join(";", ccbxWhere.GetCheckedItems()));
-
-            bool bSelectMatches = cbSelectMatches.Checked;
-            CApp.Prefs.SetBoolPref("app.find.lastfind.selectmatches", bSelectMatches);
-
-            bool bRequestHeaders = ccbxWhere.GetCheckedItems().Contains("Request Headers");
-            bool bRequestBody = ccbxWhere.GetCheckedItems().Contains("Request Body");
-            bool bResponseHeaders = ccbxWhere.GetCheckedItems().Contains("Response Headers");
-            bool bResponseBody = ccbxWhere.GetCheckedItems().Contains("Response Body");
-            bool bURLs = ccbxWhere.GetCheckedItems().Contains("URLs");
-            bool bExchangeListboxColumns = ccbxWhere.GetCheckedItems().Contains("ExchangeListbox Columns");
-
-            if (!bRequestHeaders && !bRequestBody && !bResponseHeaders && !bResponseBody && !bURLs && !bExchangeListboxColumns)
+            try
             {
-                CApp.UI.SetStatusText("Nothing to search; please select at least one search target.");
-                return;
+                string sSearchFor = txtToFind.Text; // trim?
+                CApp.Prefs.SetStringPref("app.find.lastfind.text.ephemeral", sSearchFor);
+                CApp.Prefs.SetStringPref("app.find.lastfind.findin", string.Join(";", ccbxWhere.GetCheckedItems()));
+
+                bool bSelectMatches = cbSelectMatches.Checked;
+                CApp.Prefs.SetBoolPref("app.find.lastfind.selectmatches", bSelectMatches);
+
+                bool bRequestHeaders = ccbxWhere.GetCheckedItems().Contains("Request Headers");
+                bool bRequestBody = ccbxWhere.GetCheckedItems().Contains("Request Body");
+                bool bResponseHeaders = ccbxWhere.GetCheckedItems().Contains("Response Headers");
+                bool bResponseBody = ccbxWhere.GetCheckedItems().Contains("Response Body");
+                bool bURLs = ccbxWhere.GetCheckedItems().Contains("URLs");
+                bool bExchangeListboxColumns = ccbxWhere.GetCheckedItems().Contains("ExchangeListbox Columns");
+
+                if (!bRequestHeaders && !bRequestBody && !bResponseHeaders && !bResponseBody && !bURLs && !bExchangeListboxColumns)
+                {
+                    CApp.UI.SetStatusText("Nothing to search; please select at least one search target.");
+                    return;
+                }
+
+                bool bDecode = cbDecode.Checked;
+                if (bSelectMatches) CApp.UI.lvExchanges.SelectedItems.Clear();
+                var iMatchCount = 0;
+                foreach (Exchange exch in CApp.UI.GetAllExchanges())
+                {
+                    if (bURLs && exch.fullUrl.OICContains(sSearchFor))
+                    {
+                        ++iMatchCount;
+                        _MarkFound(exch, bSelectMatches);
+                        continue;
+                    }
+                    if (bExchangeListboxColumns)
+                    {
+                        string sAllCols = _GetAllColumnText(exch.ViewItem);
+
+                        if (sAllCols.OICContains(sSearchFor))
+                        {
+                            ++iMatchCount;
+                            _MarkFound(exch, bSelectMatches);
+                            continue;
+                        }
+                    }
+                    if (bRequestHeaders && true == exch.RequestHeaders?.ToString().OICContains(sSearchFor))
+                    {
+                        ++iMatchCount;
+                        _MarkFound(exch, bSelectMatches);
+                        continue;
+                    }
+                    if (bResponseHeaders && true == exch.ResponseHeaders?.ToString().OICContains(sSearchFor))
+                    {
+                        ++iMatchCount;
+                        _MarkFound(exch, bSelectMatches);
+                        continue;
+                    }
+                    if (bRequestBody && exch.RequestBody.HasData())
+                    {
+                        ++iMatchCount;
+                        string sBody = cbDecode.Checked ? exch.GetRequestBodyAsString() : Encoding.UTF8.GetString(exch.RequestBody);
+                        if (sBody.OICContains(sSearchFor))
+                        {
+                            _MarkFound(exch, bSelectMatches);
+                            continue;
+                        }
+                    }
+                    if (bResponseBody && exch.ResponseBody.HasData())
+                    {
+                        ++iMatchCount;
+                        string sBody = cbDecode.Checked ? exch.GetResponseBodyAsString() : Encoding.UTF8.GetString(exch.ResponseBody);
+                        if (sBody.OICContains(sSearchFor))
+                        {
+                            _MarkFound(exch, bSelectMatches);
+                            continue;
+                        }
+                    }
+
+                    // Not found; unmark the item.
+                    exch.ViewItem.BackColor = CApp.UI.lvExchanges.BackColor;
+                }
+                if (iMatchCount > 0 && bSelectMatches)
+                {
+                    CApp.UI.lvExchanges.EnsureVisible(CApp.UI.lvExchanges.SelectedIndices[0]);
+                    CApp.UI.lvExchanges.Focus();
+                }
+                CApp.UI.SetStatusText($"Found {iMatchCount} Exchanges matching search criteria.");
             }
-
-            bool bDecode = cbDecode.Checked;
-            if (bSelectMatches) CApp.UI.lvExchanges.SelectedItems.Clear();
-
-            foreach (Exchange exch in CApp.UI.GetAllExchanges())
+            catch (Exception ex)
             {
-                if (bURLs && exch.fullUrl.OICContains(sSearchFor))
-                {
-                    _MarkFound(exch, bSelectMatches);
-                    continue;
-                }
-                if (bExchangeListboxColumns)
-                {
-                    string sAllCols = _GetAllColumnText(exch.ViewItem);
-
-                    if (sAllCols.OICContains(sSearchFor))
-                    {
-                        _MarkFound(exch, bSelectMatches);
-                        continue;
-                    }
-                }
-                if (bRequestHeaders && exch.RequestHeaders?.ToString().OICContains(sSearchFor) == true)
-                {
-                    _MarkFound(exch, bSelectMatches);
-                    continue;
-                }
-                if (bResponseHeaders && exch.ResponseHeaders?.ToString().OICContains(sSearchFor) == true)
-                {
-                    _MarkFound(exch, bSelectMatches);
-                    continue;
-                }
-                if (bRequestBody)
-                {
-                    string sBody = exch.GetRequestBodyAsString();  // TODO: Decode or not
-                    {
-                        _MarkFound(exch, bSelectMatches);
-                        continue;
-                    }
-                }
-                if (bResponseBody)
-                {
-                    string sBody = exch.GetResponseBodyAsString();  // TODO: Decode or not
-                    {
-                        _MarkFound(exch, bSelectMatches);
-                        continue;
-                    }
-                }
-
-                // Not found; unmark the item.
-                exch.ViewItem.BackColor = CApp.UI.lvExchanges.BackColor;
+                CApp.ReportException(ex, "Search failed...");
             }
         }
 
@@ -114,8 +135,9 @@ namespace Clearinet.UI
         {
             if (e.KeyCode == Keys.Enter)
             {
-                btnFind_Click(sender, e);
+                ExecuteFind();
                 e.Handled = e.SuppressKeyPress = true;
+                return;
             }
             if (e.KeyCode == Keys.Escape)
             {
@@ -125,10 +147,19 @@ namespace Clearinet.UI
                 }
                 else
                 {
-                    //CApp.UI.HideFindPanel();
+                    btnFindClose.PerformClick();
                 }
                 e.Handled = e.SuppressKeyPress = true;
+                return;
             }
+        }
+
+        private void btnFindClose_Click(object sender, EventArgs e)
+        {
+            CApp.oFindPanel.Parent.Visible = false;
+            CApp.oFindPanel.Parent.Controls.Remove(CApp.oFindPanel);
+            CApp.oFindPanel.Dispose();
+            CApp.oFindPanel = null;
         }
     }
 }

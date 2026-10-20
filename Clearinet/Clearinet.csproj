@@ -143,12 +143,6 @@
     <Compile Include="UI\frmOptions.Designer.cs">
       <DependentUpon>frmOptions.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\frmFind.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmFind.Designer.cs">
-      <DependentUpon>frmFind.cs</DependentUpon>
-    </Compile>
     <Compile Include="UI\frmPrompt.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -210,9 +204,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\frmOptions.resx">
       <DependentUpon>frmOptions.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\frmFind.resx">
-      <DependentUpon>frmFind.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\frmPrompt.resx">
       <DependentUpon>frmPrompt.cs</DependentUpon>

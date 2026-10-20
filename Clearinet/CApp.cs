@@ -30,6 +30,7 @@ namespace Clearinet
         internal static JScriptEngine scriptRules;
 
         internal static ComposerView oComposer;
+        internal static FindPanel oFindPanel;
         public static bool isBooted { get; private set; } = false;
         public static bool isClosing { get; private set; } = false;
 
@@ -77,6 +78,7 @@ namespace Clearinet
 
         // derp derp derp, this needs to be a counter, unless we only allow it to get touched on the UI thread.
         private static bool _bPauseReporting = false;
+
         internal static bool PauseReporting
         {
             get

@@ -105,10 +105,6 @@ namespace Clearinet
         {
             Win32UI.activateTitledTab(sTabTitle, tabsViews);
         }
-        public void actDoFind()
-        {
-            frmFind.BeginFinding();
-        }
 
         public void actSelectExchangesMatchingCriteria(Func<Exchange, bool?> oCriteriaChecker, int iMatchAtMost = Int32.MaxValue)
         {
@@ -1268,9 +1264,25 @@ namespace Clearinet
             if (miFileAttach.Checked) { CApp.actAttachProxy(); } else { CApp.actDetachProxy(); }
         }
 
+        public void actBeginFinding(string sFindText = "")
+        {
+            if (null == CApp.oFindPanel)
+            {
+                CApp.oFindPanel = new FindPanel();
+                SuspendLayout();
+                pnlLeftBottom.Controls.Add(CApp.oFindPanel);
+                CApp.oFindPanel.Dock = DockStyle.Fill;
+                pnlLeftBottom.Height = 100;
+                pnlLeftBottom.Visible = true;
+                ResumeLayout();
+            }
+            if (sFindText.HasText()) CApp.oFindPanel.txtToFind.Text = sFindText;
+            CApp.oFindPanel.txtToFind.Focus();
+        }
+
         private void miEditFind_Click(object sender, EventArgs e)
         {
-            frmFind.BeginFinding();
+            actBeginFinding();
         }
         private void miEditRemoveSelected_Click(object sender, EventArgs e)
         {

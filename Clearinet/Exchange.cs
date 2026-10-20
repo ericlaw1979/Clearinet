@@ -143,8 +143,7 @@ namespace Clearinet
             set
             {
                 // TODO: We probably don't want to use the actual .NET URL parser here.
-                Uri oUri;
-                if (Uri.TryCreate(value, UriKind.Absolute, out oUri))
+                if (Uri.TryCreate(value, UriKind.Absolute, out Uri oUri))
                 {
                     RequestHeaders["Host"] = oUri.Host;
                     if (!oUri.IsDefaultPort)
@@ -532,12 +531,7 @@ namespace Clearinet
             {
                 while (true)
                 {
-                    string chunkSizeLine = ReadHttpLine(input);
-                    if (chunkSizeLine == null)
-                    {
-                        throw new InvalidDataException("Chunked body ended before a terminating chunk was found.");
-                    }
-
+                    string chunkSizeLine = ReadHttpLine(input) ?? throw new InvalidDataException("Chunked body ended before a terminating chunk was found.");
                     int extensionDelimiter = chunkSizeLine.IndexOf(';');
                     if (extensionDelimiter >= 0)
                     {
@@ -791,7 +785,7 @@ namespace Clearinet
                     }
                     oXML.WriteEndElement();     // End Flags
 
-                    if (null != Timers) Timers.WriteToSAZMetadata(oXML);
+                    Timers?.WriteToSAZMetadata(oXML);
 
                     // TODO: Write CONNECT info after we support it.
                     /*if (__oTunnel != null)
