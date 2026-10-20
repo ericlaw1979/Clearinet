@@ -14,6 +14,15 @@ namespace Clearinet
             return String.Equals(sIn, sMatch, StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool OICEqualsAny(this String sIn, params String[] sMatch)
+        {
+            for (var i = 0; i < sMatch.Length; i++)
+            {
+                if (sIn.Equals(sMatch[i], StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
         public static bool OICStartsWith(this String sIn, String sMatch)
         {
             return sIn.StartsWith(sMatch, StringComparison.OrdinalIgnoreCase);

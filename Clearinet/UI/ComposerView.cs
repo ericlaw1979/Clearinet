@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
@@ -174,6 +175,13 @@ namespace Clearinet
                 btnSend_Click(sender, e);
                 e.Handled = e.SuppressKeyPress = true;
             }
+        }
+
+        private void cbxMethod_TextChanged(object sender, EventArgs e)
+        {
+            bool bVerbAllowsBody = cbxMethod.Text.OICEqualsAny("POST", "PUT", "PATCH", "QUERY", "DELETE", "OPTIONS");
+            txtBody.BackColor = bVerbAllowsBody ? SystemColors.Window : SystemColors.ControlLight;
+            // TODO: Go red for TRACE and CONNECT?
         }
     }
 }

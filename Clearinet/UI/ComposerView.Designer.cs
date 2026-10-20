@@ -45,10 +45,13 @@
             this.cbxMethod.FormattingEnabled = true;
             this.cbxMethod.Items.AddRange(new object[] {
             "GET",
-            "PUT",
             "POST",
             "HEAD",
-            "DELETE"});
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "QUERY",
+            "OPTIONS"});
             this.cbxMethod.Location = new System.Drawing.Point(13, 15);
             this.cbxMethod.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxMethod.Name = "cbxMethod";
