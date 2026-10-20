@@ -12,7 +12,7 @@ using System.Text;
 namespace TestExtensions
 {
     [OfferFormat("HTTP Archive",
-        "HTTP Archive (HAR) traffic capture files. See http://www.softwareishard.com/blog/har-12-spec/.",
+        "HTTP Archive (HAR) version 1.2 traffic capture files. See http://www.softwareishard.com/blog/har-12-spec/.",
         ".har")]
     public class HARFormatExport : IExchangeExporter
     {
