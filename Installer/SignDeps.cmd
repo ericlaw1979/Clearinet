@@ -23,7 +23,7 @@ for /L %%I in (0,1,9) do (
     echo Signing: !FILES[%%I]!
     echo ========================================================
     
-    "%SIGNTOOL%" sign /as /d "Clearinet Dependency" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 !FILES[%%I]!
+    "%SIGNTOOL%" sign /d "Clearinet Dependency" /du "https://clearinet.app/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 !FILES[%%I]!
     
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to sign !FILES[%%I]!
