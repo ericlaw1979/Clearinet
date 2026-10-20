@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -75,8 +76,7 @@ namespace Extensions
                 {
                     using (var oSvgStream = new MemoryStream(arrBody))
                     {
-                        var oSvgDocument = SvgDocument.Open<SvgDocument>(oSvgStream);
-                        imageRendered = oSvgDocument.Draw();
+                        AssignImageFromSVG(oSvgStream);
                     }
                 }
                 else
@@ -95,6 +95,14 @@ namespace Extensions
                 oView.txtMetadata.Text = $"Unable to render image: {e.Message}\r\n\r\n{sEncodingWarning}Content-Type: {sContentType}";
                 if (imageBytes != null) oView.txtMetadata.AppendText("\r\n\r\n" + ImageMetadata.Analyze(imageBytes));
             }
+        }
+
+        // SVG is a bit of a pig. Prevent JIT from inlining this method into Assign() so we don't load SVG.dll unless we need it.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void AssignImageFromSVG(MemoryStream oSvgStream)
+        {
+            var oSvgDocument = SvgDocument.Open<SvgDocument>(oSvgStream);
+            imageRendered = oSvgDocument.Draw();
         }
 
         public override void Clear()
