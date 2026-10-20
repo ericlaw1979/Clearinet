@@ -1,6 +1,8 @@
 @title Clearinet Builder
 @powershell -Command "(Get-Item '..\Clearinet\bin\release\clearinet.exe').VersionInfo.FileVersion | Set-Content 'Clearinet.ver'"
 @:signing
+@call SignNSISDlls.cmd
+@call SignDeps.cmd
 @REM // TODO: For post-quantum security, we want to use SHA384 hashes, but those aren't supported until Win11 or Win10 with a Nov2022 Update.
 @REM //       Standard practice for this scenario would be to dual-sign the files. But since we're still using RSA here, the stronger hash
 @REM //       seems like it would be of questionable value?
