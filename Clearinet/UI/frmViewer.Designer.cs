@@ -152,6 +152,8 @@
             this.miExchangeReplay = new System.Windows.Forms.ToolStripMenuItem();
             this.miReplayReplay = new System.Windows.Forms.ToolStripMenuItem();
             this.miReplayWithComposer = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
+            this.miExchangeReplayBrowser = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeDiffer = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeProperties = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
@@ -1174,7 +1176,7 @@
             this.miExchangeInsertSplitter});
             this.mnuExchange.Name = "mnuExchange";
             this.mnuExchange.ShowImageMargin = false;
-            this.mnuExchange.Size = new System.Drawing.Size(129, 120);
+            this.mnuExchange.Size = new System.Drawing.Size(183, 120);
             this.mnuExchange.Opening += new System.ComponentModel.CancelEventHandler(this.mnuExchange_Opening);
             // 
             // mnuExchangeCopy
@@ -1183,7 +1185,7 @@
             this.miExchangeCopyUrl,
             this.miExchangeCopyHeaders});
             this.mnuExchangeCopy.Name = "mnuExchangeCopy";
-            this.mnuExchangeCopy.Size = new System.Drawing.Size(128, 22);
+            this.mnuExchangeCopy.Size = new System.Drawing.Size(182, 22);
             this.mnuExchangeCopy.Text = "&Copy";
             // 
             // miExchangeCopyUrl
@@ -1205,49 +1207,65 @@
             // 
             this.miExchangeReplay.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miReplayReplay,
-            this.miReplayWithComposer});
+            this.miReplayWithComposer,
+            this.toolStripMenuItem4,
+            this.miExchangeReplayBrowser});
             this.miExchangeReplay.Name = "miExchangeReplay";
-            this.miExchangeReplay.Size = new System.Drawing.Size(128, 22);
+            this.miExchangeReplay.Size = new System.Drawing.Size(182, 22);
             this.miExchangeReplay.Text = "&Replay";
             // 
             // miReplayReplay
             // 
             this.miReplayReplay.Name = "miReplayReplay";
             this.miReplayReplay.ShortcutKeyDisplayString = "R";
-            this.miReplayReplay.Size = new System.Drawing.Size(186, 22);
+            this.miReplayReplay.Size = new System.Drawing.Size(207, 22);
             this.miReplayReplay.Text = "&Replay now";
             this.miReplayReplay.Click += new System.EventHandler(this.miReplayReplay_Click);
             // 
             // miReplayWithComposer
             // 
             this.miReplayWithComposer.Name = "miReplayWithComposer";
-            this.miReplayWithComposer.Size = new System.Drawing.Size(186, 22);
-            this.miReplayWithComposer.Text = "Send to &Composer";
+            this.miReplayWithComposer.Size = new System.Drawing.Size(207, 22);
+            this.miReplayWithComposer.Text = "Replay with &Composer";
             this.miReplayWithComposer.Click += new System.EventHandler(this.miReplayWithComposer_Click);
+            // 
+            // toolStripMenuItem4
+            // 
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(204, 6);
+            // 
+            // miExchangeReplayBrowser
+            // 
+            this.miExchangeReplayBrowser.Name = "miExchangeReplayBrowser";
+            this.miExchangeReplayBrowser.Size = new System.Drawing.Size(207, 22);
+            this.miExchangeReplayBrowser.Text = "Replay with &Browser";
+            this.miExchangeReplayBrowser.Click += new System.EventHandler(this.miExchangeReplayBrowser_Click);
             // 
             // miExchangeDiffer
             // 
             this.miExchangeDiffer.Name = "miExchangeDiffer";
-            this.miExchangeDiffer.Size = new System.Drawing.Size(128, 22);
+            this.miExchangeDiffer.Size = new System.Drawing.Size(182, 22);
             this.miExchangeDiffer.Text = "&Diff...";
             this.miExchangeDiffer.Click += new System.EventHandler(this.miExchangeDiffer_Click);
             // 
             // miExchangeProperties
             // 
             this.miExchangeProperties.Name = "miExchangeProperties";
-            this.miExchangeProperties.Size = new System.Drawing.Size(128, 22);
+            this.miExchangeProperties.ShortcutKeyDisplayString = "Alt+Enter";
+            this.miExchangeProperties.Size = new System.Drawing.Size(182, 22);
             this.miExchangeProperties.Text = "&Properties...";
             this.miExchangeProperties.Click += new System.EventHandler(this.miExchangeProperties_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(125, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(179, 6);
             // 
             // miExchangeInsertSplitter
             // 
             this.miExchangeInsertSplitter.Name = "miExchangeInsertSplitter";
-            this.miExchangeInsertSplitter.Size = new System.Drawing.Size(128, 22);
+            this.miExchangeInsertSplitter.ShortcutKeyDisplayString = "=";
+            this.miExchangeInsertSplitter.Size = new System.Drawing.Size(182, 22);
             this.miExchangeInsertSplitter.Text = "Insert Divider";
             this.miExchangeInsertSplitter.Click += new System.EventHandler(this.miExchangeInsertSplitter_Click);
             // 
@@ -1688,6 +1706,8 @@
         private System.Windows.Forms.ToolStripMenuItem miReplayWithComposer;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
         private System.Windows.Forms.ToolStripMenuItem miExchangeInsertSplitter;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
+        private System.Windows.Forms.ToolStripMenuItem miExchangeReplayBrowser;
     }
 }
 
