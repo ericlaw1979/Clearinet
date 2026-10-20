@@ -69,14 +69,14 @@
             this.miFileExit = new System.Windows.Forms.ToolStripMenuItem();
             this.miEdit = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopy = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditCopyForAI = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyURL = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyForAI = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyExchange = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyCurl = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.miEditCopyTerseSummary = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopySummary = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditCopyCurl = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditPasteAsExchanges = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemove = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveSelected = new System.Windows.Forms.ToolStripMenuItem();
@@ -154,6 +154,8 @@
             this.miReplayWithComposer = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeDiffer = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeProperties = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
+            this.miExchangeInsertSplitter = new System.Windows.Forms.ToolStripMenuItem();
             this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
@@ -497,24 +499,17 @@
             // miEditCopy
             // 
             this.miEditCopy.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miEditCopyForAI,
             this.miEditCopyURL,
+            this.miEditCopyForAI,
             this.miEditCopyExchange,
             this.miEditCopyHeaders,
+            this.miEditCopyCurl,
             this.toolStripMenuItem2,
             this.miEditCopyTerseSummary,
-            this.miEditCopySummary,
-            this.miEditCopyCurl});
+            this.miEditCopySummary});
             this.miEditCopy.Name = "miEditCopy";
             this.miEditCopy.Size = new System.Drawing.Size(208, 22);
             this.miEditCopy.Text = "&Copy";
-            // 
-            // miEditCopyForAI
-            // 
-            this.miEditCopyForAI.Name = "miEditCopyForAI";
-            this.miEditCopyForAI.Size = new System.Drawing.Size(188, 22);
-            this.miEditCopyForAI.Text = "For LLM/&AI";
-            this.miEditCopyForAI.Click += new System.EventHandler(this.miEditCopyForAI_Click);
             // 
             // miEditCopyURL
             // 
@@ -523,6 +518,13 @@
             this.miEditCopyURL.Size = new System.Drawing.Size(188, 22);
             this.miEditCopyURL.Text = "Just &Url";
             this.miEditCopyURL.Click += new System.EventHandler(this.miEditCopyURL_Click);
+            // 
+            // miEditCopyForAI
+            // 
+            this.miEditCopyForAI.Name = "miEditCopyForAI";
+            this.miEditCopyForAI.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyForAI.Text = "For LLM/&AI";
+            this.miEditCopyForAI.Click += new System.EventHandler(this.miEditCopyForAI_Click);
             // 
             // miEditCopyExchange
             // 
@@ -536,6 +538,13 @@
             this.miEditCopyHeaders.Name = "miEditCopyHeaders";
             this.miEditCopyHeaders.Size = new System.Drawing.Size(188, 22);
             this.miEditCopyHeaders.Text = "&Headers only";
+            // 
+            // miEditCopyCurl
+            // 
+            this.miEditCopyCurl.Name = "miEditCopyCurl";
+            this.miEditCopyCurl.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyCurl.Text = "as &CURL command";
+            this.miEditCopyCurl.Click += new System.EventHandler(this.miEditCopyCurl_Click);
             // 
             // toolStripMenuItem2
             // 
@@ -555,13 +564,6 @@
             this.miEditCopySummary.Size = new System.Drawing.Size(188, 22);
             this.miEditCopySummary.Text = "&Full Summary Table";
             this.miEditCopySummary.Click += new System.EventHandler(this.miEditCopySummary_Click);
-            // 
-            // miEditCopyCurl
-            // 
-            this.miEditCopyCurl.Name = "miEditCopyCurl";
-            this.miEditCopyCurl.Size = new System.Drawing.Size(188, 22);
-            this.miEditCopyCurl.Text = "as &CURL command";
-            this.miEditCopyCurl.Click += new System.EventHandler(this.miEditCopyCurl_Click);
             // 
             // miEditPasteAsExchanges
             // 
@@ -614,7 +616,7 @@
             this.miEditSelectAll.Name = "miEditSelectAll";
             this.miEditSelectAll.ShortcutKeyDisplayString = "Ctrl+A";
             this.miEditSelectAll.Size = new System.Drawing.Size(208, 22);
-            this.miEditSelectAll.Text = "Select &all...";
+            this.miEditSelectAll.Text = "Select &all";
             this.miEditSelectAll.Click += new System.EventHandler(this.miEditSelectAll_Click);
             // 
             // miEditUnlock
@@ -711,7 +713,7 @@
             // 
             this.miToolsOptions.Name = "miToolsOptions";
             this.miToolsOptions.Size = new System.Drawing.Size(193, 22);
-            this.miToolsOptions.Text = "Clearinet &Options";
+            this.miToolsOptions.Text = "Clearinet &Options...";
             this.miToolsOptions.ToolTipText = "Change Clearinet\'s Configuration Options";
             this.miToolsOptions.Click += new System.EventHandler(this.miToolsOptions_Click);
             // 
@@ -854,14 +856,14 @@
             // 
             this.miHelpDiscuss.Name = "miHelpDiscuss";
             this.miHelpDiscuss.Size = new System.Drawing.Size(184, 22);
-            this.miHelpDiscuss.Text = "Dis&cuss";
+            this.miHelpDiscuss.Text = "Dis&cuss...";
             this.miHelpDiscuss.Click += new System.EventHandler(this.miHelpDiscuss_Click);
             // 
             // miHelpBug
             // 
             this.miHelpBug.Name = "miHelpBug";
             this.miHelpBug.Size = new System.Drawing.Size(184, 22);
-            this.miHelpBug.Text = "File a &bug";
+            this.miHelpBug.Text = "File a &bug...";
             this.miHelpBug.Click += new System.EventHandler(this.miHelpBug_Click);
             // 
             // miHelpCheckForUpdates
@@ -1167,10 +1169,12 @@
             this.mnuExchangeCopy,
             this.miExchangeReplay,
             this.miExchangeDiffer,
-            this.miExchangeProperties});
+            this.miExchangeProperties,
+            this.toolStripMenuItem3,
+            this.miExchangeInsertSplitter});
             this.mnuExchange.Name = "mnuExchange";
             this.mnuExchange.ShowImageMargin = false;
-            this.mnuExchange.Size = new System.Drawing.Size(121, 92);
+            this.mnuExchange.Size = new System.Drawing.Size(129, 120);
             this.mnuExchange.Opening += new System.ComponentModel.CancelEventHandler(this.mnuExchange_Opening);
             // 
             // mnuExchangeCopy
@@ -1179,20 +1183,21 @@
             this.miExchangeCopyUrl,
             this.miExchangeCopyHeaders});
             this.mnuExchangeCopy.Name = "mnuExchangeCopy";
-            this.mnuExchangeCopy.Size = new System.Drawing.Size(120, 22);
+            this.mnuExchangeCopy.Size = new System.Drawing.Size(128, 22);
             this.mnuExchangeCopy.Text = "&Copy";
             // 
             // miExchangeCopyUrl
             // 
             this.miExchangeCopyUrl.Name = "miExchangeCopyUrl";
-            this.miExchangeCopyUrl.Size = new System.Drawing.Size(125, 22);
+            this.miExchangeCopyUrl.ShortcutKeyDisplayString = "U";
+            this.miExchangeCopyUrl.Size = new System.Drawing.Size(136, 22);
             this.miExchangeCopyUrl.Text = "Just &Url";
             this.miExchangeCopyUrl.Click += new System.EventHandler(this.miExchangeCopyUrl_Click);
             // 
             // miExchangeCopyHeaders
             // 
             this.miExchangeCopyHeaders.Name = "miExchangeCopyHeaders";
-            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(125, 22);
+            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(136, 22);
             this.miExchangeCopyHeaders.Text = "&Headers";
             this.miExchangeCopyHeaders.Click += new System.EventHandler(this.miExchangeCopyHeaders_Click);
             // 
@@ -1202,12 +1207,13 @@
             this.miReplayReplay,
             this.miReplayWithComposer});
             this.miExchangeReplay.Name = "miExchangeReplay";
-            this.miExchangeReplay.Size = new System.Drawing.Size(120, 22);
+            this.miExchangeReplay.Size = new System.Drawing.Size(128, 22);
             this.miExchangeReplay.Text = "&Replay";
             // 
             // miReplayReplay
             // 
             this.miReplayReplay.Name = "miReplayReplay";
+            this.miReplayReplay.ShortcutKeyDisplayString = "R";
             this.miReplayReplay.Size = new System.Drawing.Size(186, 22);
             this.miReplayReplay.Text = "&Replay now";
             this.miReplayReplay.Click += new System.EventHandler(this.miReplayReplay_Click);
@@ -1216,22 +1222,34 @@
             // 
             this.miReplayWithComposer.Name = "miReplayWithComposer";
             this.miReplayWithComposer.Size = new System.Drawing.Size(186, 22);
-            this.miReplayWithComposer.Text = "Send to Composer";
+            this.miReplayWithComposer.Text = "Send to &Composer";
             this.miReplayWithComposer.Click += new System.EventHandler(this.miReplayWithComposer_Click);
             // 
             // miExchangeDiffer
             // 
             this.miExchangeDiffer.Name = "miExchangeDiffer";
-            this.miExchangeDiffer.Size = new System.Drawing.Size(120, 22);
+            this.miExchangeDiffer.Size = new System.Drawing.Size(128, 22);
             this.miExchangeDiffer.Text = "&Diff...";
             this.miExchangeDiffer.Click += new System.EventHandler(this.miExchangeDiffer_Click);
             // 
             // miExchangeProperties
             // 
             this.miExchangeProperties.Name = "miExchangeProperties";
-            this.miExchangeProperties.Size = new System.Drawing.Size(120, 22);
+            this.miExchangeProperties.Size = new System.Drawing.Size(128, 22);
             this.miExchangeProperties.Text = "&Properties...";
             this.miExchangeProperties.Click += new System.EventHandler(this.miExchangeProperties_Click);
+            // 
+            // toolStripMenuItem3
+            // 
+            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(125, 6);
+            // 
+            // miExchangeInsertSplitter
+            // 
+            this.miExchangeInsertSplitter.Name = "miExchangeInsertSplitter";
+            this.miExchangeInsertSplitter.Size = new System.Drawing.Size(128, 22);
+            this.miExchangeInsertSplitter.Text = "Insert Divider";
+            this.miExchangeInsertSplitter.Click += new System.EventHandler(this.miExchangeInsertSplitter_Click);
             // 
             // txtQuickExec
             // 
@@ -1395,6 +1413,7 @@
             // 
             // splitRequestResponse
             // 
+            this.splitRequestResponse.BackColor = System.Drawing.Color.LightSlateGray;
             this.splitRequestResponse.Dock = System.Windows.Forms.DockStyle.Top;
             this.splitRequestResponse.Location = new System.Drawing.Point(4, 198);
             this.splitRequestResponse.Name = "splitRequestResponse";
@@ -1667,6 +1686,8 @@
         private System.Windows.Forms.ToolStripMenuItem miExchangeProperties;
         private System.Windows.Forms.ToolStripMenuItem miReplayReplay;
         private System.Windows.Forms.ToolStripMenuItem miReplayWithComposer;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
+        private System.Windows.Forms.ToolStripMenuItem miExchangeInsertSplitter;
     }
 }
 

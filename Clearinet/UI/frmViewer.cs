@@ -155,6 +155,128 @@ namespace Clearinet
             };
             oFrm.ShowDialog(this);
         }
+
+        public void actCopyCURLCommands(Exchange[] arrExch)
+        {
+            if (arrExch.Length < 1) return;
+            try
+            {
+                string flavor = CApp.Prefs.GetStringPref("app.copy.curl.flavor", "powershell");
+                if (!flavor.OICEquals("powershell") && !flavor.OICEquals("cmd"))
+                {
+                    flavor = "powershell";
+                }
+                StringBuilder commands = new StringBuilder();
+                foreach (Exchange exch in arrExch)
+                {
+                    commands.AppendLine(FormatCURLCommand(exch, flavor.OICEquals("cmd")));
+                }
+                Clipboard.SetText(commands.ToString());
+            }
+            catch (Exception eX) { CApp.ReportException(eX, "Copy as CURL failed"); }
+        }
+
+        private static string FormatCURLCommand(Exchange exch, bool forCommandPrompt)
+        {
+            HTTPRequestHeaders headers = exch.RequestHeaders;
+            if (headers == null || !headers.HTTPMethod.HasText())
+            {
+                throw new InvalidDataException($"Exchange #{exch.id} has no request headers or method.");
+            }
+            StringBuilder command = new StringBuilder("curl.exe --disable");
+            StringBuilder config = new StringBuilder("& { $OutputEncoding = New-Object Text.UTF8Encoding; @(");
+            bool firstOption = true;
+            void AddOption(string name, string value = null)
+            {
+                command.Append(" --").Append(name);
+                if (value != null) command.Append(' ').Append(QuoteCURLCmdArgument(value));
+                if (!firstOption) config.Append(", ");
+                firstOption = false;
+                string line = name;
+                if (value != null)
+                {
+                    line += " = \"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"")
+                        .Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t") + "\"";
+                }
+                config.Append('\'').Append(line.Replace("'", "''")).Append('\'');
+            }
+            AddOption("globoff");
+            AddOption("path-as-is");
+            AddOption("url", exch.fullUrl);
+            AddOption("request", headers.HTTPMethod);
+            switch (headers.HTTPVersion)
+            {
+                case "HTTP/1.0": AddOption("http1.0"); break;
+                case "HTTP/1.1": AddOption("http1.1"); break;
+                case "HTTP/2":
+                case "HTTP/2.0": AddOption("http2"); break;
+                case "HTTP/3":
+                case "HTTP/3.0": AddOption("http3-only"); break;
+                default: throw new InvalidDataException($"Unsupported HTTP version: {headers.HTTPVersion}");
+            }
+            bool isHead = headers.HTTPMethod.OICEquals("HEAD");
+            if (isHead && !exch.RequestBody.HasData()) AddOption("head");
+
+            foreach (HTTPHeaderItem header in headers)
+            {
+                if (header.Name.OICEquals("Transfer-Encoding")) continue;
+                if (header.Name.OICEquals("Content-Length") && !isHead) continue;
+                AddOption("header", header.Name + (header.Value.Length == 0 ? ";" : ": " + header.Value));
+            }
+            // Suppress headers that curl would otherwise add to the request.
+            foreach (string name in new[] { "Accept", "User-Agent", "Content-Type", "Expect" })
+            {
+                if (!headers.Exists(name)) AddOption("header", name + ":");
+            }
+
+            byte[] body = exch.RequestBody ?? Array.Empty<byte>();
+            if (headers.Exists("Transfer-Encoding"))
+            {
+                HTTPRequestHeaders transferHeaders = headers.Clone();
+                transferHeaders.Remove("Content-Encoding");
+                body = Exchange.DecodeBodyFromHeaders(transferHeaders, body);
+            }
+            if (body.Length > 0 || (!isHead && headers.ExistsAny("Content-Length", "Transfer-Encoding")))
+            {
+                bool shortPlaintext = body.Length <= 1024;
+                for (int i = 0; shortPlaintext && i < body.Length; ++i)
+                {
+                    shortPlaintext = body[i] >= 0x20 && body[i] <= 0x7e;
+                }
+                AddOption(shortPlaintext ? "data-raw" : "data-binary",
+                    shortPlaintext ? Encoding.ASCII.GetString(body) : "@YOURREQUESTBODYBINARYFILEHERE.DAT");
+            }
+            config.Append(") | curl.exe --disable --config - }");
+            return forCommandPrompt ? command.ToString() : config.ToString();
+        }
+
+        private static string QuoteCURLCmdArgument(string value)
+        {
+            if (value.IndexOfAny(new[] { '\0', '\r', '\n' }) >= 0)
+            {
+                throw new InvalidDataException("CURL command arguments cannot contain NUL characters or line breaks.");
+            }
+            StringBuilder quoted = new StringBuilder("\"");
+            int backslashes = 0;
+            foreach (char c in value)
+            {
+                if (c == '\\')
+                {
+                    ++backslashes;
+                    continue;
+                }
+                quoted.Append('\\', c == '"' ? backslashes * 2 + 1 : backslashes).Append(c);
+                backslashes = 0;
+            }
+            quoted.Append('\\', backslashes * 2).Append('"');
+            StringBuilder escaped = new StringBuilder();
+            foreach (char c in quoted.ToString())
+            {
+                if ("^&|<>()\"%".IndexOf(c) >= 0) escaped.Append('^');
+                escaped.Append(c);
+            }
+            return escaped.ToString();
+        }
         #endregion ACTIONS
 
         private void miTextWizard_Click(object sender, EventArgs e)
@@ -459,9 +581,6 @@ namespace Clearinet
             if (CApp.Prefs.GetBoolPref("app.ui.darkmode", false)) ThemeManager.ApplyDarkMode(this);
 
         }
-
-        // TODO: MOVE
-        ToolStripMenuItem miExchangeDiff;
 
         private void frmViewer_Load(object sender, EventArgs e)
         {
@@ -1321,11 +1440,12 @@ namespace Clearinet
             }
             if (tabsViews.SelectedTab == pageComposer)
             {
+                // Delay-load the composer UI
                 if (0 == pageComposer.Controls.Count)
                 {
-                    ComposerView cv = new ComposerView();
-                    pageComposer.Controls.Add(cv);
-                    cv.Dock = DockStyle.Fill;
+                    CApp.oComposer = new ComposerView();
+                    pageComposer.Controls.Add(CApp.oComposer);
+                    CApp.oComposer.Dock = DockStyle.Fill;
                 }
                 return;
             }
@@ -1402,11 +1522,8 @@ namespace Clearinet
         {
             if (e.KeyData == Keys.Oemplus)
             {
-                DateTime dt = DateTime.Now;
+                actAddFauxSplitter();
                 e.Handled = e.SuppressKeyPress = true;
-                var XC = AddFauxExchange($"/SPLITTER/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes($"User hit = to create a split line at\n{dt.ToLongTimeString()}"));
-                XC.oFlags["ui-strikeout"] = "splitter";
-                XC.oFlags["ui-backcolor"] = "OrangeRed";
                 return;
             }
             if (e.KeyCode == Keys.D1 && e.Modifiers == Keys.Control)
@@ -1442,6 +1559,11 @@ namespace Clearinet
             {
                 switch (e.KeyCode)
                 {
+                    case Keys.A:
+                        actSelectAll();
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+
                     case Keys.C:
                         e.SuppressKeyPress = e.Handled = true;
                         miEditCopyExchange.PerformClick();
@@ -1451,6 +1573,7 @@ namespace Clearinet
                         lvExchanges.ClearExchanges();
                         e.SuppressKeyPress = e.Handled = true;
                         break;
+
                     case Keys.Z:
                         lvExchanges.UndeleteItems();
                         e.SuppressKeyPress = e.Handled = true;
@@ -1496,6 +1619,15 @@ namespace Clearinet
                     actReplaySelected(e.Modifiers == Keys.Shift);
                     break;
             }   // switch
+        }
+
+        private void actAddFauxSplitter()
+        {
+            DateTime dt = DateTime.Now;
+            var XC = AddFauxExchange($"/SPLITTER/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes($"User hit = to create a split line at\n{dt.ToLongTimeString()}"));
+            XC.oFlags["ui-strikeout"] = "splitter";
+            XC.oFlags["ui-backcolor"] = "OrangeRed";
+            return;
         }
 
         private void MarkSessions(Exchange[] exchanges)
@@ -1611,6 +1743,8 @@ namespace Clearinet
                     CApp.DoNotifyUser("The clipboard did not contain any text.", "Paste Failed");
                     return;
                 }
+
+                // TODO: Can we handle paste of CURL Commands?
 
                 var headersRequest = new HTTPRequestHeaders($"/clipboard/{DateTime.Now:H-mm-ss}.txt", new[] { "Host: localhost" });
                 var exchNew = new Exchange(headersRequest, Array.Empty<byte>())
@@ -1903,8 +2037,9 @@ namespace Clearinet
 
         private void mnuExchange_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            mnuExchangeCopy.Enabled = lvExchanges.SelectedCount > 0;
-            miExchangeDiff.Enabled = lvExchanges.SelectedCount == 2;
+            miExchangeReplay.Enabled = miExchangeProperties.Enabled =
+                mnuExchangeCopy.Enabled = lvExchanges.SelectedCount > 0;
+            miExchangeDiffer.Enabled = lvExchanges.SelectedCount == 2;
         }
 
         private void miExchangeCopyUrl_Click(object sender, EventArgs e)
@@ -2115,7 +2250,7 @@ namespace Clearinet
 
         private void miEditCopyCurl_Click(object sender, EventArgs e)
         {
-
+            actCopyCURLCommands(GetSelectedExchanges());
         }
 
         private void miEditMarkStrikeout_Click(object sender, EventArgs e)
@@ -2182,7 +2317,18 @@ namespace Clearinet
 
         private void miReplayWithComposer_Click(object sender, EventArgs e)
         {
-            // TODO: Send to composer.
+            Exchange exch = GetFirstSelectedExchange();
+            if (null == exch) return;
+            actActivateTab("Composer");
+            if (CApp.oComposer != null)
+            {
+                CApp.oComposer.PopulateFromExchange(exch);
+            }
+        }
+
+        private void miExchangeInsertSplitter_Click(object sender, EventArgs e)
+        {
+            actAddFauxSplitter();
         }
     }
 

@@ -24,8 +24,8 @@ namespace Clearinet
     /// </summary>
     public class ExchangeListView : BetterListView
     {
-        public event EventHandler ItemShowProperties;
-        public EventHandler OnExchangesAdded;
+        // public event EventHandler ItemShowProperties;
+        // public EventHandler OnExchangesAdded;
 
         private LVCSorter sorter;
 
