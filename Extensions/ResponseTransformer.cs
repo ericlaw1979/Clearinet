@@ -2,8 +2,6 @@ using Clearinet;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Text;
 
 namespace Extensions
 {
@@ -85,47 +83,12 @@ namespace Extensions
             switch (encoding)
             {
                 case "identity": return input;
-                case "chunked": return Chunk(input);
+                case "chunked": return Utilities.ApplyChunking(input);
                 case "gzip": return Utilities.GzipCompress(input);
                 case "deflate": return Utilities.DeflaterCompress(input);
                 case "br": return Utilities.BrotliCompress(input);
                 case "zstd": return Utilities.ZstdCompress(input);
                 default: throw new NotSupportedException($"Unsupported encoding '{encoding}'.");
-            }
-        }
-
-        /// <summary>
-        /// Apply HTTP Chunked encoding to the body.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        private static byte[] Chunk(byte[] input)
-        {
-            int count = 16;
-            while (count * (count + 1) / 2 > input.Length) count--;
-            using (var output = new MemoryStream())
-            {
-                int offset = 0;
-                if (count > 0)
-                {
-                    int weight = count * (count + 1) / 2;
-                    int unit = input.Length / weight;
-                    int remainder = input.Length % weight;
-                    for (int i = 1; i <= count; i++)
-                    {
-                        int size = i * unit + remainder / count;
-                        if (i == count) size += remainder % count;
-                        byte[] prefix = Encoding.ASCII.GetBytes(size.ToString("X", CultureInfo.InvariantCulture) + "\r\n");
-                        output.Write(prefix, 0, prefix.Length);
-                        output.Write(input, offset, size);
-                        output.WriteByte(13);
-                        output.WriteByte(10);
-                        offset += size;
-                    }
-                }
-                byte[] terminator = Encoding.ASCII.GetBytes("0\r\n\r\n");
-                output.Write(terminator, 0, terminator.Length);
-                return output.ToArray();
             }
         }
     }

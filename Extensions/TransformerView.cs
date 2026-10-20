@@ -1,4 +1,3 @@
-// Chunking uses 16 increasing chunks (fewer for bodies under 136 bytes).
 using Clearinet;
 using System;
 using System.Collections.Generic;

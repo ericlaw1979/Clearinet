@@ -57,13 +57,8 @@ public class HTTPClientBridge
                     }
 
                     XC.ResponseHeaders = new HTTPResponseHeaders((int)response.StatusCode, response.ReasonPhrase, allHeaders.ToArray());
-
-                    if (XC.ResponseHeaders.ExistsAndContains("Transfer-Encoding", "chunked"))
-                    {
-                        XC["HACK-HttpClientAlwaysUnchunks"] = "true";
-                        XC.ResponseHeaders.Remove("Transfer-Encoding");
-                        // TODO: re-chunk the body with pseudo chunks.
-                    }
+                    XC["X-FetchedBy"] = $"Clearinet HttpClientBridge (used HTTP/{response.Version})";
+                    XC.ResponseHeaders.HTTPVersion = $"HTTP/{response.Version}";
 
                     using (Stream rawResponseBodyStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                     {
@@ -73,6 +68,13 @@ public class HTTPClientBridge
                             XC.ResponseBody = ms.ToArray();
                         }
                     }
+
+                    if (XC.ResponseHeaders.ExistsAndContains("Transfer-Encoding", "chunked"))
+                    {
+                        XC.ResponseHeaders["Transfer-Encoding-REAPPLIEDBYCLEARINETForHttpClient"] = "true";
+                        XC.ResponseBody = Utilities.ApplyChunking(XC.ResponseBody);
+                    }
+
                     XC.Timers.ServerDoneResponse = DateTime.Now;
                 }
             }

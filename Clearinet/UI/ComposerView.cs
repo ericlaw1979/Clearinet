@@ -56,6 +56,7 @@ namespace Clearinet
                     Parser.ParseRequestHeaders(
                         $"{cbxMethod.Text} {txtURL.Text} {cbxHTTPVersion.Text}\r\n" +
                         string.Join("\r\n", lines));
+
                 HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList)
                 {
                     HTTPVersion = version,

@@ -32,8 +32,18 @@ namespace Clearinet
         //TODO:Locking!
         public string HTTPVersion { get; set; } = "HTTP/1.1";
         protected Encoding _encodingHeaders = Encoding.UTF8;
-        public void RenameHeaderItems(string fromHeaderName, string toHeaderName)
+        public bool RenameHeaderItems(string fromHeaderName, string toHeaderName)
         {
+            bool bAnyHits = false;
+            foreach (var item in storage)
+            {
+                if (item.Name.OICEquals(fromHeaderName))
+                {
+                    item.Name = toHeaderName;
+                    bAnyHits = true;
+                }
+            }
+            return bAnyHits;
         }
 
         // TODO: Should this be a smarter structure?

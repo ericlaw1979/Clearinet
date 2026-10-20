@@ -154,6 +154,11 @@ namespace Clearinet
                                 sorigin = path.Substring(0, ixDelimiter);
                                 path = path.Substring(ixDelimiter);
                             }
+                            else
+                            {   // TODO: HTTP Protocol violation, empty request path (e.g. "http://missingtrailingslash.com")
+                                sorigin = path;
+                                path = "/";
+                            }
                         }
                     }
                 }
