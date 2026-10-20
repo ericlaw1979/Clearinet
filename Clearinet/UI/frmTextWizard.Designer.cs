@@ -29,12 +29,10 @@
         private void InitializeComponent()
         {
             System.Windows.Forms.Label lblTransform;
-            System.Windows.Forms.Label lblSave;
             this.pnlFill = new System.Windows.Forms.Panel();
             this.txtOutput = new System.Windows.Forms.TextBox();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.lnkSaveAsFile = new System.Windows.Forms.LinkLabel();
-            this.lnkSaveAsExchange = new System.Windows.Forms.LinkLabel();
+            this.cbxOutputTo = new System.Windows.Forms.ComboBox();
             this.btnSetInputFromOutput = new System.Windows.Forms.Button();
             this.lnkEncodings = new System.Windows.Forms.LinkLabel();
             this.cbViewBytes = new System.Windows.Forms.CheckBox();
@@ -42,7 +40,6 @@
             this.lblExplain = new System.Windows.Forms.Label();
             this.txtInput = new System.Windows.Forms.TextBox();
             lblTransform = new System.Windows.Forms.Label();
-            lblSave = new System.Windows.Forms.Label();
             this.pnlFill.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -55,16 +52,6 @@
             lblTransform.Size = new System.Drawing.Size(56, 13);
             lblTransform.TabIndex = 0;
             lblTransform.Text = "&Transform";
-            // 
-            // lblSave
-            // 
-            lblSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            lblSave.AutoSize = true;
-            lblSave.Location = new System.Drawing.Point(501, 10);
-            lblSave.Name = "lblSave";
-            lblSave.Size = new System.Drawing.Size(72, 13);
-            lblSave.TabIndex = 5;
-            lblSave.Text = "Save Output:";
             // 
             // pnlFill
             // 
@@ -92,9 +79,7 @@
             // 
             // panel2
             // 
-            this.panel2.Controls.Add(this.lnkSaveAsFile);
-            this.panel2.Controls.Add(lblSave);
-            this.panel2.Controls.Add(this.lnkSaveAsExchange);
+            this.panel2.Controls.Add(this.cbxOutputTo);
             this.panel2.Controls.Add(lblTransform);
             this.panel2.Controls.Add(this.btnSetInputFromOutput);
             this.panel2.Controls.Add(this.lnkEncodings);
@@ -107,31 +92,22 @@
             this.panel2.Size = new System.Drawing.Size(969, 39);
             this.panel2.TabIndex = 2;
             // 
-            // lnkSaveAsFile
+            // cbxOutputTo
             // 
-            this.lnkSaveAsFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lnkSaveAsFile.AutoSize = true;
-            this.lnkSaveAsFile.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkSaveAsFile.Location = new System.Drawing.Point(690, 10);
-            this.lnkSaveAsFile.Name = "lnkSaveAsFile";
-            this.lnkSaveAsFile.Size = new System.Drawing.Size(37, 13);
-            this.lnkSaveAsFile.TabIndex = 6;
-            this.lnkSaveAsFile.TabStop = true;
-            this.lnkSaveAsFile.Text = "as File";
-            this.lnkSaveAsFile.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkSaveAsFile_LinkClicked);
-            // 
-            // lnkSaveAsExchange
-            // 
-            this.lnkSaveAsExchange.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lnkSaveAsExchange.AutoSize = true;
-            this.lnkSaveAsExchange.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkSaveAsExchange.Location = new System.Drawing.Point(598, 10);
-            this.lnkSaveAsExchange.Name = "lnkSaveAsExchange";
-            this.lnkSaveAsExchange.Size = new System.Drawing.Size(68, 13);
-            this.lnkSaveAsExchange.TabIndex = 4;
-            this.lnkSaveAsExchange.TabStop = true;
-            this.lnkSaveAsExchange.Text = "as Exchange";
-            this.lnkSaveAsExchange.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkSaveAsExchange_LinkClicked);
+            this.cbxOutputTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbxOutputTo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxOutputTo.FormattingEnabled = true;
+            this.cbxOutputTo.Items.AddRange(new object[] {
+            "Save output to...",
+            "Clipboard",
+            "Fake Exchange",
+            "File..."});
+            this.cbxOutputTo.Location = new System.Drawing.Point(527, 7);
+            this.cbxOutputTo.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.cbxOutputTo.Name = "cbxOutputTo";
+            this.cbxOutputTo.Size = new System.Drawing.Size(207, 21);
+            this.cbxOutputTo.TabIndex = 7;
+            this.cbxOutputTo.SelectedIndexChanged += new System.EventHandler(this.cbxOutputTo_SelectedIndexChanged);
             // 
             // btnSetInputFromOutput
             // 
@@ -148,7 +124,7 @@
             // lnkEncodings
             // 
             this.lnkEncodings.AutoSize = true;
-            this.lnkEncodings.Location = new System.Drawing.Point(414, 10);
+            this.lnkEncodings.Location = new System.Drawing.Point(397, 10);
             this.lnkEncodings.Name = "lnkEncodings";
             this.lnkEncodings.Size = new System.Drawing.Size(88, 13);
             this.lnkEncodings.TabIndex = 2;
@@ -194,7 +170,10 @@
             "Hash(AsSHA256)",
             "Hash(AsSHA384)",
             "Hash(AsSHA512)",
-            "CrackURL"});
+            "CrackURL",
+            "Epoch",
+            "JWT Token Decoder",
+            "CBOR"});
             this.cbxTransforms.Location = new System.Drawing.Point(79, 7);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";
@@ -266,7 +245,6 @@
         private System.Windows.Forms.CheckBox cbViewBytes;
         private System.Windows.Forms.ComboBox cbxTransforms;
         private System.Windows.Forms.TextBox txtInput;
-        private System.Windows.Forms.LinkLabel lnkSaveAsExchange;
-        private System.Windows.Forms.LinkLabel lnkSaveAsFile;
+        private System.Windows.Forms.ComboBox cbxOutputTo;
     }
 }

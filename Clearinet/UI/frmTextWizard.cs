@@ -228,7 +228,7 @@ namespace Clearinet
                         }
                         else
                         {
-                            sOutput = $"Error: Unable to parse '{sText}' as a valid timestamp.";
+                            sOutput = "Error: Unable to parse as a valid timestamp.";
                         }
                         break;
 
@@ -385,17 +385,11 @@ namespace Clearinet
         internal frmTextWizard(string sInput)
         {
             InitializeComponent();
+            cbxOutputTo.SelectedIndex = 0;
 
             txtInput.Font = new Font(txtInput.Font.FontFamily, CONFIG.flFontSize);
-
             txtOutput.Font = new Font(txtOutput.Font.FontFamily, CONFIG.flFontSize);
             txtOutput.BackColor = CONFIG.colorDisabledEdit;
-
-            // TODO:Fix
-            cbxTransforms.Items.Add("Epoch");
-            cbxTransforms.Items.Add("JWT Token Decoder");
-            cbxTransforms.Items.Add("CBOR");
-
             cbxTransforms.Items.AddRange(CApp.scriptRules.AvailableTextCodecs());
 
             try
@@ -469,34 +463,6 @@ namespace Clearinet
             }
         }
 
-        private void lnkSaveAsExchange_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                if (null == arrLatestOutput)
-                {
-                    arrLatestOutput = encodingOutput.GetBytes(txtOutput.Text);
-                }
-                CApp.UI.AddFauxExchange($"/TextWizard/{DateTime.Now.ToString("H-mm-ss")}", "application/octet-stream", arrLatestOutput);
-            }
-            catch (Exception eX) { CApp.ReportException(eX, "Failed"); }
-        }
-
-        private void lnkSaveAsFile_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                if (null == arrLatestOutput)
-                {
-                    arrLatestOutput = encodingOutput.GetBytes(txtOutput.Text);
-                }
-                string sFilename = Utilities.ObtainSaveFilename("Save output...", "All files|*.*");
-                if (!sFilename.HasText()) return;
-                File.WriteAllBytes(sFilename, arrLatestOutput);
-            }
-            catch (Exception eX) { CApp.ReportException(eX, "Export failed"); }
-        }
-
         private void cbxTransforms_SelectedIndexChanged(object sender, EventArgs e)
         {
             Recalc();
@@ -515,7 +481,7 @@ namespace Clearinet
 
         private void _EnableExport(bool b)
         {
-            lnkSaveAsExchange.Enabled = lnkSaveAsFile.Enabled = b;
+            cbxOutputTo.Enabled = b;
         }
 
         private void cbViewBytes_CheckedChanged(object sender, EventArgs e)
@@ -523,11 +489,6 @@ namespace Clearinet
             // Ensure we use a monospaced font for the output box when viewing bytes, and a Unicode font otherwise.
             txtOutput.Font = new Font((cbViewBytes.Checked ? "Consolas" : "Arial Unicode MS"), CONFIG.flFontSize);
             Recalc();
-        }
-
-        private void lnkToClipboard_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Clipboard.SetText(txtOutput.Text);
         }
 
         // TODO: Find a better home for this?
@@ -573,6 +534,43 @@ namespace Clearinet
             int val = c;
             // Handles '0'-'9', 'A'-'F', 'a'-'f'
             return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+        }
+
+        private void cbxOutputTo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (cbxOutputTo.SelectedIndex)
+            {
+                case 1: // Clipboard
+                    Clipboard.SetText(txtOutput.Text);
+                    cbxOutputTo.SelectedIndex = 0;
+                    break;
+                case 2: // Fake Exchange
+                    try
+                    {
+                        if (null == arrLatestOutput)
+                        {
+                            arrLatestOutput = encodingOutput.GetBytes(txtOutput.Text);
+                        }
+                        CApp.UI.AddFauxExchange($"/TextWizard/{DateTime.Now.ToString("H-mm-ss")}", "application/octet-stream", arrLatestOutput);
+                    }
+                    catch (Exception eX) { CApp.ReportException(eX, "Failed"); }
+                    cbxOutputTo.SelectedIndex = 0;
+                    break;
+                case 3: // File
+                    try
+                    {
+                        if (null == arrLatestOutput)
+                        {
+                            arrLatestOutput = encodingOutput.GetBytes(txtOutput.Text);
+                        }
+                        string sFilename = Utilities.ObtainSaveFilename("Save output...", "All files|*.*");
+                        if (!sFilename.HasText()) return;
+                        File.WriteAllBytes(sFilename, arrLatestOutput);
+                    }
+                    catch (Exception eX) { CApp.ReportException(eX, "Export failed"); }
+                    cbxOutputTo.SelectedIndex = 0;
+                    break;
+            }
         }
     }
 
