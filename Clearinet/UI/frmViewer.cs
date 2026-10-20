@@ -197,6 +197,7 @@ namespace Clearinet
             Exchange[] arrEx = GetSelectedExchanges();
             foreach (Exchange xc in arrEx)
             {
+                Trace.WriteLine("Updating Inspector for Exchange #" + xc.id);
                 UpdateViewItem(xc);
             }
         }

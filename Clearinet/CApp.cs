@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Clearinet.UI;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -141,7 +142,7 @@ namespace Clearinet
         {
             if (sParams.Length < 2)
             {
-                MessageBox.Show("set <name> <value>\r\nshow <name>\r\nremove <name>\r\ndump", "Available 'prefs' actions", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("set <name> <value>\nshow <name>\nremove <name>\ndump\n\nOr type `about:config` for a friendly editor.", "Available 'prefs' actions", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -150,7 +151,7 @@ namespace Clearinet
                 case "set":
                     if (sParams.Length != 4)
                     {
-                        MessageBox.Show("Correct Syntax is:\r\n\r\n\tprefs SET prefName \"new value\"", "Invalid 'prefs set' Parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Correct Syntax is:\n\n\tprefs SET prefName \"new value\"", "Invalid 'prefs set' Parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                     try
@@ -167,16 +168,15 @@ namespace Clearinet
                 case "show":
                     if (sParams.Length != 3)
                     {
-                        MessageBox.Show("Correct Syntax is:\r\n\r\n\tprefs SHOW prefName", "Invalid 'prefs show' parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Correct Syntax is:\n\n\tprefs SHOW prefName", "Invalid 'prefs show' parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                     MessageBox.Show($"Preference '{sParams[2]}' = '{CApp.Prefs.GetStringPref(sParams[2], "<null>")}'", "Preference Value", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
-
                 case "remove":
                     if (sParams.Length != 3)
                     {
-                        MessageBox.Show("Correct Syntax is:\r\n\r\n\tprefs REMOVE prefName", "Invalid 'prefs remove' parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Correct Syntax is:\n\n\tprefs REMOVE prefName", "Invalid 'prefs remove' parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                     CApp.Prefs.RemovePref(sParams[2]);
@@ -188,7 +188,7 @@ namespace Clearinet
                     break;
 
                 default:
-                    MessageBox.Show("set <name> <value>\r\nshow <name>\r\nremove <name>\r\ndump", "Available 'prefs' actions", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("set <name> <value>\nshow <name>\nremove <name>\ndump", "Available 'prefs' actions", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
             }
         }
@@ -203,15 +203,16 @@ namespace Clearinet
             if ("help" == sCmd)
             {
                 MessageBox.Show("Built-in commands:\n" +
-                    "? <findtext> - Select exchanges with URL containing <findtext>\n" +
-                    "= <responsecode|method> - Select exchanges with response code or method\n" +
-                    "prefs <set|show|remove|dump> <prefname> <prefval>" +
-                    "lm - lists loaded modules" +
-                    "cls" +
-                    "select <mime>" +
-                    "tail <#>" +
+                    "? <findtext> - Select Exchanges where URL has <findtext>\n" +
+                    "= <responsecode|method> - Select Exchanges w/ response code or method\n" +
+                    "about:config - Open the Preferences editor\n" +
+                    "prefs <set|show|remove|dump> <prefname> <prefval>\n" +
+                    "lm - Lists loaded modules\n" +
+                    "cls - Clear the Exchanges list\n" +
+                    "select <mime>\n" +
+                    "tail <#> - Keep only the most recent # of Exchanges\n" +
                     "lro <TestLongRunningOperation name>",
-                    "TODO: Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    "QuickExec QuickHelp", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
             }
 
@@ -223,6 +224,12 @@ namespace Clearinet
             if ("prefs" == sCmd)
             {
                 _QuickExecAdjustPrefs(arrParams);
+                return true;
+            }
+
+            if ("about:config" == sCmd)
+            {
+                PrefView.CreatePrefsTab(UI.tabsViews);
                 return true;
             }
 

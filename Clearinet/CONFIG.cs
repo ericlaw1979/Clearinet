@@ -137,6 +137,8 @@ namespace Clearinet
                     return "https://clearinet.app/";
                 case "Help":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HELP.md";
+                case "HelpPrefs":
+                    return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/PREFERENCES.md";
             }
             Trace.WriteLine($"Failed to find URL `{sWhich}`.");
             return $"https://clearinet.app/?missing_GetURL_code={sWhich}";

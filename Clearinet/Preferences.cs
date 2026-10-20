@@ -1,13 +1,13 @@
 // TODO: Document philosophy for naming preferences. Names should be short, not contain "ephemeral" unless you want that,
 // and should be "namespaced" to allow filtered watchers (e.g. WatchPreference("mynode."))
+using Microsoft.Win32;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.Win32;
-using System.Collections.Generic;
-using System.Collections;
 using System.Text;
+using System.Threading;
 
 namespace Clearinet
 {
@@ -145,6 +145,8 @@ namespace Clearinet
         string this[string sName] { get; set; }
 
         string ToString(bool bVerbose);
+
+        bool isValidName(string sName);
     }
 
     /// <summary>
@@ -196,7 +198,7 @@ namespace Clearinet
 
         #region PrefNameValidation
         static char[] _arrForbiddenChars = { '*', ' ', '$', '%', '@', '?', '!' };
-        public static bool isValidName(string sName)
+        public bool isValidName(string sName)
         {
             // Note: We don't limit keynames to 255 characters any more, but you really should be succinct.
             // TODO: Use RegEx to enforce A-z0-9-_
@@ -591,7 +593,7 @@ namespace Clearinet
         public PreferenceBag.PrefWatcher AddWatcher(string sPrefixFilter, EventHandler<PrefChangeEventArgs> pcehHandler)
         {
             // TODO: Validate sBranchFilter?            
-            PrefWatcher wliNew = new PrefWatcher(sPrefixFilter.ToLower(), pcehHandler);
+            PrefWatcher wliNew = new PrefWatcher(sPrefixFilter?.ToLower() ?? string.Empty, pcehHandler);
             GetWriterLock(_RWLockWatchers);
             try
             {

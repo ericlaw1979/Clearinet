@@ -416,7 +416,7 @@ namespace Clearinet
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Unable to launch the requested application:\n\n{ex.Message}", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Unable to launch the requested application:\n\n{sApp} {sParams}\n\n{ex.Message}", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
