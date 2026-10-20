@@ -38,7 +38,45 @@ namespace Clearinet
             };
             this.ListViewItemSorter = sorter;
             this.ItemDrag += ExchangeListView_ItemDrag;
+            this.MouseClick += ExchangeListView_MouseClick;
         }
+
+        private void ExchangeListView_MouseClick(object sender, MouseEventArgs e)
+        {
+            // When a user Alt+Clicks a column value, select all Exchanges that have the same value in that column.
+            // If user Ctrl+Alt+Clicks, then add to the selection instead of replacing it.
+            if (Keys.Alt == (Control.ModifierKeys & Keys.Alt) && e.Button == MouseButtons.Left)
+            {
+                ListViewItem lvi = this.GetItemAt(e.X, e.Y);
+
+                int idxColumn = -1;
+                var hitInfo = HitTest(e.Location);
+                if (hitInfo.Item != null && hitInfo.SubItem != null)
+                {
+                    idxColumn = hitInfo.Item.SubItems.IndexOf(hitInfo.SubItem);
+                }
+                if ((idxColumn < 0) || (lvi.SubItems.Count <= idxColumn)) return;
+
+                string sFindText = lvi.SubItems[idxColumn].Text;
+
+                // "Picker mode"
+                bool bGrowSelection = (Keys.Control == (Control.ModifierKeys & Keys.Control));
+
+                // TODO: Fiddler supported a "Toggle" mode where if you clicked a value that was already selected,
+                // it would unselect all of the matches. That seems both obscure and complicated (since the a given
+                // item could match multiple criteria). For now, we will just support "Grow" mode (Ctrl+Alt) and "Replace" mode (Alt).
+
+                CApp.UI.actSelectExchangesMatchingCriteria((oS) =>
+                {
+                    ListViewItem lviToTest = oS.ViewItem;
+                    if (lviToTest == null) return false;
+                    if (bGrowSelection & lviToTest.Selected) return true;
+                    if (lviToTest.SubItems.Count <= idxColumn) return false;
+                    return String.Equals(lviToTest.SubItems[idxColumn].Text, sFindText);
+                }, bClearSelectionFirst: !bGrowSelection);
+            }
+        }
+
         public Exchange[] GetAllExchanges()
         {
             int iCount = Items.Count;

@@ -106,11 +106,11 @@ namespace Clearinet
             Win32UI.activateTitledTab(sTabTitle, tabsViews);
         }
 
-        public void actSelectExchangesMatchingCriteria(Func<Exchange, bool?> oCriteriaChecker, int iMatchAtMost = Int32.MaxValue)
+        public void actSelectExchangesMatchingCriteria(Func<Exchange, bool?> oCriteriaChecker, int iMatchAtMost = Int32.MaxValue, bool bClearSelectionFirst = true)
         {
             CApp.PauseReporting = true;
             lvExchanges.BeginUpdate();
-            lvExchanges.SelectedItems.Clear();
+            if (bClearSelectionFirst) lvExchanges.SelectedItems.Clear();
             int iMatches = 0;
             foreach (ListViewItem lvi in lvExchanges.Items)
             {
