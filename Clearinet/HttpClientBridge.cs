@@ -24,6 +24,7 @@ public class HTTPClientBridge
 
     public async Task SendAndReceiveRawAsync(Exchange XC /*hstring requestUri, byte[] payload, string rawHeaders*/)
     {
+        XC.Timers.ClientBeginRequest = XC.Timers.ProxyGotRequestHeaders = XC.Timers.ClientDoneRequest = XC.Timers.ClientConnected = DateTime.Now;
         using (var request = new HttpRequestMessage(new HttpMethod(XC.RequestMethod), XC.fullUrl))
         {
             if (XC.RequestBody.HasData()) request.Content = new ByteArrayContent(XC.RequestBody);
@@ -36,6 +37,7 @@ public class HTTPClientBridge
                     request,
                     HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 {
+                    XC.Timers.ServerConnected = XC.Timers.ProxyDoneRequest = XC.Timers.ServerBeginResponse = XC.Timers.ProxyGotResponseHeaders = DateTime.Now;
                     AddAddressFlagsViaReflectionHackery(servicePoint, XC);
 
                     XC.state = ExchangeState.ReadingResponse; // TODO: Should this be earlier?
@@ -71,6 +73,7 @@ public class HTTPClientBridge
                             XC.ResponseBody = ms.ToArray();
                         }
                     }
+                    XC.Timers.ServerDoneResponse = DateTime.Now;
                 }
             }
             catch (Exception ex)
