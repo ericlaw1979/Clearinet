@@ -48,6 +48,24 @@ why this project exists at all.
    warnings-as-errors on Windows and macOS; CI checks both.
 4. `dotnet test` should pass.
 
+### Building Transcoders on Windows
+
+`Transcoders\Transcoders.csproj` is SDK-style and still targets .NET Framework
+4.8.1. Install Visual Studio with the .NET desktop development workload and the
+.NET Framework 4.8.1 targeting pack. From a Visual Studio developer terminal at
+the repository root, restore the legacy Clearinet dependencies and build:
+
+```powershell
+nuget restore .\Clearinet\packages.config -PackagesDirectory .\Clearinet\packages
+msbuild .\Transcoders\Transcoders.csproj -restore -p:Configuration=Release '-bl:{}'
+```
+
+The output remains `Transcoders\bin\Release\CAT-Default.dll` (or `bin\Debug`
+for Debug builds), without a target-framework subfolder. The post-build event
+copies the DLL to `Documents\Clearinet\ImportExport`. Assembly metadata and
+the minimum compatible Clearinet version remain in
+`Transcoders\Properties\AssemblyInfo.cs`.
+
 ## Pull requests
 
 - Keep pull requests focused on one change. Large, unrelated changes are
