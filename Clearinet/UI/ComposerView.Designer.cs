@@ -54,6 +54,7 @@
             this.cbxMethod.Name = "cbxMethod";
             this.cbxMethod.Size = new System.Drawing.Size(119, 24);
             this.cbxMethod.TabIndex = 4;
+            this.cbxMethod.TextChanged += new System.EventHandler(this.cbxMethod_TextChanged);
             // 
             // cbxHTTPVersion
             // 
@@ -87,8 +88,8 @@
             this.pnlMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pnlMessage.Controls.Add(this.splitCompose);
             this.pnlMessage.Controls.Add(this.txtBody);
+            this.pnlMessage.Controls.Add(this.splitCompose);
             this.pnlMessage.Controls.Add(this.txtHeaders);
             this.pnlMessage.Location = new System.Drawing.Point(13, 59);
             this.pnlMessage.Name = "pnlMessage";
@@ -107,13 +108,14 @@
             // 
             // txtBody
             // 
+            this.txtBody.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtBody.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtBody.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtBody.Location = new System.Drawing.Point(0, 160);
+            this.txtBody.Location = new System.Drawing.Point(0, 166);
             this.txtBody.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtBody.Multiline = true;
             this.txtBody.Name = "txtBody";
-            this.txtBody.Size = new System.Drawing.Size(1060, 559);
+            this.txtBody.Size = new System.Drawing.Size(1060, 553);
             this.txtBody.TabIndex = 3;
             // 
             // txtHeaders

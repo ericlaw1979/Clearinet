@@ -31,7 +31,7 @@ namespace Extensions
         {
             tree = new TreeView { Dock = DockStyle.Fill, HideSelection = false, BackColor = CONFIG.colorDisabledEdit };
             message = new Label { Dock = DockStyle.Fill, Padding = new Padding(12) };
-            search = new TextBox { Dock = DockStyle.Fill, AccessibleName = "Find nodes" };
+            search = new TextBox { Dock = DockStyle.Fill, AccessibleName = "Find nodes", BorderStyle = BorderStyle.FixedSingle };
             searchStatus = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(6) };
             var next = new Button { Text = "Next", AutoSize = true, Anchor = AnchorStyles.Left };
             var expandAll = new Button { Text = "Expand All", AutoSize = true, Anchor = AnchorStyles.Left };
@@ -150,9 +150,7 @@ namespace Extensions
                 using (var stream = new MemoryStream(decoded, false))
                 {
                     string mime = type?.MediaType ?? string.Empty;
-                    bool xml = mime.OICEquals("application/xml") ||
-                        mime.OICEquals("text/xml") ||
-                        mime.OICEndsWith("+xml");
+                    bool xml = mime.OICEqualsAny("application/xml", "text/xml") || mime.OICEndsWith("+xml");
                     // Without an HTTP charset, the XML reader must see the original BOM and encoding declaration.
                     if (xml && string.IsNullOrEmpty(type.CharSet))
                     {
@@ -175,8 +173,7 @@ namespace Extensions
                             (!xml && !text.TrimStart().StartsWith("<", StringComparison.Ordinal));
 
                         // Google sends JSON as JavaScript with a preamble to prevent XSSI attacks. See https://docs.angularjs.org/api/ng/service/$http#cross-site-request-forgery-xsrf-protection
-                        if ((mime.OICEquals("text/javascript") ||
-                             mime.OICEquals("application/javascript"))
+                        if ((mime.OICEqualsAny("text/javascript", "application/javascript"))
                             && text.StartsWith(")]}'"))
                         {
                             text = text.TrimStart().Substring(4);

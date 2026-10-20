@@ -347,7 +347,8 @@ namespace Clearinet
                     Dock = DockStyle.Fill,
                     ReadOnly = true,
                     BackColor = CONFIG.colorDisabledEdit,
-                    WordWrap = false
+                    WordWrap = false,
+                    BorderStyle = BorderStyle.None
                 };
                 page.Controls.Add(rtb);
 

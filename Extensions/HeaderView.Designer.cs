@@ -33,17 +33,17 @@
             this.txtFirstLine = new System.Windows.Forms.TextBox();
             this.mnuNodes = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miCopyAll = new System.Windows.Forms.ToolStripMenuItem();
-            this.miCopyHeader = new System.Windows.Forms.ToolStripMenuItem();
-            this.miCopyHeaderValue = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.miHighlightHeader = new System.Windows.Forms.ToolStripMenuItem();
+            this.miCopyHeader = new System.Windows.Forms.ToolStripMenuItem();
             this.miLookupHeader = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.miCopyHeaderValue = new System.Windows.Forms.ToolStripMenuItem();
             this.miSendToTextWizard = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditHeader = new System.Windows.Forms.ToolStripMenuItem();
             this.miAddHeader = new System.Windows.Forms.ToolStripMenuItem();
             this.miRemoveHeader = new System.Windows.Forms.ToolStripMenuItem();
             this.miPasteHeaders = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.tvNVP = new Clearinet.BetterTreeView();
             miSplitter = new System.Windows.Forms.ToolStripSeparator();
             this.mnuNodes.SuspendLayout();
@@ -56,6 +56,7 @@
             // 
             // txtFirstLine
             // 
+            this.txtFirstLine.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtFirstLine.Dock = System.Windows.Forms.DockStyle.Top;
             this.txtFirstLine.Location = new System.Drawing.Point(0, 0);
             this.txtFirstLine.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -82,7 +83,7 @@
             this.miRemoveHeader,
             this.miPasteHeaders});
             this.mnuNodes.Name = "contextMenuStrip1";
-            this.mnuNodes.Size = new System.Drawing.Size(225, 264);
+            this.mnuNodes.Size = new System.Drawing.Size(225, 242);
             this.mnuNodes.Opening += new System.ComponentModel.CancelEventHandler(this.mnuNodes_Opening);
             // 
             // miCopyAll
@@ -92,19 +93,10 @@
             this.miCopyAll.Text = "C&opy All";
             this.miCopyAll.Click += new System.EventHandler(this.miCopyAll_Click);
             // 
-            // miCopyHeader
+            // toolStripMenuItem2
             // 
-            this.miCopyHeader.Name = "miCopyHeader";
-            this.miCopyHeader.Size = new System.Drawing.Size(224, 22);
-            this.miCopyHeader.Text = "&Copy Header";
-            this.miCopyHeader.Click += new System.EventHandler(this.miCopyHeader_Click);
-            // 
-            // miCopyHeaderValue
-            // 
-            this.miCopyHeaderValue.Name = "miCopyHeaderValue";
-            this.miCopyHeaderValue.Size = new System.Drawing.Size(224, 22);
-            this.miCopyHeaderValue.Text = "Copy &Value";
-            this.miCopyHeaderValue.Click += new System.EventHandler(this.miCopyHeaderValue_Click);
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(221, 6);
             // 
             // miHighlightHeader
             // 
@@ -113,12 +105,31 @@
             this.miHighlightHeader.Text = "&Highlight";
             this.miHighlightHeader.Click += new System.EventHandler(this.miHighlightHeader_Click);
             // 
+            // miCopyHeader
+            // 
+            this.miCopyHeader.Name = "miCopyHeader";
+            this.miCopyHeader.Size = new System.Drawing.Size(224, 22);
+            this.miCopyHeader.Text = "&Copy Header";
+            this.miCopyHeader.Click += new System.EventHandler(this.miCopyHeader_Click);
+            // 
             // miLookupHeader
             // 
             this.miLookupHeader.Name = "miLookupHeader";
             this.miLookupHeader.Size = new System.Drawing.Size(224, 22);
             this.miLookupHeader.Text = "&Lookup Header...";
             this.miLookupHeader.Click += new System.EventHandler(this.miLookupHeader_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(221, 6);
+            // 
+            // miCopyHeaderValue
+            // 
+            this.miCopyHeaderValue.Name = "miCopyHeaderValue";
+            this.miCopyHeaderValue.Size = new System.Drawing.Size(224, 22);
+            this.miCopyHeaderValue.Text = "Copy &Value";
+            this.miCopyHeaderValue.Click += new System.EventHandler(this.miCopyHeaderValue_Click);
             // 
             // miSendToTextWizard
             // 
@@ -150,16 +161,6 @@
             this.miPasteHeaders.Name = "miPasteHeaders";
             this.miPasteHeaders.Size = new System.Drawing.Size(224, 22);
             this.miPasteHeaders.Text = "&Paste Headers";
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(221, 6);
-            // 
-            // toolStripMenuItem2
-            // 
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(221, 6);
             // 
             // tvNVP
             // 

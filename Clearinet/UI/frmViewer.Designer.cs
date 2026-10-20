@@ -1128,7 +1128,7 @@
             this.lvExchanges.Location = new System.Drawing.Point(0, 0);
             this.lvExchanges.Margin = new System.Windows.Forms.Padding(4);
             this.lvExchanges.Name = "lvExchanges";
-            this.lvExchanges.Size = new System.Drawing.Size(357, 491);
+            this.lvExchanges.Size = new System.Drawing.Size(357, 498);
             this.lvExchanges.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvExchanges.TabIndex = 4;
             this.lvExchanges.UseCompatibleStateImageBehavior = false;
@@ -1272,14 +1272,15 @@
             // txtQuickExec
             // 
             this.txtQuickExec.BackColor = System.Drawing.Color.Black;
+            this.txtQuickExec.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtQuickExec.CueText = "[Alt+;] Type a command or HELP";
             this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
-            this.txtQuickExec.Location = new System.Drawing.Point(0, 491);
+            this.txtQuickExec.Location = new System.Drawing.Point(0, 498);
             this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
             this.txtQuickExec.Name = "txtQuickExec";
-            this.txtQuickExec.Size = new System.Drawing.Size(357, 27);
+            this.txtQuickExec.Size = new System.Drawing.Size(357, 20);
             this.txtQuickExec.TabIndex = 3;
             this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
             // 

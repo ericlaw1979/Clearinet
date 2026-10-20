@@ -26,9 +26,10 @@ namespace Extensions
                 WordWrap = false,
                 HideSelection = false,
                 BackColor = CONFIG.colorDisabledEdit,
-                AccessibleName = "Cookies"
+                AccessibleName = "Cookies",
+                BorderStyle = BorderStyle.FixedSingle
             };
-            txtFind = new TextBox { Dock = DockStyle.Fill, AccessibleName = "Find cookies" };
+            txtFind = new TextBox { Dock = DockStyle.Fill, AccessibleName = "Find cookies", BorderStyle = BorderStyle.FixedSingle };
             searchStatus = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(6) };
             var next = new Button { Text = "Next", AutoSize = true, Anchor = AnchorStyles.Left };
             var searchPanel = new TableLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, ColumnCount = 4, RowCount = 1 };

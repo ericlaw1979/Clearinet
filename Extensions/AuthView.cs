@@ -22,7 +22,8 @@ namespace Extensions
                 ReadOnly = true,
                 ScrollBars = ScrollBars.Both,
                 WordWrap = false,
-                BackColor = CONFIG.colorDisabledEdit
+                BackColor = CONFIG.colorDisabledEdit,
+                BorderStyle = BorderStyle.FixedSingle,
             };
             Controls.Add(txtAuth);
             SetFontSize(CONFIG.flFontSize);
