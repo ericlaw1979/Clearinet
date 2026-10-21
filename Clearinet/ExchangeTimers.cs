@@ -91,6 +91,23 @@ namespace Clearinet
         private NetTimestamps ntsClientReads;
         private NetTimestamps ntsServerReads;
 
+        internal void AssignNowToAll()
+        {
+            DateTime dtNow = DateTime.Now;
+            ClientConnected = dtNow;
+            ClientBeginRequest = dtNow;
+            ProxyGotRequestHeaders = dtNow;
+            ClientDoneRequest = dtNow;
+            ServerConnected = dtNow;
+            ProxyBeginRequest = dtNow;
+            ProxyDoneRequest = dtNow;
+            ServerBeginResponse = dtNow;
+            ProxyGotResponseHeaders = dtNow;
+            ServerDoneResponse = dtNow;
+            ClientBeginResponse = dtNow;
+            ClientDoneResponse = dtNow;
+        }
+
         public NetTimestamps ClientReads
         {
             get

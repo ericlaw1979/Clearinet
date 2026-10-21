@@ -1082,8 +1082,12 @@ namespace Clearinet
             updateLVI(xc);
         }
 
+        // TODO: CLEANUP updateLVI and addExchangeToListView ************************************
+        // **************************************************************************************
         private void updateLVI(Exchange xc)
         {
+            if (CApp.isClosing) return;
+
             if (null == xc.ViewItem)
             {
                 addExchangeToListView(xc);
@@ -1128,6 +1132,8 @@ namespace Clearinet
 
         private void addExchangeToListView(Exchange xc)
         {
+            if (CApp.isClosing) return;
+
             if (xc.ViewItem != null) return; // Already added.
             ListViewItem lvi = new ListViewItem(xc.id.ToString())
             {
@@ -1761,6 +1767,7 @@ namespace Clearinet
                                 | ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.ServedFromCache;
             exchNew.EnsureID();
             exchNew.state = ExchangeState.Done;
+            exchNew.Timers.AssignNowToAll();
             addExchangeToListView(exchNew);
             return exchNew;
         }
@@ -1798,6 +1805,7 @@ namespace Clearinet
                 exchNew.BitFlags = ExchangeFlags.RequestGeneratedByClearinet | ExchangeFlags.ResponseGeneratedByClearinet
                                     | ExchangeFlags.ImportedFromOtherTool | ExchangeFlags.ServedFromCache;
                 exchNew.EnsureID();
+                exchNew.Timers.AssignNowToAll();
                 exchNew.state = ExchangeState.Done;
                 addExchangeToListView(exchNew);
             }

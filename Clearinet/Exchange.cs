@@ -109,6 +109,7 @@ namespace Clearinet
         }
 
         // LEGACY API: SyntacticSugar, was "uriContains" in Fiddler.
+        public bool uriContains(string s) => urlContains(s);
         public bool urlContains(string s) => fullUrl.OICContains(s);
 
         public int utilFindInRequest(string sFind, bool bIgnoreCase) { return -1; }
@@ -120,11 +121,34 @@ namespace Clearinet
 
         public bool utilReplaceRegexInResponse(string sFromRegEx, string sToExpression) { return false; }
 
-        public void utilCreateResponseAndBypassServer() { /*TODO*/ }
+        public void utilCreateResponseAndBypassServer()
+        {
+            utilSetResponseBody(string.Empty);
+            state = ExchangeState.AutoTamperResponseBefore;
+        }
 
-        public void utilSetRequestBody(string sBody) { RequestBody = System.Text.Encoding.UTF8.GetBytes(sBody); /*TODO*/ }
-        public void utilSetResponseBody(string sBody) { ResponseBody = System.Text.Encoding.UTF8.GetBytes(sBody); /*TODO do it for real*/ }
-        public void utilPrependToResponseBody(string sPrefix) { ResponseBody = System.Text.Encoding.UTF8.GetBytes(sPrefix).Append(ResponseBody); }
+        public void utilSetRequestBody(string sBody)
+        {
+            RequestBody = Encoding.UTF8.GetBytes(sBody);
+            if (null == RequestHeaders) RequestHeaders = new HTTPRequestHeaders();
+            RequestHeaders["Content-Length"] = $"{RequestBody.Length}";
+            RequestHeaders.Remove("Transfer-Encoding");
+        }
+
+        public void utilSetResponseBody(string sBody)
+        {
+            ResponseBody = Encoding.UTF8.GetBytes(sBody);
+            if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
+            ResponseHeaders["Content-Length"] = $"{ResponseBody.Length}";
+            ResponseHeaders.Remove("Transfer-Encoding");
+        }
+        public void utilPrependToResponseBody(string sPrefix)
+        {
+            ResponseBody = Encoding.UTF8.GetBytes(sPrefix).Append(ResponseBody);
+            if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
+            ResponseHeaders["Content-Length"] = $"{ResponseBody.Length}";
+            ResponseHeaders.Remove("Transfer-Encoding");
+        }
 
         public bool utilDecodeRequest(bool bQuiet = true) { /*TODO*/ return false; }
         public bool utilDecodeResponse(bool bQuiet = true) { /*TODO*/ return false; }
@@ -223,15 +247,15 @@ namespace Clearinet
         {
             get
             {
-                return host.TrimAfter(';').Trim();
+                return host.TrimAfter(':').Trim();
             }
             set
             {
-                host = value.TrimAfter(';').Trim();
+                host = value.TrimAfter(':').Trim();
             }
         }
-        public int port { get; set; }
-        public string clientIP { get; set; }
+        public int port { get; set; }  // TODO: Fill this.
+        public string clientIP { get; set; }  // TODO: Fill this. Use oFlags["x-clientip"] as a fallback if present?
         public int responseCode
         {
             get => ResponseHeaders?.StatusCode ?? 0;
@@ -637,7 +661,6 @@ namespace Clearinet
             if (oFlags.ContainsKey("ui-hide")) return true;
             return false;
         }
-
 
         /// <summary>
         /// Builds an Exchange object from the given data. 
