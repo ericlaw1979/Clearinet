@@ -15,10 +15,11 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.2.4")]
+[assembly: AssemblyVersion("0.0.2.5")]
 
 // Selected Release Version History
-// v0.0.2.4 - Oct 20-2026 - Add CopyAsCURL, ReplayInBrowser, Alt+Click in Exchanges list, Improve timers, Enhance Composer, Fix SAZ loading, X-ReplyWithFile
+// v0.0.2.5 - Oct 21-2026 - Workaround DotNetZip bug with encrypted but uncompressed entriesw
+// v0.0.2.4 - Oct 20-2026 - Add CopyAsCURL, ReplayInBrowser, Alt+Click in Exchanges list, Improve timers, Enhance Composer, X-ReplyWithFile
 // v0.0.2.3 - Oct-19-2026 - about:config; NetLog(JSONL) format; Improve Hex/Data/Image inspectors; Sign all dependencies.
 // v0.0.2.2 - Oct-19-2026 - Add Composer/Replay, add Differ, Improve performance, fix bugs
 // v0.0.2.1 - Oct-16-2026 - Add Inspect-in-New-Window

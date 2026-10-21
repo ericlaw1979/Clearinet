@@ -148,6 +148,17 @@ namespace Clearinet
                     Exchange excNew;
                     try
                     {
+                        // DotNetZip has a bug: If an entry is encrypted but not compressed, ReadByte() won't
+                        // return the decrypted byte.
+                        if (eRequest.UsesEncryption && eRequest.CompressionMethod == CompressionMethod.None)
+                        {
+                            var ms = new MemoryStream();
+                            strmContent.CopyTo(ms);
+                            ms.Position = 0;
+                            var oldZIPStream = strmContent;
+                            strmContent = ms;
+                            oldZIPStream.Dispose();
+                        }
                         excNew = CreateExchangeWithRequestFromStream(strmContent);
                         strmContent.Dispose();
                     }
@@ -161,13 +172,24 @@ namespace Clearinet
                     {
                         try
                         {
-                            // NB: eResponse.CompressedSize is 0 if the entry uses STORE rather than DEFLATE.
-                            using (var strmResponse = eResponse.OpenReader())
+                            Stream strmResponse = eResponse.OpenReader();
+                            // DotNetZip has a bug: If an entry is encrypted but not compressed, ReadByte() won't
+                            // return the decrypted byte.
+                            if (eResponse.UsesEncryption && eResponse.CompressionMethod == CompressionMethod.None)
                             {
-                                AddResponseFromStream(excNew, strmResponse);
+                                var ms = new MemoryStream();
+                                strmResponse.CopyTo(ms);
+                                ms.Position = 0;
+                                var oldZIPStream = strmResponse;
+                                strmResponse = ms;
+                                oldZIPStream.Dispose();
                             }
+                            AddResponseFromStream(excNew, strmResponse);
+                            strmResponse.Close();
+
                         }
-                        catch {
+                        catch
+                        {
                             try
                             {
                                 excNew.ResponseHeaders = new HTTPResponseHeaders(599, "DataCorrupt", new[] { "Connection: close", "Content-Type: application/octet-stream" });
@@ -184,7 +206,7 @@ namespace Clearinet
                                 }
                             }
                             catch { }
-                            Debug.Assert(false, $"Failed to read response from {eResponse.FileName}"); 
+                            Debug.Assert(false, $"Failed to read response from {eResponse.FileName}");
                         }
                     }
 
@@ -204,6 +226,10 @@ namespace Clearinet
                     // TODO: WebSocket data
 
                     excNew.SetBitFlag(ExchangeFlags.LoadedFromSAZ);
+                    if (true == excNew.RequestHeaders?.UriScheme.OICEquals("https"))
+                    {
+                        excNew.SetBitFlag(ExchangeFlags.IsHTTPS);
+                    }
                     sazFile.Exchanges.Add(excNew);
                 }
             }
@@ -353,7 +379,6 @@ namespace Clearinet
             }
             Exchange e = new Exchange(rqh, body);
             e.EnsureID();
-            e.SetBitFlag(ExchangeFlags.LoadedFromSAZ);
             return e;
         }
 
@@ -365,6 +390,12 @@ namespace Clearinet
             // need Zip64 because without it the number of files exceeds the 65535 file
             // limit of non-Zip64 format.
             zf.UseZip64WhenSaving = Zip64Option.AsNecessary;
+
+            if (CApp.Prefs.GetBoolPref("saz.compression.disabled", false))
+            {
+                zf.CompressionMethod = CompressionMethod.None;
+                zf.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
+            }
 
             if (password.HasText())
             {
@@ -391,7 +422,7 @@ namespace Clearinet
                 // Write the client request
                 zf.AddEntry(sBaseName + "c.txt", (_, strm) =>
                 {
-                    exch.RequestHeaders.WriteToStream(strm);
+                    exch.RequestHeaders.WriteToStream(strm, bWriteFullQualifiedURL: true);
                     if (exch.RequestBody.HasData())
                     {
                         strm.Write(exch.RequestBody, 0, exch.RequestBody.Length);
