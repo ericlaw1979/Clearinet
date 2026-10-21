@@ -1608,6 +1608,11 @@ namespace Clearinet
                         miEditCopyExchange.PerformClick();
                         break;
 
+                    case Keys.W:
+                        e.SuppressKeyPress = e.Handled = true;
+                        miExchangeDiffer.PerformClick();
+                        break;
+
                     case Keys.X:
                         lvExchanges.ClearExchanges();
                         e.SuppressKeyPress = e.Handled = true;
@@ -1657,7 +1662,29 @@ namespace Clearinet
                     e.SuppressKeyPress = e.Handled = true;
                     actReplaySelected(e.Modifiers == Keys.Shift);
                     break;
+
+                case Keys.U:
+                    e.SuppressKeyPress = e.Handled = true;
+                    actReplaySelected(e.Modifiers == Keys.Shift, bUnconditional: true);
+                    break;
+
+                case Keys.D:
+                    e.SuppressKeyPress = e.Handled = true;
+                    actSelectDuplicates();
+                    break;
             }   // switch
+        }
+
+        private void actSelectDuplicates()
+        {
+            // TODO: Support multiple?
+            Exchange xc = CApp.UI.GetFirstSelectedExchange();
+            if (null == xc) return;
+            string sURL = xc.fullUrl;
+            string sMethod = xc.RequestMethod;
+            actSelectExchangesMatchingCriteria((x) =>
+                x.RequestMethod.OICEquals(sMethod) && x.fullUrl.OICEquals(sURL));
+            CApp.UI.SetStatusText($"Selected {lvExchanges.SelectedCount} duplicate Exchanges.");
         }
 
         private void actAddFauxSplitter()
@@ -1666,7 +1693,6 @@ namespace Clearinet
             var XC = AddFauxExchange($"/SPLITTER/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes($"User hit = to create a split line at\n{dt.ToLongTimeString()}"));
             XC.oFlags["ui-strikeout"] = "splitter";
             XC.oFlags["ui-backcolor"] = "OrangeRed";
-            return;
         }
 
         private void MarkSessions(Exchange[] exchanges)
@@ -1686,7 +1712,7 @@ namespace Clearinet
             this.Font = new Font(this.Font.FontFamily, CONFIG.flFontSize, this.Font.Style);
         }
 
-        private void actReplaySelected(bool bBreakOnRequest)
+        private void actReplaySelected(bool bBreakOnRequest, bool bUnconditional = false)
         {
             Exchange[] arrXC = lvExchanges.GetSelectedExchanges();
             if (arrXC.Length < 1) return;
@@ -1695,7 +1721,12 @@ namespace Clearinet
             {
                 for (var ix = 0; ix < arrXC.Length; ++ix)
                 {
-                    Exchange XC = new Exchange(arrXC[ix].RequestHeaders.Clone(), arrXC[ix].RequestBody.FastClone());
+                    HTTPRequestHeaders rhNew = arrXC[ix].RequestHeaders.Clone();
+                    if (bUnconditional)
+                    {
+                        rhNew.Remove("If-Modified-Since", "If-None-Match", "If-Unmodified-Since");
+                    }
+                    Exchange XC = new Exchange(rhNew, arrXC[ix].RequestBody.FastClone());
                     XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet;
                     XC.EnsureID();
                     XC.state = ExchangeState.AutoTamperRequestBefore;

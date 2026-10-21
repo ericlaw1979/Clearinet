@@ -1248,6 +1248,7 @@
             this.miExchangeDiffer.Name = "miExchangeDiffer";
             this.miExchangeDiffer.Size = new System.Drawing.Size(182, 22);
             this.miExchangeDiffer.Text = "&Diff...";
+            this.miExchangeDiffer.ShortcutKeyDisplayString = "Ctrl+W";
             this.miExchangeDiffer.Click += new System.EventHandler(this.miExchangeDiffer_Click);
             // 
             // miExchangeProperties

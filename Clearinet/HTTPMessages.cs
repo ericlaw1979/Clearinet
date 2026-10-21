@@ -74,9 +74,9 @@ namespace Clearinet
             storage.Add(hhi);
             return hhi;
         }
-        public void Remove(string sHeaderName)
+        public void Remove(params string[] sHeaderNames)
         {
-            storage.RemoveAll(h => h.Name.OICEquals(sHeaderName));
+            storage.RemoveAll(h => Array.Exists(sHeaderNames, s => h.Name.OICEquals(s)));
         }
         public bool Exists(string sHeaderName)
         {
@@ -179,6 +179,7 @@ namespace Clearinet
         public HTTPRequestHeaders Clone()
         {
             HTTPRequestHeaders oClone = (HTTPRequestHeaders)MemberwiseClone();
+            Debug.Assert(oClone.UriScheme == this.UriScheme);
             try
             {
                 oClone.storage = new List<HTTPHeaderItem>(storage.Count);
