@@ -1724,7 +1724,7 @@ namespace Clearinet
                     HTTPRequestHeaders rhNew = arrXC[ix].RequestHeaders.Clone();
                     if (bUnconditional)
                     {
-                        rhNew.Remove("If-Modified-Since", "If-None-Match", "If-Unmodified-Since");
+                        rhNew.Remove("If-Modified-Since", "If-Unmodified-Since", "If-Match", "If-None-Match", "If-Range");
                     }
                     Exchange XC = new Exchange(rhNew, arrXC[ix].RequestBody.FastClone());
                     XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet;
