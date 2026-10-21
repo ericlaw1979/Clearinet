@@ -162,12 +162,30 @@ namespace Clearinet
                         try
                         {
                             // NB: eResponse.CompressedSize is 0 if the entry uses STORE rather than DEFLATE.
-                            using (strmContent = eResponse.OpenReader())
+                            using (var strmResponse = eResponse.OpenReader())
                             {
-                                AddResponseFromStream(excNew, strmContent);
+                                AddResponseFromStream(excNew, strmResponse);
                             }
                         }
-                        catch { Debug.Assert(false, $"Failed to read response from {eResponse.FileName}"); }
+                        catch {
+                            try
+                            {
+                                excNew.ResponseHeaders = new HTTPResponseHeaders(599, "DataCorrupt", new[] { "Connection: close", "Content-Type: application/octet-stream" });
+                                excNew.ResponseHeaders["Encrypted"] = $"{eResponse.UsesEncryption}";
+                                excNew.ResponseHeaders["Compression"] = $"{eResponse.CompressionMethod}";
+                                excNew.ResponseHeaders["CompressedSize"] = $"{eResponse.CompressedSize:N0}";
+                                excNew.ResponseHeaders["UncompressedSize"] = $"{eResponse.UncompressedSize:N0}";
+
+                                using (var ds = eResponse.OpenReader())
+                                using (var dms = new MemoryStream())
+                                {
+                                    ds.CopyTo(dms);
+                                    excNew.ResponseBody = dms.ToArray();
+                                }
+                            }
+                            catch { }
+                            Debug.Assert(false, $"Failed to read response from {eResponse.FileName}"); 
+                        }
                     }
 
                     ZipEntry eMetadata = zf[eRequest.FileName.TrimAfter("_") + "_m.xml"];
