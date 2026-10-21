@@ -18,7 +18,7 @@ namespace Clearinet
     /// </summary>
     public static class CONFIG
     {
-        private static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
+        internal static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
 
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
@@ -205,8 +205,30 @@ namespace Clearinet
             _InitPreferences();
         }
 
+        /// <summary>
+        /// Settings that must be loaded before we create any forms.
+        /// </summary>
+        internal static void RetrieveUrgentSettings()
+        {
+            try
+            {
+                RegistryKey oReg = Registry.CurrentUser.OpenSubKey(GetRegistryPath("UI"), RegistryKeyPermissionCheck.ReadSubTree);
+                if (null != oReg)
+                {
+                    CONFIG.flFontSize = (float)Utilities.GetRegistryInt(oReg, "App_FontSize", (int)CONFIG.flFontSize);
+                    CONFIG.colorDisabledEdit = Utilities.GetRegistryColor(oReg, "App_ColorDisabledEdit", COLOR_DEFAULT_DISABLEDEDIT);
+                    CONFIG.colorHighlight = Utilities.GetRegistryColor(oReg, "App_ColorHighlight", Color.Yellow);
+                }
+            }
+            catch (Exception eX)
+            {
+                Debug.Assert(false);
+            }
+        }
+
         internal static void RetrieveLayout(frmViewer f)
         {
+            f.Font = new Font(f.Font.FontFamily, CONFIG.flFontSize);
             f.StartPosition = FormStartPosition.Manual;
             try
             {
@@ -214,10 +236,10 @@ namespace Clearinet
                 if (null != oReg)
                 {
                     f.Bounds = new Rectangle(
-                        Utilities.GetRegistryInt(oReg, f.Name + "_Left", f.Left),
-                        Utilities.GetRegistryInt(oReg, f.Name + "_Top", f.Top),
-                        Utilities.GetRegistryInt(oReg, f.Name + "_Width", f.Width),
-                        Utilities.GetRegistryInt(oReg, f.Name + "_Height", f.Height));
+                       Utilities.GetRegistryInt(oReg, f.Name + "_Left", f.Left),
+                       Utilities.GetRegistryInt(oReg, f.Name + "_Top", f.Top),
+                       Utilities.GetRegistryInt(oReg, f.Name + "_Width", f.Width),
+                       Utilities.GetRegistryInt(oReg, f.Name + "_Height", f.Height));
                 }
 
                 Screen screen = Screen.FromRectangle(f.DesktopBounds);
@@ -239,7 +261,7 @@ namespace Clearinet
             }
             catch (Exception eX)
             {
-                Debug.WriteLine("[Fiddler Configuration Load Error: " + eX.Message);
+                Debug.WriteLine("[Clearinet] Layout Restoration failed: " + eX.Message);
                 Debug.Assert(false);
             }
         }
@@ -252,23 +274,27 @@ namespace Clearinet
             // Open key with Write permissions 
             using (RegistryKey oReg = Registry.CurrentUser.CreateSubKey(GetRegistryPath("UI"), RegistryKeyPermissionCheck.ReadWriteSubTree))
             {
+                oReg.SetValue("App_FontSize", (int)CONFIG.flFontSize);
+                oReg.SetValue("App_ColorDisabledEdit", ColorTranslator.ToHtml(CONFIG.colorDisabledEdit));
+                oReg.SetValue("App_ColorHighlight", ColorTranslator.ToHtml(CONFIG.colorHighlight));
+
                 oReg.SetValue(f.Name + "_WinState", (int)f.WindowState);
 
                 if (f.WindowState != FormWindowState.Normal)
                 {
-                    Rectangle rectNormalBounds = f.RestoreBounds;
+                    Rectangle rectRestoredBounds = f.RestoreBounds;
 
-                    oReg.SetValue(f.Name + "_Top", rectNormalBounds.Top);
-                    oReg.SetValue(f.Name + "_Left", rectNormalBounds.Left);
-                    oReg.SetValue(f.Name + "_Height", rectNormalBounds.Height);
-                    oReg.SetValue(f.Name + "_Width", rectNormalBounds.Width);
+                    oReg.SetValue(f.Name + "_Left", rectRestoredBounds.Left);
+                    oReg.SetValue(f.Name + "_Width", rectRestoredBounds.Width);
+                    oReg.SetValue(f.Name + "_Top", rectRestoredBounds.Top);
+                    oReg.SetValue(f.Name + "_Height", rectRestoredBounds.Height);
                 }
                 else
                 {
-                    oReg.SetValue(f.Name + "_Top", f.Top);
                     oReg.SetValue(f.Name + "_Left", f.Left);
-                    oReg.SetValue(f.Name + "_Height", f.Height);
                     oReg.SetValue(f.Name + "_Width", f.Width);
+                    oReg.SetValue(f.Name + "_Top", f.Top);
+                    oReg.SetValue(f.Name + "_Height", f.Height);
                 }
             }
 
@@ -287,7 +313,7 @@ namespace Clearinet
 
         internal static void RevertToDefaultAppearance()
         {
-            throw new NotImplementedException();
+            CApp.alert("not yet implemented");
         }
     }
 }

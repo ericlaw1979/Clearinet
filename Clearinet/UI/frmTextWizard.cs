@@ -295,7 +295,7 @@ namespace Clearinet
                         break;
                 }
 
-                Text = String.Format("TextWizard [{0} => {1} chars]", txtInput.TextLength, sOutput.Length);
+                Text = String.Format("Textransform [{0} => {1} chars]", txtInput.TextLength, sOutput.Length);
             }
             catch (Exception eX)
             {
@@ -316,7 +316,7 @@ namespace Clearinet
                     arrLatestOutput = encodingOutput.GetBytes(sOutput);
                 }
                 sOutput = Utilities.ByteArrayToHexView(arrLatestOutput, 0, 16, 1024, true);
-                Text = $"TextWizard [{txtInput.TextLength} => {arrLatestOutput.Length} bytes]";
+                Text = $"Textransform [{txtInput.TextLength} => {arrLatestOutput.Length} bytes]";
             }
 
             txtOutput.WordWrap = !cbViewBytes.Checked;
@@ -325,7 +325,7 @@ namespace Clearinet
             btnSetInputFromOutput.Enabled = (!bThrew && !cbViewBytes.Checked && (txtOutput.TextLength > 0));
             if (bThrew)
             {
-                Text = "TextWizard [Invalid]";
+                Text = "Textransform [Invalid]";
                 _EnableExport(false);
             }
         }
@@ -394,7 +394,7 @@ namespace Clearinet
 
             try
             {
-                encodingInput = Encoding.GetEncoding(CApp.Prefs.GetStringPref("textwizard.InputEncoding", "UTF-8"));
+                encodingInput = Encoding.GetEncoding(CApp.Prefs.GetStringPref("textransform.InputEncoding", "UTF-8"));
             }
             catch
             {
@@ -403,7 +403,7 @@ namespace Clearinet
 
             try
             {
-                encodingOutput = Encoding.GetEncoding(CApp.Prefs.GetStringPref("textwizard.OutputEncoding", "UTF-8"));
+                encodingOutput = Encoding.GetEncoding(CApp.Prefs.GetStringPref("textransform.OutputEncoding", "UTF-8"));
             }
             catch
             {
@@ -438,7 +438,7 @@ namespace Clearinet
             try
             {
                 // Select the last used transform if it exists in the list, otherwise default to the first item.
-                string sTarget = CApp.Prefs.GetStringPref("textwizard.LastTransform", "URLDecode");
+                string sTarget = CApp.Prefs.GetStringPref("textransform.LastTransform", "URLDecode");
                 int iIndex = cbxTransforms.Items.IndexOf(sTarget);
                 if (iIndex < 0) iIndex = 0;
                 this.cbxTransforms.SelectedIndex = iIndex;
@@ -450,7 +450,7 @@ namespace Clearinet
         {
             Recalc();
             var sByteInfo = (arrLatestOutput != null) ? $"({arrLatestOutput.Length} bytes) " : string.Empty;
-            this.Text = $"TextWizard [ {txtInput.TextLength} => {txtOutput.TextLength} characters {sByteInfo}]";
+            this.Text = $"Textransform [ {txtInput.TextLength} => {txtOutput.TextLength} characters {sByteInfo}]";
         }
 
         private void frmTextWizard_KeyUp(object sender, KeyEventArgs e)
@@ -466,7 +466,7 @@ namespace Clearinet
         private void cbxTransforms_SelectedIndexChanged(object sender, EventArgs e)
         {
             Recalc();
-            CApp.Prefs.SetStringPref("textwizard.LastTransform", cbxTransforms.Text);
+            CApp.Prefs.SetStringPref("textransform.LastTransform", cbxTransforms.Text);
         }
 
         private void btnSetInputFromOutput_Click(object sender, EventArgs e)
@@ -547,11 +547,14 @@ namespace Clearinet
                 case 2: // Fake Exchange
                     try
                     {
+                        string sContentType = "application/octet-stream";
                         if (null == arrLatestOutput)
                         {
+                            sContentType = "text/plain; charset=utf-8";
                             arrLatestOutput = encodingOutput.GetBytes(txtOutput.Text);
                         }
-                        CApp.UI.AddFauxExchange($"/TextWizard/{DateTime.Now.ToString("H-mm-ss")}", "application/octet-stream", arrLatestOutput);
+                        // TODO: Should we use Text/plain?
+                        CApp.UI.AddFauxExchange($"/Textransform/{DateTime.Now.ToString("H-mm-ss")}", sContentType, arrLatestOutput);
                     }
                     catch (Exception eX) { CApp.ReportException(eX, "Failed"); }
                     cbxOutputTo.SelectedIndex = 0;

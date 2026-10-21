@@ -860,5 +860,19 @@ namespace Clearinet
             sbResult.Append("------------------------------------\r\n");
             return sbResult.ToString();
         }
+
+        internal static Color GetRegistryColor(RegistryKey oReg, string valuename, Color defaultColor)
+        {
+            if (!(oReg.GetValue(valuename) is string value) || !value.HasText()) return defaultColor;
+            try
+            {
+                Color color = ColorTranslator.FromHtml(value);
+                return color.IsEmpty ? defaultColor : color;
+            }
+            catch (ArgumentException)
+            {
+                return defaultColor;
+            }
+        }
     }
 }

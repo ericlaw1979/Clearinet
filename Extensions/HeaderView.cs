@@ -106,7 +106,7 @@ namespace Extensions
         private void miSendToTextWizard_Click(object sender, EventArgs e)
         {
             string sValue = CurrentHeaderValue();
-            CApp.UI.actShowTextWizard(sValue);
+            CApp.UI.actShowTextransform(sValue);
         }
 
         private void miCopyHeader_Click(object sender, EventArgs e)

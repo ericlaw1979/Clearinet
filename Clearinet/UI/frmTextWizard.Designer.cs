@@ -49,9 +49,9 @@
             lblTransform.AutoSize = true;
             lblTransform.Location = new System.Drawing.Point(3, 10);
             lblTransform.Name = "lblTransform";
-            lblTransform.Size = new System.Drawing.Size(56, 13);
+            lblTransform.Size = new System.Drawing.Size(19, 13);
             lblTransform.TabIndex = 0;
-            lblTransform.Text = "&Transform";
+            lblTransform.Text = "&To";
             // 
             // pnlFill
             // 
@@ -102,7 +102,7 @@
             "Clipboard",
             "Fake Exchange",
             "File..."});
-            this.cbxOutputTo.Location = new System.Drawing.Point(527, 7);
+            this.cbxOutputTo.Location = new System.Drawing.Point(531, 7);
             this.cbxOutputTo.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxOutputTo.Name = "cbxOutputTo";
             this.cbxOutputTo.Size = new System.Drawing.Size(207, 21);
@@ -135,7 +135,7 @@
             // cbViewBytes
             // 
             this.cbViewBytes.AutoSize = true;
-            this.cbViewBytes.Location = new System.Drawing.Point(313, 8);
+            this.cbViewBytes.Location = new System.Drawing.Point(271, 9);
             this.cbViewBytes.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbViewBytes.Name = "cbViewBytes";
             this.cbViewBytes.Size = new System.Drawing.Size(78, 17);
@@ -174,7 +174,7 @@
             "Epoch",
             "JWT Token Decoder",
             "CBOR"});
-            this.cbxTransforms.Location = new System.Drawing.Point(79, 7);
+            this.cbxTransforms.Location = new System.Drawing.Point(28, 7);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";
             this.cbxTransforms.Size = new System.Drawing.Size(228, 21);
@@ -192,8 +192,8 @@
             this.lblExplain.Name = "lblExplain";
             this.lblExplain.Size = new System.Drawing.Size(969, 24);
             this.lblExplain.TabIndex = 2;
-            this.lblExplain.Text = "TextWizard encodes and decodes text. Enter text and then select a transform from " +
-    "the dropdown.";
+            this.lblExplain.Text = "Textransform encodes and decodes text. Enter text and then select a transform f" +
+    "rom the dropdown.";
             // 
             // txtInput
             // 
@@ -223,7 +223,7 @@
             this.Name = "frmTextWizard";
             this.Padding = new System.Windows.Forms.Padding(5);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "TextWizard";
+            this.Text = "Textransform";
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.frmTextWizard_KeyUp);
             this.pnlFill.ResumeLayout(false);
             this.pnlFill.PerformLayout();

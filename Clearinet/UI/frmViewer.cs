@@ -128,7 +128,7 @@ namespace Clearinet
             actUpdateInspector(true, true);
         }
 
-        public void actShowTextWizard(string sText)
+        public void actShowTextransform(string sText)
         {
             frmTextWizard oFrm = new frmTextWizard(sText)
             {
@@ -136,6 +136,11 @@ namespace Clearinet
                 Top = this.Top + 100
             };
             oFrm.Show(this);
+        }
+        // Old name for backwards compatibility with scripts that call this method.
+        public void actShowTextWizard(string sText)
+        {
+            actShowTextransform(sText);
         }
         public void actSpawnViewer()
         {
@@ -277,7 +282,7 @@ namespace Clearinet
 
         private void miTextWizard_Click(object sender, EventArgs e)
         {
-            actShowTextWizard(null);
+            actShowTextransform(null);
         }
 
         private void miViewStayOnTop_CheckedChanged(object sender, EventArgs e)
@@ -376,9 +381,9 @@ namespace Clearinet
         private static void RunApp(string[] arrArgs)
         {
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);   // TODO: Do we want this?
+            Application.SetCompatibleTextRenderingDefault(false);
+            CONFIG.RetrieveUrgentSettings();
             frmSplashScreen.CreateAndShow();
-
             if (!CONFIG.isQuietMode)
             {
                 #region SafeMode
@@ -642,9 +647,6 @@ namespace Clearinet
                     actUpdateInspector(true, true);
                 }
             };
-
-            // TODO: Add "Select duplicates" and "Reissue unconditional" to Exchange context menu.
-
             // =========================== /End Move TODOs ===========================
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
@@ -1688,6 +1690,10 @@ namespace Clearinet
                 x.RequestMethod.OICEquals(sMethod) && x.fullUrl.OICEquals(sURL));
             CApp.UI.SetStatusText($"Selected {lvExchanges.SelectedCount} duplicate Exchanges.");
         }
+        private void miExchangeSelectDuplicates_Click(object sender, EventArgs e)
+        {
+            actSelectDuplicates();
+        }
 
         private void actAddFauxSplitter()
         {
@@ -1707,7 +1713,7 @@ namespace Clearinet
             }
         }
 
-        private void actSetFontSize(float v)
+        internal void actSetFontSize(float v)
         {
             // TODO: Should this be resizing the window bounds? Probably not, but it does.
             CONFIG.flFontSize = v;
@@ -2112,7 +2118,7 @@ namespace Clearinet
         private void mnuExchange_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
             miExchangeReplay.Enabled = miExchangeProperties.Enabled =
-                mnuExchangeCopy.Enabled = lvExchanges.SelectedCount > 0;
+                mnuExchangeCopy.Enabled = miExchangeSelect.Enabled = (lvExchanges.SelectedCount > 0);
             miExchangeDiffer.Enabled = lvExchanges.SelectedCount == 2;
         }
 
@@ -2400,6 +2406,16 @@ namespace Clearinet
             }
         }
 
+        private void miReplayUnconditionally_Click(object sender, EventArgs e)
+        {
+            actReplaySelected(false, true);
+        }
+
+        private void miReplayWithBreakpoint_Click(object sender, EventArgs e)
+        {
+            actReplaySelected(true);
+        }
+
         private void miExchangeInsertSplitter_Click(object sender, EventArgs e)
         {
             actAddFauxSplitter();
@@ -2408,6 +2424,57 @@ namespace Clearinet
         private void miExchangeReplayBrowser_Click(object sender, EventArgs e)
         {
             Utilities.LaunchHyperlink(GetFirstSelectedExchange()?.fullUrl);
+        }
+
+        private void miExchangeSelectMatchingColumn_Click(object sender, EventArgs e)
+        {
+            var (lvi, ixCol) = lvExchanges.GetItemAndColumnAt(lvExchanges.PointToClient(mnuExchange.Location));
+
+            if (null == lvi || ixCol < 0)
+            {
+                CApp.UI.SetStatusText("Column not found.");
+                return;
+            }
+            lvExchanges.selectMatchingColumn(lvi, ixCol, Control.ModifierKeys == Keys.Control);
+        }
+
+        private void miExchangeSelect_DropDownOpening(object sender, EventArgs e)
+        {
+            var (lvi, ixCol) = lvExchanges.GetItemAndColumnAt(lvExchanges.PointToClient(mnuExchange.Location));
+            if (null == lvi || ixCol < 0)
+            {
+                miExchangeSelectMatchingColumn.Text = "(no column found)";
+                miExchangeSelectMatchingColumn.Enabled = false;
+            }
+            else
+            {
+                miExchangeSelectMatchingColumn.Enabled = true;
+                miExchangeSelectMatchingColumn.Text = $"'{lvExchanges.Columns[ixCol].Text}'='{lvi.SubItems[ixCol].Text.Ellipsize(16)}'";
+            }
+        }
+
+        private void miExchangeCopyColumn_Click(object sender, EventArgs e)
+        {
+            var (lvi, ixCol) = lvExchanges.GetItemAndColumnAt(lvExchanges.PointToClient(mnuExchange.Location));
+            if (null == lvi || ixCol >= 0)
+            {
+                Clipboard.SetText(lvi.SubItems[ixCol].Text);
+            }
+        }
+
+        private void mnuExchangeCopy_DropDownOpening(object sender, EventArgs e)
+        {
+            var (lvi, ixCol) = lvExchanges.GetItemAndColumnAt(lvExchanges.PointToClient(mnuExchange.Location));
+            if (null == lvi || ixCol < 0)
+            {
+                miExchangeCopyColumn.Text = "(no column found)";
+                miExchangeCopyColumn.Enabled = false;
+            }
+            else
+            {
+                miExchangeCopyColumn.Enabled = true;
+                miExchangeCopyColumn.Text = $"'{lvi.SubItems[ixCol].Text.Ellipsize(24)}'";
+            }
         }
     }
 

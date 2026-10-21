@@ -49,6 +49,14 @@ namespace Clearinet
             return false;
         }
 
+        public static string Ellipsize(this string s, int maxLength)
+        {
+            if (s == null) return null;
+            if (s.Length <= maxLength) return s;
+            if (maxLength < 3) return s.Substring(0, maxLength);
+            return s.Substring(0, maxLength - 1) + "\u2026";
+        }
+
         internal static int StrLen(this string s)
         {
             if (String.IsNullOrEmpty(s)) return 0;

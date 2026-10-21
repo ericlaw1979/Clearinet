@@ -164,7 +164,7 @@ namespace Clearinet
                     ClearPriorScriptTabs();
 
                     // TODO: The old script engine is still alive and clearing here doesn't
-                    // drop the reference to the old script. TODO: Notify any open textwizard to refresh?
+                    // drop the reference to the old script. TODO: Notify any open textransform to refresh?
                     listBoundTextCodecs.Clear();
                     //listWeaklyHeldWatchers.ForEach(w => w.Dispose());
                 }

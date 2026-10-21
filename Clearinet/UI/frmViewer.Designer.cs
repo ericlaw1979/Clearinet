@@ -149,15 +149,23 @@
             this.mnuExchangeCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeCopyUrl = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripSeparator();
+            this.miExchangeCopyColumn = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeReplay = new System.Windows.Forms.ToolStripMenuItem();
             this.miReplayReplay = new System.Windows.Forms.ToolStripMenuItem();
+            this.miReplayUnconditionally = new System.Windows.Forms.ToolStripMenuItem();
+            this.miReplayWithBreakpoint = new System.Windows.Forms.ToolStripMenuItem();
             this.miReplayWithComposer = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             this.miExchangeReplayBrowser = new System.Windows.Forms.ToolStripMenuItem();
+            this.miExchangeSelect = new System.Windows.Forms.ToolStripMenuItem();
+            this.miExchangeSelectDuplicates = new System.Windows.Forms.ToolStripMenuItem();
+            this.miExchangeSelectMatchingColumn = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeDiffer = new System.Windows.Forms.ToolStripMenuItem();
-            this.miExchangeProperties = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.miExchangeInsertSplitter = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
+            this.miExchangeProperties = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLeftBottom = new System.Windows.Forms.Panel();
             this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
@@ -257,7 +265,7 @@
             // miToolsSplitter1
             // 
             miToolsSplitter1.Name = "miToolsSplitter1";
-            miToolsSplitter1.Size = new System.Drawing.Size(190, 6);
+            miToolsSplitter1.Size = new System.Drawing.Size(214, 6);
             // 
             // miViewSplitter1
             // 
@@ -715,7 +723,7 @@
             // miToolsOptions
             // 
             this.miToolsOptions.Name = "miToolsOptions";
-            this.miToolsOptions.Size = new System.Drawing.Size(193, 22);
+            this.miToolsOptions.Size = new System.Drawing.Size(217, 22);
             this.miToolsOptions.Text = "Clearinet &Options...";
             this.miToolsOptions.ToolTipText = "Change Clearinet\'s Configuration Options";
             this.miToolsOptions.Click += new System.EventHandler(this.miToolsOptions_Click);
@@ -724,15 +732,15 @@
             // 
             this.miTextWizard.Name = "miTextWizard";
             this.miTextWizard.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.miTextWizard.Size = new System.Drawing.Size(193, 22);
-            this.miTextWizard.Text = "T&extWizard...";
-            this.miTextWizard.ToolTipText = "The TextWizard encodes and decodes text.";
+            this.miTextWizard.Size = new System.Drawing.Size(217, 22);
+            this.miTextWizard.Text = "T&extransform...";
+            this.miTextWizard.ToolTipText = "The Textransform encodes and decodes text.";
             this.miTextWizard.Click += new System.EventHandler(this.miTextWizard_Click);
             // 
             // miToolsMezer
             // 
             this.miToolsMezer.Name = "miToolsMezer";
-            this.miToolsMezer.Size = new System.Drawing.Size(193, 22);
+            this.miToolsMezer.Size = new System.Drawing.Size(217, 22);
             this.miToolsMezer.Text = "Me&zerTools";
             this.miToolsMezer.ToolTipText = "NYI: Simple tools for graphical designers";
             this.miToolsMezer.Click += new System.EventHandler(this.miToolsMezer_Click);
@@ -1172,43 +1180,62 @@
             this.mnuExchange.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuExchangeCopy,
             this.miExchangeReplay,
+            this.miExchangeSelect,
             this.miExchangeDiffer,
-            this.miExchangeProperties,
             this.toolStripMenuItem3,
-            this.miExchangeInsertSplitter});
+            this.miExchangeInsertSplitter,
+            this.toolStripMenuItem5,
+            this.miExchangeProperties});
             this.mnuExchange.Name = "mnuExchange";
             this.mnuExchange.ShowImageMargin = false;
-            this.mnuExchange.Size = new System.Drawing.Size(183, 120);
+            this.mnuExchange.Size = new System.Drawing.Size(183, 148);
             this.mnuExchange.Opening += new System.ComponentModel.CancelEventHandler(this.mnuExchange_Opening);
             // 
             // mnuExchangeCopy
             // 
             this.mnuExchangeCopy.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miExchangeCopyUrl,
-            this.miExchangeCopyHeaders});
+            this.miExchangeCopyHeaders,
+            this.toolStripMenuItem6,
+            this.miExchangeCopyColumn});
             this.mnuExchangeCopy.Name = "mnuExchangeCopy";
             this.mnuExchangeCopy.Size = new System.Drawing.Size(182, 22);
             this.mnuExchangeCopy.Text = "&Copy";
+            this.mnuExchangeCopy.DropDownOpening += new System.EventHandler(this.mnuExchangeCopy_DropDownOpening);
             // 
             // miExchangeCopyUrl
             // 
             this.miExchangeCopyUrl.Name = "miExchangeCopyUrl";
             this.miExchangeCopyUrl.ShortcutKeyDisplayString = "U";
-            this.miExchangeCopyUrl.Size = new System.Drawing.Size(136, 22);
+            this.miExchangeCopyUrl.Size = new System.Drawing.Size(180, 22);
             this.miExchangeCopyUrl.Text = "Just &Url";
             this.miExchangeCopyUrl.Click += new System.EventHandler(this.miExchangeCopyUrl_Click);
             // 
             // miExchangeCopyHeaders
             // 
             this.miExchangeCopyHeaders.Name = "miExchangeCopyHeaders";
-            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(136, 22);
+            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(180, 22);
             this.miExchangeCopyHeaders.Text = "&Headers";
             this.miExchangeCopyHeaders.Click += new System.EventHandler(this.miExchangeCopyHeaders_Click);
+            // 
+            // toolStripMenuItem6
+            // 
+            this.toolStripMenuItem6.Name = "toolStripMenuItem6";
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(177, 6);
+            // 
+            // miExchangeCopyColumn
+            // 
+            this.miExchangeCopyColumn.Name = "miExchangeCopyColumn";
+            this.miExchangeCopyColumn.Size = new System.Drawing.Size(180, 22);
+            this.miExchangeCopyColumn.Text = "(This Column)";
+            this.miExchangeCopyColumn.Click += new System.EventHandler(this.miExchangeCopyColumn_Click);
             // 
             // miExchangeReplay
             // 
             this.miExchangeReplay.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miReplayReplay,
+            this.miReplayUnconditionally,
+            this.miReplayWithBreakpoint,
             this.miReplayWithComposer,
             this.toolStripMenuItem4,
             this.miExchangeReplayBrowser});
@@ -1220,44 +1247,76 @@
             // 
             this.miReplayReplay.Name = "miReplayReplay";
             this.miReplayReplay.ShortcutKeyDisplayString = "R";
-            this.miReplayReplay.Size = new System.Drawing.Size(207, 22);
+            this.miReplayReplay.Size = new System.Drawing.Size(225, 22);
             this.miReplayReplay.Text = "&Replay now";
             this.miReplayReplay.Click += new System.EventHandler(this.miReplayReplay_Click);
+            // 
+            // miReplayUnconditionally
+            // 
+            this.miReplayUnconditionally.Name = "miReplayUnconditionally";
+            this.miReplayUnconditionally.ShortcutKeyDisplayString = "U";
+            this.miReplayUnconditionally.Size = new System.Drawing.Size(225, 22);
+            this.miReplayUnconditionally.Text = "Replay &Unconditionally";
+            this.miReplayUnconditionally.Click += new System.EventHandler(this.miReplayUnconditionally_Click);
+            // 
+            // miReplayWithBreakpoint
+            // 
+            this.miReplayWithBreakpoint.Name = "miReplayWithBreakpoint";
+            this.miReplayWithBreakpoint.Size = new System.Drawing.Size(225, 22);
+            this.miReplayWithBreakpoint.Text = "Replay with Brea&kpoint";
+            this.miReplayWithBreakpoint.Click += new System.EventHandler(this.miReplayWithBreakpoint_Click);
             // 
             // miReplayWithComposer
             // 
             this.miReplayWithComposer.Name = "miReplayWithComposer";
-            this.miReplayWithComposer.Size = new System.Drawing.Size(207, 22);
+            this.miReplayWithComposer.Size = new System.Drawing.Size(225, 22);
             this.miReplayWithComposer.Text = "Replay with &Composer";
             this.miReplayWithComposer.Click += new System.EventHandler(this.miReplayWithComposer_Click);
             // 
             // toolStripMenuItem4
             // 
             this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(204, 6);
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(222, 6);
             // 
             // miExchangeReplayBrowser
             // 
             this.miExchangeReplayBrowser.Name = "miExchangeReplayBrowser";
-            this.miExchangeReplayBrowser.Size = new System.Drawing.Size(207, 22);
+            this.miExchangeReplayBrowser.Size = new System.Drawing.Size(225, 22);
             this.miExchangeReplayBrowser.Text = "Replay with &Browser";
             this.miExchangeReplayBrowser.Click += new System.EventHandler(this.miExchangeReplayBrowser_Click);
+            // 
+            // miExchangeSelect
+            // 
+            this.miExchangeSelect.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miExchangeSelectDuplicates,
+            this.miExchangeSelectMatchingColumn});
+            this.miExchangeSelect.Name = "miExchangeSelect";
+            this.miExchangeSelect.Size = new System.Drawing.Size(182, 22);
+            this.miExchangeSelect.Text = "Se&lect";
+            this.miExchangeSelect.DropDownOpening += new System.EventHandler(this.miExchangeSelect_DropDownOpening);
+            // 
+            // miExchangeSelectDuplicates
+            // 
+            this.miExchangeSelectDuplicates.Name = "miExchangeSelectDuplicates";
+            this.miExchangeSelectDuplicates.ShortcutKeyDisplayString = "D";
+            this.miExchangeSelectDuplicates.Size = new System.Drawing.Size(213, 22);
+            this.miExchangeSelectDuplicates.Text = "&Duplicate Requests";
+            this.miExchangeSelectDuplicates.Click += new System.EventHandler(this.miExchangeSelectDuplicates_Click);
+            // 
+            // miExchangeSelectMatchingColumn
+            // 
+            this.miExchangeSelectMatchingColumn.Name = "miExchangeSelectMatchingColumn";
+            this.miExchangeSelectMatchingColumn.Size = new System.Drawing.Size(213, 22);
+            this.miExchangeSelectMatchingColumn.Text = "&Matching Column Value";
+            this.miExchangeSelectMatchingColumn.Click += new System.EventHandler(this.miExchangeSelectMatchingColumn_Click);
             // 
             // miExchangeDiffer
             // 
             this.miExchangeDiffer.Name = "miExchangeDiffer";
+            this.miExchangeDiffer.ShortcutKeyDisplayString = "Ctrl+W";
             this.miExchangeDiffer.Size = new System.Drawing.Size(182, 22);
             this.miExchangeDiffer.Text = "&Diff...";
-            this.miExchangeDiffer.ShortcutKeyDisplayString = "Ctrl+W";
             this.miExchangeDiffer.Click += new System.EventHandler(this.miExchangeDiffer_Click);
-            // 
-            // miExchangeProperties
-            // 
-            this.miExchangeProperties.Name = "miExchangeProperties";
-            this.miExchangeProperties.ShortcutKeyDisplayString = "Alt+Enter";
-            this.miExchangeProperties.Size = new System.Drawing.Size(182, 22);
-            this.miExchangeProperties.Text = "&Properties...";
-            this.miExchangeProperties.Click += new System.EventHandler(this.miExchangeProperties_Click);
             // 
             // toolStripMenuItem3
             // 
@@ -1271,6 +1330,19 @@
             this.miExchangeInsertSplitter.Size = new System.Drawing.Size(182, 22);
             this.miExchangeInsertSplitter.Text = "Insert Divider";
             this.miExchangeInsertSplitter.Click += new System.EventHandler(this.miExchangeInsertSplitter_Click);
+            // 
+            // toolStripMenuItem5
+            // 
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(179, 6);
+            // 
+            // miExchangeProperties
+            // 
+            this.miExchangeProperties.Name = "miExchangeProperties";
+            this.miExchangeProperties.ShortcutKeyDisplayString = "Alt+Enter";
+            this.miExchangeProperties.Size = new System.Drawing.Size(182, 22);
+            this.miExchangeProperties.Text = "&Properties...";
+            this.miExchangeProperties.Click += new System.EventHandler(this.miExchangeProperties_Click);
             // 
             // pnlLeftBottom
             // 
@@ -1722,6 +1794,14 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem miExchangeReplayBrowser;
         private System.Windows.Forms.Panel pnlLeftBottom;
+        private System.Windows.Forms.ToolStripMenuItem miReplayUnconditionally;
+        private System.Windows.Forms.ToolStripMenuItem miReplayWithBreakpoint;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem5;
+        private System.Windows.Forms.ToolStripMenuItem miExchangeSelect;
+        private System.Windows.Forms.ToolStripMenuItem miExchangeSelectDuplicates;
+        private System.Windows.Forms.ToolStripMenuItem miExchangeSelectMatchingColumn;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem6;
+        private System.Windows.Forms.ToolStripMenuItem miExchangeCopyColumn;
     }
 }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -77,11 +78,58 @@ namespace Clearinet
             {
                 txtExtensionsList.Text = CApp.oExtensions.ToString(true);
             }
+            if (e.TabPage == pageAppearance)
+            {
+                int iIndex = cbxFontSize.Items.IndexOf(CONFIG.flFontSize.ToString());
+                if (iIndex < 0) iIndex = 1;  // Default to 10pt
+                cbxFontSize.SelectedIndex = iIndex;
+                btnSetColorReadonly.BackColor = CONFIG.colorDisabledEdit;
+                btnSetColorMark.BackColor = CONFIG.colorHighlight;
+            }
         }
 
         private void frmOptions_Load(object sender, EventArgs e)
         {
             txtExtensionsList.BackColor = CONFIG.colorDisabledEdit;
+        }
+
+        private void btnSetColorReadonly_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog dlg = new ColorDialog())
+            {
+                dlg.AnyColor = true;
+                dlg.FullOpen = true;
+                dlg.CustomColors = new int[] { ColorTranslator.ToOle(CONFIG.COLOR_DEFAULT_DISABLEDEDIT) };
+                dlg.Color = CONFIG.colorDisabledEdit;
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    btnSetColorReadonly.BackColor = dlg.Color;
+
+                    // BUG: This shouldn't take effect until the user pressed OK, but they can't in Viewer mode... hrmph.
+                    CONFIG.colorDisabledEdit = dlg.Color;
+                }
+            }
+        }
+
+        private void btnSetColorMark_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog dlg = new ColorDialog())
+            {
+                dlg.AnyColor = true; dlg.FullOpen = true;
+                dlg.Color = CONFIG.colorHighlight;
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    btnSetColorMark.BackColor = dlg.Color;
+
+                    // BUG: This shouldn't take effect until the user pressed OK, but they can't in Viewer mode... hrmph.
+                    CONFIG.colorHighlight = dlg.Color;
+                }
+            }
+        }
+
+        private void cbxFontSize_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            CApp.UI.actSetFontSize(float.Parse(cbxFontSize.SelectedItem.ToString()));
         }
     }
 }

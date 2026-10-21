@@ -85,7 +85,7 @@
             // 
             this.miSendToTextWizard.Name = "miSendToTextWizard";
             this.miSendToTextWizard.Size = new System.Drawing.Size(189, 22);
-            this.miSendToTextWizard.Text = "Send to Text&Wizard";
+            this.miSendToTextWizard.Text = "Send to T&extransform";
             this.miSendToTextWizard.Click += new System.EventHandler(this.miSendToTextWizard_Click);
             // 
             // miCopy

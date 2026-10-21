@@ -135,7 +135,7 @@
             // 
             this.miSendToTextWizard.Name = "miSendToTextWizard";
             this.miSendToTextWizard.Size = new System.Drawing.Size(224, 22);
-            this.miSendToTextWizard.Text = "Send Value to Te&xtWizard";
+            this.miSendToTextWizard.Text = "Send Value to Te&xtransform";
             this.miSendToTextWizard.Click += new System.EventHandler(this.miSendToTextWizard_Click);
             // 
             // miEditHeader
