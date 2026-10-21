@@ -4,6 +4,7 @@ The QuickExec box sits below the Web Exchanges list and allows you to rapidly ex
 
 <img width="922" height="177" alt="image" src="https://github.com/user-attachments/assets/6c0d8506-c55a-4481-b714-84701cdcb836" />
 
+Eventually, this feature will include autocomplete and a scrollable history list (using the up/down arrow keys), but these [conveniences are `NOTYETIMPLEMENTED`](https://github.com/ericlaw1979/Clearinet/issues/25).
 
 ## Built in Commands
 
