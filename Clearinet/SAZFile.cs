@@ -162,9 +162,10 @@ namespace Clearinet
                         try
                         {
                             // NB: eResponse.CompressedSize is 0 if the entry uses STORE rather than DEFLATE.
-                            strmContent = eResponse.OpenReader();
-                            AddResponseFromStream(excNew, strmContent);
-                            strmContent.Dispose();
+                            using (strmContent = eResponse.OpenReader())
+                            {
+                                AddResponseFromStream(excNew, strmContent);
+                            }
                         }
                         catch { Debug.Assert(false, $"Failed to read response from {eResponse.FileName}"); }
                     }
@@ -174,15 +175,17 @@ namespace Clearinet
                     {
                         try
                         {
-                            strmContent = eMetadata.OpenReader();
-                            AddMetadataFromStream(excNew, strmContent);
-                            strmContent.Dispose();
+                            using (strmContent = eMetadata.OpenReader())
+                            {
+                                AddMetadataFromStream(excNew, strmContent);
+                            }
                         }
                         catch { Debug.Assert(false, $"Failed to read metadata from {eMetadata.FileName}"); }
                     }
 
                     // TODO: WebSocket data
 
+                    excNew.SetBitFlag(ExchangeFlags.LoadedFromSAZ);
                     sazFile.Exchanges.Add(excNew);
                 }
             }
@@ -299,6 +302,7 @@ namespace Clearinet
                     }
 
                     if (exchNew.BitFlags == ExchangeFlags.None) exchNew.BitFlags = sfInferredFlags;
+                    exchNew["X-Original-Session-ID"] = sOriginalID;
                 }
             }
             catch (Exception eX)
