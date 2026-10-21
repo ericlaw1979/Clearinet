@@ -161,14 +161,12 @@ namespace Clearinet
                     {
                         try
                         {
-                            if (eResponse.CompressedSize > 0)
-                            {
-                                strmContent = eResponse.OpenReader();
-                                AddResponseFromStream(excNew, strmContent);
-                                strmContent.Dispose();
-                            } // else {no response from server?}
+                            // NB: eResponse.CompressedSize is 0 if the entry uses STORE rather than DEFLATE.
+                            strmContent = eResponse.OpenReader();
+                            AddResponseFromStream(excNew, strmContent);
+                            strmContent.Dispose();
                         }
-                        catch { Debug.Assert(false, $"Failed to read response for {eResponse.FileName}"); }
+                        catch { Debug.Assert(false, $"Failed to read response from {eResponse.FileName}"); }
                     }
 
                     ZipEntry eMetadata = zf[eRequest.FileName.TrimAfter("_") + "_m.xml"];
@@ -180,7 +178,7 @@ namespace Clearinet
                             AddMetadataFromStream(excNew, strmContent);
                             strmContent.Dispose();
                         }
-                        catch { Debug.Assert(false); }
+                        catch { Debug.Assert(false, $"Failed to read metadata from {eMetadata.FileName}"); }
                     }
 
                     // TODO: WebSocket data
