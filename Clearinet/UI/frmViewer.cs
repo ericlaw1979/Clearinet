@@ -643,6 +643,8 @@ namespace Clearinet
                 }
             };
 
+            // TODO: Add "Select duplicates" and "Reissue unconditional" to Exchange context menu.
+
             // =========================== /End Move TODOs ===========================
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
