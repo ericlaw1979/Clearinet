@@ -7,7 +7,8 @@ namespace Clearinet
     {
         None = 0,
 
-        // Original URL was HTTPS
+        // Original URL was HTTPS.
+        // TODO: ARCH. The coupling here is a problem, because this is an exchange-level flag, but the original URL is a request-level property.
         IsHTTPS = 1,
 
         // Original URL was FTP
@@ -85,7 +86,7 @@ namespace Clearinet
 
         // Allowing extensions to tamper with the request
         AutoTamperRequestBefore,
-        
+
         // Paused for manual tampering of the request
         HandTamperRequest,
 

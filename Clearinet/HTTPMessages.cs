@@ -200,13 +200,22 @@ namespace Clearinet
             return ToString(true, true);
         }
 
-        public string ToString(bool include_request_line, bool include_endline)
+        public string ToString(bool include_request_line, bool include_endline, bool bWriteFullQualifiedURL = false)
         {
             StringBuilder sbOut = new StringBuilder();
-            if (include_request_line) sbOut.Append($"{HTTPMethod} {RequestPath} {HTTPVersion}\r\n");
+            if (include_request_line)
+            {
+                var sSchemeAndDelimiter = UriScheme + ":" + (UriScheme.OICEqualsAny("http", "https", "ftp") ? "//" : String.Empty);
+                string sOrigin = bWriteFullQualifiedURL ? $"{sSchemeAndDelimiter}{this["Host"]}" : String.Empty;
+                sbOut.Append($"{HTTPMethod} {sOrigin}{RequestPath} {HTTPVersion}\r\n");
+            }
+            else
+            {
+                if (bWriteFullQualifiedURL) { Debug.Assert(false); }
+            }
             try
             {
-                // TODO: Lock 
+                // TODO: Lock
                 for (int x = 0; x < storage.Count; x++)
                 {
                     sbOut.Append($"{storage[x].Name}: {storage[x].Value}\r\n");
@@ -221,14 +230,14 @@ namespace Clearinet
             return sbOut.ToString();
         }
 
-        public byte[] ToByteArray()
+        public byte[] ToByteArray(bool bWriteFullQualifiedURL = false)
         {
-            return this._encodingHeaders.GetBytes(ToString(true, true));
+            return this._encodingHeaders.GetBytes(ToString(true, true, bWriteFullQualifiedURL: bWriteFullQualifiedURL));
         }
 
-        internal void WriteToStream(Stream strm)
+        internal void WriteToStream(Stream strm, bool bWriteFullQualifiedURL)
         {
-            byte[] arrBytes = ToByteArray();
+            byte[] arrBytes = ToByteArray(bWriteFullQualifiedURL);
             strm.Write(arrBytes, 0, arrBytes.Length);
         }
     }
