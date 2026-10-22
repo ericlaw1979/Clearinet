@@ -762,6 +762,11 @@ namespace Clearinet
         /// </summary>
         internal void TODOAddSampleData()
         {
+            addExchangesToListView(CreateSampleExchanges());
+        }
+
+        private IEnumerable<Exchange> CreateSampleExchanges()
+        {
             for (int iX = 0; iX < 15; iX++)
             {
                 HTTPRequestHeaders hrh = new HTTPRequestHeaders($"/Item#{iX}", new string[] { $"FirstHeader: {iX}", $"SecondHeader: {iX}{iX}", $"Host: {iX}.com" })
@@ -776,7 +781,7 @@ namespace Clearinet
                 };
                 hrh["Content-Length"] = x.ResponseBody.Length.ToString();
                 x.state = (ExchangeState)(iX);
-                addExchangeToListView(x);
+                yield return x;
             }
         }
 
@@ -870,26 +875,36 @@ namespace Clearinet
             {
                 string[] arrFiles = (string[])e.Data.GetData("FileDrop", false);
                 if (null == arrFiles) return;
+
+                e.Effect = DragDropEffects.Copy;
+
+                // For performance reasons, we'll batch the addition of unprocessed (non-archive)/ordinary files
+                // so their rows are sorted only once.
+                var paths = new List<string>();
                 foreach (string sPath in arrFiles)
                 {
-                    if (sPath.OICEndsWith(".saz"))
+                    bool isArchive = sPath.OICEndsWith(".saz");
+                    bool hasImporter = !isArchive && null != CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath));
+                    if (isArchive || hasImporter)
                     {
-                        actLoadSessionArchive(sPath);
-                        e.Effect = DragDropEffects.Copy;
+                        // To preserve the drop ordering, insert any pending ordinary files before loading Exchanges from this file.
+                        if (paths.Count > 0)
+                        {
+                            addExchangesToListView(CreateExchangesForFiles(paths));
+                            paths.Clear();
+                        }
+                        // Archive Importers will batch their own Exchanges.
+                        if (isArchive) actLoadSessionArchive(sPath);
+                        else actImportFile(sPath);
                         continue;
-
                     }
 
-                    if (null != CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath)))
-                    {
-                        actImportFile(sPath);
-                        e.Effect = DragDropEffects.Copy;
-                        continue;
-                    }
-
-                    // If we got here, we have no special knowledge of what to do with this.
-                    doAddExchangeForFile(sPath);
+                    // Unrecognized file types are added to the Exchanges list as synthetic Exchanges
+                    // that contain the file's bytes as the response body.
+                    paths.Add(sPath);
                 }
+                // Flush any remaining ordinary files after the last imported file.
+                if (paths.Count > 0) addExchangesToListView(CreateExchangesForFiles(paths));
             }
         }
 
@@ -1031,10 +1046,9 @@ namespace Clearinet
                                 Application.DoEvents();
                             });
 
-                foreach (Exchange x in exchImported)
-                {
-                    addExchangeToListView(x);
-                }
+                if (exchImported == null) return;
+
+                addExchangesToListView(exchImported);
 
                 CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
                 // If we're an unnamed viewer instance, show the file path
@@ -1069,10 +1083,7 @@ namespace Clearinet
                             tsmiNameViewer.ToolTipText = sPath;
                         }
 
-                        foreach (Exchange x in sazFile.Exchanges)
-                        {
-                            addExchangeToListView(x);
-                        }
+                        addExchangesToListView(sazFile.Exchanges);
                     }
                     return true;
                 }
@@ -1118,6 +1129,28 @@ namespace Clearinet
             }
 
             AddFormatting(lvi, xc);
+        }
+
+        private void addExchangesToListView(IEnumerable<Exchange> exchanges)
+        {
+            if (CApp.isClosing) return;
+
+            var sorter = lvExchanges.ListViewItemSorter;
+            lvExchanges.BeginUpdate();
+            try
+            {
+                lvExchanges.ListViewItemSorter = null;
+                foreach (Exchange exchange in exchanges)
+                {
+                    addExchangeToListView(exchange);
+                }
+            }
+            finally
+            {
+                // Flush deferred inserts before restoring sorting.
+                lvExchanges.EndUpdate();
+                lvExchanges.ListViewItemSorter = sorter;
+            }
         }
 
         private void addExchangeToListView(Exchange xc)
@@ -1780,12 +1813,16 @@ namespace Clearinet
             });
         }
 
-        private void doAddExchangeForFile(string sPath)
+        private IEnumerable<Exchange> CreateExchangesForFiles(IEnumerable<string> paths)
         {
-            byte[] arrBody = File.ReadAllBytes(sPath);
-            string sContentType = Utilities.MimeTypeFromFilename(sPath);
-            AddFauxExchange($"/clipboard/{Path.GetFileName(sPath)}", sContentType, arrBody);
+            foreach (string path in paths)
+            {
+                byte[] body = File.ReadAllBytes(path);
+                string contentType = Utilities.MimeTypeFromFilename(path);
+                yield return CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", contentType, body);
+            }
         }
+
         private void doPasteFilesAsExchanges()
         {
             try
@@ -1796,11 +1833,12 @@ namespace Clearinet
                     CApp.DoNotifyUser("The clipboard did not contain any files.", "Paste Failed");
                     return;
                 }
-                foreach (string sPath in arrFiles)
+                var paths = new List<string>();
+                foreach (string path in arrFiles)
                 {
-                    if (!File.Exists(sPath)) continue;
-                    doAddExchangeForFile(sPath);
+                    if (File.Exists(path)) paths.Add(path);
                 }
+                addExchangesToListView(CreateExchangesForFiles(paths));
             }
             catch (Exception eX)
             {
@@ -1832,6 +1870,13 @@ namespace Clearinet
 
         internal Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
         {
+            Exchange exchange = CreateFauxExchange(sRequestPath, sContentType, arrBody);
+            addExchangeToListView(exchange);
+            return exchange;
+        }
+
+        private static Exchange CreateFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
+        {
             var headersRequest = new HTTPRequestHeaders(sRequestPath, new[] { "Host: localhost" });
             var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
 
@@ -1843,7 +1888,6 @@ namespace Clearinet
             exchNew.EnsureID();
             exchNew.state = ExchangeState.Done;
             exchNew.Timers.AssignNowToAll();
-            addExchangeToListView(exchNew);
             return exchNew;
         }
 
