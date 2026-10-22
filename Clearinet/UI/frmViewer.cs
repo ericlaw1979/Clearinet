@@ -96,10 +96,19 @@ namespace Clearinet
         private void trayIcon_MouseClick(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left) return;
-            Show();
-            WindowState = trayRestoreState;
-            Activate();
-            trayIcon.Visible = false;
+            actActivateMainWindow();
+        }
+
+        private void actActivateMainWindow()
+        {
+            if (trayIcon != null && trayIcon.Visible)
+            {
+                Show();
+                WindowState = trayRestoreState;
+                trayIcon.Visible = false;
+            }
+            if (!Win32UI.BringWindowToForeground(Handle))
+                CApp.Log.Log("Unable to bring the main Clearinet window to the foreground.");
         }
 
         public void actActivateTab(string sTabTitle)
@@ -656,7 +665,12 @@ namespace Clearinet
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
-            new HiddenExecActionTargetWindow(components);
+            var messagingWindow = new HiddenExecActionTargetWindow(components);
+            string globalHotkey = CApp.Prefs.GetStringPref("app.keys.global_hotkey", "Ctrl+Alt+F");
+            if (!string.IsNullOrWhiteSpace(globalHotkey))
+            {
+                messagingWindow.RegisterHotKey(globalHotkey, actActivateMainWindow);
+            }
         }
 
         private void miHelpViewHelp_Click(object sender, EventArgs e)

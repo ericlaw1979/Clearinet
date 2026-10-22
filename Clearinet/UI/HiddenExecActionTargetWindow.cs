@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -23,16 +24,76 @@ namespace Clearinet
             container.Add(this);
         }
 
+        /// <summary>
+        /// Register on the UI thread; callbacks run on that thread.
+        /// </summary>
+        internal bool RegisterHotKey(string keyCombo, Action callback)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (window.Handle == IntPtr.Zero) throw new ObjectDisposedException(nameof(HiddenExecActionTargetWindow));
+
+            uint modifiers = 0;
+            Keys key = Keys.None;
+            foreach (string part in (keyCombo ?? string.Empty).Split('+'))
+            {
+                string token = part.Trim();
+                uint modifier;
+                switch (token.ToUpperInvariant())
+                {
+                    case "CTRL":
+                    case "CONTROL": modifier = 0x0002; break;
+                    case "ALT": modifier = 0x0001; break;
+                    case "SHIFT": modifier = 0x0004; break;
+                    case "WIN": modifier = 0x0008; break;
+                    default:
+                        if (key != Keys.None || token.Length == 0 || char.IsDigit(token[0]) || token.Contains(",") ||
+                            !Enum.TryParse(token, true, out key) || !Enum.IsDefined(typeof(Keys), key) ||
+                            key <= Keys.None || (int)key > 0xFF ||
+                            key == Keys.ControlKey || key == Keys.ShiftKey || key == Keys.Menu ||
+                            key == Keys.LWin || key == Keys.RWin)
+                        {
+                            CApp.Log.Log($"Invalid global hotkey '{keyCombo}'. Use a key name with optional Ctrl, Alt, Shift, or Win modifiers (e.g. Ctrl+Alt+F).");
+                            return false;
+                        }
+                        continue;
+                }
+                if ((modifiers & modifier) != 0)
+                {
+                    CApp.Log.Log($"Invalid global hotkey '{keyCombo}': repeated modifier '{token}'.");
+                    return false;
+                }
+                modifiers |= modifier;
+            }
+            if (key == Keys.None)
+            {
+                CApp.Log.Log($"Invalid global hotkey '{keyCombo}': a non-modifier key is required.");
+                return false;
+            }
+            return window.RegisterHotKey(keyCombo, modifiers, (uint)key, callback);
+        }
+
         protected override void Dispose(bool disposing)
         {
-            if (disposing) window.DestroyHandle();
+            if (disposing) window.Close();
             base.Dispose(disposing);
         }
 
         private sealed class CommandWindow : NativeWindow
         {
             private const int WM_COPYDATA = 0x004A;
+            private const int WM_HOTKEY = 0x0312;
+            private const uint MOD_NOREPEAT = 0x4000;
+            private readonly Dictionary<int, Action> hotkeyCallbacks = new Dictionary<int, Action>();
+            private int nextHotkeyId = 1;
             private static readonly UTF8Encoding CommandEncoding = new UTF8Encoding(false, true);
+
+            [DllImport("user32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint modifiers, uint key);
+
+            [DllImport("user32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
             [StructLayout(LayoutKind.Sequential)]
             private struct COPYDATASTRUCT
@@ -47,10 +108,46 @@ namespace Clearinet
                 CreateHandle(new CreateParams { Caption = "Clearinet.ExecActionTarget" });
             }
 
+            internal bool RegisterHotKey(string keyCombo, uint modifiers, uint key, Action callback)
+            {
+                if (nextHotkeyId > 0xBFFF) throw new InvalidOperationException("No global hotkey IDs remain.");
+                int id = nextHotkeyId;
+                if (!RegisterHotKey(Handle, id, modifiers | MOD_NOREPEAT, key))
+                {
+                    int error = Marshal.GetLastWin32Error();
+                    CApp.Log.Log($"Unable to register global hotkey '{keyCombo}': {new Win32Exception(error).Message} (error {error}).");
+                    return false;
+                }
+                hotkeyCallbacks.Add(id, callback);
+                ++nextHotkeyId;
+                return true;
+            }
+
+            internal void Close()
+            {
+                if (Handle == IntPtr.Zero) return;
+                foreach (int id in hotkeyCallbacks.Keys)
+                {
+                    if (!UnregisterHotKey(Handle, id))
+                    {
+                        int error = Marshal.GetLastWin32Error();
+                        CApp.Log.Log($"Unable to unregister global hotkey {id}: {new Win32Exception(error).Message} (error {error}).");
+                    }
+                }
+                hotkeyCallbacks.Clear();
+                DestroyHandle();
+            }
+
             // TODO: This should probably have an event handler `OnMessageReceived` that 
             // the UI subscribes to.
             protected override void WndProc(ref Message m)
             {
+                if (m.Msg == WM_HOTKEY && hotkeyCallbacks.TryGetValue(m.WParam.ToInt32(), out Action callback))
+                {
+                    if (!CApp.isClosing) callback();
+                    m.Result = IntPtr.Zero;
+                    return;
+                }
                 if (m.Msg != WM_COPYDATA)
                 {
                     base.WndProc(ref m);

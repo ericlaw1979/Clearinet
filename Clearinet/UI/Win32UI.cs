@@ -28,7 +28,11 @@ namespace Clearinet
         private const int SW_RESTORE = 9;
         public static bool BringTitledWindowToForeground(string windowTitle)
         {
-            IntPtr hWnd = FindWindow(null, windowTitle);
+            return BringWindowToForeground(FindWindow(null, windowTitle));
+        }
+
+        internal static bool BringWindowToForeground(IntPtr hWnd)
+        {
             if (hWnd == IntPtr.Zero) return false;
             if (IsIconic(hWnd)) ShowWindow(hWnd, SW_RESTORE);
             return SetForegroundWindow(hWnd);
