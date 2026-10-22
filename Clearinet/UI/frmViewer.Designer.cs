@@ -143,8 +143,13 @@
             this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colMethod = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colScheme = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colResponseSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colMediaType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colProcess = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colComments = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.mnuExchange = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mnuExchangeCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeCopyUrl = new System.Windows.Forms.ToolStripMenuItem();
@@ -265,7 +270,7 @@
             // miToolsSplitter1
             // 
             miToolsSplitter1.Name = "miToolsSplitter1";
-            miToolsSplitter1.Size = new System.Drawing.Size(214, 6);
+            miToolsSplitter1.Size = new System.Drawing.Size(202, 6);
             // 
             // miViewSplitter1
             // 
@@ -723,7 +728,7 @@
             // miToolsOptions
             // 
             this.miToolsOptions.Name = "miToolsOptions";
-            this.miToolsOptions.Size = new System.Drawing.Size(217, 22);
+            this.miToolsOptions.Size = new System.Drawing.Size(205, 22);
             this.miToolsOptions.Text = "Clearinet &Options...";
             this.miToolsOptions.ToolTipText = "Change Clearinet\'s Configuration Options";
             this.miToolsOptions.Click += new System.EventHandler(this.miToolsOptions_Click);
@@ -732,7 +737,7 @@
             // 
             this.miTextWizard.Name = "miTextWizard";
             this.miTextWizard.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.miTextWizard.Size = new System.Drawing.Size(217, 22);
+            this.miTextWizard.Size = new System.Drawing.Size(205, 22);
             this.miTextWizard.Text = "T&extransform...";
             this.miTextWizard.ToolTipText = "The Textransform encodes and decodes text.";
             this.miTextWizard.Click += new System.EventHandler(this.miTextWizard_Click);
@@ -740,7 +745,7 @@
             // miToolsMezer
             // 
             this.miToolsMezer.Name = "miToolsMezer";
-            this.miToolsMezer.Size = new System.Drawing.Size(217, 22);
+            this.miToolsMezer.Size = new System.Drawing.Size(205, 22);
             this.miToolsMezer.Text = "Me&zerTools";
             this.miToolsMezer.ToolTipText = "NYI: Simple tools for graphical designers";
             this.miToolsMezer.Click += new System.EventHandler(this.miToolsMezer_Click);
@@ -1127,8 +1132,13 @@
             this.colID,
             this.colResult,
             this.colMethod,
+            this.colScheme,
             this.colHost,
-            this.colPath});
+            this.colPath,
+            this.colResponseSize,
+            this.colMediaType,
+            this.colProcess,
+            this.colComments});
             this.lvExchanges.ContextMenuStrip = this.mnuExchange;
             this.lvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
@@ -1146,6 +1156,7 @@
             this.lvExchanges.SelectedIndexChanged += new System.EventHandler(this.lvExchanges_SelectedIndexChanged);
             this.lvExchanges.DoubleClick += new System.EventHandler(this.lvExchanges_DoubleClick);
             this.lvExchanges.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyDown);
+            this.lvExchanges.KeyUp += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyUp);
             this.lvExchanges.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lvExchanges_MouseDown);
             // 
             // colID
@@ -1164,6 +1175,10 @@
             this.colMethod.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.colMethod.Width = 80;
             // 
+            // colScheme
+            // 
+            this.colScheme.Text = "Protocol";
+            // 
             // colHost
             // 
             this.colHost.Text = "Host";
@@ -1174,6 +1189,27 @@
             // 
             this.colPath.Text = "Path";
             this.colPath.Width = 500;
+            // 
+            // colResponseSize
+            // 
+            this.colResponseSize.Text = "Body";
+            this.colResponseSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.colResponseSize.Width = 80;
+            // 
+            // colMediaType
+            // 
+            this.colMediaType.Text = "MediaType";
+            this.colMediaType.Width = 100;
+            // 
+            // colProcess
+            // 
+            this.colProcess.Text = "Process";
+            this.colProcess.Width = 80;
+            // 
+            // colComments
+            // 
+            this.colComments.Text = "Comments";
+            this.colComments.Width = 200;
             // 
             // mnuExchange
             // 
@@ -1207,26 +1243,26 @@
             // 
             this.miExchangeCopyUrl.Name = "miExchangeCopyUrl";
             this.miExchangeCopyUrl.ShortcutKeyDisplayString = "U";
-            this.miExchangeCopyUrl.Size = new System.Drawing.Size(180, 22);
+            this.miExchangeCopyUrl.Size = new System.Drawing.Size(155, 22);
             this.miExchangeCopyUrl.Text = "Just &Url";
             this.miExchangeCopyUrl.Click += new System.EventHandler(this.miExchangeCopyUrl_Click);
             // 
             // miExchangeCopyHeaders
             // 
             this.miExchangeCopyHeaders.Name = "miExchangeCopyHeaders";
-            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(180, 22);
+            this.miExchangeCopyHeaders.Size = new System.Drawing.Size(155, 22);
             this.miExchangeCopyHeaders.Text = "&Headers";
             this.miExchangeCopyHeaders.Click += new System.EventHandler(this.miExchangeCopyHeaders_Click);
             // 
             // toolStripMenuItem6
             // 
             this.toolStripMenuItem6.Name = "toolStripMenuItem6";
-            this.toolStripMenuItem6.Size = new System.Drawing.Size(177, 6);
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(152, 6);
             // 
             // miExchangeCopyColumn
             // 
             this.miExchangeCopyColumn.Name = "miExchangeCopyColumn";
-            this.miExchangeCopyColumn.Size = new System.Drawing.Size(180, 22);
+            this.miExchangeCopyColumn.Size = new System.Drawing.Size(155, 22);
             this.miExchangeCopyColumn.Text = "(This Column)";
             this.miExchangeCopyColumn.Click += new System.EventHandler(this.miExchangeCopyColumn_Click);
             // 
@@ -1439,6 +1475,7 @@
             // 
             // tabsResponse
             // 
+            this.tabsResponse.Appearance = System.Windows.Forms.TabAppearance.FlatButtons;
             this.tabsResponse.ContextMenuStrip = this.mnuInspectors;
             this.tabsResponse.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabsResponse.Location = new System.Drawing.Point(4, 231);
@@ -1526,6 +1563,7 @@
             // 
             // tabsRequest
             // 
+            this.tabsRequest.Appearance = System.Windows.Forms.TabAppearance.FlatButtons;
             this.tabsRequest.ContextMenuStrip = this.mnuInspectors;
             this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
             this.tabsRequest.Location = new System.Drawing.Point(4, 4);
@@ -1802,6 +1840,11 @@
         private System.Windows.Forms.ToolStripMenuItem miExchangeSelectMatchingColumn;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem6;
         private System.Windows.Forms.ToolStripMenuItem miExchangeCopyColumn;
+        private System.Windows.Forms.ColumnHeader colScheme;
+        private System.Windows.Forms.ColumnHeader colResponseSize;
+        private System.Windows.Forms.ColumnHeader colMediaType;
+        private System.Windows.Forms.ColumnHeader colProcess;
+        private System.Windows.Forms.ColumnHeader colComments;
     }
 }
 

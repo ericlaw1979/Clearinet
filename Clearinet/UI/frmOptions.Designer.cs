@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmOptions));
             this.tcOptions = new System.Windows.Forms.TabControl();
             this.pageGeneral = new System.Windows.Forms.TabPage();
             this.gbWebServices = new System.Windows.Forms.GroupBox();
@@ -45,6 +46,10 @@
             this.pageConnections = new System.Windows.Forms.TabPage();
             this.pageGateway = new System.Windows.Forms.TabPage();
             this.pageAppearance = new System.Windows.Forms.TabPage();
+            this.btnSetColorMark = new System.Windows.Forms.Button();
+            this.btnSetColorReadonly = new System.Windows.Forms.Button();
+            this.lblFontSize = new System.Windows.Forms.Label();
+            this.cbxFontSize = new System.Windows.Forms.ComboBox();
             this.pageExtensions = new System.Windows.Forms.TabPage();
             this.txtExtensionsList = new System.Windows.Forms.TextBox();
             this.pagePerformance = new System.Windows.Forms.TabPage();
@@ -53,10 +58,6 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
-            this.cbxFontSize = new System.Windows.Forms.ComboBox();
-            this.lblFontSize = new System.Windows.Forms.Label();
-            this.btnSetColorReadonly = new System.Windows.Forms.Button();
-            this.btnSetColorMark = new System.Windows.Forms.Button();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -270,6 +271,57 @@
             this.pageAppearance.Text = "Appearance";
             this.pageAppearance.UseVisualStyleBackColor = true;
             // 
+            // btnSetColorMark
+            // 
+            this.btnSetColorMark.Location = new System.Drawing.Point(11, 94);
+            this.btnSetColorMark.Name = "btnSetColorMark";
+            this.btnSetColorMark.Size = new System.Drawing.Size(208, 32);
+            this.btnSetColorMark.TabIndex = 5;
+            this.btnSetColorMark.Text = "Set node \'mark\' color";
+            this.btnSetColorMark.UseVisualStyleBackColor = true;
+            this.btnSetColorMark.Click += new System.EventHandler(this.btnSetColorMark_Click);
+            // 
+            // btnSetColorReadonly
+            // 
+            this.btnSetColorReadonly.Location = new System.Drawing.Point(11, 57);
+            this.btnSetColorReadonly.Name = "btnSetColorReadonly";
+            this.btnSetColorReadonly.Size = new System.Drawing.Size(208, 31);
+            this.btnSetColorReadonly.TabIndex = 4;
+            this.btnSetColorReadonly.Text = "Set \'readonly\' color";
+            this.btnSetColorReadonly.UseVisualStyleBackColor = true;
+            this.btnSetColorReadonly.Click += new System.EventHandler(this.btnSetColorReadonly_Click);
+            // 
+            // lblFontSize
+            // 
+            this.lblFontSize.AutoSize = true;
+            this.lblFontSize.Location = new System.Drawing.Point(8, 19);
+            this.lblFontSize.Name = "lblFontSize";
+            this.lblFontSize.Size = new System.Drawing.Size(68, 17);
+            this.lblFontSize.TabIndex = 3;
+            this.lblFontSize.Text = "Font Size:";
+            // 
+            // cbxFontSize
+            // 
+            this.cbxFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxFontSize.FormattingEnabled = true;
+            this.cbxFontSize.Items.AddRange(new object[] {
+            "8",
+            "10",
+            "12",
+            "14",
+            "16",
+            "18",
+            "20",
+            "22",
+            "24",
+            "28",
+            "32"});
+            this.cbxFontSize.Location = new System.Drawing.Point(82, 16);
+            this.cbxFontSize.Name = "cbxFontSize";
+            this.cbxFontSize.Size = new System.Drawing.Size(99, 25);
+            this.cbxFontSize.TabIndex = 2;
+            this.cbxFontSize.SelectionChangeCommitted += new System.EventHandler(this.cbxFontSize_SelectionChangeCommitted);
+            // 
             // pageExtensions
             // 
             this.pageExtensions.Controls.Add(this.txtExtensionsList);
@@ -359,57 +411,6 @@
             this.lnkHelp.Text = "Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
-            // cbxFontSize
-            // 
-            this.cbxFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbxFontSize.FormattingEnabled = true;
-            this.cbxFontSize.Items.AddRange(new object[] {
-            "8",
-            "10",
-            "12",
-            "14",
-            "16",
-            "18",
-            "20",
-            "22",
-            "24",
-            "28",
-            "32"});
-            this.cbxFontSize.Location = new System.Drawing.Point(82, 16);
-            this.cbxFontSize.Name = "cbxFontSize";
-            this.cbxFontSize.Size = new System.Drawing.Size(99, 25);
-            this.cbxFontSize.TabIndex = 2;
-            this.cbxFontSize.SelectionChangeCommitted += new System.EventHandler(this.cbxFontSize_SelectionChangeCommitted);
-            // 
-            // lblFontSize
-            // 
-            this.lblFontSize.AutoSize = true;
-            this.lblFontSize.Location = new System.Drawing.Point(8, 19);
-            this.lblFontSize.Name = "lblFontSize";
-            this.lblFontSize.Size = new System.Drawing.Size(68, 17);
-            this.lblFontSize.TabIndex = 3;
-            this.lblFontSize.Text = "Font Size:";
-            // 
-            // btnSetColorReadonly
-            // 
-            this.btnSetColorReadonly.Location = new System.Drawing.Point(11, 57);
-            this.btnSetColorReadonly.Name = "btnSetColorReadonly";
-            this.btnSetColorReadonly.Size = new System.Drawing.Size(208, 31);
-            this.btnSetColorReadonly.TabIndex = 4;
-            this.btnSetColorReadonly.Text = "Set \'readonly\' color";
-            this.btnSetColorReadonly.UseVisualStyleBackColor = true;
-            this.btnSetColorReadonly.Click += new System.EventHandler(this.btnSetColorReadonly_Click);
-            // 
-            // btnSetColorMark
-            // 
-            this.btnSetColorMark.Location = new System.Drawing.Point(11, 94);
-            this.btnSetColorMark.Name = "btnSetColorMark";
-            this.btnSetColorMark.Size = new System.Drawing.Size(208, 32);
-            this.btnSetColorMark.TabIndex = 5;
-            this.btnSetColorMark.Text = "Set node \'mark\' color";
-            this.btnSetColorMark.UseVisualStyleBackColor = true;
-            this.btnSetColorMark.Click += new System.EventHandler(this.btnSetColorMark_Click);
-            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
@@ -421,6 +422,7 @@
             this.Controls.Add(this.pnlFooter);
             this.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.MinimumSize = new System.Drawing.Size(600, 400);
             this.Name = "frmOptions";

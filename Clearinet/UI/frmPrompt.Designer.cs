@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPrompt));
             this.txtResponse = new System.Windows.Forms.TextBox();
             this.rePrompt = new System.Windows.Forms.RichTextBox();
             this.btnOk = new System.Windows.Forms.Button();
@@ -91,7 +92,7 @@
             this.pbPromptIcon.BackColor = System.Drawing.Color.Transparent;
             this.pbPromptIcon.Image = global::Clearinet.Properties.Resources.PromptQuery;
             this.pbPromptIcon.Location = new System.Drawing.Point(22, 24);
-            this.pbPromptIcon.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pbPromptIcon.Margin = new System.Windows.Forms.Padding(2);
             this.pbPromptIcon.Name = "pbPromptIcon";
             this.pbPromptIcon.Size = new System.Drawing.Size(64, 64);
             this.pbPromptIcon.TabIndex = 4;
@@ -112,6 +113,7 @@
             this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.Name = "frmPrompt";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;

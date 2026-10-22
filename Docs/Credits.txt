@@ -10,9 +10,10 @@ The list of those entities will be found here.
 - HexBox from https://github.com/bernharde/hexbox
 - (More to come)
 
-Beyond these suppliers, code from Clearinet came from:
+Beyond these suppliers, code or Content in Clearinet came from:
 
 - My brain
 - GitHub Copilot
 - Google Gemini
+- https://convertico.com/
 - (your name here; see CONTRIBUTING.MD on GitHub)

@@ -21,8 +21,9 @@ namespace Clearinet
             InitializeComponent();
 
             // TODO: This is a hack. Eventually we will be smarter.
-            lvExchanges.ConfigureColumn(0, ColumnSortType.Numeric); // ID column
-            lvExchanges.ConfigureColumn(1, ColumnSortType.Numeric); // Result column
+            lvExchanges.ConfigureColumn(colID.Index, ColumnSortType.Numeric);
+            lvExchanges.ConfigureColumn(colResult.Index, ColumnSortType.Numeric);
+            lvExchanges.ConfigureColumn(colResponseSize.Index, ColumnSortType.Numeric);
 
             mruRecents = new MRU(CApp.Prefs.GetInt32Pref("ui.mru.max", 12), CONFIG.GetRegistryPath("MRU"));
             if (CONFIG.isViewerMode)
@@ -1098,40 +1099,23 @@ namespace Clearinet
                 return;
             }
 
-            xc.ViewItem.SubItems[1].Text = xc.bHasResponse ? xc.responseCode.ToString() : "-";
-            xc.ViewItem.SubItems[2].Text = xc.RequestHeaders.HTTPMethod;
-            xc.ViewItem.SubItems[3].Text = xc.host;
-            xc.ViewItem.SubItems[4].Text = xc.RequestHeaders.RequestPath;
+            ListViewItem lvi = xc.ViewItem;
+            lvi.SubItems[1].Text = xc.bHasResponse ? xc.responseCode.ToString() : "-";
+            lvi.SubItems[2].Text = xc.RequestHeaders.HTTPMethod;
+            lvi.SubItems[3].Text = xc.RequestHeaders?.UriScheme;
+            lvi.SubItems[4].Text = xc.host;
+            lvi.SubItems[5].Text = xc.RequestHeaders.RequestPath;
+            lvi.SubItems[6].Text = xc.ResponseBody?.Length.ToString("N0") ?? "-";
+            lvi.SubItems[7].Text = xc.MediaType ?? "-";
+            lvi.SubItems[8].Text = xc["x-processinfo"] ?? String.Empty;
+            lvi.SubItems[9].Text = xc["ui-comments"] ?? String.Empty;
 
-            for (int i = 5; i < lvExchanges.Columns.Count; ++i)
+            for (int i = 10; i < lvExchanges.Columns.Count; ++i)
             {
-                xc.ViewItem.SubItems[i].Text = lvExchanges.PopulateColumn(i, xc);
+                lvi.SubItems[i].Text = lvExchanges.PopulateColumn(i, xc);
             }
 
-            {
-                if (xc["ui-backcolor"] is string sColor)
-                {
-                    try
-                    {
-                        Color c = ColorTranslator.FromHtml(sColor);
-                        xc.ViewItem.BackColor = c;
-                    }
-                    catch { }
-                }
-            }
-            {
-                if (xc["ui-color"] is string sColor)
-                {
-                    try
-                    {
-                        Color c = ColorTranslator.FromHtml(sColor);
-                        xc.ViewItem.ForeColor = c;
-                    }
-                    catch { }
-                }
-            }
-            if (xc["ui-strikeout"] != null) xc.ViewItem.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
-            if (xc["ui-bold"] != null) xc.ViewItem.Font = new Font(lvExchanges.Font, FontStyle.Bold);
+            AddFormatting(lvi, xc);
         }
 
         private void addExchangeToListView(Exchange xc)
@@ -1146,16 +1130,49 @@ namespace Clearinet
             xc.ViewItem = lvi;
 
             lvi.SubItems.Add(xc.bHasResponse ? xc.responseCode.ToString() : "-");
-            lvi.SubItems.Add(xc.RequestHeaders.HTTPMethod);
+            lvi.SubItems.Add(xc.RequestHeaders?.HTTPMethod ?? String.Empty);
+            lvi.SubItems.Add(xc.RequestHeaders?.UriScheme ?? String.Empty);
             lvi.SubItems.Add(xc.host);
-            lvi.SubItems.Add(xc.RequestHeaders.RequestPath);
-
-            for (int i = 5; i < lvExchanges.Columns.Count; ++i)
+            lvi.SubItems.Add(xc.RequestHeaders?.RequestPath ?? String.Empty);
+            lvi.SubItems.Add(xc.ResponseBody?.Length.ToString("N0") ?? "-");
+            lvi.SubItems.Add(xc.MediaType ?? "-");
+            lvi.SubItems.Add(xc["x-processinfo"] ?? String.Empty);
+            lvi.SubItems.Add(xc["ui-comments"] ?? String.Empty);
+            for (int i = 10; i < lvExchanges.Columns.Count; ++i)
             {
                 lvi.SubItems.Add(lvExchanges.PopulateColumn(i, xc));
             }
 
+            AddFormatting(lvi, xc);
             lvExchanges.Items.Add(lvi);
+        }
+
+        private void AddFormatting(ListViewItem lvi, Exchange xc)
+        {
+            {
+                if (xc["ui-backcolor"] is string sColor)
+                {
+                    try
+                    {
+                        Color c = ColorTranslator.FromHtml(sColor);
+                        lvi.BackColor = c;
+                    }
+                    catch { }
+                }
+            }
+            {
+                if (xc["ui-color"] is string sColor)
+                {
+                    try
+                    {
+                        Color c = ColorTranslator.FromHtml(sColor);
+                        lvi.ForeColor = c;
+                    }
+                    catch { }
+                }
+            }
+            if (xc["ui-strikeout"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
+            if (xc["ui-bold"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Bold);
         }
 
         private void HandleProxyAttached()
@@ -1676,7 +1693,23 @@ namespace Clearinet
                     e.SuppressKeyPress = e.Handled = true;
                     actSelectDuplicates();
                     break;
+
+                case Keys.M:
+                    e.SuppressKeyPress = e.Handled = true;
+                    // Actual handling happens in Keyup to avoid beep from the new dialog
+                    break;
             }   // switch
+        }
+
+        private void lvExchanges_KeyUp(object sender, KeyEventArgs e)
+        {
+            switch (e.KeyData)
+            {
+                case Keys.M:
+                    e.SuppressKeyPress = e.Handled = true;
+                    actSetComment();
+                    break;
+            }
         }
 
         private void actSelectDuplicates()
@@ -2252,20 +2285,29 @@ namespace Clearinet
 
         private void tsbComment_Click(object sender, EventArgs e)
         {
+            actSetComment();
+        }
+
+        private void actSetComment(string sNewComment = null)
+        {
             Exchange[] arrExch = GetSelectedExchanges();
             if (arrExch.Length < 1) return;
-            string sExistingComment = arrExch[0]["ui-comments"];
-            frmPrompt.PromptOptions po = new frmPrompt.PromptOptions
+            if (null == sNewComment)
             {
-                Title = "Add Comment",
-                PromptText = "Enter a comment for the selected Exchanges:",
-                DefaultValue = sExistingComment,
-                ReturnNullOnCancel = true,
-            };
-            var sNewComment = frmPrompt.GetUserString(po);
+                string sExistingComment = arrExch[0]["ui-comments"];
+                frmPrompt.PromptOptions po = new frmPrompt.PromptOptions
+                {
+                    Title = "Add Comment",
+                    PromptText = "Enter a comment for the selected Exchanges:",
+                    DefaultValue = sExistingComment,
+                    ReturnNullOnCancel = true,
+                };
+                sNewComment = frmPrompt.GetUserString(po);
+            }
             foreach (Exchange exch in arrExch)
             {
                 exch["ui-comments"] = sNewComment;
+                updateLVI(exch);
             }
         }
 
