@@ -84,25 +84,39 @@ public static class QuickExecHistoryTests
 					Check(executed == command && box.Text == "", "Execution did not trim and clear: " + command);
 				}
 				box.Key(Keys.Up);
-				Check(box.Text == "find \u00e9\u4e2d", "Up did not recall newest history.");
+				Check(box.Text == "find \u00e9\u4e2d" && box.SelectionStart == 0 && box.SelectedText == box.Text,
+					"Up without a prefix did not select the entire recalled command.");
 				box.Key(Keys.Down);
 				Check(box.Text == "", "Down did not restore the empty draft.");
 				box.Type("se");
 				Check(box.Text == "select image" && box.SelectionStart == 2 && box.SelectedText == "lect image",
 					"Typing did not offer and select the newest matching suffix.");
 				box.Key(Keys.Up);
-				Check(box.Text == "select image", "Up did not use the typed prefix rather than the suggestion.");
+				Check(box.Text == "select image" && box.SelectionStart == 2 && box.SelectedText == "lect image",
+					"Up did not preserve the prefix and select the newest matching suffix.");
 				box.Key(Keys.Up);
-				Check(box.Text == "select text", "Up did not find the older prefix match.");
+				Check(box.Text == "select text" && box.SelectionStart == 2 && box.SelectedText == "lect text",
+					"Repeated Up did not replace and select the older matching suffix.");
 				box.Key(Keys.Up);
-				Check(box.Text == "select text", "Up went past the oldest matching command.");
+				Check(box.Text == "select text" && box.SelectionStart == 2 && box.SelectedText == "lect text",
+					"Up at the oldest match changed the completion selection.");
 				box.Key(Keys.Down);
-				Check(box.Text == "select image", "Down did not find the newer prefix match.");
+				Check(box.Text == "select image" && box.SelectionStart == 2 && box.SelectedText == "lect image",
+					"Down did not replace and select the newer matching suffix.");
 				box.Key(Keys.Down);
-				Check(box.Text == "se" && box.SelectionStart == 2, "Down did not restore the typed draft.");
+				Check(box.Text == "se" && box.SelectionStart == 2 && box.SelectionLength == 0,
+					"Down did not restore the unselected typed draft.");
+				box.Key(Keys.Up);
+				box.Key(Keys.Up);
+				box.Type("x");
+				Check(box.Text == "sex" && box.SelectionStart == 3 && box.SelectionLength == 0,
+					"Typing after browsing did not replace only the selected suffix.");
+				box.Key(Keys.Up);
+				Check(box.Text == "sex", "Typing after browsing did not reset the history prefix.");
 				box.Text = "SE";
 				box.Key(Keys.Up);
-				Check(box.Text == "select image", "History matching was not case-insensitive.");
+				Check(box.Text == "SElect image" && box.SelectionStart == 2 && box.SelectedText == "lect image",
+					"History matching did not preserve typed casing and select only the suffix.");
 				box.Key(Keys.Down);
 				Check(box.Text == "SE", "Draft casing was not preserved.");
 				box.Clear();

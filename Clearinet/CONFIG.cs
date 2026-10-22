@@ -191,7 +191,7 @@ namespace Clearinet
 
         private static void _ShowValidArgs()
         {
-            string sValidOptions = "Usage:\n\tclearinet.exe [options] [Traffic.saz]\n\nOptions:\n\n" +
+            string sValidOptions = "Usage:\n\tclearinet.exe [options] [CaptureToLoad.saz]\n\nOptions:\n\n" +
             "-viewer\t\tOpen a non-proxy 'Viewer' mode\n" +
             "-quiet\t\tShow as little UI as possible\n" +
             "-noattach\tDo not attach as the system proxy on boot\n" +
