@@ -74,13 +74,11 @@ namespace Clearinet
         internal void selectMatchingColumn(ListViewItem lvi, int ixColumn, bool bGrowSelection = false)
         {
             if (lvi == null || ixColumn < 0) return;
-            string sValue = lvi.SubItems[ixColumn].Text;
-            if (string.IsNullOrEmpty(sValue)) return;
+            string sFindText = lvi.SubItems[ixColumn].Text ?? string.Empty;
             if (!bGrowSelection)
             {
                 this.SelectedItems.Clear();
             }
-            string sFindText = lvi.SubItems[ixColumn].Text;
 
             // TODO: Fiddler supported a "Toggle" mode where if you clicked a value that was already selected,
             // it would unselect all of the matches. That seems both obscure and complicated (since the a given
@@ -92,10 +90,10 @@ namespace Clearinet
                 if (lviToTest == null) return false;
                 if (bGrowSelection & lviToTest.Selected) return true;
                 if (lviToTest.SubItems.Count <= ixColumn) return false;
-                return String.Equals(lviToTest.SubItems[ixColumn].Text, sFindText);
+                return String.Equals(lviToTest.SubItems[ixColumn].Text ?? string.Empty, sFindText);
             }, bClearSelectionFirst: !bGrowSelection);
 
-            CApp.UI.SetStatusText($"Selected {this.SelectedItems.Count} Exchanges matching column {ixColumn} value '{sValue}'.");
+            CApp.UI.SetStatusText($"Selected {this.SelectedItems.Count} Exchanges matching column {ixColumn} value '{sFindText}'.");
         }
 
         public Exchange[] GetAllExchanges()
@@ -424,7 +422,10 @@ namespace Clearinet
 
         internal void AddBoundColumn(string sTitle, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
         {
-            this.Columns.Add(sTitle);
+            // By default, let's right-align numeric columns.
+            ColumnHeader newCol = this.Columns.Add(sTitle, 60,
+                columnSortType == ColumnSortType.Numeric ? HorizontalAlignment.Right : HorizontalAlignment.Left);
+
             ColumnInfo ci = new ColumnInfo
             {
                 SortType = columnSortType,

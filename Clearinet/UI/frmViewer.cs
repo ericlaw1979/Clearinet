@@ -586,7 +586,6 @@ namespace Clearinet
 
         private void frmViewer_Load(object sender, EventArgs e)
         {
-            txtQuickExec.LoadHistory();
             try
             {
                 CONFIG.RetrieveLayout(this);
@@ -652,7 +651,8 @@ namespace Clearinet
             // =========================== /End Move TODOs ===========================
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
-
+            txtQuickExec.LoadHistory();
+            tslVersion.Text = CApp.VersionString.TrimBefore("/");
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
@@ -836,6 +836,7 @@ namespace Clearinet
                 {
                     if (!CApp.Prefs.GetBoolPref("app.saz.warn_about_data_protection", false))
                     {
+                        // TODO: This is important enough to have a custom dialog with a link to a help topic.
                         CApp.DoNotifyUser(
                             "Captured Network Data may contain passwords and other private data. Protect access and share only with people you trust.\n\nTo encrypt a SAZ file when supplying the file's name, use the 'Save As Type' dropdown to select 'Password Protected SAZ'.",
                             "Security and Privacy", MessageBoxIcon.Warning);

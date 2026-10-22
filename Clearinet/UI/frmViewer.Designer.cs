@@ -136,6 +136,7 @@
             this.tssBeforeExt = new System.Windows.Forms.ToolStripSeparator();
             this.tssAfterExt = new System.Windows.Forms.ToolStripSeparator();
             this.tstxtLookup = new System.Windows.Forms.ToolStripTextBox();
+            this.tslVersion = new System.Windows.Forms.ToolStripLabel();
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
@@ -987,7 +988,8 @@
             this.tsddbRemove,
             this.tssBeforeExt,
             this.tssAfterExt,
-            this.tstxtLookup});
+            this.tstxtLookup,
+            this.tslVersion});
             this.tsToolbar.Location = new System.Drawing.Point(0, 27);
             this.tsToolbar.Name = "tsToolbar";
             this.tsToolbar.Size = new System.Drawing.Size(1043, 27);
@@ -1084,6 +1086,14 @@
             this.tstxtLookup.Size = new System.Drawing.Size(100, 27);
             this.tstxtLookup.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyDown);
             this.tstxtLookup.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyUp);
+            // 
+            // tslVersion
+            // 
+            this.tslVersion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslVersion.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.tslVersion.Name = "tslVersion";
+            this.tslVersion.Size = new System.Drawing.Size(58, 24);
+            this.tslVersion.Text = "(version)";
             // 
             // pnlTopGoldbar
             // 
@@ -1845,6 +1855,7 @@
         private System.Windows.Forms.ColumnHeader colMediaType;
         private System.Windows.Forms.ColumnHeader colProcess;
         private System.Windows.Forms.ColumnHeader colComments;
+        private System.Windows.Forms.ToolStripLabel tslVersion;
     }
 }
 

@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0.
+// This file will be updated before v1.0. LAST UPDATED FOR V0.0.2.5
 import System;
 import System.Windows.Forms;
 import Clearinet;
@@ -32,22 +32,22 @@ class Handlers {
       Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
     }
     
-    public static BindTextCodec("to lowercase")
-    function codecToLower(input: String): String {
-      return input.ToLower();
+    public static BindTextCodec("to UPPERCASE")
+    function codecToUpper(input: String): String {
+      return input.ToUpper();
     }
      
-    public static BindUIColumn("Content-Type", false)
+    public static BindUIColumn("Content-Encoding", false)
     function FillCTColumn(xc: Exchange): String {
-        if (xc.bHasResponse) return xc.ResponseHeaders["Content-Type"];
+        if (xc.bHasResponse) return xc.ResponseHeaders["Content-Encoding"];
         return String.Empty;
     }
 
     // Use Numeric sorting
-    public static BindUIColumn("ResponseBody", true)
+    public static BindUIColumn("RequestBody", true)
     function FillSizeColumn(xc: Exchange): String {
-        if (xc.bHasResponse) return xc.ResponseBody.Length.ToString("N0");
-        return 0;
+        if (null == xc.RequestBody) return 0;
+        return xc.RequestBody.Length.ToString("N0");
     }
 
     public BindUITab("Flags")
