@@ -160,6 +160,7 @@ namespace Clearinet
                             oldZIPStream.Dispose();
                         }
                         excNew = CreateExchangeWithRequestFromStream(strmContent);
+                        if (CApp.Prefs.GetBoolPref("app.debugmode", false)) excNew["X-Saz-Filename"] = eRequest.FileName;
                         strmContent.Dispose();
                     }
                     catch
@@ -188,26 +189,48 @@ namespace Clearinet
                             strmResponse.Close();
 
                         }
-                        catch
+                        catch (Exception eX)
                         {
-                            try
-                            {
-                                excNew.ResponseHeaders = new HTTPResponseHeaders(599, "DataCorrupt", new[] { "Connection: close", "Content-Type: application/octet-stream" });
-                                excNew.ResponseHeaders["Encrypted"] = $"{eResponse.UsesEncryption}";
-                                excNew.ResponseHeaders["Compression"] = $"{eResponse.CompressionMethod}";
-                                excNew.ResponseHeaders["CompressedSize"] = $"{eResponse.CompressedSize:N0}";
-                                excNew.ResponseHeaders["UncompressedSize"] = $"{eResponse.UncompressedSize:N0}";
+                            Debug.Assert(false, $"Failed to read response from {eResponse.FileName}");
 
-                                using (var ds = eResponse.OpenReader())
-                                using (var dms = new MemoryStream())
+                            if (0 == eResponse.CompressedSize + eResponse.UncompressedSize)
+                            {
+                                excNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Had No Response", new[] { "Connection: close" });
+                                excNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a response file for this request.");
+                            }
+                            else
+                            {
+                                if (CApp.Prefs.GetBoolPref("app.debugmode", false))
                                 {
-                                    ds.CopyTo(dms);
-                                    excNew.ResponseBody = dms.ToArray();
+                                    excNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Response data corrupt", new[] { "Connection: close" });
+                                    excNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a readable response for this request. " + eX.Message);
+                                }
+                                else
+                                {
+                                    try
+                                    {
+                                        excNew.ResponseHeaders = new HTTPResponseHeaders(599, "DataCorrupt", new[] { "Connection: close", "Content-Type: application/octet-stream" });
+                                        excNew.ResponseHeaders["Encrypted"] = $"{eResponse.UsesEncryption}";
+                                        excNew.ResponseHeaders["Compression"] = $"{eResponse.CompressionMethod}";
+                                        excNew.ResponseHeaders["CompressedSize"] = $"{eResponse.CompressedSize:N0}";
+                                        excNew.ResponseHeaders["UncompressedSize"] = $"{eResponse.UncompressedSize:N0}";
+
+                                        using (var ds = eResponse.OpenReader())
+                                        using (var dms = new MemoryStream())
+                                        {
+                                            ds.CopyTo(dms);
+                                            excNew.ResponseBody = dms.ToArray();
+                                        }
+                                    }
+                                    catch { }
                                 }
                             }
-                            catch { }
-                            Debug.Assert(false, $"Failed to read response from {eResponse.FileName}");
                         }
+                    }
+                    else
+                    {
+                        excNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Had No Response", new[] { "Connection: close" });
+                        excNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a response file for this request.");
                     }
 
                     ZipEntry eMetadata = zf[eRequest.FileName.TrimAfter("_") + "_m.xml"];
@@ -224,7 +247,6 @@ namespace Clearinet
                     }
 
                     // TODO: WebSocket data
-
                     excNew.SetBitFlag(ExchangeFlags.LoadedFromSAZ);
                     if (true == excNew.RequestHeaders?.UriScheme.OICEquals("https"))
                     {
