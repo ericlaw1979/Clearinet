@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -20,9 +23,58 @@ namespace Clearinet
     public delegate void ExecuteHandler(ExecuteEventArgs ea);
     public class QuickExecBox: TextBox
     {
-        public QuickExecBox()
+        private readonly List<string> _history = new List<string>();
+        private string _typedText = string.Empty;
+        private int _historyIndex = -1;
+        private bool _updatingText;
+        private bool _historyLoaded;
+
+        internal void LoadHistory()
         {
-            this.KeyPress += new KeyPressEventHandler(QuickExecBox_KeyPress);
+            _historyLoaded = false;
+            try
+            {
+                string[] commands = File.ReadAllLines(CONFIG.GetPath("CommandHistory"));
+                _history.Clear();
+                foreach (string command in commands)
+                {
+                    if (!string.IsNullOrWhiteSpace(command)) AddHistory(command.Trim());
+                }
+                _historyLoaded = true;
+            }
+            catch (FileNotFoundException) { _historyLoaded = true; }
+            catch (DirectoryNotFoundException) { _historyLoaded = true; }
+            catch (Exception ex) when (IsHistoryFileError(ex))
+            {
+                CApp.Log.Log("Unable to load QuickExec history: " + ex.Message);
+            }
+        }
+
+        internal void SaveHistory()
+        {
+            if (CONFIG.isViewerMode || !_historyLoaded) return;
+            try
+            {
+                string path = Path.GetFullPath(CONFIG.GetPath("CommandHistory"));
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllLines(path, _history);
+            }
+            catch (Exception ex) when (IsHistoryFileError(ex))
+            {
+                CApp.Log.Log("Unable to save QuickExec history: " + ex.Message);
+            }
+        }
+
+        private static bool IsHistoryFileError(Exception ex)
+        {
+            return ex is IOException || ex is UnauthorizedAccessException || ex is SecurityException
+                || ex is ArgumentException || ex is NotSupportedException;
+        }
+
+        private void AddHistory(string command)
+        {
+            _history.Remove(command);
+            _history.Add(command);
         }
 
         private string _sCueText;
@@ -39,11 +91,68 @@ namespace Clearinet
             }
         }
 
-        void QuickExecBox_KeyPress(object sender, KeyPressEventArgs e)
+        protected override void OnTextChanged(EventArgs e)
         {
-            if (char.IsControl(e.KeyChar)) return;
-            // TODO: Autocomplete 
+            if (!_updatingText)
+            {
+                _typedText = Text;
+                _historyIndex = -1;
+            }
+            base.OnTextChanged(e);
         }
+
+        protected override void OnKeyPress(KeyPressEventArgs e)
+        {
+            base.OnKeyPress(e);
+            if (e.Handled || char.IsControl(e.KeyChar) || ReadOnly) return;
+
+            SelectedText = e.KeyChar.ToString();
+            e.Handled = true;
+            if (SelectionStart != TextLength || TextLength == 0) return;
+
+            for (int i = _history.Count - 1; i >= 0; --i)
+            {
+                if (_history[i].StartsWith(_typedText, StringComparison.OrdinalIgnoreCase))
+                {
+                    string completion = _typedText + _history[i].Substring(_typedText.Length);
+                    ShowHistoryText(completion, _typedText.Length);
+                    break;
+                }
+            }
+        }
+
+        private void ShowHistoryText(string text, int selectionStart)
+        {
+            _updatingText = true;
+            try
+            {
+                Text = text;
+                Select(selectionStart, TextLength - selectionStart);
+            }
+            finally { _updatingText = false; }
+        }
+
+        private void BrowseHistory(bool older)
+        {
+            int start = _historyIndex < 0 ? _history.Count : _historyIndex;
+            int step = older ? -1 : 1;
+            if (!older && _historyIndex < 0) return;
+            for (int i = start + step; i >= 0 && i < _history.Count; i += step)
+            {
+                if (_history[i].StartsWith(_typedText, StringComparison.OrdinalIgnoreCase))
+                {
+                    _historyIndex = i;
+                    ShowHistoryText(_history[i], _history[i].Length);
+                    return;
+                }
+            }
+            if (!older)
+            {
+                _historyIndex = -1;
+                ShowHistoryText(_typedText, _typedText.Length);
+            }
+        }
+
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
@@ -64,6 +173,10 @@ namespace Clearinet
         {
             switch (keyData)
             {
+                case Keys.Up:
+                case Keys.Down:
+                    BrowseHistory(keyData == Keys.Up);
+                    return true;
                 case Keys.Enter:
                     string sCommand = Text.Trim();
                     if (sCommand.Length < 1)
@@ -75,9 +188,11 @@ namespace Clearinet
                     {
                         ExecuteEventArgs eArgs = new ExecuteEventArgs(sCommand);
                         OnExecute(eArgs);
-                        // TODO: examine eArgs.Handled and eArgs.AddToHistory
+                        if (eArgs.AddToHistory) AddHistory(sCommand);
                     }
                     Clear();
+                    _typedText = string.Empty;
+                    _historyIndex = -1;
                     return true;
                 default:
                     return base.ProcessCmdKey(ref msg, keyData);

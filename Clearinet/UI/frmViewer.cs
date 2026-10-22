@@ -586,6 +586,7 @@ namespace Clearinet
 
         private void frmViewer_Load(object sender, EventArgs e)
         {
+            txtQuickExec.LoadHistory();
             try
             {
                 CONFIG.RetrieveLayout(this);
@@ -1195,6 +1196,7 @@ namespace Clearinet
             CApp.Prefs.SetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
             CApp.Prefs.SetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
 
+            txtQuickExec.SaveHistory();
             CApp.OnAppShutdown();
         }
 

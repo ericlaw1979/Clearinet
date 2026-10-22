@@ -15,6 +15,8 @@ The request and response **Cookies** inspectors display `Cookie`/`Cookie2` and `
 
 The NetLog importer accepts Chromium's JSON and JSONL captures, including gzip-compressed files and JSON/JSONL entries in ZIP archives. JSONL records use the same analysis as JSON captures; a capture without a final `end` record can be imported if all records are complete. Malformed JSONL records abort the import with an error.
 
+QuickExec offers inline autocomplete from previous commands as you type. Up/Down browse commands matching your typed prefix (case-insensitive), newest first; Down past the newest match restores your draft. Repeated commands move to the newest position. History is loaded at startup and saved on exit as plaintext, one command per line, in `Documents\Clearinet\CommandHistory.txt` by default. Set `app.paths.commandhistory` to override this path (`CONFIG.GetPath("CommandHistory")`). ViewerMode instances load history but never write it. Commands can contain sensitive information; the history file is not encrypted.
+
 ![Top customer requirements list](/Docs/TopCustomerRequirements.png)
 
 ### Clearinet Cap
