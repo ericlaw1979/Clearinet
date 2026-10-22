@@ -1436,6 +1436,7 @@
             this.tabsViews.ImageList = this.imglistIcons;
             this.tabsViews.Location = new System.Drawing.Point(0, 0);
             this.tabsViews.Margin = new System.Windows.Forms.Padding(4);
+            this.tabsViews.Multiline = true;
             this.tabsViews.Name = "tabsViews";
             this.tabsViews.SelectedIndex = 0;
             this.tabsViews.Size = new System.Drawing.Size(686, 518);
@@ -1489,6 +1490,7 @@
             this.tabsResponse.ContextMenuStrip = this.mnuInspectors;
             this.tabsResponse.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabsResponse.Location = new System.Drawing.Point(4, 231);
+            this.tabsResponse.Multiline = true;
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
             this.tabsResponse.Size = new System.Drawing.Size(670, 254);
@@ -1577,6 +1579,7 @@
             this.tabsRequest.ContextMenuStrip = this.mnuInspectors;
             this.tabsRequest.Dock = System.Windows.Forms.DockStyle.Top;
             this.tabsRequest.Location = new System.Drawing.Point(4, 4);
+            this.tabsRequest.Multiline = true;
             this.tabsRequest.Name = "tabsRequest";
             this.tabsRequest.SelectedIndex = 0;
             this.tabsRequest.Size = new System.Drawing.Size(670, 194);
