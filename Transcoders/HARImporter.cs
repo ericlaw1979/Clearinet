@@ -57,12 +57,18 @@ namespace TestExtensions
                 Hashtable log = RequireObject(root["log"], "log");
                 ArrayList entries = RequireArray(log["entries"], "log.entries");
                 List<Exchange> exchanges = new List<Exchange>(entries.Count);
+                Stopwatch progressTimer = Stopwatch.StartNew();
                 for (int i = 0; i < entries.Count; i++)
                 {
-                    var flCompletion = .05f + (float)i / (float)entries.Count * .95f;
                     exchanges.Add(ReadEntry(RequireObject(entries[i], $"entry {i + 1}")));
-                    if (!NotifyProgress(evtProgress, flCompletion,
-                        $"Imported HAR entry {i + 1} of {entries.Count}.")) return null;
+                    // Bound UI/logging overhead while still allowing cancellation during conversion.
+                    if (evtProgress != null && progressTimer.ElapsedMilliseconds >= 200)
+                    {
+                        var flCompletion = .05f + (float)(i + 1) / entries.Count * .95f;
+                        if (!NotifyProgress(evtProgress, flCompletion,
+                            $"Imported HAR entry {i + 1} of {entries.Count}.")) return null;
+                        progressTimer.Restart();
+                    }
                 }
 
                 if (!NotifyProgress(evtProgress, 1f, $"Imported {exchanges.Count} HAR entries.")) return null;

@@ -279,35 +279,30 @@ namespace Clearinet.WebFormats
 
         private static string ParseString(string json, ref int index)
         {
-            var s = new StringBuilder(BUILDER_DEFAULT_CAPACITY);
-
             EatWhitespace(json, ref index);
 
             // Eat opening quote
             index++;
+            int segmentStart = index;
+            StringBuilder s = null;
 
-            bool complete = false;
-            while (!complete)
+            while (index < json.Length)
             {
-                if (index == json.Length)
-                {
-                    break;
-                }
-
                 char c = json[index++];
                 if (c == '"')
                 {
-                    complete = true;
-                    break;
+                    int length = index - segmentStart - 1;
+                    if (s == null) return json.Substring(segmentStart, length);
+                    return s.Append(json, segmentStart, length).ToString();
                 }
 
                 if (c == '\\')
                 {
-                    if (index == json.Length)
-                    {
-                        break;
-                    }
+                    if (index == json.Length) return null;
 
+                    // Only escaped strings need a builder; copy unescaped runs in bulk.
+                    if (s == null) s = new StringBuilder();
+                    s.Append(json, segmentStart, index - segmentStart - 1);
                     c = json[index++];
                     switch (c)
                     {
@@ -321,34 +316,23 @@ namespace Clearinet.WebFormats
                         case 't': s.Append('\t'); break;
                         case 'u':
                             int remainingLength = json.Length - index;
-                            if (remainingLength >= 4)
+                            if (remainingLength < 4) return null;
+                            if (ushort.TryParse(json.Substring(index, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ushort codeUnit))
                             {
-                                if (ushort.TryParse(json.Substring(index, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ushort codeUnit))
-                                {
-                                    s.Append((char)codeUnit);
-                                }
-                                else
-                                {
-                                    s.Append('\uFFFD');
-                                }
-                                index += 4;
+                                s.Append((char)codeUnit);
                             }
                             else
                             {
-                                complete = false;
-                                goto LoopEnd;
+                                s.Append('\uFFFD');
                             }
+                            index += 4;
                             break;
                     }
-                }
-                else
-                {
-                    s.Append(c);
+                    segmentStart = index;
                 }
             }
 
-        LoopEnd:
-            return complete ? s.ToString() : null;
+            return null;
         }
 
         private static double ParseNumber(string json, ref int index)
