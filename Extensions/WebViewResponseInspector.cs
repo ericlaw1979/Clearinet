@@ -8,7 +8,7 @@ namespace Extensions
         private WebViewResponseView view;
 
         public override string TabTitle => "WebView";
-        public override int GetOrder() => -180;
+        public override int GetOrder() => 220;
 
         public override int ScoreForContentType(string contentType)
         {

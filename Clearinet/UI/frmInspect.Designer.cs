@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmInspect));
             this.tabsInspect = new System.Windows.Forms.TabControl();
             this.pageProperties = new System.Windows.Forms.TabPage();
             this.rtbProperties = new System.Windows.Forms.RichTextBox();
@@ -59,9 +60,9 @@
             // pageProperties
             // 
             this.pageProperties.Controls.Add(this.rtbProperties);
-            this.pageProperties.Location = new System.Drawing.Point(4, 36);
+            this.pageProperties.Location = new System.Drawing.Point(4, 28);
             this.pageProperties.Name = "pageProperties";
-            this.pageProperties.Size = new System.Drawing.Size(970, 500);
+            this.pageProperties.Size = new System.Drawing.Size(970, 508);
             this.pageProperties.TabIndex = 2;
             this.pageProperties.Text = "Properties";
             this.pageProperties.UseVisualStyleBackColor = true;
@@ -70,23 +71,25 @@
             // 
             this.rtbProperties.BackColor = System.Drawing.SystemColors.ControlDark;
             this.rtbProperties.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbProperties.DetectUrls = false;
             this.rtbProperties.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rtbProperties.Font = new System.Drawing.Font("Consolas", 10F);
+            this.rtbProperties.HideSelection = false;
             this.rtbProperties.Location = new System.Drawing.Point(0, 0);
             this.rtbProperties.Name = "rtbProperties";
             this.rtbProperties.ReadOnly = true;
-            this.rtbProperties.Size = new System.Drawing.Size(970, 500);
+            this.rtbProperties.Size = new System.Drawing.Size(970, 508);
             this.rtbProperties.TabIndex = 0;
             this.rtbProperties.Text = "";
             // 
             // pageRequest
             // 
             this.pageRequest.Controls.Add(this.tabsInspectRequest);
-            this.pageRequest.Location = new System.Drawing.Point(4, 36);
+            this.pageRequest.Location = new System.Drawing.Point(4, 28);
             this.pageRequest.Margin = new System.Windows.Forms.Padding(4);
             this.pageRequest.Name = "pageRequest";
             this.pageRequest.Padding = new System.Windows.Forms.Padding(4);
-            this.pageRequest.Size = new System.Drawing.Size(970, 500);
+            this.pageRequest.Size = new System.Drawing.Size(970, 508);
             this.pageRequest.TabIndex = 0;
             this.pageRequest.Text = "Request";
             this.pageRequest.UseVisualStyleBackColor = true;
@@ -97,18 +100,18 @@
             this.tabsInspectRequest.Location = new System.Drawing.Point(4, 4);
             this.tabsInspectRequest.Name = "tabsInspectRequest";
             this.tabsInspectRequest.SelectedIndex = 0;
-            this.tabsInspectRequest.Size = new System.Drawing.Size(962, 492);
+            this.tabsInspectRequest.Size = new System.Drawing.Size(962, 500);
             this.tabsInspectRequest.TabIndex = 0;
             this.tabsInspectRequest.SelectedIndexChanged += new System.EventHandler(this.tabsInspectRequest_SelectedIndexChanged);
             // 
             // pageResponse
             // 
             this.pageResponse.Controls.Add(this.tabsInspectResponse);
-            this.pageResponse.Location = new System.Drawing.Point(4, 36);
+            this.pageResponse.Location = new System.Drawing.Point(4, 28);
             this.pageResponse.Margin = new System.Windows.Forms.Padding(4);
             this.pageResponse.Name = "pageResponse";
             this.pageResponse.Padding = new System.Windows.Forms.Padding(4);
-            this.pageResponse.Size = new System.Drawing.Size(970, 500);
+            this.pageResponse.Size = new System.Drawing.Size(970, 508);
             this.pageResponse.TabIndex = 1;
             this.pageResponse.Text = "Response";
             this.pageResponse.UseVisualStyleBackColor = true;
@@ -119,17 +122,18 @@
             this.tabsInspectResponse.Location = new System.Drawing.Point(4, 4);
             this.tabsInspectResponse.Name = "tabsInspectResponse";
             this.tabsInspectResponse.SelectedIndex = 0;
-            this.tabsInspectResponse.Size = new System.Drawing.Size(962, 492);
+            this.tabsInspectResponse.Size = new System.Drawing.Size(962, 500);
             this.tabsInspectResponse.TabIndex = 1;
             this.tabsInspectResponse.SelectedIndexChanged += new System.EventHandler(this.tabsInspectResponse_SelectedIndexChanged);
             // 
             // frmInspect
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(978, 540);
             this.Controls.Add(this.tabsInspect);
             this.Font = new System.Drawing.Font("Tahoma", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "frmInspect";
             this.Text = "Exchange #";

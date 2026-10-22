@@ -23,7 +23,7 @@ namespace Extensions
 
         public override int GetOrder()
         {
-            return -500;
+            return -50;
         }
         public override int ScoreForContentType(string sMIMEType)
         {
@@ -80,7 +80,7 @@ namespace Extensions
 
         public override int GetOrder()
         {
-            return -500;
+            return -50;
         }
         public override int ScoreForContentType(string sMIMEType)
         {

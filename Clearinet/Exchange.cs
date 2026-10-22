@@ -386,7 +386,6 @@ namespace Clearinet
         public byte[] RequestBody { get => _arrRequestBody; set => _arrRequestBody = value; }
         public byte[] ResponseBody { get => _arrResponseBody; set => _arrResponseBody = value; }
 
-        // TODO: These are supposed to point into the underlying object...
         public HTTPRequestHeaders RequestHeaders { get; set; }
         public HTTPResponseHeaders ResponseHeaders { get; set; }
 

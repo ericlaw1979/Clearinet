@@ -93,9 +93,10 @@ namespace Clearinet
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(command) || command.IndexOf('\0') >= 0)
+                if (!command.HasText()) return; // Brought to front by previous instance without args.
+                if (command.IndexOf('\0') >= 0)
                 {
-                    CApp.Log.Log("Rejected WM_COPYDATA command: empty command or embedded NUL.");
+                    CApp.Log.Log("Rejected WM_COPYDATA command: embedded NUL.");
                     return;
                 }
 

@@ -1,7 +1,6 @@
 ﻿using Clearinet;
 using Svg;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -49,7 +48,7 @@ namespace Extensions
 
         public override void Assign(HTTPResponseHeaders headers, byte[] arrBody, bool bReadOnly)
         {
-            if (null == headers || !arrBody.HasData()) { Debug.Assert(false); Clear(); return; }
+            if (null == headers || !arrBody.HasData()) { Clear(); return; }
             var sContentType = headers["Content-Type"];
             bool bHasEncoding = headers.ExistsAny("Content-Encoding", "Transfer-Encoding");
             Clear();
@@ -116,6 +115,6 @@ namespace Extensions
 
         public override int ScoreForContentType(string sMIME) => (sMIME.OICStartsWith("image/") ? 90 : -1);
 
-        public override int GetOrder() => -200;
+        public override int GetOrder() => 200;
     }
 }
