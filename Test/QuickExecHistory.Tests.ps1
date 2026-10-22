@@ -92,11 +92,8 @@ public static class QuickExecHistoryTests
 				Check(box.Text == "select image" && box.SelectionStart == 2 && box.SelectedText == "lect image",
 					"Typing did not offer and select the newest matching suffix.");
 				box.Key(Keys.Up);
-				Check(box.Text == "select image" && box.SelectionStart == 2 && box.SelectedText == "lect image",
-					"Up did not preserve the prefix and select the newest matching suffix.");
-				box.Key(Keys.Up);
 				Check(box.Text == "select text" && box.SelectionStart == 2 && box.SelectedText == "lect text",
-					"Repeated Up did not replace and select the older matching suffix.");
+					"First Up did not advance from the autocomplete suggestion to the older matching suffix.");
 				box.Key(Keys.Up);
 				Check(box.Text == "select text" && box.SelectionStart == 2 && box.SelectedText == "lect text",
 					"Up at the oldest match changed the completion selection.");
@@ -106,6 +103,11 @@ public static class QuickExecHistoryTests
 				box.Key(Keys.Down);
 				Check(box.Text == "se" && box.SelectionStart == 2 && box.SelectionLength == 0,
 					"Down did not restore the unselected typed draft.");
+				box.Clear();
+				box.Type("se");
+				box.Key(Keys.Down);
+				Check(box.Text == "se" && box.SelectionStart == 2 && box.SelectionLength == 0,
+					"Down from an automatic suggestion did not restore the typed draft.");
 				box.Key(Keys.Up);
 				box.Key(Keys.Up);
 				box.Type("x");
@@ -129,6 +131,9 @@ public static class QuickExecHistoryTests
 				box.Text = "select i";
 				box.Select(box.TextLength, 0);
 				box.Type("m");
+				box.Key(Keys.Up);
+				Check(box.Text == "select image" && box.SelectionStart == 9 && box.SelectedText == "age",
+					"Up with only one matching suggestion changed the completion or selection.");
 				box.Type("\b");
 				Check(box.Text == "select im", "Backspace did not dismiss the selected completion.");
 				box.Type("\b");

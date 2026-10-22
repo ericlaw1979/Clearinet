@@ -21,7 +21,7 @@ namespace Clearinet
     }
 
     public delegate void ExecuteHandler(ExecuteEventArgs ea);
-    public class QuickExecBox: TextBox
+    public class QuickExecBox : TextBox
     {
         private readonly List<string> _history = new List<string>();
         private string _typedText = string.Empty;
@@ -114,6 +114,7 @@ namespace Clearinet
             {
                 if (_history[i].StartsWith(_typedText, StringComparison.OrdinalIgnoreCase))
                 {
+                    _historyIndex = i;
                     string completion = _typedText + _history[i].Substring(_typedText.Length);
                     ShowHistoryText(completion, _typedText.Length);
                     break;
@@ -174,6 +175,16 @@ namespace Clearinet
         {
             switch (keyData)
             {
+                case Keys.Escape:
+                    if (TextLength > 0)
+                    {
+                        Clear();
+                    }
+                    else
+                    {
+                        CApp.UI.lvExchanges.Focus();
+                    }
+                    return true;
                 case Keys.Up:
                 case Keys.Down:
                     BrowseHistory(keyData == Keys.Up);
