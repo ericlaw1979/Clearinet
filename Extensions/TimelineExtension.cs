@@ -124,8 +124,14 @@ namespace Extensions
                 return null;
             }
 
-            int rowIndex = (point.Y - TopPadding) / RowHeight;
-            if (rowIndex < 0 || rowIndex >= _rows.Count)
+            int rowY = point.Y - AutoScrollPosition.Y - TopPadding;
+            if (rowY < 0)
+            {
+                return null;
+            }
+
+            int rowIndex = rowY / RowHeight;
+            if (rowIndex >= _rows.Count)
             {
                 return null;
             }
@@ -147,6 +153,7 @@ namespace Extensions
                 if (ReferenceEquals(item.Tag, exchange))
                 {
                     item.Selected = true;
+                    item.EnsureVisible();
                     list.Focus();
                     break;
                 }
@@ -240,6 +247,124 @@ namespace Extensions
             return string.Empty;
         }
 
+        private static Color GetResponseBarColor(Exchange exchange)
+        {
+            string mediaType = exchange == null ? string.Empty : exchange.MediaType;
+            if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                return Color.LightGreen;
+            }
+
+            if (mediaType.IndexOf("javascript", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return Color.DarkGreen;
+            }
+
+            if (string.Equals(mediaType, "text/css", StringComparison.OrdinalIgnoreCase))
+            {
+                return Color.Purple;
+            }
+
+            if (mediaType.IndexOf("json", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                mediaType.IndexOf("xml", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return Color.Cyan;
+            }
+
+            return Color.Blue;
+        }
+
+        private void DrawResponseBar(Graphics g, TimelineRow row, float barLeft, float barRight, float responseX, float barY, float barHeight, Font font)
+        {
+            float barWidth = Math.Max(2f, barRight - barLeft);
+            float actualBarRight = barLeft + barWidth;
+            Color barColor = GetResponseBarColor(row.Exchange);
+
+            using (var barBrush = new SolidBrush(barColor))
+            using (var barPen = new Pen(barColor, 1f))
+            using (var responsePen = new Pen(Color.Orange, 1f))
+            {
+                if (row.Exchange.BitFlags.HasFlag(ExchangeFlags.ResponseStreamed))
+                {
+                    g.FillRectangle(barBrush, barLeft, barY, barWidth, barHeight);
+                }
+                else
+                {
+                    for (float lineY = barY + 1; lineY < barY + barHeight; lineY += 2)
+                    {
+                        g.DrawLine(barPen, barLeft, lineY, actualBarRight, lineY);
+                    }
+                }
+
+                g.DrawLine(responsePen, responseX, barY - 2f, responseX, barY + barHeight + 2f);
+            }
+
+            Color clientReuseColor = row.Exchange.BitFlags.HasFlag(ExchangeFlags.ClientPipeReused) ? Color.Green : Color.Red;
+            Color serverReuseColor = row.Exchange.BitFlags.HasFlag(ExchangeFlags.ServerPipeReused) ? Color.Green : Color.Red;
+            using (var clientReusePen = new Pen(clientReuseColor, 1f))
+            using (var serverReusePen = new Pen(serverReuseColor, 1f))
+            {
+                const float dotSize = 4f;
+                float dotX = (float)Math.Floor(barLeft - dotSize - 2f);
+                var graphicsState = g.Save();
+                try
+                {
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                    g.DrawEllipse(clientReusePen, dotX, (float)Math.Round(barY), dotSize, dotSize);
+                    g.DrawEllipse(serverReusePen, dotX, (float)Math.Round(barY + barHeight - dotSize), dotSize, dotSize);
+                }
+                finally
+                {
+                    g.Restore(graphicsState);
+                }
+            }
+
+            int statusCode = row.Exchange.responseCode;
+            string statusSymbol = (statusCode >= 300 && statusCode < 400) ? (statusCode == 304 ? "\uD83D\uDCBE" : "\u21A9") :
+                (statusCode >= 400 && statusCode < 600 ? "\u26A0" : null);
+            if (statusSymbol != null)
+            {
+                Color symbolColor = statusCode >= 400 ? Color.DarkRed : Color.DimGray;
+                using (var symbolFont = new Font("Segoe UI Emoji", font.SizeInPoints, FontStyle.Regular))
+                using (var symbolBrush = new SolidBrush(symbolColor))
+                using (var symbolFormat = new StringFormat
+                {
+                    LineAlignment = StringAlignment.Center,
+                    FormatFlags = StringFormatFlags.NoWrap
+                })
+                {
+                    var symbolBounds = new RectangleF((float)Math.Ceiling(actualBarRight) + 3f, barY,
+                        g.MeasureString(statusSymbol, symbolFont).Width + 2f, barHeight);
+                    g.DrawString(statusSymbol, symbolFont, symbolBrush, symbolBounds, symbolFormat);
+                }
+            }
+        }
+
+        private static void DrawRowLabel(Graphics g, TimelineRow row, int y, float barLeft, Font font)
+        {
+            var labelBounds = new RectangleF(8, y, LeftLabelWidth - ChartPadding - 8, RowHeight);
+            if (barLeft - LeftLabelWidth > 50f)
+            {
+                using (var connectorPen = new Pen(Color.LightGray, 1f))
+                {
+                    connectorPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                    float centerY = labelBounds.Top + labelBounds.Height / 2f;
+                    g.DrawLine(connectorPen, labelBounds.Right + 2f, centerY, barLeft - 8f, centerY);
+                }
+            }
+
+            using (var labelFormat = new StringFormat
+            {
+                Alignment = StringAlignment.Far,
+                LineAlignment = StringAlignment.Center,
+                FormatFlags = StringFormatFlags.NoWrap
+            })
+            {
+                g.DrawString(row.Label, font, Brushes.DimGray, labelBounds, labelFormat);
+            }
+        }
+
         private void CopyCurrentImageToClipboard()
         {
             if (_contextRow == null || _contextRow.Exchange == null)
@@ -272,11 +397,6 @@ namespace Extensions
                     {
                         var row = _rows[i];
                         int y = TopPadding + (i * RowHeight);
-                        string label = row.Label;
-                        if (label.Length > 32) label = label.Substring(0, 32);
-
-                        g.DrawString("#" + row.Exchange.id, tinyFont, Brushes.DimGray, 8, y + 2);
-                        g.DrawString(label, tinyFont, Brushes.DimGray, 8 + 18, y + 2);
 
                         float requestX = LeftLabelWidth + (float)((row.Start - _minTime).TotalMilliseconds / totalRangeMs * (bitmapWidth - LeftLabelWidth - 20));
                         float responseX = LeftLabelWidth + (float)((row.ResponseStart - _minTime).TotalMilliseconds / totalRangeMs * (bitmapWidth - LeftLabelWidth - 20));
@@ -287,14 +407,8 @@ namespace Extensions
                         float barY = y + 3;
                         float barHeight = RowHeight - 6;
 
-                        using (var barBrush = new SolidBrush(Color.FromArgb(90, 64, 158, 255)))
-                        using (var barBorder = new Pen(Color.FromArgb(70, 64, 158, 255), 1.4f))
-                        using (var responsePen = new Pen(Color.FromArgb(220, 190, 35, 35), 2f))
-                        {
-                            g.FillRectangle(barBrush, barLeft, barY, Math.Max(2f, barRight - barLeft), barHeight);
-                            g.DrawRectangle(barBorder, barLeft, barY, Math.Max(2f, barRight - barLeft), barHeight);
-                            g.DrawLine(responsePen, responseX, barY, responseX, barY + barHeight);
-                        }
+                        DrawRowLabel(g, row, y, barLeft, tinyFont);
+                        DrawResponseBar(g, row, barLeft, barRight, responseX, barY, barHeight, tinyFont);
                     }
                 }
             }
@@ -334,6 +448,7 @@ namespace Extensions
             {
                 _minTime = DateTime.MinValue;
                 _maxTime = DateTime.MinValue;
+                AutoScrollMinSize = new Size(640, 160);
                 Invalidate();
                 return;
             }
@@ -399,6 +514,15 @@ namespace Extensions
             Invalidate();
         }
 
+        protected override void OnScroll(ScrollEventArgs se)
+        {
+            base.OnScroll(se);
+            _lastTooltipRow = null;
+            _lastTooltipPoint = Point.Empty;
+            _tooltip.Hide(this);
+            Invalidate();
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -415,52 +539,44 @@ namespace Extensions
             var availableWidth = Math.Max(240, ClientSize.Width - LeftLabelWidth - RightLabelWidth - ChartPadding - 12);
             var totalRangeMs = Math.Max(1d, (_maxTime - _minTime).TotalMilliseconds);
             var axisTicks = 6;
-            using (var tinyFont = new Font(Font.FontFamily, 8f, FontStyle.Regular))
+            var graphicsState = g.Save();
+            try
             {
-                for (int i = 0; i <= axisTicks; i++)
+                g.TranslateTransform(AutoScrollPosition.X, AutoScrollPosition.Y);
+                using (var tinyFont = new Font(Font.FontFamily, 8f, FontStyle.Regular))
                 {
-                    int x = LeftLabelWidth + (int)(i * (double)availableWidth / axisTicks);
-                    DateTime tick = _minTime.AddMilliseconds((double)i / axisTicks * totalRangeMs);
-                    g.DrawLine(Pens.LightGray, x, TopPadding, x, TopPadding + (_rows.Count * RowHeight));
-                    string text = FormatRelativeOffset(tick - _minTime);
-                    var size = TextRenderer.MeasureText(text, tinyFont);
-                    g.DrawString(text, tinyFont, Brushes.DimGray, x - (size.Width / 2f), 4f);
-                }
-
-                for (int i = 0; i < _rows.Count; i++)
-                {
-                    var row = _rows[i];
-                    int y = TopPadding + (i * RowHeight);
-                    int labelX = 8;
-
-                    var label = row.Label;
-                    if (label.Length > 32)
+                    for (int i = 0; i <= axisTicks; i++)
                     {
-                        label = label.Substring(0, 32);
+                        int x = LeftLabelWidth + (int)(i * (double)availableWidth / axisTicks);
+                        DateTime tick = _minTime.AddMilliseconds((double)i / axisTicks * totalRangeMs);
+                        g.DrawLine(Pens.LightGray, x, TopPadding, x, TopPadding + (_rows.Count * RowHeight));
+                        string text = FormatRelativeOffset(tick - _minTime);
+                        var size = TextRenderer.MeasureText(text, tinyFont);
+                        g.DrawString(text, tinyFont, Brushes.DimGray, x - (size.Width / 2f), 4f);
                     }
 
-                    var idText = $"{row.Exchange.id}:";
-                    g.DrawString(idText, tinyFont, Brushes.DimGray, labelX, y + 2);
-                    g.DrawString(label, tinyFont, Brushes.DimGray, labelX + 25, y + 2);
-
-                    float requestX = LeftLabelWidth + (float)((row.Start - _minTime).TotalMilliseconds / totalRangeMs * availableWidth);
-                    float responseX = LeftLabelWidth + (float)((row.ResponseStart - _minTime).TotalMilliseconds / totalRangeMs * availableWidth);
-                    float endX = LeftLabelWidth + (float)((row.End - _minTime).TotalMilliseconds / totalRangeMs * availableWidth);
-
-                    var barLeft = Math.Min(requestX, endX);
-                    var barRight = Math.Max(requestX, endX);
-                    var barY = y + 3;
-                    var barHeight = RowHeight - 6;
-
-                    using (var barBrush = new SolidBrush(Color.FromArgb(90, 64, 158, 255)))
-                    using (var barBorder = new Pen(Color.FromArgb(70, 64, 158, 255), 1.4f))
-                    using (var responsePen = new Pen(Color.FromArgb(220, 190, 35, 35), 2f))
+                    for (int i = 0; i < _rows.Count; i++)
                     {
-                        g.FillRectangle(barBrush, barLeft, barY, Math.Max(2f, barRight - barLeft), barHeight);
-                        g.DrawRectangle(barBorder, barLeft, barY, Math.Max(2f, barRight - barLeft), barHeight);
-                        g.DrawLine(responsePen, responseX, barY, responseX, barY + barHeight);
+                        var row = _rows[i];
+                        int y = TopPadding + (i * RowHeight);
+
+                        float requestX = LeftLabelWidth + (float)((row.Start - _minTime).TotalMilliseconds / totalRangeMs * availableWidth);
+                        float responseX = LeftLabelWidth + (float)((row.ResponseStart - _minTime).TotalMilliseconds / totalRangeMs * availableWidth);
+                        float endX = LeftLabelWidth + (float)((row.End - _minTime).TotalMilliseconds / totalRangeMs * availableWidth);
+
+                        var barLeft = Math.Min(requestX, endX);
+                        var barRight = Math.Max(requestX, endX);
+                        var barY = y + 3;
+                        var barHeight = RowHeight - 6;
+
+                        DrawRowLabel(g, row, y, barLeft, tinyFont);
+                        DrawResponseBar(g, row, barLeft, barRight, responseX, barY, barHeight, tinyFont);
                     }
                 }
+            }
+            finally
+            {
+                g.Restore(graphicsState);
             }
         }
 
@@ -538,9 +654,9 @@ namespace Extensions
                 else candidate = "?";
             }
 
-            if (candidate.Length > 32)
+            if (candidate.Length > 20)
             {
-                candidate = candidate.Substring(0, 32);
+                candidate = candidate.Substring(0, 20);
             }
 
             return candidate;
