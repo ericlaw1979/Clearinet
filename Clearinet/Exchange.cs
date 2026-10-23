@@ -402,16 +402,23 @@ namespace Clearinet
                 return;
             }
 
-            byte[] arrBody = File.ReadAllBytes(sFilename);
-            string sContentType = Utilities.MimeTypeFromFilename(sFilename);
-            ResponseBody = arrBody;
-            ResponseHeaders = new HTTPResponseHeaders(200, "Clearinet X-RepliedWithFile", new[] { $"Content-Length: {arrBody.Length}", $"Content-Type: {sContentType}" });
+            try
+            {
+                byte[] arrBody = File.ReadAllBytes(sFilename);
+                string sContentType = Utilities.MimeTypeFromFilename(sFilename);
+                ResponseBody = arrBody;
+                ResponseHeaders = new HTTPResponseHeaders(200, "Clearinet X-RepliedWithFile", new[] { $"Content-Length: {arrBody.Length}", $"Content-Type: {sContentType}" });
 
-            this["x-repliedwithfile"] = sFilename;
+                this["x-repliedwithfile"] = sFilename;
 
-            state = ExchangeState.AutoTamperResponseBefore;
-            BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
-            oFlags.TryRemove("x-replywithfile", out _);
+                state = ExchangeState.AutoTamperResponseBefore;
+                BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+                oFlags.TryRemove("x-replywithfile", out _);
+            }
+            catch (Exception ex)
+            {
+                CApp.Log.Log($"Error replacing #{id}'s response with file '{sFilename}': {ex}");
+            }
         }
 
         // 
