@@ -263,12 +263,12 @@ namespace Clearinet
             get
             {
                 if (null == ResponseHeaders) return string.Empty;
-                return ResponseHeaders["Content-Type"].TrimAfter(';').Trim();
+                return ResponseHeaders["Content-Type"].TrimAfter(';').Trim().ToLowerInvariant();
             }
             set
             {
                 if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
-                ResponseHeaders["Content-Type"] = value.TrimAfter(';').Trim();
+                ResponseHeaders["Content-Type"] = value.TrimAfter(';').Trim().ToLowerInvariant();
             }
         }
 
