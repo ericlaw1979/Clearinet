@@ -8,7 +8,7 @@ namespace Clearinet
     public delegate void RulesCompileFailedHandler(string sDescription, int iLine, int iStartColumn, int iEndColumn);
 
     /// <summary>
-    /// Bind a toolbar button to your method.
+    /// Bind a toolbar button to the method.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field, Inherited = false)]
     public sealed class BindUIButton : Attribute
@@ -23,7 +23,7 @@ namespace Clearinet
 
 
     /// <summary>
-    /// Bind a new tab to your method. The method should return a string, which will be displayed in the tab.
+    /// Bind a new tab to the method. The method should return a string, which will be displayed in the tab.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class BindUIColumn : Attribute
@@ -44,7 +44,7 @@ namespace Clearinet
     }
 
     /// <summary>
-    /// Bind a new tab to your method. The method should return a string, which will be displayed in the tab.
+    /// Bind a new tab to the method. The method should return a string, which will be displayed in the tab.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class BindUITab : Attribute
@@ -82,13 +82,16 @@ namespace Clearinet
     }
 
     /// <summary>
-    /// Bind a Tools menu item to your method.
+    /// Bind a Tools menu item to the method.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class ToolsAction : Attribute
     {
         internal string _sTitle;
         internal string _sSubmenu;
+
+        // Should we collect the selected Exchanges and pass them to the method?
+        internal bool bPassSelectedExchanges;
 
         public ToolsAction(string sTitle) : this(sTitle, null) { }
 
@@ -100,21 +103,25 @@ namespace Clearinet
     }
 
     /// <summary>
-    /// The ContextAction Attribute allows users to bind a script to an item on the Exchanges listview ContextMenu
+    /// Binds a script to an item on the Exchanges listview ContextMenu
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class ContextAction : Attribute
     {
         internal string _sTitle;
-        internal string _sSubmenu;
+        //internal string _sSubmenu;
 
-        public ContextAction(string sTitle) : this(sTitle, null) { }
+        public ContextAction(string sTitle)
+        {
+            _sTitle = sTitle;
+        }
 
-        public ContextAction(string sTitle, string sSubmenu)
+        // TODO: ContextAction Submenu support
+        /*public ContextAction(string sTitle, string sSubmenu)
         {
             _sTitle = sTitle;
             _sSubmenu = sSubmenu;
-        }
+        }*/
     }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]

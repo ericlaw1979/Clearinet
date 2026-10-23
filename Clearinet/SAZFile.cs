@@ -13,7 +13,7 @@ using System.Xml;
  * SAZ files are simply specially formatted .ZIP files. If you rename a .SAZ file to .ZIP, you can open it for viewing using standard ZIP viewing tools.
  * Inside a SAZ file, you will find:
  * 
- * _index.htm - an optional file containing a human readable version of the Session List. This file is not processed when loading a .SAZ file and exists solely for manual examination.
+ * _index.htm - an optional file containing a human readable version of the Exchange List. This file is not processed when loading a .SAZ file and exists solely for manual examination.
  * [Content_Types.xml] — (Added in v2.4.0.9) A metadata file which specifies a few MIME types so the archive can be read by System.IO.Packaging or other clients that 
  * support the Open Packaging Conventions.
  * 

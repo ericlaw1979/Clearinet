@@ -70,6 +70,21 @@ class Handlers {
       }
       return sbOut.ToString();
     }
+
+    public static ContextAction("Decode Selected Exchanges")
+    function DoRemoveEncoding(arrXC: Exchange[]) {
+        for (var x: int = 0; x < arrXC.Length; ++x) {
+            arrXC[x].utilDecodeRequest();
+            arrXC[x].utilDecodeResponse();
+        }
+        CApp.UI.actUpdateInspector(true, true);
+    }
+
+    public static ToolsAction("Reset Script")
+    function DoManualReload() {
+        CApp.UI.actFlashWindow();
+        CApp.scriptRules.ReloadScript();
+    }
       
     static function OnBoot() {
       CApp.Log.Log("[Script] OnBoot");

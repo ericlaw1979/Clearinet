@@ -230,7 +230,7 @@ namespace Clearinet
             BeginUpdate();
             StoreItemsBeforeDeletion(Items);
             this.Items.Clear();
-            Exchange.ResetSessionCounter();
+            Exchange.ResetExchangeCounter();
             EndUpdate();
         }
 
@@ -245,7 +245,7 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// Call this just before the currently selected Sessions is deleted
+        /// Call this just before the currently selected Exchanges are deleted
         /// </summary>
         internal void RestorePriorActiveItem()
         {
@@ -343,7 +343,7 @@ namespace Clearinet
 
             if (this.TotalCount == 0)
             {
-                Exchange.ResetSessionCounter();
+                Exchange.ResetExchangeCounter();
             }
             EndUpdate();
         }
@@ -448,6 +448,12 @@ namespace Clearinet
                 CApp.Log.LogFormat($"Failed to populate column {i} for Exchange {x.id} due to {eX.Message}");
             }
             return string.Empty;
+        }
+
+        public void AddExtensionMenuItem(ToolStripMenuItem tsmi)
+        {
+            // TODO: put this in the right place rather than just shoving it at the top.
+            ContextMenuStrip.Items.Insert(0, tsmi);
         }
     }
 

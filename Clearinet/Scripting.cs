@@ -10,7 +10,9 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
-    internal class JScriptEngine : IDisposable
+    // TODO: This is only public because we don't yet have a facade for script/extension access to the Clearinet API.
+    // Once we have a proper facade, this class should be internal.
+    public class JScriptEngine : IDisposable
     {
         private readonly string _scriptPath;
         private readonly FileSystemWatcher _watcher;
@@ -26,7 +28,6 @@ namespace Clearinet
         private Type _typeHandlers;
         private bool _isDisposed;
 
-
         /// <summary>
         /// The Script is ready after successful compilation.
         /// </summary>
@@ -39,9 +40,9 @@ namespace Clearinet
         public event RulesCompileFailedHandler RulesCompileFailed;
 
         /// <summary>
-        /// Simple dictionary which maps script-created menu items to their backing fields or methods. 
-        /// Used for cleanup when scripts retire.
-        /// Note: Values may be null (MenuExt), a FieldInfo, or a MethodInfo. Don't see much benefit in converting to several Dictionary objects...
+        /// Maps script-created ToolstripMenuItems to the backing method or field 
+        /// Used by ToolsAction, ContextAction, and eventually rulesoption.
+        /// Note: Value may be a MethodInfo, a FieldInfo, or null.
         /// </summary>
         private static Hashtable htMenuScripts = new Hashtable();
 
@@ -66,8 +67,7 @@ namespace Clearinet
         private MethodInfo _methodExecAction;
 
         private static UInt64 tcLatestScriptLoad = 0;
-
-        public JScriptEngine(string scriptPath)
+        internal JScriptEngine(string scriptPath)
         {
             if (CONFIG.Overrides.DisableScript)
             {
@@ -122,18 +122,9 @@ namespace Clearinet
             }
         }
 
-        private void OnScriptFileChanged(object sender, FileSystemEventArgs e)
+        public void ReloadScript()
         {
-            // Debounce rapid successive events.
-            if ((Utilities.GetTickCount() - tcLatestScriptLoad) <
-                (uint)CApp.Prefs.GetInt32Pref("scripting.msReloadDebounce", 2000))
-            {
-                return;
-            }
             tcLatestScriptLoad = Utilities.GetTickCount();
-
-            // Wait briefly for any editor write handles to release
-            Thread.Sleep(50);
 
             lock (_syncLock)
             {
@@ -151,6 +142,20 @@ namespace Clearinet
             }
         }
 
+        private void OnScriptFileChanged(object sender, FileSystemEventArgs e)
+        {
+            // Wait briefly for any editor write handles to release
+            Thread.Sleep(50);
+
+            // Debounce rapid successive events.
+            if ((Utilities.GetTickCount() - tcLatestScriptLoad) <
+                (uint)CApp.Prefs.GetInt32Pref("scripting.msReloadDebounce", 2000))
+            {
+                return;
+            }
+            ReloadScript();
+        }
+
         private void CompileScript()
         {
             try
@@ -160,7 +165,8 @@ namespace Clearinet
                 if (_isReadyForCalls)
                 {
                     _ClearCachedHandlerMethods();
-                    ClearPriorScriptButtons(CApp.UI.tsToolbar);
+                    ClearPriorScriptButtons();
+                    ClearPriorScriptMenus();
                     ClearPriorScriptTabs();
 
                     // TODO: The old script engine is still alive and clearing here doesn't
@@ -249,132 +255,209 @@ namespace Clearinet
             //   function LaunchSingleInstance() {
             //   Utilities.LaunchNative('msedge.exe', '--user-data-dir="%temp%\\throwaway" --no-first-run --proxy-server=127.0.0.1:' + CONFIG.ListenPort.ToString() + " about:blank");
             //
+
+            // Look at each public static method in the Handlers class and bind targets based on the attributes we find.
+            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                {
+                    var b = Attribute.GetCustomAttribute(mi, typeof(BindTextCodec), false) as BindTextCodec;
+                    if (null != b) { doBindTextCodec(mi, b); continue; }
+                }
+
+                {
+                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUIColumn), false) as BindUIColumn;
+                    if (null != b) { doBindUIColumn(mi, b); continue; }
+                }
+
+                {
+                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUIColumn), false) as BindUIButton;
+                    if (null != b) { doBindUIButton(mi, b); continue; }
+                }
+
+                {
+                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUITab), false) as BindUITab;
+                    if (null != b) { doBindUITab(mi, b); continue; }
+                }
+
+                {
+                    var b = Attribute.GetCustomAttribute(mi, typeof(ContextAction), false) as ContextAction;
+                    if (null != b) { doBindUIContextAction(mi, b); continue; }
+                }
+
+                {
+                    var b = Attribute.GetCustomAttribute(mi, typeof(ToolsAction), false) as ToolsAction;
+                    if (null != b) { doBindUIToolsAction(mi, b); continue; }
+                }
+
+            }
+        }
+
+        private void doBindUIContextAction(MethodInfo mi, ContextAction b)
+        {
+            ToolStripMenuItem tsmi = new ToolStripMenuItem
+            {
+                Text = b._sTitle,
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Tag = mi
+            };
+
+            tsmi.Click += (sender, ea) =>
+            {
+                try
+                {
+                    mi.Invoke(null, new object[] { CApp.UI.GetSelectedExchanges() });
+                }
+                catch (Exception eX)
+                {
+                    CApp.ReportException(eX, $"Script ContextAction failed: {mi.Name}");
+                }
+            };
+            CApp.UI.lvExchanges.AddExtensionMenuItem(tsmi);
+            htMenuScripts[tsmi] = mi;
+        }
+
+        private void doBindUIToolsAction(MethodInfo mi, ToolsAction b)
+        {
+            ParameterInfo[] parameters = mi.GetParameters();
+            b.bPassSelectedExchanges = (parameters.Length == 1 && parameters[0].ParameterType == typeof(Exchange[]));
+
+            ToolStripMenuItem tsmi = new ToolStripMenuItem
+            {
+                Text = b._sTitle,
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Tag = mi
+            };
+
+            tsmi.Click += (sender, ea) =>
+            {
+                try
+                {
+                    if (b.bPassSelectedExchanges)
+                    {
+                        mi.Invoke(null, new object[] { CApp.UI.GetSelectedExchanges() });
+                    }
+                    else
+                    {
+                        mi.Invoke(null, null);
+                    }
+                }
+                catch (Exception eX)
+                {
+                    CApp.ReportException(eX, $"Script ToolsAction failed: {mi.Name}");
+                }
+            };
+            CApp.UI.AddExtensionToolsMenuItem(tsmi);
+            htMenuScripts[tsmi] = mi;
+        }
+
+        private void doBindTextCodec(MethodInfo mi, BindTextCodec b)
+        {
+            MethodInfo methodToInvoke = mi;
+            // 1. Validate that the method signature matches: string MethodName(string input)
+            if (mi.ReturnType != typeof(string)) return;
+
+            ParameterInfo[] parameters = mi.GetParameters();
+            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string)) return;
+
+            // 2. Create a strongly-typed delegate matching Func<string, string>
+            Func<string, string> CodecMethod =
+                (Func<string, string>)Delegate.CreateDelegate(typeof(Func<string, string>), mi);
+
+            b.Method = CodecMethod;
+
+            listBoundTextCodecs.Add(b);
+        }
+
+        private void doBindUIButton(MethodInfo mi, BindUIButton b)
+        {
+            ToolStripButton tsb = new ToolStripButton
+            {
+                Text = b._sText,
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Tag = mi
+            };
+
+            tsb.Click += (sender, args) =>
+            {
+                try
+                {
+                    mi.Invoke(null, null);
+                }
+                catch (Exception eX)
+                {
+                    CApp.ReportException(eX, $"Script toolbar action failed: {mi.Name}");
+                }
+            };
             var tsToolbar = CApp.UI.tsToolbar;
+            tsToolbar.Items.Insert(tsToolbar.Items.IndexOf(CApp.UI.tssAfterExt), tsb);
+            htButtonScripts[tsb] = mi;
+        }
 
-            // TODO: iterate the methods only once and look at what attributes they support.
-            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+        private void doBindUIColumn(MethodInfo mi, BindUIColumn b)
+        {
+            // 1. Validate that the method signature matches: string MethodName(Exchange exchange)
+            if (mi.ReturnType != typeof(string)) return;
+
+            ParameterInfo[] parameters = mi.GetParameters();
+            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange)) return;
+
+            // 2. Create a strongly-typed delegate matching Func<Exchange, string>
+            Func<Exchange, string> columnProvider =
+                (Func<Exchange, string>)Delegate.CreateDelegate(typeof(Func<Exchange, string>), mi);
+
+            // 3. Register the delegate with your ListView/UI helper
+            CApp.UI.lvExchanges.AddBoundColumn(
+                b._sTitle,
+                b._sortNumerically ? ColumnSortType.Numeric : ColumnSortType.Text,
+                columnProvider
+            );
+
+            listBoundColumns.Add(b);
+        }
+
+        private void doBindUITab(MethodInfo mi, BindUITab b)
+        {
+            ParameterInfo[] parameters = mi.GetParameters();
+            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange)) return;
+
+            TabPage page = new TabPage
             {
-                var b = Attribute.GetCustomAttribute(mi, typeof(BindTextCodec), false) as BindTextCodec;
-                if (null == b) continue;
+                Text = b._sTitle,
+                Tag = b
+            };
 
-                MethodInfo methodToInvoke = mi;
-                // 1. Validate that the method signature matches: string MethodName(string input)
-                if (mi.ReturnType != typeof(string)) continue;
-
-                ParameterInfo[] parameters = mi.GetParameters();
-                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string)) continue;
-
-                // 2. Create a strongly-typed delegate matching Func<string, string>
-                Func<string, string> CodecMethod =
-                    (Func<string, string>)Delegate.CreateDelegate(typeof(Func<string, string>), mi);
-
-                b.Method = CodecMethod;
-
-                listBoundTextCodecs.Add(b);
-            }
-
-            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            // TODO: Support HTML tabs. For now, we just create a RichTextBox tab for each BindUITab.
+            RichTextBoxV5 rtb = new RichTextBoxV5
             {
-                BindUIColumn b = Attribute.GetCustomAttribute(mi, typeof(BindUIColumn), false) as BindUIColumn;
-                if (null == b) continue;
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                BackColor = CONFIG.colorDisabledEdit,
+                WordWrap = false,
+                BorderStyle = BorderStyle.None
+            };
+            page.Controls.Add(rtb);
 
-                MethodInfo methodToInvoke = mi;
-                // 1. Validate that the method signature matches: string MethodName(Exchange exchange)
-                if (mi.ReturnType != typeof(string)) continue;
-
-                ParameterInfo[] parameters = mi.GetParameters();
-                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange)) continue;
-
-                // 2. Create a strongly-typed delegate matching Func<Exchange, string>
-                Func<Exchange, string> columnProvider =
-                    (Func<Exchange, string>)Delegate.CreateDelegate(typeof(Func<Exchange, string>), mi);
-
-                // 3. Register the delegate with your ListView/UI helper
-                CApp.UI.lvExchanges.AddBoundColumn(
-                    b._sTitle,
-                    b._sortNumerically ? ColumnSortType.Numeric : ColumnSortType.Text,
-                    columnProvider
-                );
-
-
-                listBoundColumns.Add(b);
-            }
-
-            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            CalculateReportHandler reportHandler = (arrExchanges) =>
             {
-                BindUIButton b = Attribute.GetCustomAttribute(mi, typeof(BindUIButton), false) as BindUIButton;
-                if (null == b) continue;
-
-                MethodInfo methodToInvoke = mi;
-                ToolStripButton tsb = new ToolStripButton
+                try
                 {
-                    Text = b._sText,
-                    DisplayStyle = ToolStripItemDisplayStyle.Text,
-                    Tag = methodToInvoke
-                };
-
-                tsb.Click += (sender, args) =>
-                {
-                    try
+                    if (page == CApp.UI.tabsViews.SelectedTab)
                     {
-                        methodToInvoke.Invoke(null, null);
+                        object oResult = mi.Invoke(null, new object[] { arrExchanges });
+                        rtb.Text = oResult as string ?? String.Empty;
                     }
-                    catch (Exception eX)
-                    {
-                        CApp.ReportException(eX, $"Script toolbar action failed: {methodToInvoke.Name}");
-                    }
-                };
-
-                tsToolbar.Items.Insert(tsToolbar.Items.IndexOf(CApp.UI.tssAfterExt), tsb);
-                htButtonScripts[tsb] = methodToInvoke;
-            }
-
-            // Bind each of the BindUITabs.
-            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
-            {
-                BindUITab tab = Attribute.GetCustomAttribute(mi, typeof(BindUITab), false) as BindUITab;
-                if (null == tab) continue;
-
-                TabPage page = new TabPage
+                }
+                catch (Exception eX)
                 {
-                    Text = tab._sTitle,
-                    Tag = tab
-                };
+                    CApp.ReportException(eX, $"Script tab report failed: {mi.Name}");
+                }
+            };
 
-                // TODO: Support HTML tabs. For now, we just create a RichTextBox tab for each BindUITab.
-                RichTextBoxV5 rtb = new RichTextBoxV5
-                {
-                    Dock = DockStyle.Fill,
-                    ReadOnly = true,
-                    BackColor = CONFIG.colorDisabledEdit,
-                    WordWrap = false,
-                    BorderStyle = BorderStyle.None
-                };
-                page.Controls.Add(rtb);
-
-                CalculateReportHandler reportHandler = (arrExchanges) =>
-                {
-                    try
-                    {
-                        if (page == CApp.UI.tabsViews.SelectedTab)
-                        {
-                            object oResult = mi.Invoke(null, new object[] { arrExchanges });
-                            rtb.Text = oResult as string ?? String.Empty;
-                        }
-                    }
-                    catch (Exception eX)
-                    {
-                        CApp.ReportException(eX, $"Script tab report failed: {mi.Name}");
-                    }
-                };
-
-                tab._delegate = reportHandler;
-                tab._pageTab = page;
-                CApp.CalculateReport += reportHandler;
-                CApp.UI.tabsViews.TabPages.Add(page);
-                listBoundTabs.Add(tab);
-            }
-
+            b._delegate = reportHandler;
+            b._pageTab = page;
+            CApp.CalculateReport += reportHandler;
+            CApp.UI.tabsViews.TabPages.Add(page);
+            listBoundTabs.Add(b);
         }
 
         private void ClearPriorScriptTabs()
@@ -391,18 +474,31 @@ namespace Clearinet
             listBoundTabs.Clear();
         }
 
-        private void ClearPriorScriptButtons(ToolStrip tsToolbar)
+        private void ClearPriorScriptButtons()
         {
             // First, clear any existing buttons that were added by a previous script.
             foreach (DictionaryEntry de in htButtonScripts)
             {
                 if (de.Key is ToolStripItem tsi)
                 {
-                    tsToolbar.Items.Remove(tsi);
+                    tsi.GetCurrentParent()?.Items.Remove(tsi);
                     tsi.Dispose();
                 }
             }
             htButtonScripts.Clear();
+        }
+
+        private void ClearPriorScriptMenus()
+        {
+            foreach (DictionaryEntry de in htMenuScripts)
+            {
+                if (de.Key is ToolStripItem tsi)
+                {
+                    tsi.GetCurrentParent()?.Items.Remove(tsi);
+                    tsi.Dispose();
+                }
+            }
+            htMenuScripts.Clear();
         }
 
         private void _cacheHandlerMethods()
@@ -431,6 +527,10 @@ namespace Clearinet
         internal void RunOnBeforeResponse(Exchange exchange)
         {
             _methodOnBeforeResponse?.Invoke(exchange);
+        }
+        internal void RunOnExchangeCompleted(Exchange exchange)
+        {
+            _methodOnExchangeCompleted?.Invoke(exchange);
         }
 
         private void _RunMainMethod()
@@ -563,6 +663,7 @@ namespace Clearinet
 
         public void Dispose()
         {
+            // TODO: Do we tear down the Bound UI?
             if (!_isDisposed)
             {
                 _watcher?.Dispose();

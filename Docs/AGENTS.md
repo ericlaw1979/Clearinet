@@ -11,7 +11,7 @@ Porting extensions from the legacy Fiddler extension API to the new Clearinet ex
 
 ### Class & Interface Mappings
 - Replace `FiddlerApplication` with `CApp`.
-- Replace `Session` with `Exchange` in almost all comments, variable names, class names, etc.
+- Replace `Session` with `Exchange` in almost all comments, variable names, class names, etc. The only exception is in Flag Names and inside SAZ archives, where the old noun is retained for compatibility.
 - Replace `IFiddlerExtension` with `IAppExtension`.
 - Replace `ProfferFormat` with `OfferFormat`
 - Replace `uriContains` with `urlContains`

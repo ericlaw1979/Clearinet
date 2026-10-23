@@ -22,11 +22,12 @@ namespace Clearinet
 
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
-        // This session only override settings (set by command line)
+        // This-instance-only override settings (set by command line)
         internal struct structOverrides
         {
             internal bool NoAttachOnStartup;
             internal bool DisableScript;
+            internal int ListenPort;
         }
         internal static structOverrides Overrides;
 
@@ -169,7 +170,7 @@ namespace Clearinet
                                                 $"{GetPath("UserFolder")}ImportExport{Path.DirectorySeparatorChar}");
                 case "RulesScript":          // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.script",
-                                                $"{GetPath("UserFolder")}CustomRules_0_0_2_5.js");
+                                                $"{GetPath("UserFolder")}CustomRules_0_0_2_6.js");
                 case "SampleRulesScript":    // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.sample_script",
                                                 $"{Application.StartupPath}{Path.DirectorySeparatorChar}SampleRulesALPHA.js");

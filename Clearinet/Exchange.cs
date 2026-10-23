@@ -58,7 +58,7 @@ namespace Clearinet
 
         // Reset the Exchange counter to 0. In a perfect world, we'd never do this,
         // but users expect the counter to be at 0 when they clear the Exchange list.
-        internal static void ResetSessionCounter()
+        internal static void ResetExchangeCounter()
         {
             Interlocked.Exchange(ref __cTotalExchanges, 0);
         }
@@ -150,8 +150,46 @@ namespace Clearinet
             ResponseHeaders.Remove("Transfer-Encoding");
         }
 
-        public bool utilDecodeRequest(bool bQuiet = true) { /*TODO*/ return false; }
-        public bool utilDecodeResponse(bool bQuiet = true) { /*TODO*/ return false; }
+        public bool utilDecodeRequest(bool bQuiet = true)
+        {
+            if (null == RequestHeaders) return false;
+            if (!RequestBody.HasData()) return true;
+            if (!RequestHeaders.ExistsAny("Content-Encoding", "Transfer-Encoding")) return true;
+
+            try
+            {
+                // TODO: *Technically* we might not've removed everything, and in such a case we should return false;
+                RequestBody = DecodeBodyFromHeaders(RequestHeaders, RequestBody);
+                RequestHeaders.Remove("Content-Encoding", "Transfer-Encoding");
+            }
+            catch (Exception ex)
+            {
+                if (!bQuiet) CApp.ReportException(ex, "utilDecodeRequest Failed");
+                return false;
+            }
+
+            RequestHeaders["Content-Length"] = $"{RequestBody?.Length ?? 0}";
+            return true;
+        }
+
+        public bool utilDecodeResponse(bool bQuiet = true)
+        {
+            if (null == ResponseHeaders) return false;
+            if (!ResponseBody.HasData()) return true;
+            if (!ResponseHeaders.ExistsAny("Content-Encoding", "Transfer-Encoding")) return true;
+            try
+            {
+                ResponseBody = DecodeBodyFromHeaders(ResponseHeaders, ResponseBody);
+                ResponseHeaders.Remove("Content-Encoding", "Transfer-Encoding");
+            }
+            catch (Exception ex)
+            {
+                if (!bQuiet) CApp.ReportException(ex, "utilDecodeResponse Failed");
+                return false;
+            }
+            ResponseHeaders["Content-Length"] = $"{ResponseBody?.Length ?? 0}";
+            return true;
+        }
 
         // TODO: Add a convenience handler that tries to get a .NET URL from the string?
 

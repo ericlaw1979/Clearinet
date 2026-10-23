@@ -175,6 +175,14 @@ namespace Clearinet
         {
             switch (keyData)
             {
+                case Keys.A | Keys.Control:
+                    if (TextLength == 0)
+                    {
+                        CApp.UI.lvExchanges.SelectAll(); // Convenience. 
+                        return true;
+                    }
+                    break;
+
                 case Keys.Escape:
                     if (TextLength > 0)
                     {
@@ -206,9 +214,8 @@ namespace Clearinet
                     _typedText = string.Empty;
                     _historyIndex = -1;
                     return true;
-                default:
-                    return base.ProcessCmdKey(ref msg, keyData);
             }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
         public event ExecuteHandler OnExecute;
     }

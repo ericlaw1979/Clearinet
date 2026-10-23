@@ -21,6 +21,10 @@ namespace Clearinet
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool FlashWindow(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool bInvert);
+
+        [DllImport("user32.dll")]
         private static extern bool IsIconic(IntPtr hWnd);
 
         [DllImport("user32.dll")]

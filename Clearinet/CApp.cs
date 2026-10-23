@@ -27,7 +27,9 @@ namespace Clearinet
         public static Extensions oExtensions;
         public static Transcoders oTranscoders;
 
-        internal static JScriptEngine scriptRules;
+
+        // TODO: Maybe this should be a facade that exposes only an interface to script/extensions?
+        public static JScriptEngine scriptRules;
 
         internal static ComposerView oComposer;
         internal static FindPanel oFindPanel;
@@ -71,6 +73,7 @@ namespace Clearinet
             }
         }
 
+        // Legacy API Name.
         public delegate void SessionStateHandler(Exchange arrExchanges);
 
         #region Report API

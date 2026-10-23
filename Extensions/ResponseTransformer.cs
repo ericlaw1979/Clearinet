@@ -43,8 +43,9 @@ namespace Extensions
             {
                 if (!headers.HTTPVersion.OICEquals("HTTP/1.1"))
                 {
-                    // TODO: Should this actually throw?
-                    throw new NotSupportedException("Chunked transfer encoding requires HTTP/1.1.");
+                    // TODO: Show a protocol violation instead.
+                    CApp.Log.Log("![ProtocolViolation] Chunked Transfer-Encoding requires HTTP/1.1, but the response is " + headers.HTTPVersion);
+                    //throw new NotSupportedException("Chunked transfer encoding requires HTTP/1.1.");
                 }
                 if (!transfer.Contains(encoding)) transfer.Add(encoding);
             }

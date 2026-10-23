@@ -111,6 +111,16 @@ namespace Clearinet
                 CApp.Log.Log("Unable to bring the main Clearinet window to the foreground.");
         }
 
+        /// <summary>
+        /// Flashes the window once without activating it.
+        /// </summary>
+        public void actFlashWindow()
+        {
+            // TODO: Should we have a variant of this that calls FlashWindowEx to demand the user activate the window to stop the flashing?
+            // fwi.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG; // Flash taskbar & caption until window comes to foreground
+            Win32UI.FlashWindow(Handle, true);
+        }
+
         public void actActivateTab(string sTabTitle)
         {
             Win32UI.activateTitledTab(sTabTitle, tabsViews);
@@ -352,7 +362,7 @@ namespace Clearinet
         public void actRefreshUI(bool bBecauseSelectionChanged)
         {
             // TODO: This should ensure that all inspectors are selected properly,
-            // any info shown for the current session in the status bar is correct, etc.
+            // any info shown for the current Exchange in the status bar is correct, etc.
             if (CApp.isClosing) return;
             actUpdateInspector(true, true);
 
@@ -805,7 +815,7 @@ namespace Clearinet
             if ((sFilenames?.Length ?? 0) == 0) return;
             foreach (var sFilename in sFilenames)
             {
-                actLoadSessionArchive(sFilename);
+                actLoadExchangeArchive(sFilename);
             }
         }
 
@@ -908,7 +918,7 @@ namespace Clearinet
                             paths.Clear();
                         }
                         // Archive Importers will batch their own Exchanges.
-                        if (isArchive) actLoadSessionArchive(sPath);
+                        if (isArchive) actLoadExchangeArchive(sPath);
                         else actImportFile(sPath);
                         continue;
                     }
@@ -927,12 +937,17 @@ namespace Clearinet
             return (lvExchanges.SelectedCount == 0) ? null : lvExchanges.SelectedItems[0].Tag as Exchange;
         }
 
-        // Activate Inspectors tab and try to pick the best two.
+        // Legacy API Name
         public void actInspectSession()
+        {
+            actInspectExchange();
+        }
+        // Activate Inspectors tab and try to pick the best two.
+        public void actInspectExchange()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke((MethodInvoker)actInspectSession);
+                this.Invoke((MethodInvoker)actInspectExchange);
                 return;
             }
             Exchange exch = GetFirstSelectedExchange();
@@ -973,7 +988,7 @@ namespace Clearinet
                 if (!arrTokens[i].Contains(".")) continue;
                 if (arrTokens[i].OICEndsWith(".saz"))
                 {
-                    actLoadSessionArchive(arrTokens[i]);
+                    actLoadExchangeArchive(arrTokens[i]);
                 }
                 else
                 {
@@ -1032,7 +1047,7 @@ namespace Clearinet
         {
             if (sPath.OICEndsWith(".saz"))
             {
-                actLoadSessionArchive(sPath);
+                actLoadExchangeArchive(sPath);
                 return;
             }
             // TODO: Can we put importer filenames into the MRU and have the right thing happen?
@@ -1080,6 +1095,11 @@ namespace Clearinet
         /// <param name="sPath"></param>
         public bool actLoadSessionArchive(string sPath)
         {
+            return actLoadExchangeArchive(sPath);
+        }
+
+        public bool actLoadExchangeArchive(string sPath)
+        {
             try
             {
                 using (var lro = new LongRunningOperation($"Loading {PlatformAPI.CompactPath(sPath, 32)}...", false))
@@ -1104,7 +1124,7 @@ namespace Clearinet
             }
             catch (Exception eX)
             {
-                CApp.ReportException(eX, "actLoadSessionArchive Failed");
+                CApp.ReportException(eX, "actLoadExchangeArchive Failed");
                 return false;
             }
         }
@@ -1464,7 +1484,7 @@ namespace Clearinet
             pageInspectors.ResumeLayout();
         }
 
-        private void actUpdateInspector(bool bUpdateRequest, bool bUpdateResponse)
+        public void actUpdateInspector(bool bUpdateRequest, bool bUpdateResponse)
         {
             // Don't work if it's not visible.
             if (CApp.isClosing) return;
@@ -1593,7 +1613,7 @@ namespace Clearinet
                         newItem.Click += (s, ea) =>
                         {
                             string sFilename = (s as ToolStripMenuItem).Tag as String;
-                            if (!actLoadSessionArchive(sFilename))
+                            if (!actLoadExchangeArchive(sFilename))
                             {
                                 if (!File.Exists(sFilename))
                                 {
@@ -1621,7 +1641,7 @@ namespace Clearinet
 
         private void lvExchanges_DoubleClick(object sender, EventArgs e)
         {
-            actInspectSession();
+            actInspectExchange();
         }
 
         public void actSelectAll()
@@ -1638,13 +1658,13 @@ namespace Clearinet
             }
             if (e.KeyCode == Keys.D1 && e.Modifiers == Keys.Control)
             {
-                MarkSessions(lvExchanges.GetSelectedExchanges());
+                MarkExchanges(lvExchanges.GetSelectedExchanges());
                 e.SuppressKeyPress = e.Handled = true;
                 return;
             }
             if (e.KeyData == Keys.Enter)
             {
-                actInspectSession();
+                actInspectExchange();
                 e.SuppressKeyPress = e.Handled = true;
                 return;
             }
@@ -1786,7 +1806,7 @@ namespace Clearinet
             XC.oFlags["ui-backcolor"] = "OrangeRed";
         }
 
-        private void MarkSessions(Exchange[] exchanges)
+        private void MarkExchanges(Exchange[] exchanges)
         {
             foreach (var xc in exchanges)
             {
@@ -2443,22 +2463,22 @@ namespace Clearinet
 
         private void miEditMarkRed_Click(object sender, EventArgs e)
         {
-            MarkSessions(GetSelectedExchanges()); // TODO:Color
+            MarkExchanges(GetSelectedExchanges()); // TODO:Color
         }
 
         private void miEditMarkBlue_Click(object sender, EventArgs e)
         {
-            MarkSessions(GetSelectedExchanges());
+            MarkExchanges(GetSelectedExchanges());
         }
 
         private void miEditMarkGold_Click(object sender, EventArgs e)
         {
-            MarkSessions(GetSelectedExchanges()); // TODO:Color
+            MarkExchanges(GetSelectedExchanges()); // TODO:Color
         }
 
         private void miEditMarkUnmark_Click(object sender, EventArgs e)
         {
-            // TODO: MarkSessions(GetSelectedExchanges());
+            // TODO: MarkExchanges(GetSelectedExchanges());
         }
 
         private void tabsViews_DragOver(object sender, DragEventArgs e)
@@ -2578,6 +2598,11 @@ namespace Clearinet
                 miExchangeCopyColumn.Enabled = true;
                 miExchangeCopyColumn.Text = $"'{lvi.SubItems[ixCol].Text.Ellipsize(24)}'";
             }
+        }
+        public void AddExtensionToolsMenuItem(ToolStripMenuItem tsmi)
+        {
+            // TODO: put this in the right place rather than just shoving it at the top.
+            miTools.DropDownItems.Insert(0, tsmi);
         }
     }
 
