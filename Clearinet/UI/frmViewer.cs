@@ -1813,6 +1813,33 @@ namespace Clearinet
             XC.oFlags["ui-backcolor"] = "OrangeRed";
         }
 
+        private void actAddDesktopScreenshot()
+        {
+            try
+            {
+                Rectangle bounds = SystemInformation.VirtualScreen;
+                using (var screenshot = new Bitmap(bounds.Width, bounds.Height, PixelFormat.Format24bppRgb))
+                using (var graphics = Graphics.FromImage(screenshot))
+                using (var stream = new MemoryStream())
+                using (var encoderParameters = new EncoderParameters(1))
+                {
+                    graphics.CopyFromScreen(bounds.Location, Point.Empty, bounds.Size);
+                    var jpegEncoder = Array.Find(ImageCodecInfo.GetImageEncoders(), codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+                    if (jpegEncoder == null)
+                    {
+                        throw new InvalidOperationException("The JPEG image encoder is not available.");
+                    }
+                    encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 95L);
+                    screenshot.Save(stream, jpegEncoder, encoderParameters);
+                    AddFauxExchange($"/screenshot/{DateTime.Now:yyyy-MM-dd-HH-mm-ss.ffff}.jpg", "image/jpeg", stream.ToArray());
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Unable to capture desktop screenshot.");
+            }
+        }
+
         private void MarkExchanges(Exchange[] exchanges)
         {
             foreach (var xc in exchanges)
@@ -2621,6 +2648,43 @@ namespace Clearinet
         {
             // TODO: put this in the right place rather than just shoving it at the top.
             miTools.DropDownItems.Insert(0, tsmi);
+        }
+
+        private async void tsmiScreenshot_Click(object sender, EventArgs e)
+        {
+            if (!tsmiScreenshot.Enabled) return;
+
+            string originalText = tsmiScreenshot.Text;
+            ToolStripItemDisplayStyle originalDisplayStyle = tsmiScreenshot.DisplayStyle;
+            tsmiScreenshot.Enabled = false;
+            try
+            {
+                tsmiScreenshot.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                for (int remaining = 4; remaining > 0; --remaining)
+                {
+                    tsmiScreenshot.Text = (remaining > 1) ? $"({remaining}...)" : "** cheese! **";
+                    tsToolbar.Refresh();
+                    await Task.Delay(1000);
+                    if (IsDisposed || Disposing || tsmiScreenshot.IsDisposed) return;
+                }
+                tsmiScreenshot.DisplayStyle = originalDisplayStyle;
+                tsmiScreenshot.Text = originalText;
+                tsToolbar.Refresh();
+                actAddDesktopScreenshot();
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Screenshot failed.");
+            }
+            finally
+            {
+                if (!IsDisposed && !Disposing && !tsmiScreenshot.IsDisposed)
+                {
+                    tsmiScreenshot.Text = originalText;
+                    tsmiScreenshot.DisplayStyle = originalDisplayStyle;
+                    tsmiScreenshot.Enabled = true;
+                }
+            }
         }
     }
 

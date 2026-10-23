@@ -90,6 +90,9 @@
     <Compile Include="DataView.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="FullscreenImageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="HeaderInspectors.cs" />
     <Compile Include="HeaderView.cs">
       <SubType>UserControl</SubType>

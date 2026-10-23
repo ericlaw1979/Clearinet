@@ -17,6 +17,10 @@ The NetLog importer accepts Chromium's JSON and JSONL captures, including gzip-c
 
 QuickExec offers inline autocomplete from previous commands as you type. Up/Down browse commands matching your typed prefix (case-insensitive), newest first, keeping your typed prefix unselected and selecting only the completed suffix so you can replace it by typing; Down past the newest match restores your draft. Repeated commands move to the newest position.
 
+The Screenshot toolbar button shows a four-second countdown ending with "cheese!", then captures the full desktop across all monitors and adds it as a generated Exchange with an `image/jpeg` response. The countdown disappears before capture, and the button cannot start another capture while counting down. Closing the viewer cancels the pending capture. Screenshots include visible desktop content, so review them before sharing or saving an archive.
+
+Double-click an image in the Images inspector to open a non-modal, borderless fullscreen viewer on that monitor. Images larger than the window initially zoom out to fit while preserving their aspect ratio; smaller images open at 100% scale. Ctrl+plus/Ctrl+minus (including numeric keypad keys) or the mouse wheel zoom in/out; drag with the left mouse button or use the scrollbars to pan around images larger than the screen. Press Esc to close the viewer. The viewer keeps its own image copy, so changing the selected Exchange does not affect it.
+
 ![Top customer requirements list](/Docs/TopCustomerRequirements.png)
 
 ### Clearinet Cap

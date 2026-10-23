@@ -137,6 +137,7 @@
             this.tssAfterExt = new System.Windows.Forms.ToolStripSeparator();
             this.tstxtLookup = new System.Windows.Forms.ToolStripTextBox();
             this.tslVersion = new System.Windows.Forms.ToolStripLabel();
+            this.tsmiScreenshot = new System.Windows.Forms.ToolStripButton();
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
@@ -989,7 +990,8 @@
             this.tssBeforeExt,
             this.tssAfterExt,
             this.tstxtLookup,
-            this.tslVersion});
+            this.tslVersion,
+            this.tsmiScreenshot});
             this.tsToolbar.Location = new System.Drawing.Point(0, 27);
             this.tsToolbar.Name = "tsToolbar";
             this.tsToolbar.Size = new System.Drawing.Size(1043, 27);
@@ -1019,6 +1021,7 @@
             // 
             // tsddbRemove
             // 
+            this.tsddbRemove.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsddbRemove.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsmiRemoveAll,
             tssRemoveSplit1,
@@ -1030,7 +1033,7 @@
             this.tsddbRemove.Image = ((System.Drawing.Image)(resources.GetObject("tsddbRemove.Image")));
             this.tsddbRemove.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsddbRemove.Name = "tsddbRemove";
-            this.tsddbRemove.Size = new System.Drawing.Size(88, 24);
+            this.tsddbRemove.Size = new System.Drawing.Size(68, 24);
             this.tsddbRemove.Text = "Remove";
             this.tsddbRemove.ToolTipText = "Remove";
             // 
@@ -1094,6 +1097,17 @@
             this.tslVersion.Name = "tslVersion";
             this.tslVersion.Size = new System.Drawing.Size(58, 24);
             this.tslVersion.Text = "(version)";
+            // 
+            // tsmiScreenshot
+            // 
+            this.tsmiScreenshot.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsmiScreenshot.Image = ((System.Drawing.Image)(resources.GetObject("tsmiScreenshot.Image")));
+            this.tsmiScreenshot.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsmiScreenshot.Name = "tsmiScreenshot";
+            this.tsmiScreenshot.Size = new System.Drawing.Size(24, 24);
+            this.tsmiScreenshot.Text = "Screenshot";
+            this.tsmiScreenshot.ToolTipText = "Store Screenshot";
+            this.tsmiScreenshot.Click += new System.EventHandler(this.tsmiScreenshot_Click);
             // 
             // pnlTopGoldbar
             // 
@@ -1859,6 +1873,7 @@
         private System.Windows.Forms.ColumnHeader colProcess;
         private System.Windows.Forms.ColumnHeader colComments;
         private System.Windows.Forms.ToolStripLabel tslVersion;
+        private System.Windows.Forms.ToolStripButton tsmiScreenshot;
     }
 }
 

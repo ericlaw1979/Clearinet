@@ -10,11 +10,29 @@ namespace Extensions
         public ImageView()
         {
             InitializeComponent();
+            pbImage.MouseDoubleClick += pbImage_MouseDoubleClick;
             try
             {
                 cbxSizing.SelectedIndex = CApp.Prefs.GetInt32Pref("inspectors.ImageView.SizeMode", 0);
             }
             catch (Exception) { Debug.Assert(false, "Invalid scale"); }
+        }
+
+        private void pbImage_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left || pbImage.Image == null) return;
+
+            FullscreenImageForm viewer = null;
+            try
+            {
+                viewer = new FullscreenImageForm(pbImage.Image, Screen.FromControl(pbImage).Bounds);
+                viewer.Show(FindForm());
+            }
+            catch (Exception eX)
+            {
+                viewer?.Dispose();
+                CApp.ReportException(eX, "Unable to open fullscreen image.");
+            }
         }
 
         private void cbxSizing_SelectedIndexChanged(object sender, System.EventArgs e)
