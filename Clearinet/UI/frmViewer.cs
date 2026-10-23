@@ -1683,6 +1683,11 @@ namespace Clearinet
             if (e.KeyCode == Keys.Delete)
             {
                 if (e.Modifiers == Keys.Shift) lvExchanges.RemoveUnselected(); else lvExchanges.RemoveSelected();
+                if (null != lvExchanges.FocusedItem)
+                {
+                    lvExchanges.FocusedItem.Selected = true;
+                    lvExchanges.FocusedItem.EnsureVisible();
+                }
             }
 
             if (e.Modifiers == Keys.Control)
