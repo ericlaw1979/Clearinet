@@ -929,6 +929,8 @@ namespace Clearinet
                 }
                 // Flush any remaining ordinary files after the last imported file.
                 if (paths.Count > 0) addExchangesToListView(CreateExchangesForFiles(paths));
+
+                CApp.UI.SetStatusText($"Pasted {arrFiles.Length} files from the clipboard as Exchanges.");
             }
         }
 
@@ -1856,9 +1858,19 @@ namespace Clearinet
         {
             foreach (string path in paths)
             {
-                byte[] body = File.ReadAllBytes(path);
-                string contentType = Utilities.MimeTypeFromFilename(path);
-                yield return CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", contentType, body);
+                Exchange exResult = null;
+                try
+                {
+                    byte[] body = File.ReadAllBytes(path);
+                    string contentType = Utilities.MimeTypeFromFilename(path);
+                    exResult = CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", contentType, body);
+                }
+                catch (Exception eX)
+                {
+                    exResult = CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", "text/plain; charset=utf-8",
+                        Encoding.UTF8.GetBytes($"Unable to create Exchange for file '{path}': {eX.Message}."));
+                }
+                yield return exResult;
             }
         }
 
@@ -1878,6 +1890,7 @@ namespace Clearinet
                     if (File.Exists(path)) paths.Add(path);
                 }
                 addExchangesToListView(CreateExchangesForFiles(paths));
+                CApp.UI.SetStatusText($"Pasted {paths.Count} files from the clipboard as Exchanges.");
             }
             catch (Exception eX)
             {
@@ -2613,6 +2626,7 @@ namespace Clearinet
 
     public class LongRunningOperation : IDisposable
     {
+        DateTime dtFirstProgress = DateTime.MinValue;
         private bool PreventSleepOrExit { get; set; }
 
         public string OperationName { get; private set; }
@@ -2662,6 +2676,7 @@ namespace Clearinet
 
         public void UpdateProgress(int iPercent, string sStatusText = null)
         {
+            if (dtFirstProgress == DateTime.MinValue) dtFirstProgress = DateTime.Now;
             if (sStatusText.HasText()) StatusText = sStatusText;
             if (iPercent >= 100)
             {
@@ -2698,6 +2713,10 @@ namespace Clearinet
                 return;
             }
             CApp.Log.Log($"Long-running operation '{OperationName}' completed.");
+            if (dtFirstProgress != DateTime.MinValue && DateTime.Now - dtFirstProgress > TimeSpan.FromSeconds(5))
+            {
+                CApp.UI.actFlashWindow();
+            }
             CApp.UI.tsToolbar.Items.Remove(ProgressUI);
             ProgressUI.Dispose(); ProgressUI = null;
             if (PreventSleepOrExit)
