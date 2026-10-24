@@ -334,9 +334,17 @@ RegistryOk:
 
 CreateShortCut "$SMPROGRAMS\Clearinet.lnk" "$INSTDIR\clearinet.exe" "" "$INSTDIR\clearinet.exe" 0
 
-; TODO: If we're an admin, we should pre-add the Firewall exception
+; Add Firewall Exception (Admin / AllUsers mode only)
+${If} $MultiUser.InstallMode == "AllUsers"
+    DetailPrint "Adding Windows Firewall exception..."
+    nsExec::ExecToStack 'netsh advfirewall firewall add rule name="Clearinet" dir=in action=allow program="$INSTDIR\Clearinet.exe" enable=yes profile=any description="Allow inbound traffic for Clearinet Web Debugger"'
+${EndIf}
 
-; TODO: NGEN for better boot performance
+; NGEN for better boot performance
+DetailPrint "Optimizing assembly performance (NGEN)..."
+IfFileExists "$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" 0 lbl_SkipNGEN
+    nsExec::ExecToStack '"$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" install "$INSTDIR\Clearinet.exe" /queue'
+lbl_SkipNGEN:
 
 lbl_WriteUninstall:
 WriteUninstaller "uninst.exe"
@@ -382,6 +390,14 @@ SkipWipe:
 
 ; Remove Start Menu shortcuts
 Delete "$SMPROGRAMS\Clearinet.lnk"
+
+; Remove Firewall Rule
+nsExec::ExecToStack 'netsh advfirewall firewall delete rule name="Clearinet" program="$INSTDIR\Clearinet.exe"'
+
+; Uninstall NGEN native images
+IfFileExists "$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" 0 lbl_SkipUnNGEN
+    nsExec::ExecToStack '"$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" uninstall "$INSTDIR\Clearinet.exe"'
+lbl_SkipUnNGEN:
 
 ; Wipe registry keys from current context
 DeleteRegKey SHCTX "Software\Clearinet"
