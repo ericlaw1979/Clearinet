@@ -1654,6 +1654,7 @@
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
             this.rtbLog.WordWrap = false;
+            this.rtbLog.ReadOnly = true;
             this.rtbLog.KeyDown += new System.Windows.Forms.KeyEventHandler(this.rtbLog_KeyDown);
             // 
             // imglistIcons

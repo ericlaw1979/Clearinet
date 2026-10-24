@@ -118,6 +118,18 @@ namespace Clearinet
             return arrExchanges;
         }
 
+        public bool IsScrolledToBottom()
+        {
+            if (Items.Count == 0) return true;
+            if (!IsHandleCreated) return false;
+
+            ListViewItem topItem = TopItem;
+            if (topItem == null) return false;
+
+            int itemsPerPage = Win32ListViewAPI.SendMessage(Handle, Win32ListViewAPI.LVM_GETCOUNTPERPAGE, IntPtr.Zero, IntPtr.Zero).ToInt32();
+            return topItem.Index + itemsPerPage >= Items.Count;
+        }
+
         private void ExchangeListView_ItemDrag(object sender, ItemDragEventArgs e)
         {
             var XC = GetSelectedExchanges();

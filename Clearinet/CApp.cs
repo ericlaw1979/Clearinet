@@ -22,6 +22,8 @@ namespace Clearinet
             get { return _Log; }
         }
 
+        internal static GigWorker gwHoneyDew = new GigWorker();
+
         public static bool isTracing { get; internal set; } = false;
 
         public static Extensions oExtensions;
@@ -245,6 +247,39 @@ namespace Clearinet
                 UI.actActivateTab("Log");
                 return true;
             }
+
+            if ("gigs" == sCmd)
+            {
+                CApp.Log.Log(CApp.gwHoneyDew.ToString());
+                UI.actActivateTab("Log");
+                return true;
+            }
+
+            if ("spam" == sCmd)
+            {
+                uint uiInterval = 1000;
+                if (arrParams.Length > 1) UInt32.TryParse(arrParams[1], out uiInterval);
+                CApp.gwHoneyDew.createGig("SpamTest", () =>
+                {
+                    DateTime dt = DateTime.Now;
+                    Exchange XC = frmViewer.CreateFauxExchange($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes("Spam Exchange"));
+                    XC.oFlags["ui-backcolor"] = "LightGray";
+                    CApp.UI.addExchangeToListView(XC);
+
+                }, uiInterval);
+                return true;
+            }
+
+            if ("unspam" == sCmd)
+            {
+                CApp.gwHoneyDew.cancelGigsNamed("SpamTest");
+                return true;
+            }
+
+            /*if ("!spew" == sCmd)
+            {
+                Prefs.SetBoolPref("app.debug.ephemeral.spew". true);
+            }*/
 
             if ("cls" == sCmd)
             {

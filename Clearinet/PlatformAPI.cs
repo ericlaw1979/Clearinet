@@ -13,6 +13,9 @@ namespace Clearinet
     public class PlatformAPI
     {
 
+        [DllImport("Kernel32.dll", EntryPoint = "GetTickCount64", CharSet = CharSet.Unicode)]
+        public static extern UInt64 GetTickCount64();
+
         [System.Runtime.InteropServices.DllImport("kernel32.dll")]
         private static extern bool SetProcessWorkingSetSize(IntPtr process, IntPtr minimumWorkingSetSize, IntPtr maximumWorkingSetSize);
 

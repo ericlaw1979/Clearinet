@@ -645,6 +645,10 @@ namespace Clearinet
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
 
+
+            CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
+            CApp.gwHoneyDew.createGig("UpdateMemoryCounter", () => UpdateMemoryCounter(), 5000);
+
             // =========================== Move TODOs ===========================
             // Today, I only use the VS Designer on a 100% DPI device because otherwise
             // the VS designer corrupts the layout. So when working on other devices, I
@@ -1189,11 +1193,16 @@ namespace Clearinet
             }
         }
 
-        private void addExchangeToListView(Exchange xc)
+        internal void addExchangeToListView(Exchange xc)
         {
             if (CApp.isClosing) return;
-
             if (xc.ViewItem != null) return; // Already added.
+
+            if (lvExchanges.InvokeRequired)
+            {
+                lvExchanges.Invoke((Action<Exchange>)addExchangeToListView, xc);
+                return;
+            }
             ListViewItem lvi = new ListViewItem(xc.id.ToString())
             {
                 Tag = xc
@@ -1240,6 +1249,10 @@ namespace Clearinet
                         lvi.ForeColor = c;
                     }
                     catch { }
+                }
+                else if (xc.bHasResponse)
+                {
+                    lvi.ForeColor = CONFIG.GetResponseColor(xc);
                 }
             }
             if (xc["ui-strikeout"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
@@ -1954,7 +1967,7 @@ namespace Clearinet
             return exchange;
         }
 
-        private static Exchange CreateFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
+        internal static Exchange CreateFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
         {
             var headersRequest = new HTTPRequestHeaders(sRequestPath, new[] { "Host: localhost" });
             var exchNew = new Exchange(headersRequest, Array.Empty<byte>());
@@ -2127,33 +2140,48 @@ namespace Clearinet
             }
         }
 
+        private void UpdateMemoryCounter()
+        {
+            double mb = Process.GetCurrentProcess().PrivateMemorySize64 / (1024.0 * 1024.0);
+            CApp.UIInvokeAsync((MethodInvoker)(() => { tslMemory.Text = $"{mb:N1}mb"; }), null);
+        }
+
         private void UpdateStatusBar(bool bNow)
         {
             // If updates are paused, we throttle UI updates and start a background task
             // to periodically post updates to the UI thread.
-            if (!bNow && (CApp.PauseReporting || (0 == lvExchanges.SelectedCount)))
+            if (!bNow && (CApp.PauseReporting))
             {
-                // TODO: BAckground update
+                // TODO: Background update
                 //    ScheduledTasks.ScheduleWork("UpdateStatusBar", 100,
                 //      () => { CApp.UIInvokeAsync((MethodInvoker)_UpdateStatusBar, null); });
                 //return;
             }
 
+            if (CApp.UI.InvokeRequired)
+            {
+                CApp.UIInvokeAsync((MethodInvoker)_UpdateStatusBar, null);
+                return;
+            }
+
             _UpdateStatusBar();
         }
 
+
         private void _UpdateStatusBar()
         {
+            Debug.Assert(!CApp.UI.InvokeRequired);
             int cSelected = lvExchanges.SelectedCount;
             if (cSelected < 1)
             {
-                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}";
+                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{(lvExchanges.IsScrolledToBottom() ? "*BOT*" : string.Empty)}";
             }
             else
             {
                 tslSelCount.Text = $"{cSelected:N0} / {lvExchanges.TotalCount:N0}";
             }
         }
+
         public void actUpdateReport()
         {
             CApp.OnCalculateReport(GetSelectedExchanges());

@@ -106,6 +106,7 @@ namespace Clearinet
 
         private const int LVM_FIRST = 0x1000;
         public const int LVM_GETHEADER = LVM_FIRST + 31;
+        public const int LVM_GETCOUNTPERPAGE = LVM_FIRST + 40;
 
         public const int HDM_FIRST = 0x1200;
         public const int HDM_GETITEM = HDM_FIRST + 11;
