@@ -675,6 +675,12 @@ namespace Clearinet
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
+            createHotkeyIPCWindow();
+        }
+
+        private void createHotkeyIPCWindow()
+        {
+            if (CONFIG.isViewerMode) return; // Hotkeys and IPC are not supported in Viewer mode.
             var messagingWindow = new HiddenExecActionTargetWindow(components);
             string globalHotkey = CApp.Prefs.GetStringPref("app.keys.global_hotkey", "Ctrl+Alt+F");
             if (!string.IsNullOrWhiteSpace(globalHotkey))
