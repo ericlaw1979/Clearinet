@@ -11,7 +11,7 @@ namespace Extensions
 
         public override void AddToTab(TabPage tab)
         {
-            hvViewer = new HexView();
+            hvViewer = new HexView(true);
             tab.Controls.Add(hvViewer);
             hvViewer.Dock = DockStyle.Fill;
         }
@@ -43,7 +43,7 @@ namespace Extensions
 
         public override void AddToTab(TabPage tab)
         {
-            hvViewer = new HexView();
+            hvViewer = new HexView(false);
             tab.Controls.Add(hvViewer);
             hvViewer.Dock = DockStyle.Fill;
         }

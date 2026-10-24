@@ -16,15 +16,27 @@ namespace Extensions
         byte[] bodyBytes = Array.Empty<byte>();
         Font hexFont;
 
-        public HexView()
+        private string _sHeaderPref;
+
+        internal HexView(bool isForRequest)
         {
+            _sHeaderPref = isForRequest ? "inspectors.hex.show_request_headers" :
+                                          "inspectors.hex.show_response_headers";
             contextMenu = new ContextMenuStrip();
             var miCopy = new ToolStripMenuItem("&Copy");
             miCopy.Click += (sender, e) => hexBox.Copy();
             var miSelectAll = new ToolStripMenuItem("Select &All");
             miSelectAll.Click += (sender, e) => hexBox.SelectAll();
-            miShowHeaders = new ToolStripMenuItem("Show &Headers") { CheckOnClick = true };
-            miShowHeaders.CheckedChanged += (sender, e) => RefreshBytes();
+            miShowHeaders = new ToolStripMenuItem("Show &Headers")
+            {
+                CheckOnClick = true,
+                Checked = CApp.Prefs.GetBoolPref(_sHeaderPref, true)
+            };
+            miShowHeaders.CheckedChanged += (sender, e) =>
+            {
+                CApp.Prefs.SetBoolPref(_sHeaderPref, miShowHeaders.Checked);
+                RefreshBytes();
+            };
             contextMenu.Items.AddRange(new ToolStripItem[]
             {
                 miCopy, miSelectAll, new ToolStripSeparator(), miShowHeaders
@@ -66,7 +78,6 @@ namespace Extensions
 
             hexBox.GroupSize = 128;
             UpdateOffsetAndSelection();
-
         }
 
         internal void Assign(byte[] arrHeaders, byte[] arrBody)
