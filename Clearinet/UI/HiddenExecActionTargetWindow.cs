@@ -20,6 +20,11 @@ namespace Clearinet
 
         internal HiddenExecActionTargetWindow(IContainer container)
         {
+            // Issue: We could still create the Window but do so with a
+            // different title and optionally hotkey. This would allow
+            // code to find these windows easily, which might be useful.
+            if (CONFIG.isViewerMode) throw new
+                    InvalidOperationException("HiddenExecActionTargetWindow is not supported in Viewer mode.");
             window = new CommandWindow();
             container.Add(this);
         }

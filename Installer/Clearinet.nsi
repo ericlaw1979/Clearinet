@@ -12,7 +12,7 @@
 ;
 ; Get NSIS from https://nsis.sourceforge.io/Download
 ; Read the docs for the install script here:
-;     https://nsis.sourceforge.io/Docs/Chapter3.html
+;      https://nsis.sourceforge.io/Docs/Chapter3.html
 ;
 ; Last validated against NSIS 3.13
 ;  
@@ -49,6 +49,54 @@ OutFile "ClearinetSetup.exe"
 
 ; ========================================================================
 !include "LogicLib.nsh"
+
+; Check for running windows by title (shared by installer and uninstaller)
+Function CheckRunningInstances
+  loop_check:
+    FindWindow $0 "" "Clearinet.ExecActionTarget"
+    ${If} $0 != 0
+      Goto prompt_user
+    ${EndIf}
+
+    FindWindow $0 "" "Clearinet Viewer"
+    ${If} $0 != 0
+      Goto prompt_user
+    ${EndIf}
+
+    Goto done
+
+  prompt_user:
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION \
+      "Clearinet is currently running.$\r$\n$\r$\nPlease close all instances of Clearinet before continuing." \
+      IDRETRY loop_check
+    Abort
+
+  done:
+FunctionEnd
+
+; Uninstaller variant for CheckRunningInstances
+Function un.CheckRunningInstances
+  loop_check:
+    FindWindow $0 "" "Clearinet.ExecActionTarget"
+    ${If} $0 != 0
+      Goto prompt_user
+    ${EndIf}
+
+    FindWindow $0 "" "Clearinet Viewer"
+    ${If} $0 != 0
+      Goto prompt_user
+    ${EndIf}
+
+    Goto done
+
+  prompt_user:
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION \
+      "Clearinet is currently running.$\r$\n$\r$\nPlease close all instances of Clearinet before continuing." \
+      IDRETRY loop_check
+    Abort
+
+  done:
+FunctionEnd
 
 ; .NET Framework 4.8.1 Minimum Release Key
 !define NET481_RELEASE_BUILD 533320
@@ -124,6 +172,9 @@ FunctionEnd
 !insertmacro MUI_LANGUAGE "English"
 
 Function .onInit
+  # Check for existing window instances before continuing
+  Call CheckRunningInstances
+
   # Initialize MultiUser mode detection
   !insertmacro MULTIUSER_INIT
 
@@ -138,6 +189,9 @@ Function .onInit
 FunctionEnd
 
 Function un.onInit
+  # Check for existing window instances before continuing uninstallation
+  Call un.CheckRunningInstances
+
   !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
@@ -154,10 +208,11 @@ Section "App"
 
 SetOutPath "$INSTDIR"
 
+; Ensure no running instances remain when file copy begins
+Call CheckRunningInstances
+
 ; Check for .NET Framework
 Call CheckAndInstallDotNet481
-
-; TODO: Check for running version
 
 DetailPrint "Installing Clearinet"
 ClearErrors
@@ -279,9 +334,17 @@ RegistryOk:
 
 CreateShortCut "$SMPROGRAMS\Clearinet.lnk" "$INSTDIR\clearinet.exe" "" "$INSTDIR\clearinet.exe" 0
 
-; TODO: If we're an admin, we should pre-add the Firewall exception
+; Add Firewall Exception (Admin / AllUsers mode only)
+${If} $MultiUser.InstallMode == "AllUsers"
+    DetailPrint "Adding Windows Firewall exception..."
+    nsExec::ExecToStack 'netsh advfirewall firewall add rule name="Clearinet" dir=in action=allow program="$INSTDIR\Clearinet.exe" enable=yes profile=any description="Allow inbound traffic for Clearinet Web Debugger"'
+${EndIf}
 
-; TODO: NGEN for better boot performance
+; NGEN for better boot performance
+DetailPrint "Optimizing assembly performance (NGEN)..."
+IfFileExists "$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" 0 lbl_SkipNGEN
+    nsExec::ExecToStack '"$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" install "$INSTDIR\Clearinet.exe" /queue'
+lbl_SkipNGEN:
 
 lbl_WriteUninstall:
 WriteUninstaller "uninst.exe"
@@ -316,9 +379,10 @@ FunctionEnd
 ; ===================================
 Section Uninstall
 
+Call un.CheckRunningInstances
+
 IfSilent SkipWipe
 
-; TODO: Ensure not running
 MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Delete all settings?$\n$\n(Choose NO if you intend to install later)" IDNO SkipWipe
 DetailPrint "Removing files and registry keys..."
 
@@ -326,6 +390,14 @@ SkipWipe:
 
 ; Remove Start Menu shortcuts
 Delete "$SMPROGRAMS\Clearinet.lnk"
+
+; Remove Firewall Rule
+nsExec::ExecToStack 'netsh advfirewall firewall delete rule name="Clearinet" program="$INSTDIR\Clearinet.exe"'
+
+; Uninstall NGEN native images
+IfFileExists "$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" 0 lbl_SkipUnNGEN
+    nsExec::ExecToStack '"$WINDIR\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" uninstall "$INSTDIR\Clearinet.exe"'
+lbl_SkipUnNGEN:
 
 ; Wipe registry keys from current context
 DeleteRegKey SHCTX "Software\Clearinet"
