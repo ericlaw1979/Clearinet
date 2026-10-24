@@ -247,38 +247,11 @@ namespace Extensions
             return string.Empty;
         }
 
-        private static Color GetResponseBarColor(Exchange exchange)
-        {
-            string mediaType = exchange == null ? string.Empty : exchange.MediaType;
-            if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-            {
-                return Color.LightGreen;
-            }
-
-            if (mediaType.IndexOf("javascript", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return Color.DarkGreen;
-            }
-
-            if (string.Equals(mediaType, "text/css", StringComparison.OrdinalIgnoreCase))
-            {
-                return Color.Purple;
-            }
-
-            if (mediaType.IndexOf("json", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                mediaType.IndexOf("xml", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return Color.Cyan;
-            }
-
-            return Color.Blue;
-        }
-
         private void DrawResponseBar(Graphics g, TimelineRow row, float barLeft, float barRight, float responseX, float barY, float barHeight, Font font)
         {
             float barWidth = Math.Max(2f, barRight - barLeft);
             float actualBarRight = barLeft + barWidth;
-            Color barColor = GetResponseBarColor(row.Exchange);
+            Color barColor = CONFIG.GetResponseColor(row.Exchange);
 
             using (var barBrush = new SolidBrush(barColor))
             using (var barPen = new Pen(barColor, 1f))

@@ -19,7 +19,7 @@ namespace Clearinet
     public static class CONFIG
     {
         internal static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
-
+        internal static readonly Color COLOR_DATA_RESPONSE = Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
         // This-instance-only override settings (set by command line)
@@ -318,6 +318,33 @@ namespace Clearinet
         internal static void RevertToDefaultAppearance()
         {
             CApp.alert("not yet implemented");
+        }
+
+        public static Color GetResponseColor(Exchange exchange)
+        {
+            string mediaType = exchange == null ? string.Empty : exchange.MediaType;
+            if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                return Color.Gray;
+            }
+
+            if (mediaType.OICContains("javascript"))
+            {
+                return Color.DarkGreen;
+            }
+
+            if (string.Equals(mediaType, "text/css", StringComparison.OrdinalIgnoreCase))
+            {
+                return Color.Purple;
+            }
+
+            if (mediaType.OICContains("json") ||
+                mediaType.OICContains("xml"))
+            {
+                return COLOR_DATA_RESPONSE;
+            }
+
+            return Color.Blue;
         }
     }
 }
