@@ -90,6 +90,61 @@ namespace Clearinet
             }
             return null;
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SCROLLINFO
+        {
+            public int cbSize;
+            public uint fMask;
+            public int nMin;
+            public int nMax;
+            public uint nPage;
+            public int nPos;
+            public int nTrackPos;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetScrollInfo(IntPtr hwnd, int nBar, ref SCROLLINFO scrollInfo);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessage")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref Point lParam);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessage")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        internal static bool IsScrolledToBottom(RichTextBox textBox)
+        {
+            if ((GetWindowLong(textBox.Handle, -16 /* GWL_STYLE */) & 0x00200000 /* WS_VSCROLL */) == 0) return true;
+
+            var info = new SCROLLINFO { cbSize = Marshal.SizeOf(typeof(SCROLLINFO)), fMask = 7 };
+            if (!GetScrollInfo(textBox.Handle, 1 /* SB_VERT */, ref info))
+            {
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            }
+            // Rich edit's SB_BOTTOM can stop one pixel short of the inclusive scrollbar limit.
+            return info.nPos >= info.nMax - (int)info.nPage;
+        }
+
+        internal static Point GetScrollPosition(RichTextBox textBox)
+        {
+            Point position = new Point();
+            SendMessage(textBox.Handle, 0x04DD /* EM_GETSCROLLPOS */, IntPtr.Zero, ref position);
+            return position;
+        }
+
+        internal static void SetScrollPosition(RichTextBox textBox, Point position)
+        {
+            SendMessage(textBox.Handle, 0x04DE /* EM_SETSCROLLPOS */, IntPtr.Zero, ref position);
+        }
+
+        internal static void ScrollToBottom(RichTextBox textBox)
+        {
+            SendMessage(textBox.Handle, 0x0115 /* WM_VSCROLL */, (IntPtr)7 /* SB_BOTTOM */, IntPtr.Zero);
+        }
     }
 
     internal static class Win32ListViewAPI

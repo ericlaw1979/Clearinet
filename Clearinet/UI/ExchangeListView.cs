@@ -42,6 +42,8 @@ namespace Clearinet
             this.MouseClick += ExchangeListView_MouseClick;
         }
 
+        public Action OnExchangesAdded;
+
         // lvi may be null, ixColumn may be -1 if no column was hit.
         public (ListViewItem lvi, int ixColumn) GetItemAndColumnAt(Point pt)
         {

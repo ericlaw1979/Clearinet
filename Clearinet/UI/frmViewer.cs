@@ -19,6 +19,7 @@ namespace Clearinet
         public frmViewer()
         {
             InitializeComponent();
+            Win32UI.SetCueText(txtLogSearch, "Search log (Enter to find next)");
 
             // TODO: This is a hack. Eventually we will be smarter.
             lvExchanges.ConfigureColumn(colID.Index, ColumnSortType.Numeric);
@@ -1180,6 +1181,7 @@ namespace Clearinet
         private void addExchangesToListView(IEnumerable<Exchange> exchanges)
         {
             if (CApp.isClosing) return;
+            bool bAtBottom = lvExchanges.IsScrolledToBottom();
 
             var sorter = lvExchanges.ListViewItemSorter;
             lvExchanges.BeginUpdate();
@@ -1194,9 +1196,27 @@ namespace Clearinet
             finally
             {
                 // Flush deferred inserts before restoring sorting.
+                // TODO: Handle KeepOnly
+                // int TrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keeponly", 0);
                 lvExchanges.EndUpdate();
                 lvExchanges.ListViewItemSorter = sorter;
             }
+            onExchangeAdded(bAtBottom);
+        }
+
+        private void onExchangeAdded(bool bWasPreviouslyAtBottom)
+        {
+            if (bWasPreviouslyAtBottom &&
+                CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true))
+            {
+                int iLatest = this.lvExchanges.Items.Count - 1;
+                if (iLatest > -1)
+                {
+                    lvExchanges.EnsureVisible(iLatest);
+                }
+            }
+
+            // TODO: Where should this method live? CApp.OnExchangesAdded?.Invoke(this, EventArgs.Empty);
         }
 
         internal void addExchangeToListView(Exchange xc)
@@ -1231,6 +1251,8 @@ namespace Clearinet
 
             AddFormatting(lvi, xc);
             lvExchanges.Items.Add(lvi);
+
+            // TODO: deal with delayed scroll/trim
         }
 
         private void AddFormatting(ListViewItem lvi, Exchange xc)
@@ -1280,7 +1302,8 @@ namespace Clearinet
         {
             if (!CApp.OnBeforeShutdown()) { e.Cancel = true; return; }
             timerReportUpdater.Stop();
-            // Freeze anything else we can.
+            CApp.gwHoneyDew.Dispose();
+            // TODO: Freeze anything else we can.
 
             CApp.Prefs.SetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
             CApp.Prefs.SetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
@@ -1288,6 +1311,8 @@ namespace Clearinet
             txtQuickExec.SaveHistory();
             CApp.OnAppShutdown();
         }
+
+        private readonly Queue<Tuple<DateTime, string>> queuedLogEntries = new Queue<Tuple<DateTime, string>>();
 
         internal void UpdateLog(string sLog)
         {
@@ -1297,10 +1322,65 @@ namespace Clearinet
                 return;
             }
             Debug.Assert(!this.InvokeRequired);
-            rtbLog.AppendText(sLog + "\r\n");
+            queuedLogEntries.Enqueue(Tuple.Create(DateTime.Now, sLog));
+            FlushLogQueue();
+        }
 
-            // TODO: Support formatting commands for bold, italics, and underline:  !, /, _
-            // TODO: Scroll view to bottom on message add if LOG tab is foremost
+        private void FlushLogQueue()
+        {
+            if (tabsViews.SelectedTab != pageLog || queuedLogEntries.Count == 0) return;
+
+            bool bAtBottom = Win32UI.IsScrolledToBottom(rtbLog);
+            Point scrollPosition = Win32UI.GetScrollPosition(rtbLog);
+            int selectionStart = rtbLog.SelectionStart;
+            int selectionLength = rtbLog.SelectionLength;
+            try
+            {
+                rtbLog.Select(rtbLog.TextLength, 0);
+                while (queuedLogEntries.Count > 0)
+                {
+                    var entry = queuedLogEntries.Peek();
+                    string timestamp = entry.Item1.ToString("HH:mm:ss") + " ";
+                    foreach (string line in entry.Item2.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
+                    {
+                        rtbLog.SelectionFont = rtbLog.Font;
+                        rtbLog.SelectionColor = Color.LightGray;
+                        rtbLog.SelectedText = timestamp;
+
+                        FontStyle style = FontStyle.Regular;
+                        string text = line;
+                        if (line.Length > 0)
+                        {
+                            switch (line[0])
+                            {
+                                case '_': style = FontStyle.Underline; break;
+                                case '/': style = FontStyle.Italic; break;
+                                case '!': style = FontStyle.Bold; break;
+                            }
+                            if (style != FontStyle.Regular) text = line.Substring(1);
+                        }
+                        using (var font = new Font(rtbLog.Font, style))
+                        {
+                            rtbLog.SelectionFont = font;
+                            rtbLog.SelectionColor = rtbLog.ForeColor;
+                            rtbLog.SelectedText = text + "\r\n";
+                        }
+                    }
+                    queuedLogEntries.Dequeue();
+                }
+            }
+            finally
+            {
+                if (bAtBottom)
+                {
+                    Win32UI.ScrollToBottom(rtbLog);
+                }
+                else
+                {
+                    rtbLog.Select(selectionStart, selectionLength);
+                    Win32UI.SetScrollPosition(rtbLog, scrollPosition);
+                }
+            }
         }
 
         /// <summary>
@@ -1430,6 +1510,12 @@ namespace Clearinet
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (keyData == (Keys.Control | Keys.F) && pageLog.ContainsFocus)
+            {
+                txtLogSearch.Focus();
+                txtLogSearch.SelectAll();
+                return true;
+            }
             // This ridiculousness is needed because otherwise the toolstrip control
             // uses ESC to mean "unfocus this text box"
             if (keyData == Keys.Escape && tstxtLookup.Focused)
@@ -1584,6 +1670,11 @@ namespace Clearinet
 
         private void tabsViews_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (tabsViews.SelectedTab == pageLog)
+            {
+                FlushLogQueue();
+                return;
+            }
             if (tabsViews.SelectedTab == pageInspectors)
             {
                 actUpdateInspector(true, true);
@@ -2180,7 +2271,7 @@ namespace Clearinet
             int cSelected = lvExchanges.SelectedCount;
             if (cSelected < 1)
             {
-                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{(lvExchanges.IsScrolledToBottom() ? "*BOT*" : string.Empty)}";
+                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{(lvExchanges.IsScrolledToBottom() ? "**TODO: BOTTOM**" : string.Empty)}";
             }
             else
             {
@@ -2206,6 +2297,48 @@ namespace Clearinet
             }
         }
 
+        private void txtLogSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                if (txtLogSearch.Text.Length > 0)
+                {
+                    txtLogSearch.Clear();
+                }
+                else
+                {
+                    txtLogSearch.Clear();
+                    rtbLog.Focus();
+                }
+                e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
+
+            if (e.KeyCode != Keys.Enter) return;
+            e.SuppressKeyPress = e.Handled = true;
+
+            string searchText = txtLogSearch.Text;
+            if (searchText.Length == 0)
+            {
+                SetStatusText("Enter text to search the log.");
+                return;
+            }
+
+            int start = rtbLog.SelectionStart + rtbLog.SelectionLength;
+            int match = rtbLog.Find(searchText, start, RichTextBoxFinds.None);
+            if (match < 0 && start > 0)
+            {
+                match = rtbLog.Find(searchText, 0, RichTextBoxFinds.None);
+            }
+            if (match < 0)
+            {
+                SetStatusText("No matching text found in the log.");
+                return;
+            }
+            rtbLog.ScrollToCaret();
+            SetStatusText("Log match found. Press Enter to find the next match.");
+        }
+
         private void rtbLog_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.A && e.Modifiers == Keys.Control)
@@ -2216,6 +2349,7 @@ namespace Clearinet
             }
             if (e.KeyCode == Keys.X && e.Modifiers == Keys.Control)
             {
+                queuedLogEntries.Clear();
                 rtbLog.Clear();
                 e.SuppressKeyPress = e.Handled = true;
                 return;
@@ -2684,25 +2818,31 @@ namespace Clearinet
             miTools.DropDownItems.Insert(0, tsmi);
         }
 
-        private async void tsmiScreenshot_Click(object sender, EventArgs e)
+        private async void tsbScreenshot_Click(object sender, EventArgs e)
         {
-            if (!tsmiScreenshot.Enabled) return;
+            if (!tsbScreenshot.Enabled) return;
 
-            string originalText = tsmiScreenshot.Text;
-            ToolStripItemDisplayStyle originalDisplayStyle = tsmiScreenshot.DisplayStyle;
-            tsmiScreenshot.Enabled = false;
+            string originalText = tsbScreenshot.Text;
+            ToolStripItemDisplayStyle originalDisplayStyle = tsbScreenshot.DisplayStyle;
+            tsbScreenshot.Enabled = false;
+            if (Control.ModifierKeys == Keys.Control)
+            {
+                actAddDesktopScreenshot();
+                tsbScreenshot.Enabled = true;
+                return;
+            }
             try
             {
-                tsmiScreenshot.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                tsbScreenshot.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
                 for (int remaining = 4; remaining > 0; --remaining)
                 {
-                    tsmiScreenshot.Text = (remaining > 1) ? $"({remaining}...)" : "** cheese! **";
+                    tsbScreenshot.Text = (remaining > 1) ? $"( {remaining}... )" : "** say cheese! **";
                     tsToolbar.Refresh();
                     await Task.Delay(1000);
-                    if (IsDisposed || Disposing || tsmiScreenshot.IsDisposed) return;
+                    if (IsDisposed || Disposing || tsbScreenshot.IsDisposed) return;
                 }
-                tsmiScreenshot.DisplayStyle = originalDisplayStyle;
-                tsmiScreenshot.Text = originalText;
+                tsbScreenshot.DisplayStyle = originalDisplayStyle;
+                tsbScreenshot.Text = originalText;
                 tsToolbar.Refresh();
                 actAddDesktopScreenshot();
             }
@@ -2712,11 +2852,11 @@ namespace Clearinet
             }
             finally
             {
-                if (!IsDisposed && !Disposing && !tsmiScreenshot.IsDisposed)
+                if (!IsDisposed && !Disposing && !tsbScreenshot.IsDisposed)
                 {
-                    tsmiScreenshot.Text = originalText;
-                    tsmiScreenshot.DisplayStyle = originalDisplayStyle;
-                    tsmiScreenshot.Enabled = true;
+                    tsbScreenshot.Text = originalText;
+                    tsbScreenshot.DisplayStyle = originalDisplayStyle;
+                    tsbScreenshot.Enabled = true;
                 }
             }
         }

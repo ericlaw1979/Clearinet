@@ -259,20 +259,32 @@ namespace Clearinet
             {
                 uint uiInterval = 1000;
                 if (arrParams.Length > 1) UInt32.TryParse(arrParams[1], out uiInterval);
-                CApp.gwHoneyDew.createGig("SpamTest", () =>
+                CApp.gwHoneyDew.createGig("SpamExchanges", () =>
                 {
                     DateTime dt = DateTime.Now;
                     Exchange XC = frmViewer.CreateFauxExchange($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes("Spam Exchange"));
-                    XC.oFlags["ui-backcolor"] = "LightGray";
+                    XC.oFlags["ui-backcolor"] = "WhiteSmoke";
                     CApp.UI.addExchangeToListView(XC);
 
+                }, uiInterval);
+                return true;
+            }
+            if ("spamlog" == sCmd)
+            {
+                uint uiInterval = 1000;
+                if (arrParams.Length > 1) UInt32.TryParse(arrParams[1], out uiInterval);
+                CApp.gwHoneyDew.createGig("SpamLog", () =>
+                {
+                    DateTime dt = DateTime.Now;
+                    CApp.Log.LogFormat($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain");
                 }, uiInterval);
                 return true;
             }
 
             if ("unspam" == sCmd)
             {
-                CApp.gwHoneyDew.cancelGigsNamed("SpamTest");
+                CApp.gwHoneyDew.cancelGigsNamed("SpamExchanges");
+                CApp.gwHoneyDew.cancelGigsNamed("SpamLog");
                 return true;
             }
 
