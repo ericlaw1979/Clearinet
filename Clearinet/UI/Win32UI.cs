@@ -174,6 +174,8 @@ namespace Clearinet
         const int LVS_EX_BORDERSELECT = 0x8000;
         const int LVM_SETEXTENDEDLISTVIEWSTYLE = 0x1036;
 
+        internal const int LVM_GETSELECTEDCOUNT = 0x1032;
+
         private const int LVM_FIRST = 0x1000;
         public const int LVM_GETHEADER = LVM_FIRST + 31;
         public const int LVM_GETCOUNTPERPAGE = LVM_FIRST + 40;
@@ -366,6 +368,17 @@ namespace Clearinet
     public class BetterListView : System.Windows.Forms.ListView
     {
         /// <summary>
+        /// Like SelectedItems.Count, but MUCH MUCH faster.
+        /// </summary>
+        public int SelectedCount
+        {
+            get
+            {
+                return (int)Win32ListViewAPI.SendMessage(this.Handle, Win32ListViewAPI.LVM_GETSELECTEDCOUNT, IntPtr.Zero, IntPtr.Zero);
+            }
+        }
+
+        /// <summary>
         /// Text to show when there are not items in the ListView
         /// </summary>
         public string EmptyText
@@ -404,9 +417,16 @@ namespace Clearinet
             }
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private const int LVM_SETEXTENDEDLISTVIEWSTYLE = 0x1000 + 54;
+        private const int LVS_EX_DOUBLEBUFFER = 0x00010000;
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
+            IntPtr styles = (IntPtr)LVS_EX_DOUBLEBUFFER;
+            SendMessage(this.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, styles, styles);
             Win32ListViewAPI.DontOverlayImage(this);
         }
 

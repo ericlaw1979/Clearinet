@@ -95,7 +95,7 @@ namespace Clearinet
                 return String.Equals(lviToTest.SubItems[ixColumn].Text ?? string.Empty, sFindText);
             }, bClearSelectionFirst: !bGrowSelection);
 
-            CApp.UI.SetStatusText($"Selected {this.SelectedItems.Count} Exchanges matching column {ixColumn} value '{sFindText}'.");
+            CApp.UI.SetStatusText($"Selected {this.SelectedCount} Exchanges matching column {ixColumn} value '{sFindText}'.");
         }
 
         public Exchange[] GetAllExchanges()
@@ -111,7 +111,7 @@ namespace Clearinet
 
         public Exchange[] GetSelectedExchanges()
         {
-            int iSelCount = SelectedItems.Count;
+            int iSelCount = SelectedCount;
             Exchange[] arrExchanges = new Exchange[iSelCount];
             for (int ix = 0; ix < iSelCount; ++ix)
             {
@@ -208,15 +208,9 @@ namespace Clearinet
         WeakReference wrActiveItem;
         WeakReference wrPreviousActiveItem;
 
-        public int SelectedCount
-        {
-            // TODO: is LVM_GETSELECTEDCOUNT cheaper?
-            get { return this.SelectedItems.Count; }
-        }
-
         public int TotalCount
         {
-            // TODO: After we start queueing updates, include that number
+            // TODO: After we start queueing pending additions, include that number
             get { return this.Items.Count; }
         }
 
@@ -256,7 +250,7 @@ namespace Clearinet
         {
             wrPreviousActiveItem = wrActiveItem;
 
-            if (SelectedItems.Count == 1)
+            if (SelectedCount == 1)
             {
                 wrActiveItem = new WeakReference(SelectedItems[0]);
             }
