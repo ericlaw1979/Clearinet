@@ -49,6 +49,7 @@ namespace Clearinet
                     case "CONTROL": modifier = 0x0002; break;
                     case "ALT": modifier = 0x0001; break;
                     case "SHIFT": modifier = 0x0004; break;
+                    case "WINDOWS":
                     case "WIN": modifier = 0x0008; break;
                     default:
                         if (key != Keys.None || token.Length == 0 || char.IsDigit(token[0]) || token.Contains(",") ||
@@ -57,7 +58,7 @@ namespace Clearinet
                             key == Keys.ControlKey || key == Keys.ShiftKey || key == Keys.Menu ||
                             key == Keys.LWin || key == Keys.RWin)
                         {
-                            CApp.Log.Log($"Invalid global hotkey '{keyCombo}'. Use a key name with optional Ctrl, Alt, Shift, or Win modifiers (e.g. Ctrl+Alt+F).");
+                            CApp.Log.Log($"Invalid global hotkey '{keyCombo}'. Use a key name with Ctrl, Alt, Shift, or Win modifiers (e.g. Ctrl+Alt+F).");
                             return false;
                         }
                         continue;
@@ -74,7 +75,10 @@ namespace Clearinet
                 CApp.Log.Log($"Invalid global hotkey '{keyCombo}': a non-modifier key is required.");
                 return false;
             }
-            return window.RegisterHotKey(keyCombo, modifiers, (uint)key, callback);
+            bool res = window.RegisterHotKey(keyCombo, modifiers, (uint)key, callback);
+            CApp.Log.Log($"RegisterHotKey '{keyCombo}' failed. Key already in use?.");
+
+            return res;
         }
 
         protected override void Dispose(bool disposing)
@@ -119,7 +123,7 @@ namespace Clearinet
                 int id = nextHotkeyId;
                 if (!RegisterHotKey(Handle, id, modifiers | MOD_NOREPEAT, key))
                 {
-                    int error = Marshal.GetLastWin32Error();
+                    int error = Marshal.GetLastWin32Error();  // 1409 (ERROR_HOTKEY_ALREADY_REGISTERED
                     CApp.Log.Log($"Unable to register global hotkey '{keyCombo}': {new Win32Exception(error).Message} (error {error}).");
                     return false;
                 }

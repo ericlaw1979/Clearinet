@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0. LAST UPDATED FOR V0.0.2.5
+// This file will be updated before v1.0. LAST UPDATED FOR V0.0.2.6
 import System;
 import System.Windows.Forms;
 import Clearinet;
@@ -24,6 +24,8 @@ class Handlers {
         sMyInfo = today.toString();
       	// if (!CONFIG.isViewerMode) CApp.PlaySound("C:\\Windows\\Media\\notify.wav");
         // if (!CONFIG.isViewerMode) CApp.alert("Hello from script!\n\n" + sMyInfo+"\n"+CApp.VersionString);
+        var sKey="Win+Shift+G";
+        CApp.UI.SetStatusText("Binding '"+sKey+"' to 'paste' returned: " + CApp.UI.bindHotkeyToExecAction(sKey, "paste"));
         CApp.UI.SetStatusText("Your script has compiled and loaded!");
     }
 
@@ -128,6 +130,13 @@ class Handlers {
         case "ver":
         MessageBox.Show(CApp.VersionString);
         return true;
+        
+        case "paste":
+          if (CApp.UI.actPasteFromClipboard()) {
+            CApp.UI.actFlashWindow();
+            CApp.PlaySound("C:\\Windows\\Media\\Windows Print complete.wav")
+          }
+          break;
         
         case "log":
         CApp.Log.Log(Array(sArgs).slice(1).join(" "));

@@ -22,6 +22,7 @@ namespace Clearinet
             get { return _Log; }
         }
 
+        internal static HiddenExecActionTargetWindow messagingWindow = null;
         internal static GigWorker gwHoneyDew = new GigWorker();
 
         public static bool isTracing { get; internal set; } = false;

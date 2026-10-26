@@ -449,9 +449,6 @@ namespace Clearinet
                 CApp.oTranscoders = new Transcoders();
                 doPopulateInspectorTabs(CApp.UI.tabsRequest, CApp.UI.tabsResponse, "MainWindow");
 
-                frmSplashScreen.SetStatusText("Loading script engine...");
-                CApp.CreateScriptEngine();
-
                 SAZFile.SupplyPassword = (string sPath) =>
                 {
                     var fpo = new frmPrompt.PromptOptions()
@@ -464,6 +461,10 @@ namespace Clearinet
                     };
                     return frmPrompt.GetUserString(fpo);
                 };
+
+                CApp.UI.createHotkeyIPCWindow(); // NB: This must happen *before* the Script Engine is created.
+                frmSplashScreen.SetStatusText("Loading script engine...");
+                CApp.CreateScriptEngine();
 
                 Application.Run(CApp._frmMain);
                 if (bMutexAcquired) oMutex.ReleaseMutex();
@@ -622,7 +623,6 @@ namespace Clearinet
             // TODO: Grab system network config
             // TODO: Start the core Proxy listener
 
-
             rtbStatistics.BackColor = rtbLog.BackColor = CONFIG.colorDisabledEdit;
             CApp.ProxyAttach += HandleProxyAttached;
             CApp.ProxyDetach += HandleProxyDetached;
@@ -687,17 +687,18 @@ namespace Clearinet
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
-            createHotkeyIPCWindow();
         }
 
+        // TODO: Maybe move to App?
         private void createHotkeyIPCWindow()
         {
             if (CONFIG.isViewerMode) return; // Hotkeys and IPC are not supported in Viewer mode.
-            var messagingWindow = new HiddenExecActionTargetWindow(components);
+            if (null != CApp.messagingWindow) return; // Already created.
+            CApp.messagingWindow = new HiddenExecActionTargetWindow(components);
             string globalHotkey = CApp.Prefs.GetStringPref("app.keys.global_hotkey", "Ctrl+Alt+F");
             if (!string.IsNullOrWhiteSpace(globalHotkey))
             {
-                messagingWindow.RegisterHotKey(globalHotkey, actActivateMainWindow);
+                CApp.messagingWindow.RegisterHotKey(globalHotkey, actActivateMainWindow);
             }
         }
 
@@ -2028,15 +2029,14 @@ namespace Clearinet
             }
         }
 
-        private void doPasteFilesAsExchanges()
+        private bool doPasteFilesAsExchanges()
         {
             try
             {
                 var arrFiles = Clipboard.GetFileDropList();
                 if (null == arrFiles || arrFiles.Count < 1)
                 {
-                    CApp.DoNotifyUser("The clipboard did not contain any files.", "Paste Failed");
-                    return;
+                    return false;
                 }
                 var paths = new List<string>();
                 foreach (string path in arrFiles)
@@ -2045,14 +2045,16 @@ namespace Clearinet
                 }
                 addExchangesToListView(CreateExchangesForFiles(paths));
                 CApp.UI.SetStatusText($"Pasted {paths.Count} files from the clipboard as Exchanges.");
+                return true;
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Unable to paste files.");
+                return false;
             }
         }
 
-        private void doPasteImageAsExchange()
+        private bool doPasteImageAsExchange()
         {
             try
             {
@@ -2060,17 +2062,18 @@ namespace Clearinet
 
                 if (null == imageToPaste)
                 {
-                    CApp.DoNotifyUser("The clipboard did not contain a pasteable image.", "Paste Failed");
-                    return;
+                    return false;
                 }
 
                 var oMS = new MemoryStream();
-                imageToPaste.Save(oMS, ImageFormat.Png);
+                imageToPaste.Save(oMS, ImageFormat.Png);  // Issue: Should we offer configuration of image format?
                 AddFauxExchange($"/clipboard/{DateTime.Now:H-mm-ss}.png", "image/png", oMS.ToArray());
+                return true;
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Unable to paste image.");
+                return false;
             }
         }
 
@@ -2098,15 +2101,14 @@ namespace Clearinet
         }
 
         // Paste the clipboard text as a new Exchange; if the text is a data URL, parse it.
-        private void doPasteTextAsExchange()
+        private bool doPasteTextAsExchange()
         {
             try
             {
                 string sText = Clipboard.GetText(TextDataFormat.UnicodeText);
                 if (!sText.HasText())
                 {
-                    CApp.DoNotifyUser("The clipboard did not contain any text.", "Paste Failed");
-                    return;
+                    return false;
                 }
 
                 // TODO: Can we handle paste of CURL Commands?
@@ -2133,10 +2135,12 @@ namespace Clearinet
                 exchNew.Timers.AssignNowToAll();
                 exchNew.state = ExchangeState.Done;
                 addExchangeToListView(exchNew);
+                return true;
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Unable to paste text.");
+                return false;
             }
         }
 
@@ -2175,24 +2179,29 @@ namespace Clearinet
 
         private void miEditPasteAsExchanges_Click(object sender, EventArgs e)
         {
+            actPasteFromClipboard();
+        }
+
+        public bool bindHotkeyToExecAction(string sKeyCombination, string sCommand)
+        {
+            if (!sKeyCombination.HasText()) return false;
+            if (!sCommand.HasText()) return false;
+            return CApp.messagingWindow?.RegisterHotKey(sKeyCombination, () => { CApp.RunExecAction(sCommand); }) ?? false;
+        }
+
+        public bool actPasteFromClipboard()
+        {
             try
             {
-                if (Clipboard.ContainsImage())
-                {
-                    doPasteImageAsExchange();
-                    return;
-                }
-                if (Clipboard.ContainsFileDropList())
-                {
-                    doPasteFilesAsExchanges();
-                    return;
-                }
-                doPasteTextAsExchange();
+                if (Clipboard.ContainsImage()) return doPasteImageAsExchange();
+                if (Clipboard.ContainsFileDropList()) return doPasteFilesAsExchanges();
+                return doPasteTextAsExchange();
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Failed Paste");
             }
+            return false;
         }
 
         private void miEditSelectAll_Click(object sender, EventArgs e)
