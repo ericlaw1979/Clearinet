@@ -102,7 +102,7 @@ Explorer activation or MSIX registry virtualization.
 Check the produced archive without signing, extracting, or installing it:
 
 ```powershell
-.\Test\Test-MsixPackage.ps1 -PackagePath .\Clearinet\AppPackages\Clearinet_0.0.2.6_x64_Test\Clearinet_0.0.2.6_x64.msix
+.\Test\Test-MsixPackage.ps1 -PackagePath .\Clearinet\AppPackages\Clearinet_0.0.2.7_x64_Test\Clearinet_0.0.2.7_x64.msix
 ```
 
 This checks the payload, unsigned state, absence of rules scripts/signing
