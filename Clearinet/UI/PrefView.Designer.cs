@@ -34,6 +34,7 @@
             this.pnlTop = new System.Windows.Forms.Panel();
             this.lblInstructions = new System.Windows.Forms.Label();
             this.lnkPrefHelp = new System.Windows.Forms.LinkLabel();
+            this.lnkTearoff = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPrefs)).BeginInit();
             this.pnlTop.SuspendLayout();
             this.SuspendLayout();
@@ -77,6 +78,7 @@
             // 
             // pnlTop
             // 
+            this.pnlTop.Controls.Add(this.lnkTearoff);
             this.pnlTop.Controls.Add(this.lblInstructions);
             this.pnlTop.Controls.Add(this.lnkPrefHelp);
             this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
@@ -91,7 +93,7 @@
             this.lblInstructions.AutoSize = true;
             this.lblInstructions.Location = new System.Drawing.Point(3, 9);
             this.lblInstructions.Name = "lblInstructions";
-            this.lblInstructions.Size = new System.Drawing.Size(379, 21);
+            this.lblInstructions.Size = new System.Drawing.Size(304, 17);
             this.lblInstructions.TabIndex = 1;
             this.lblInstructions.Text = "This page allows viewing and editing Preferences.";
             // 
@@ -100,18 +102,32 @@
             this.lnkPrefHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lnkPrefHelp.AutoSize = true;
             this.lnkPrefHelp.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkPrefHelp.Location = new System.Drawing.Point(568, 9);
+            this.lnkPrefHelp.Location = new System.Drawing.Point(555, 9);
             this.lnkPrefHelp.Name = "lnkPrefHelp";
-            this.lnkPrefHelp.Size = new System.Drawing.Size(173, 21);
+            this.lnkPrefHelp.Size = new System.Drawing.Size(141, 17);
             this.lnkPrefHelp.TabIndex = 0;
             this.lnkPrefHelp.TabStop = true;
             this.lnkPrefHelp.Text = "Help on Preferences...";
             this.lnkPrefHelp.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.lnkPrefHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkPrefHelp_LinkClicked);
             // 
+            // lnkTearoff
+            // 
+            this.lnkTearoff.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lnkTearoff.AutoSize = true;
+            this.lnkTearoff.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lnkTearoff.Location = new System.Drawing.Point(717, 9);
+            this.lnkTearoff.Name = "lnkTearoff";
+            this.lnkTearoff.Size = new System.Drawing.Size(24, 17);
+            this.lnkTearoff.TabIndex = 2;
+            this.lnkTearoff.TabStop = true;
+            this.lnkTearoff.Text = "🪟";
+            this.lnkTearoff.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.lnkTearoff.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkTearoff_LinkClicked);
+            // 
             // PrefView
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.dgvPrefs);
             this.Controls.Add(this.pnlTop);
@@ -134,5 +150,6 @@
         private System.Windows.Forms.Label lblInstructions;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefValue;
+        private System.Windows.Forms.LinkLabel lnkTearoff;
     }
 }

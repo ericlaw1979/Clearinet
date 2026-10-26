@@ -8,11 +8,13 @@ namespace Clearinet.UI
     public partial class PrefView : UserControl
     {
         static TabPage _myTabPage = null;
+        static TabControl _myParent = null;
 
         public static void CreatePrefsTab(TabControl tabControl)
         {
             if (_myTabPage == null)
             {
+                _myParent = tabControl;
                 PrefView prefView = new PrefView();
                 _myTabPage = new TabPage("about:config");
                 _myTabPage.Controls.Add(prefView);
@@ -56,7 +58,7 @@ namespace Clearinet.UI
                 });
                 prefView.RefillWholeGrid();
             }
-            tabControl.SelectedTab = _myTabPage;
+            _myParent.SelectedTab = _myTabPage;
         }
 
         public PrefView()
@@ -166,6 +168,31 @@ namespace Clearinet.UI
                 e.Value = cleaned;
                 e.ParsingApplied = true; // Prevents default conversion
             }
+        }
+
+        private void lnkTearoff_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            // Open a new window with the same PrefView control
+            Form frmPrefs = new Form
+            {
+                Text = "Preferences",
+                Size = new System.Drawing.Size(600, 400),
+                ShowInTaskbar = false
+            };
+            lnkTearoff.Visible = false;
+            frmPrefs.Controls.Add(this);
+            this.Dock = DockStyle.Fill;
+            _myParent.TabPages.Remove(_myTabPage);
+            frmPrefs.FormClosing += (s, args) =>
+            {
+                // When the new form is closed, re-add this control back to the original tab page
+                _myTabPage.Controls.Add(this);
+                lnkTearoff.Visible = true;
+                this.Dock = DockStyle.Fill;
+                _myParent.TabPages.Add(_myTabPage);
+                _myParent.SelectedTab = _myTabPage;
+            };
+            frmPrefs.Show();
         }
     }
 }
