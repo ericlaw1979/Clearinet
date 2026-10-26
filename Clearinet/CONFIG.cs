@@ -31,7 +31,6 @@ namespace Clearinet
         }
         internal static structOverrides Overrides;
 
-
         public static Color GetColor(string sPref, Color colorDefault)
         {
             string sColor = CApp.Prefs.GetStringPref(sPref, null);

@@ -238,7 +238,9 @@ File "..\Clearinet\bin\Release\URIUtility.dll"
 
 File "..\Extensions\bin\Release\SVG.dll"
 File "..\Extensions\bin\Release\ExCss.dll"
-File "..\Extensions\bin\Release\be.windows.forms.hexbox.dll"
+; We've absorbed this code directly into the Extensions assembly. If they
+; later take my patch, then we'll put this back.
+;File "..\Extensions\bin\Release\be.windows.forms.hexbox.dll"
   
 ; Microsoft Support Assemblies Zstd and Brotli rely upon:
 File "..\Clearinet\bin\Release\System.Buffers.dll"

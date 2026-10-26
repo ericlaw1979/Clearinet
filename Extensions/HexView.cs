@@ -8,7 +8,7 @@ namespace Extensions
 {
     public sealed class HexView : UserControl
     {
-        readonly HexBox hexBox;
+        readonly HttpHexBox hexBox;
         readonly ContextMenuStrip contextMenu;
         readonly ToolStripMenuItem miShowHeaders;
         readonly ToolStripStatusLabel lblOffset;
@@ -47,8 +47,8 @@ namespace Extensions
                 miSelectAll.Enabled = hexBox.CanSelectAll();
             };
 
-            hexFont = new Font("Lucida Console", CONFIG.flFontSize);
-            hexBox = new HexBox
+            hexFont = new Font(CApp.Prefs.GetStringPref("inspectors.hex.font_face", "Cascadia Mono"), CONFIG.flFontSize);
+            hexBox = new HttpHexBox
             {
                 Dock = DockStyle.Fill,
                 Font = hexFont,
@@ -62,6 +62,8 @@ namespace Extensions
                 ContextMenuStrip = contextMenu,
                 GroupSeparatorVisible = true,
                 HexCasing = HexCasing.Lower,
+                ForeColor = CONFIG.GetColor("inspectors.hex.color.body", Color.Blue),
+                HeaderColor = CONFIG.GetColor("inspectors.hex.color.headers", Color.Green),
                 VScrollBarVisible = true        // Needed to autoscroll
             };
             lblOffset = new ToolStripStatusLabel()
@@ -82,6 +84,7 @@ namespace Extensions
 
         internal void Assign(byte[] arrHeaders, byte[] arrBody)
         {
+            // TODO: If "ReadOnly" then we can use the StaticByteProvider instead of DynamicByteProvider, which is more efficient.
             headerBytes = arrHeaders ?? Array.Empty<byte>();
             bodyBytes = arrBody ?? Array.Empty<byte>();
             RefreshBytes();
@@ -95,6 +98,7 @@ namespace Extensions
                 bytes = new byte[checked(headerBytes.Length + bodyBytes.Length)];
                 Buffer.BlockCopy(headerBytes, 0, bytes, 0, headerBytes.Length);
                 Buffer.BlockCopy(bodyBytes, 0, bytes, headerBytes.Length, bodyBytes.Length);
+                hexBox.HeaderEndOffset = headerBytes.Length - 1;
             }
             hexBox.ByteProvider = new DynamicByteProvider(bytes);
             UpdateOffsetAndSelection();
@@ -150,6 +154,19 @@ namespace Extensions
                 contextMenu.Dispose();
                 hexFont.Dispose();
             }
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // HexView
+            // 
+            this.Font = new System.Drawing.Font("Cascadia Mono", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ForeColor = System.Drawing.Color.Blue;
+            this.Name = "HexView";
+            this.ResumeLayout(false);
+
         }
     }
 }

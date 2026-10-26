@@ -52,7 +52,7 @@
             // miSplitter
             // 
             miSplitter.Name = "miSplitter";
-            miSplitter.Size = new System.Drawing.Size(221, 6);
+            miSplitter.Size = new System.Drawing.Size(233, 6);
             // 
             // txtFirstLine
             // 
@@ -83,83 +83,83 @@
             this.miRemoveHeader,
             this.miPasteHeaders});
             this.mnuNodes.Name = "contextMenuStrip1";
-            this.mnuNodes.Size = new System.Drawing.Size(225, 242);
+            this.mnuNodes.Size = new System.Drawing.Size(237, 242);
             this.mnuNodes.Opening += new System.ComponentModel.CancelEventHandler(this.mnuNodes_Opening);
             // 
             // miCopyAll
             // 
             this.miCopyAll.Name = "miCopyAll";
-            this.miCopyAll.Size = new System.Drawing.Size(224, 22);
+            this.miCopyAll.Size = new System.Drawing.Size(236, 22);
             this.miCopyAll.Text = "C&opy All";
             this.miCopyAll.Click += new System.EventHandler(this.miCopyAll_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(221, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(233, 6);
             // 
             // miHighlightHeader
             // 
             this.miHighlightHeader.Name = "miHighlightHeader";
-            this.miHighlightHeader.Size = new System.Drawing.Size(224, 22);
+            this.miHighlightHeader.Size = new System.Drawing.Size(236, 22);
             this.miHighlightHeader.Text = "&Highlight";
             this.miHighlightHeader.Click += new System.EventHandler(this.miHighlightHeader_Click);
             // 
             // miCopyHeader
             // 
             this.miCopyHeader.Name = "miCopyHeader";
-            this.miCopyHeader.Size = new System.Drawing.Size(224, 22);
+            this.miCopyHeader.Size = new System.Drawing.Size(236, 22);
             this.miCopyHeader.Text = "&Copy Header";
             this.miCopyHeader.Click += new System.EventHandler(this.miCopyHeader_Click);
             // 
             // miLookupHeader
             // 
             this.miLookupHeader.Name = "miLookupHeader";
-            this.miLookupHeader.Size = new System.Drawing.Size(224, 22);
+            this.miLookupHeader.Size = new System.Drawing.Size(236, 22);
             this.miLookupHeader.Text = "&Lookup Header...";
             this.miLookupHeader.Click += new System.EventHandler(this.miLookupHeader_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(221, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(233, 6);
             // 
             // miCopyHeaderValue
             // 
             this.miCopyHeaderValue.Name = "miCopyHeaderValue";
-            this.miCopyHeaderValue.Size = new System.Drawing.Size(224, 22);
+            this.miCopyHeaderValue.Size = new System.Drawing.Size(236, 22);
             this.miCopyHeaderValue.Text = "Copy &Value";
             this.miCopyHeaderValue.Click += new System.EventHandler(this.miCopyHeaderValue_Click);
             // 
             // miSendToTextWizard
             // 
             this.miSendToTextWizard.Name = "miSendToTextWizard";
-            this.miSendToTextWizard.Size = new System.Drawing.Size(224, 22);
+            this.miSendToTextWizard.Size = new System.Drawing.Size(236, 22);
             this.miSendToTextWizard.Text = "Send Value to Te&xtransform";
             this.miSendToTextWizard.Click += new System.EventHandler(this.miSendToTextWizard_Click);
             // 
             // miEditHeader
             // 
             this.miEditHeader.Name = "miEditHeader";
-            this.miEditHeader.Size = new System.Drawing.Size(224, 22);
+            this.miEditHeader.Size = new System.Drawing.Size(236, 22);
             this.miEditHeader.Text = "&Edit Header...";
             // 
             // miAddHeader
             // 
             this.miAddHeader.Name = "miAddHeader";
-            this.miAddHeader.Size = new System.Drawing.Size(224, 22);
+            this.miAddHeader.Size = new System.Drawing.Size(236, 22);
             this.miAddHeader.Text = "&Add Header...";
             // 
             // miRemoveHeader
             // 
             this.miRemoveHeader.Name = "miRemoveHeader";
-            this.miRemoveHeader.Size = new System.Drawing.Size(224, 22);
+            this.miRemoveHeader.Size = new System.Drawing.Size(236, 22);
             this.miRemoveHeader.Text = "&Remove Header";
             // 
             // miPasteHeaders
             // 
             this.miPasteHeaders.Name = "miPasteHeaders";
-            this.miPasteHeaders.Size = new System.Drawing.Size(224, 22);
+            this.miPasteHeaders.Size = new System.Drawing.Size(236, 22);
             this.miPasteHeaders.Text = "&Paste Headers";
             // 
             // tvNVP

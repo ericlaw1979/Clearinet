@@ -13,11 +13,11 @@ set FILES[4]="..\Clearinet\bin\Release\Numbers.dll"
 set FILES[5]="..\Clearinet\bin\Release\URIUtility.dll"
 set FILES[6]="..\Extensions\bin\Release\SVG.dll"
 set FILES[7]="..\Extensions\bin\Release\ExCss.dll"
-set FILES[8]="..\Extensions\bin\Release\be.windows.forms.hexbox.dll"
-set FILES[9]="..\Content\bundled\dwebp.exe"
+set FILES[8]="..\Content\bundled\dwebp.exe"
+rem set FILES[9]="..\Extensions\bin\Release\be.windows.forms.hexbox.dll"
 
 rem Loop through each file and sign
-for /L %%I in (0,1,9) do (
+for /L %%I in (0,1,8) do (
     echo.
     echo ========================================================
     echo Signing: !FILES[%%I]!
