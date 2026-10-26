@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("0.0.2.6")]
 
 // Selected Release Version History
-// v0.0.2.6 - Oct 26-2026 - The one with all the "26" - Add MezerTools, Add ContextAction, ToolsAction to script
+// v0.0.2.6 - Oct 26-2026 - The one with all the "26" - Add Timeline, MezerTools, Add ContextAction, ToolsAction to script, Add KeepOnly, Log formatting via !/_ prefix, Enhance QuickExec, Performance, 
 // v0.0.2.5 - Oct 22-2026 - Improve performance, QuickExec, Textransformer, Add hotkey, Workaround DotNetZip bug with encrypted but uncompressed entries
 // v0.0.2.4 - Oct 20-2026 - Add CopyAsCURL, ReplayInBrowser, Alt+Click in Exchanges list, Improve timers, Enhance Composer, X-ReplyWithFile
 // v0.0.2.3 - Oct-19-2026 - about:config; NetLog(JSONL) format; Improve Hex/Data/Image inspectors; Sign all dependencies.
