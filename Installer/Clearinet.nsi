@@ -160,7 +160,7 @@ FunctionEnd
 !define MUI_FINISHPAGE_RUN_TEXT "Launch Clearinet now"
 
 !define MUI_FINISHPAGE_SHOWREADME "https://clearinet.app/r/?clnetinstalledorupdated"
-!define MUI_FINISHPAGE_SHOWREADME_TEXT "Launch Update url"
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "Launch Release Notes url"
 
 !insertmacro MUI_PAGE_FINISH
 

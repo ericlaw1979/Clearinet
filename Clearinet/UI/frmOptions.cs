@@ -34,6 +34,8 @@ namespace Clearinet
                 btnOk.Enabled = false;
                 btnOk.Text = "View Only";
             }
+
+            cbEnableIPv6.Checked = CApp.Prefs.GetBoolPref("proxy.enable_ipv6", true);
         }
 
         private void lnkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -48,6 +50,11 @@ namespace Clearinet
                 CApp.Prefs.SetBoolPref("app.attach_on_startup", false);
             else
                 CApp.Prefs.RemovePref("app.attach_on_startup");
+
+            if (!cbEnableIPv6.Checked)
+                CApp.Prefs.SetBoolPref("proxy.enable_ipv6", false);
+            else
+                CApp.Prefs.RemovePref("proxy.enable_ipv6");
 
             if (cbxBigSwitch.SelectedIndex == 0)
             { // Allow all Web Service calls

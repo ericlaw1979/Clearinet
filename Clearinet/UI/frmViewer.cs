@@ -2893,6 +2893,25 @@ namespace Clearinet
             CApp.Prefs.SetInt32Pref("app.ui.exchangelist.keep_only", (int)item.Tag);
             tsddbKeepOnly.Text = $"Keep: {item}";
         }
+
+        private void tsbDecompress_Click(object sender, EventArgs e)
+        {
+            if (Control.ModifierKeys == Keys.Control)
+            {
+                tsbDecompress.Checked = !tsbDecompress.Checked;
+                CApp.Prefs.SetBoolPref("app.ui.autodecompress", tsbDecompress.Checked);
+                return;
+            }
+            Exchange[] arrXC = GetSelectedExchanges();
+            if (arrXC.Length < 1) return;
+            foreach (Exchange exch in arrXC)
+            {
+                exch.utilDecodeRequest();
+                exch.utilDecodeResponse();
+                updateLVI(exch);
+            }
+            actUpdateInspector(true, true); // TODO: Should only do this if we're the single thing inspected.
+        }
     }
 
     public class LongRunningOperation : IDisposable

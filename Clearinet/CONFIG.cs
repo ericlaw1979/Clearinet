@@ -49,7 +49,20 @@ namespace Clearinet
         public static bool isQuietMode { get; set; } = false;
         public static bool isViewerMode { get; internal set; } = false;
 
-        public static int ListenPort { get; internal set; } = 8888;
+        public static int ListenPort
+        {
+            get
+            {
+                if (Overrides.ListenPort > 0) return Overrides.ListenPort;
+                return pbPrefs.GetInt32Pref("proxy.listen_port", 8888);
+            }
+            internal set
+            {
+                if (value < 1 || value > 65535) throw new ArgumentOutOfRangeException("ListenPort must be between 1 and 65535.");
+                pbPrefs.SetInt32Pref("proxy.listen_port", value);
+                // TODO: If the proxy is running, we should restart it here.
+            }
+        }
 
         /// <summary>
         /// Color for disabled editors app UI.
@@ -75,7 +88,7 @@ namespace Clearinet
                     if (int.TryParse(sArg.Substring(sArg.IndexOf("port:", StringComparison.OrdinalIgnoreCase) + 5),
                         NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out int iPort))
                     {
-                        ListenPort = iPort;
+                        Overrides.ListenPort = iPort;
                     }
                     continue;
                 }
@@ -113,7 +126,6 @@ namespace Clearinet
         {
             pbPrefs = new PreferenceBag(GetRegistryPath("Prefs"));
         }
-
 
         public static string GetRegistryPath(string sWhich)
         {
@@ -323,9 +335,14 @@ namespace Clearinet
         public static Color GetResponseColor(Exchange exchange)
         {
             string mediaType = exchange == null ? string.Empty : exchange.MediaType;
-            if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            if (exchange.HTTPMethodIs("CONNECT"))
             {
                 return Color.Gray;
+            }
+
+            if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                return Color.DarkGray;
             }
 
             if (mediaType.OICContains("javascript"))
