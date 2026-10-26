@@ -37,7 +37,8 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// Prevent UI flashing. The degree to which this helps is AMAZING.
+        /// Prevent UI flashing. The degree to which this helps with tearing in the Inspector UIs
+        /// is AMAZING, but it seems to make things slightly glitchier for the Exchanges list???
         /// </summary>
         protected override CreateParams CreateParams
         {
@@ -1613,7 +1614,7 @@ namespace Clearinet
             if (CApp.isClosing) return;
             if (tabsViews.SelectedTab != pageInspectors) return;
 
-            if (lvExchanges.SelectedItems.Count == 0)
+            if (lvExchanges.SelectedCount == 0)
             {
                 // CLEAR Inspectors.
                 if (tabsRequest.SelectedIndex >= 0) { (tabsRequest.TabPages[tabsRequest.SelectedIndex].Tag as RequestInspectorBase)?.Clear(); }
@@ -1621,7 +1622,7 @@ namespace Clearinet
                 ShowSelectOne();
                 return;
             }
-            if (lvExchanges.SelectedItems.Count != 1)
+            if (lvExchanges.SelectedCount != 1)
             {
                 ShowSelectOne();
                 return;
