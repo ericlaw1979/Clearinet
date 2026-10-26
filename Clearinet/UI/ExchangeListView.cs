@@ -218,7 +218,7 @@ namespace Clearinet
         {
             get
             {
-                var result = new List<ListViewItem>(Items.Count); // TODO: Should be TotalCount-SelectedCount ?
+                var result = new List<ListViewItem>(Items.Count - SelectedCount);
                 foreach (ListViewItem item in Items)
                 {
                     if (!item.Selected) result.Add(item);

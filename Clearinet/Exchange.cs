@@ -57,10 +57,13 @@ namespace Clearinet
         }
 
         // Reset the Exchange counter to 0. In a perfect world, we'd never do this,
-        // but users expect the counter to be at 0 when they clear the Exchange list.
-        internal static void ResetExchangeCounter()
+        // but users expect the counter to start at 0 after they clear the Exchange list.
+        internal static void ResetExchangeCounter(bool bIgnoreUserPref = false)
         {
-            Interlocked.Exchange(ref __cTotalExchanges, 0);
+            if (bIgnoreUserPref || CApp.Prefs.GetBoolPref("app.ui.exchangelist.reset_id_on_empty", true))
+            {
+                Interlocked.Exchange(ref __cTotalExchanges, 0);
+            }
         }
 
         // Technically, UInt32 would be the right type, but
