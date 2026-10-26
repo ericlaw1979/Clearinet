@@ -2900,10 +2900,16 @@ namespace Clearinet
             {
                 tsbDecompress.Checked = !tsbDecompress.Checked;
                 CApp.Prefs.SetBoolPref("app.ui.autodecompress", tsbDecompress.Checked);
+                CApp.UI.SetStatusText($"{(tsbDecompress.Checked ? "Enabled" : "Disabled")} automatic decompression.");
+
                 return;
             }
             Exchange[] arrXC = GetSelectedExchanges();
-            if (arrXC.Length < 1) return;
+            if (arrXC.Length < 1)
+            {
+                CApp.UI.SetStatusText("No Exchanges selected for decompression. (Ctrl+Click the button to toggle automatic mode.)");
+                return;
+            }
             foreach (Exchange exch in arrXC)
             {
                 exch.utilDecodeRequest();
@@ -2911,6 +2917,7 @@ namespace Clearinet
                 updateLVI(exch);
             }
             actUpdateInspector(true, true); // TODO: Should only do this if we're the single thing inspected.
+            CApp.UI.SetStatusText($"Decompressed {arrXC.Length:N0} selected Exchanges.");
         }
     }
 

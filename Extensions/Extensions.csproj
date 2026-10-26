@@ -89,7 +89,6 @@
     <Compile Include="Controls\DataMap.cs" />
     <Compile Include="Controls\DynamicByteProvider.cs" />
     <Compile Include="Controls\EbcdicByteCharProvider.cs" />
-    <Compile Include="Controls\FileByteProvider.cs" />
     <Compile Include="Controls\FindOptions.cs" />
     <Compile Include="Controls\HttpHexBox.cs">
       <SubType>Component</SubType>
