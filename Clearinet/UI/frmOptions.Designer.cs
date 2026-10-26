@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmOptions));
             this.tcOptions = new System.Windows.Forms.TabControl();
             this.pageGeneral = new System.Windows.Forms.TabPage();
+            this.cbAllowRemoteConnections = new System.Windows.Forms.CheckBox();
             this.gbWebServices = new System.Windows.Forms.GroupBox();
             this.cbxBigSwitch = new System.Windows.Forms.ComboBox();
             this.cbCheckForUpdates = new System.Windows.Forms.CheckBox();
@@ -39,7 +40,7 @@
             this.cbAttachOnStartup = new System.Windows.Forms.CheckBox();
             this.pageHTTPS = new System.Windows.Forms.TabPage();
             this.txtDecryptHosts = new System.Windows.Forms.TextBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.cbIgnoreUpstreamCertErrors = new System.Windows.Forms.CheckBox();
             this.cbxDecryptFor = new System.Windows.Forms.ComboBox();
             this.cbCaptureCONNECT = new System.Windows.Forms.CheckBox();
             this.cbDecryptHTTPS = new System.Windows.Forms.CheckBox();
@@ -58,7 +59,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
-            this.cbAllowRemoteConnections = new System.Windows.Forms.CheckBox();
+            this.cbChainToGateway = new System.Windows.Forms.CheckBox();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -89,6 +90,7 @@
             // 
             // pageGeneral
             // 
+            this.pageGeneral.Controls.Add(this.cbChainToGateway);
             this.pageGeneral.Controls.Add(this.cbAllowRemoteConnections);
             this.pageGeneral.Controls.Add(this.gbWebServices);
             this.pageGeneral.Controls.Add(this.cbAutoStream);
@@ -102,6 +104,16 @@
             this.pageGeneral.TabIndex = 0;
             this.pageGeneral.Text = "General";
             this.pageGeneral.UseVisualStyleBackColor = true;
+            // 
+            // cbAllowRemoteConnections
+            // 
+            this.cbAllowRemoteConnections.AutoSize = true;
+            this.cbAllowRemoteConnections.Location = new System.Drawing.Point(20, 177);
+            this.cbAllowRemoteConnections.Name = "cbAllowRemoteConnections";
+            this.cbAllowRemoteConnections.Size = new System.Drawing.Size(189, 21);
+            this.cbAllowRemoteConnections.TabIndex = 8;
+            this.cbAllowRemoteConnections.Text = "Allow Remote Connections";
+            this.cbAllowRemoteConnections.UseVisualStyleBackColor = true;
             // 
             // gbWebServices
             // 
@@ -141,7 +153,7 @@
             // cbAutoStream
             // 
             this.cbAutoStream.AutoSize = true;
-            this.cbAutoStream.Location = new System.Drawing.Point(23, 77);
+            this.cbAutoStream.Location = new System.Drawing.Point(23, 137);
             this.cbAutoStream.Name = "cbAutoStream";
             this.cbAutoStream.Size = new System.Drawing.Size(194, 21);
             this.cbAutoStream.TabIndex = 6;
@@ -171,7 +183,7 @@
             // pageHTTPS
             // 
             this.pageHTTPS.Controls.Add(this.txtDecryptHosts);
-            this.pageHTTPS.Controls.Add(this.checkBox1);
+            this.pageHTTPS.Controls.Add(this.cbIgnoreUpstreamCertErrors);
             this.pageHTTPS.Controls.Add(this.cbxDecryptFor);
             this.pageHTTPS.Controls.Add(this.cbCaptureCONNECT);
             this.pageHTTPS.Controls.Add(this.cbDecryptHTTPS);
@@ -195,15 +207,16 @@
             this.txtDecryptHosts.Size = new System.Drawing.Size(581, 0);
             this.txtDecryptHosts.TabIndex = 7;
             // 
-            // checkBox1
+            // cbIgnoreUpstreamCertErrors
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(54, 140);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(265, 21);
-            this.checkBox1.TabIndex = 6;
-            this.checkBox1.Text = "&Ignore server certificate errors (unsafe)";
-            this.checkBox1.UseVisualStyleBackColor = true;
+            this.cbIgnoreUpstreamCertErrors.AutoSize = true;
+            this.cbIgnoreUpstreamCertErrors.Location = new System.Drawing.Point(54, 140);
+            this.cbIgnoreUpstreamCertErrors.Name = "cbIgnoreUpstreamCertErrors";
+            this.cbIgnoreUpstreamCertErrors.Size = new System.Drawing.Size(265, 21);
+            this.cbIgnoreUpstreamCertErrors.TabIndex = 6;
+            this.cbIgnoreUpstreamCertErrors.Text = "&Ignore server certificate errors (unsafe)";
+            this.cbIgnoreUpstreamCertErrors.UseVisualStyleBackColor = true;
+            this.cbIgnoreUpstreamCertErrors.CheckedChanged += new System.EventHandler(this.cbIgnoreUpstreamCertErrors_CheckedChanged);
             // 
             // cbxDecryptFor
             // 
@@ -413,15 +426,15 @@
             this.lnkHelp.Text = "Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
-            // cbAllowRemoteConnections
+            // cbChainToGateway
             // 
-            this.cbAllowRemoteConnections.AutoSize = true;
-            this.cbAllowRemoteConnections.Location = new System.Drawing.Point(23, 104);
-            this.cbAllowRemoteConnections.Name = "cbAllowRemoteConnections";
-            this.cbAllowRemoteConnections.Size = new System.Drawing.Size(189, 21);
-            this.cbAllowRemoteConnections.TabIndex = 8;
-            this.cbAllowRemoteConnections.Text = "Allow Remote Connections";
-            this.cbAllowRemoteConnections.UseVisualStyleBackColor = true;
+            this.cbChainToGateway.AutoSize = true;
+            this.cbChainToGateway.Location = new System.Drawing.Point(23, 77);
+            this.cbChainToGateway.Name = "cbChainToGateway";
+            this.cbChainToGateway.Size = new System.Drawing.Size(198, 21);
+            this.cbChainToGateway.TabIndex = 9;
+            this.cbChainToGateway.Text = "Chain to Upstream Gateway";
+            this.cbChainToGateway.UseVisualStyleBackColor = true;
             // 
             // frmOptions
             // 
@@ -483,12 +496,13 @@
         private System.Windows.Forms.CheckBox cbAutoStream;
         private System.Windows.Forms.CheckBox cbCaptureCONNECT;
         private System.Windows.Forms.TextBox txtDecryptHosts;
-        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox cbIgnoreUpstreamCertErrors;
         private System.Windows.Forms.ComboBox cbxDecryptFor;
         private System.Windows.Forms.ComboBox cbxFontSize;
         private System.Windows.Forms.Button btnSetColorMark;
         private System.Windows.Forms.Button btnSetColorReadonly;
         private System.Windows.Forms.Label lblFontSize;
         private System.Windows.Forms.CheckBox cbAllowRemoteConnections;
+        private System.Windows.Forms.CheckBox cbChainToGateway;
     }
 }

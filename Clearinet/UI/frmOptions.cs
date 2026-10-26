@@ -40,6 +40,8 @@ namespace Clearinet
             cbAllowRemoteConnections.Checked = CApp.Prefs.GetBoolPref("proxy.allow_remote_connections", false);
             cbCaptureCONNECT.Checked = CApp.Prefs.GetBoolPref("proxy.capture_connect", true);
             cbDecryptHTTPS.Checked = CApp.Prefs.GetBoolPref("proxy.decrypt_https", false);
+            cbIgnoreUpstreamCertErrors.Checked = CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors", false);
+            cbChainToGateway.Checked = CApp.Prefs.GetBoolPref("proxy.chain_to_upstream_gateway", true);
         }
 
         private void lnkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -52,35 +54,14 @@ namespace Clearinet
             // Don't clutter the prefs with default values; if the user
             // adjusts a preference to the non-default, set it, otherwise
             // delete the preference entirely.
-            if (!cbAttachOnStartup.Checked)
-                CApp.Prefs.SetBoolPref("app.attach_on_startup", false);
-            else
-                CApp.Prefs.RemovePref("app.attach_on_startup");
-
-            if (!cbEnableIPv6.Checked)
-                CApp.Prefs.SetBoolPref("proxy.enable_ipv6", false);
-            else
-                CApp.Prefs.RemovePref("proxy.enable_ipv6");
-
-            if (!cbAutoStream.Checked)
-                CApp.Prefs.SetBoolPref("proxy.auto_stream_media", false);
-            else
-                CApp.Prefs.RemovePref("proxy.auto_stream_media");
-
-            if (cbAllowRemoteConnections.Checked)
-                CApp.Prefs.SetBoolPref("proxy.allow_remote_connections", true);
-            else
-                CApp.Prefs.RemovePref("proxy.allow_remote_connections");
-
-            if (!cbCaptureCONNECT.Checked)
-                CApp.Prefs.SetBoolPref("proxy.capture_connect", false);
-            else
-                CApp.Prefs.RemovePref("proxy.capture_connect");
-
-            if (cbDecryptHTTPS.Checked)
-                CApp.Prefs.SetBoolPref("proxy.decrypt_https", true);
-            else
-                CApp.Prefs.RemovePref("proxy.decrypt_https");
+            CApp.Prefs.AssignOrRemoveIfDefault("app.attach_on_startup", cbAttachOnStartup.Checked, true);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.enable_ipv6", cbEnableIPv6.Checked, true);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.auto_stream_media", cbAutoStream.Checked, true);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.allow_remote_connections", cbAllowRemoteConnections.Checked, false);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.capture_connect", cbCaptureCONNECT.Checked, true);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.decrypt_https", cbDecryptHTTPS.Checked, false);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.unsafe.ignore_cert_errors", cbIgnoreUpstreamCertErrors.Checked, false);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.chain_to_upstream_gateway", cbChainToGateway.Checked, true);
 
             if (cbxBigSwitch.SelectedIndex == 0)
             { // Allow all Web Service calls
@@ -163,6 +144,11 @@ namespace Clearinet
         private void cbxFontSize_SelectionChangeCommitted(object sender, EventArgs e)
         {
             CApp.UI.actSetFontSize(float.Parse(cbxFontSize.SelectedItem.ToString()));
+        }
+
+        private void cbIgnoreUpstreamCertErrors_CheckedChanged(object sender, EventArgs e)
+        {
+            cbIgnoreUpstreamCertErrors.ForeColor = cbIgnoreUpstreamCertErrors.Checked ? Color.Red : SystemColors.ControlText;
         }
     }
 }
