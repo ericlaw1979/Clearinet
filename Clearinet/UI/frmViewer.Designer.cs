@@ -97,7 +97,6 @@
             this.miTools = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsOptions = new System.Windows.Forms.ToolStripMenuItem();
             this.miTextWizard = new System.Windows.Forms.ToolStripMenuItem();
-            this.miToolsMezer = new System.Windows.Forms.ToolStripMenuItem();
             this.miView = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewStayOnTop = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewMinimize = new System.Windows.Forms.ToolStripMenuItem();
@@ -722,8 +721,7 @@
             this.miTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miToolsOptions,
             miToolsSplitter1,
-            this.miTextWizard,
-            this.miToolsMezer});
+            this.miTextWizard});
             this.miTools.Name = "miTools";
             this.miTools.Size = new System.Drawing.Size(58, 24);
             this.miTools.Text = "&Tools";
@@ -744,14 +742,6 @@
             this.miTextWizard.Text = "T&extransform...";
             this.miTextWizard.ToolTipText = "The Textransform encodes and decodes text.";
             this.miTextWizard.Click += new System.EventHandler(this.miTextWizard_Click);
-            // 
-            // miToolsMezer
-            // 
-            this.miToolsMezer.Name = "miToolsMezer";
-            this.miToolsMezer.Size = new System.Drawing.Size(237, 26);
-            this.miToolsMezer.Text = "Me&zerTools";
-            this.miToolsMezer.ToolTipText = "NYI: Simple tools for graphical designers";
-            this.miToolsMezer.Click += new System.EventHandler(this.miToolsMezer_Click);
             // 
             // miView
             // 
@@ -1784,7 +1774,6 @@
         private System.Windows.Forms.ToolStripMenuItem miViewAutoScroll;
         private System.Windows.Forms.ToolStripMenuItem miViewSquish;
         private System.Windows.Forms.ToolStripMenuItem miViewRefresh;
-        private System.Windows.Forms.ToolStripMenuItem miToolsMezer;
         private System.Windows.Forms.ToolStripMenuItem miEditCopyExchange;
         private System.Windows.Forms.ToolStripMenuItem miEditCopyURL;
         private System.Windows.Forms.ToolStripMenuItem miEditCopyHeaders;

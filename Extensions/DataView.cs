@@ -84,7 +84,7 @@ namespace Extensions
                 if (e.KeyCode == Keys.C && e.Modifiers == Keys.Control)
                 {
                     var n = tree.SelectedNode;
-                    Clipboard.SetText(n?.Text ?? string.Empty);  // TODO: What we really want to do is copy the entire subtree in the data model...
+                    PlatformAPI.WriteToClipboard(n?.Text ?? string.Empty);  // TODO: What we really want to do is copy the entire subtree in the data model...
                     e.SuppressKeyPress = e.Handled = true;
                 }
             };

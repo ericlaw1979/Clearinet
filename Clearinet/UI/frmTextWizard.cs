@@ -541,7 +541,7 @@ namespace Clearinet
             switch (cbxOutputTo.SelectedIndex)
             {
                 case 1: // Clipboard
-                    Clipboard.SetText(txtOutput.Text);
+                    PlatformAPI.WriteToClipboard(txtOutput.Text);
                     cbxOutputTo.SelectedIndex = 0;
                     break;
                 case 2: // Fake Exchange

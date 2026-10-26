@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
+using System.Windows.Forms;
 
 namespace Clearinet
 {
@@ -12,6 +14,50 @@ namespace Clearinet
     /// </summary>
     public class PlatformAPI
     {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetPhysicalCursorPos(out Point point);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr dpiContext);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr WindowFromPhysicalPoint(Point point);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern Microsoft.Win32.SafeHandles.SafeProcessHandle OpenProcess(uint access, bool inheritHandle, uint processId);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool QueryFullProcessImageName(Microsoft.Win32.SafeHandles.SafeProcessHandle process, uint flags, StringBuilder filename, ref uint size);
+
+        public static string GetProcessInfoAtPhysicalPoint(Point point)
+        {
+            IntPtr window = WindowFromPhysicalPoint(point);
+            if (window == IntPtr.Zero) return "No window at this pixel";
+            if (GetWindowThreadProcessId(window, out uint processId) == 0)
+            {
+                return "Process unavailable: " + new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()).Message;
+            }
+
+            const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+            using (var process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, processId))
+            {
+                if (process.IsInvalid)
+                {
+                    return $"Unknown:{processId} - {new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()).Message}";
+                }
+
+                StringBuilder filename = new StringBuilder(32768);
+                uint size = (uint)filename.Capacity;
+                if (!QueryFullProcessImageName(process, 0, filename, ref size))
+                {
+                    return $"Unknown:{processId} - {new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()).Message}";
+                }
+                return $"{System.IO.Path.GetFileName(filename.ToString())}:{processId}";
+            }
+        }
 
         [DllImport("Kernel32.dll", EntryPoint = "GetTickCount64", CharSet = CharSet.Unicode)]
         public static extern UInt64 GetTickCount64();
@@ -44,6 +90,20 @@ namespace Clearinet
             SetProcessWorkingSetSize(Process.GetCurrentProcess().Handle, (IntPtr)(-1), (IntPtr)(-1));
         }
 
+        // TODO: make this robust, with a retry.
+        public static bool WriteToClipboard(string sText)
+        {
+            try
+            {
+                Clipboard.SetText(sText);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to set clipboard text: {ex.Message}");
+                return false;
+            }
+            return true;
+        }
 
         public static bool RunningElevated()
         {

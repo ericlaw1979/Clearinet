@@ -85,7 +85,7 @@ namespace Extensions
             }
             if (e.KeyCode == Keys.C && e.Modifiers == Keys.Control)
             {
-                Clipboard.SetText(tvNVP.SelectedNode?.Text);
+                PlatformAPI.WriteToClipboard(tvNVP.SelectedNode?.Text);
                 e.Handled = e.SuppressKeyPress = true;
                 return;
             }
@@ -93,7 +93,7 @@ namespace Extensions
 
         private void miCopyAll_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(_headers.ToString());
+            PlatformAPI.WriteToClipboard(_headers.ToString());
         }
 
         private void miLookupHeader_Click(object sender, EventArgs e)
@@ -111,14 +111,12 @@ namespace Extensions
 
         private void miCopyHeader_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(tvNVP.SelectedNode?.Text);
+            PlatformAPI.WriteToClipboard(tvNVP.SelectedNode?.Text);
         }
         private void miCopyHeaderValue_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(CurrentHeaderValue());
+            PlatformAPI.WriteToClipboard(CurrentHeaderValue());
         }
-
-
 
 
     }

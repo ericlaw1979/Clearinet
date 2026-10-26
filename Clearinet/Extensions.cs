@@ -267,6 +267,15 @@ namespace Clearinet
             }
         }
 
+        internal void CallAllOnBeforeUnloads()
+        {
+            foreach (IAppExtension oFE in m_Extensions.Values)
+            {
+                _FireOnBeforeUnload(oFE);
+            }
+        }
+
+
         private static void _FireOnload(IAppExtension iae)
         {
             try
@@ -276,6 +285,18 @@ namespace Clearinet
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Extension threw up OnLoad");
+            }
+        }
+
+        private static void _FireOnBeforeUnload(IAppExtension iae)
+        {
+            try
+            {
+                iae.OnBeforeUnload();
+            }
+            catch (Exception eX)
+            {
+                CApp.Log.LogFormat("Extension threw up OnBeforeUnload: {0}", eX);
             }
         }
 

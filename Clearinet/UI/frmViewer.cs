@@ -193,7 +193,7 @@ namespace Clearinet
                 {
                     commands.AppendLine(FormatCURLCommand(exch, flavor.OICEquals("cmd")));
                 }
-                Clipboard.SetText(commands.ToString());
+                PlatformAPI.WriteToClipboard(commands.ToString());
             }
             catch (Exception eX) { CApp.ReportException(eX, "Copy as CURL failed"); }
         }
@@ -383,11 +383,6 @@ namespace Clearinet
             actShowOptions();
         }
 
-        private void miToolsMezer_Click(object sender, EventArgs e)
-        {
-            // TODO: Integrate native tool
-            Utilities.LaunchHyperlink("https://mezer.app");
-        }
 
         /// <summary>
         /// The main entry point for the application.
@@ -2455,7 +2450,7 @@ namespace Clearinet
             if (arrExch.Length < 1) return;
             if (arrExch.Length == 1)
             {
-                Clipboard.SetText(arrExch[0].fullUrl);
+                PlatformAPI.WriteToClipboard(arrExch[0].fullUrl);
                 return;
             }
             StringBuilder sbAllUrls = new StringBuilder();
@@ -2463,7 +2458,7 @@ namespace Clearinet
             {
                 sbAllUrls.AppendLine(arrExch[ix].fullUrl);
             }
-            Clipboard.SetText(sbAllUrls.ToString());
+            PlatformAPI.WriteToClipboard(sbAllUrls.ToString());
         }
 
         private void miExchangeCopyHeaders_Click(object sender, EventArgs e)
@@ -2477,7 +2472,7 @@ namespace Clearinet
                 sbAllHeaders.AppendLine(arrExch[ix].ResponseHeaders?.ToString());
                 sbAllHeaders.AppendLine("==================================");
             }
-            Clipboard.SetText(sbAllHeaders.ToString());
+            PlatformAPI.WriteToClipboard(sbAllHeaders.ToString());
         }
 
         private void miEditCopyForAI_Click(object sender, EventArgs e)
@@ -2492,7 +2487,7 @@ namespace Clearinet
                 sbAllHeaders.AppendLine(arrExch[ix].ResponseHeaders?.ToString());
                 sbAllHeaders.AppendLine("```");
             }
-            Clipboard.SetText(sbAllHeaders.ToString());
+            PlatformAPI.WriteToClipboard(sbAllHeaders.ToString());
         }
 
         private void miEditCopyExchange_Click(object sender, EventArgs e)
@@ -2506,7 +2501,7 @@ namespace Clearinet
                 sbAllExchanges.AppendLine(xc[i].ToLongString());
                 if (i < xc.Length - 1) sbAllExchanges.AppendLine("---------------------");
             }
-            Clipboard.SetText(sbAllExchanges.ToString());
+            PlatformAPI.WriteToClipboard(sbAllExchanges.ToString());
         }
 
         private void miEditCopyURL_Click(object sender, EventArgs e)
@@ -2515,7 +2510,7 @@ namespace Clearinet
             if (xc.Length < 1) return;
             if (xc.Length == 1)
             {
-                Clipboard.SetText(xc[0].fullUrl);
+                PlatformAPI.WriteToClipboard(xc[0].fullUrl);
                 return;
             }
             StringBuilder sbAllUrls = new StringBuilder();
@@ -2523,7 +2518,7 @@ namespace Clearinet
             {
                 sbAllUrls.AppendLine(xc[i].fullUrl);
             }
-            Clipboard.SetText(sbAllUrls.ToString());
+            PlatformAPI.WriteToClipboard(sbAllUrls.ToString());
         }
 
         private void miEditCopySummary_Click(object sender, EventArgs e)
@@ -2549,14 +2544,14 @@ namespace Clearinet
                 }
                 sbSummary.AppendLine();
             }
-            Clipboard.SetText(sbSummary.ToString());
+            PlatformAPI.WriteToClipboard(sbSummary.ToString());
         }
 
         private void miEditCopyTerseSummary_Click(object sender, EventArgs e)
         {
             Exchange[] xc = GetSelectedExchanges();
             if (xc.Length < 1) return;
-            Clipboard.SetText(SummarizeExchanges(xc));
+            PlatformAPI.WriteToClipboard(SummarizeExchanges(xc));
         }
 
         private static string SummarizeExchanges(Exchange[] xc)
@@ -2794,7 +2789,7 @@ namespace Clearinet
             var (lvi, ixCol) = lvExchanges.GetItemAndColumnAt(lvExchanges.PointToClient(mnuExchange.Location));
             if (null == lvi || ixCol >= 0)
             {
-                Clipboard.SetText(lvi.SubItems[ixCol].Text);
+                PlatformAPI.WriteToClipboard(lvi.SubItems[ixCol].Text);
             }
         }
 
@@ -2814,8 +2809,8 @@ namespace Clearinet
         }
         public void AddExtensionToolsMenuItem(ToolStripMenuItem tsmi)
         {
-            // TODO: put this in the right place rather than just shoving it at the top.
-            miTools.DropDownItems.Insert(0, tsmi);
+            // TODO: put this in the right place rather than just shoving it at the bottom.
+            miTools.DropDownItems.Add(tsmi);
         }
 
         private async void tsbScreenshot_Click(object sender, EventArgs e)

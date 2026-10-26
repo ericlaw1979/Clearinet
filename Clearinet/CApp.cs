@@ -615,6 +615,7 @@ namespace Clearinet
             isClosing = true;
             // TODO: Detach proxy
             scriptRules?.DoOnShutdown();
+            oExtensions.CallAllOnBeforeUnloads();
             AppShutdown?.Invoke();
             CONFIG.SaveAllSettings(UI);
 
