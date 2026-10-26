@@ -58,6 +58,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
+            this.cbAllowRemoteConnections = new System.Windows.Forms.CheckBox();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -88,6 +89,7 @@
             // 
             // pageGeneral
             // 
+            this.pageGeneral.Controls.Add(this.cbAllowRemoteConnections);
             this.pageGeneral.Controls.Add(this.gbWebServices);
             this.pageGeneral.Controls.Add(this.cbAutoStream);
             this.pageGeneral.Controls.Add(this.cbEnableIPv6);
@@ -411,6 +413,16 @@
             this.lnkHelp.Text = "Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
+            // cbAllowRemoteConnections
+            // 
+            this.cbAllowRemoteConnections.AutoSize = true;
+            this.cbAllowRemoteConnections.Location = new System.Drawing.Point(23, 104);
+            this.cbAllowRemoteConnections.Name = "cbAllowRemoteConnections";
+            this.cbAllowRemoteConnections.Size = new System.Drawing.Size(189, 21);
+            this.cbAllowRemoteConnections.TabIndex = 8;
+            this.cbAllowRemoteConnections.Text = "Allow Remote Connections";
+            this.cbAllowRemoteConnections.UseVisualStyleBackColor = true;
+            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
@@ -477,5 +489,6 @@
         private System.Windows.Forms.Button btnSetColorMark;
         private System.Windows.Forms.Button btnSetColorReadonly;
         private System.Windows.Forms.Label lblFontSize;
+        private System.Windows.Forms.CheckBox cbAllowRemoteConnections;
     }
 }
