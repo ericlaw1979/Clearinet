@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyBuiltDateAttribute.cs" />
+    <Compile Include="CaptureEngine\MapSocketToProcess.cs" />
     <Compile Include="GigWorker.cs" />
     <Compile Include="UI\ComposerView.cs">
       <SubType>UserControl</SubType>
