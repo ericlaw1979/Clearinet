@@ -197,6 +197,7 @@
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
+            this.tsddbKeepOnly = new System.Windows.Forms.ToolStripDropDownButton();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -982,10 +983,11 @@
             this.tssAfterExt,
             this.tstxtLookup,
             this.tslVersion,
-            this.tsbScreenshot});
+            this.tsbScreenshot,
+            this.tsddbKeepOnly});
             this.tsToolbar.Location = new System.Drawing.Point(0, 30);
             this.tsToolbar.Name = "tsToolbar";
-            this.tsToolbar.Size = new System.Drawing.Size(1043, 29);
+            this.tsToolbar.Size = new System.Drawing.Size(1043, 30);
             this.tsToolbar.TabIndex = 4;
             // 
             // tsmiNameViewer
@@ -1006,7 +1008,7 @@
             this.tsbComment.Image = global::Clearinet.Properties.Resources.PromptQuery;
             this.tsbComment.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbComment.Name = "tsbComment";
-            this.tsbComment.Size = new System.Drawing.Size(98, 26);
+            this.tsbComment.Size = new System.Drawing.Size(98, 27);
             this.tsbComment.Text = "Comment";
             this.tsbComment.Click += new System.EventHandler(this.tsbComment_Click);
             // 
@@ -1024,7 +1026,7 @@
             this.tsddbRemove.Image = ((System.Drawing.Image)(resources.GetObject("tsddbRemove.Image")));
             this.tsddbRemove.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsddbRemove.Name = "tsddbRemove";
-            this.tsddbRemove.Size = new System.Drawing.Size(77, 26);
+            this.tsddbRemove.Size = new System.Drawing.Size(77, 27);
             this.tsddbRemove.Text = "Remove";
             this.tsddbRemove.ToolTipText = "Remove";
             // 
@@ -1066,18 +1068,18 @@
             // tssBeforeExt
             // 
             this.tssBeforeExt.Name = "tssBeforeExt";
-            this.tssBeforeExt.Size = new System.Drawing.Size(6, 29);
+            this.tssBeforeExt.Size = new System.Drawing.Size(6, 30);
             // 
             // tssAfterExt
             // 
             this.tssAfterExt.Name = "tssAfterExt";
-            this.tssAfterExt.Size = new System.Drawing.Size(6, 29);
+            this.tssAfterExt.Size = new System.Drawing.Size(6, 30);
             // 
             // tstxtLookup
             // 
             this.tstxtLookup.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.tstxtLookup.Name = "tstxtLookup";
-            this.tstxtLookup.Size = new System.Drawing.Size(100, 29);
+            this.tstxtLookup.Size = new System.Drawing.Size(100, 30);
             this.tstxtLookup.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyDown);
             this.tstxtLookup.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyUp);
             // 
@@ -1086,7 +1088,7 @@
             this.tslVersion.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.tslVersion.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.tslVersion.Name = "tslVersion";
-            this.tslVersion.Size = new System.Drawing.Size(66, 26);
+            this.tslVersion.Size = new System.Drawing.Size(66, 27);
             this.tslVersion.Text = "(version)";
             // 
             // tsbScreenshot
@@ -1095,7 +1097,7 @@
             this.tsbScreenshot.Image = ((System.Drawing.Image)(resources.GetObject("tsbScreenshot.Image")));
             this.tsbScreenshot.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbScreenshot.Name = "tsbScreenshot";
-            this.tsbScreenshot.Size = new System.Drawing.Size(29, 26);
+            this.tsbScreenshot.Size = new System.Drawing.Size(29, 27);
             this.tsbScreenshot.Text = "Screenshot\n(Ctrl+Click for instant)";
             this.tsbScreenshot.ToolTipText = "Store Screenshot";
             this.tsbScreenshot.Click += new System.EventHandler(this.tsbScreenshot_Click);
@@ -1106,7 +1108,7 @@
             this.pnlTopGoldbar.Controls.Add(this.lblTodo);
             this.pnlTopGoldbar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlTopGoldbar.ForeColor = System.Drawing.Color.Black;
-            this.pnlTopGoldbar.Location = new System.Drawing.Point(0, 59);
+            this.pnlTopGoldbar.Location = new System.Drawing.Point(0, 60);
             this.pnlTopGoldbar.Margin = new System.Windows.Forms.Padding(4);
             this.pnlTopGoldbar.Name = "pnlTopGoldbar";
             this.pnlTopGoldbar.Size = new System.Drawing.Size(1043, 24);
@@ -1130,10 +1132,10 @@
             this.pnlLeft.Controls.Add(this.pnlLeftBottom);
             this.pnlLeft.Controls.Add(this.txtQuickExec);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
-            this.pnlLeft.Location = new System.Drawing.Point(0, 83);
+            this.pnlLeft.Location = new System.Drawing.Point(0, 84);
             this.pnlLeft.Margin = new System.Windows.Forms.Padding(4);
             this.pnlLeft.Name = "pnlLeft";
-            this.pnlLeft.Size = new System.Drawing.Size(357, 513);
+            this.pnlLeft.Size = new System.Drawing.Size(357, 512);
             this.pnlLeft.TabIndex = 6;
             // 
             // lvExchanges
@@ -1163,7 +1165,7 @@
             this.lvExchanges.Location = new System.Drawing.Point(0, 0);
             this.lvExchanges.Margin = new System.Windows.Forms.Padding(4);
             this.lvExchanges.Name = "lvExchanges";
-            this.lvExchanges.Size = new System.Drawing.Size(357, 466);
+            this.lvExchanges.Size = new System.Drawing.Size(357, 465);
             this.lvExchanges.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvExchanges.TabIndex = 4;
             this.lvExchanges.UseCompatibleStateImageBehavior = false;
@@ -1399,7 +1401,7 @@
             // pnlLeftBottom
             // 
             this.pnlLeftBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlLeftBottom.Location = new System.Drawing.Point(0, 466);
+            this.pnlLeftBottom.Location = new System.Drawing.Point(0, 465);
             this.pnlLeftBottom.Name = "pnlLeftBottom";
             this.pnlLeftBottom.Size = new System.Drawing.Size(357, 22);
             this.pnlLeftBottom.TabIndex = 5;
@@ -1413,7 +1415,7 @@
             this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
-            this.txtQuickExec.Location = new System.Drawing.Point(0, 488);
+            this.txtQuickExec.Location = new System.Drawing.Point(0, 487);
             this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
             this.txtQuickExec.Name = "txtQuickExec";
             this.txtQuickExec.Size = new System.Drawing.Size(357, 25);
@@ -1424,10 +1426,10 @@
             // 
             this.pnlMain.Controls.Add(this.tabsViews);
             this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlMain.Location = new System.Drawing.Point(357, 83);
+            this.pnlMain.Location = new System.Drawing.Point(357, 84);
             this.pnlMain.Margin = new System.Windows.Forms.Padding(4);
             this.pnlMain.Name = "pnlMain";
-            this.pnlMain.Size = new System.Drawing.Size(686, 513);
+            this.pnlMain.Size = new System.Drawing.Size(686, 512);
             this.pnlMain.TabIndex = 7;
             // 
             // tabsViews
@@ -1445,7 +1447,7 @@
             this.tabsViews.Multiline = true;
             this.tabsViews.Name = "tabsViews";
             this.tabsViews.SelectedIndex = 0;
-            this.tabsViews.Size = new System.Drawing.Size(686, 513);
+            this.tabsViews.Size = new System.Drawing.Size(686, 512);
             this.tabsViews.TabIndex = 0;
             this.tabsViews.SelectedIndexChanged += new System.EventHandler(this.tabsViews_SelectedIndexChanged);
             this.tabsViews.DragOver += new System.Windows.Forms.DragEventHandler(this.tabsViews_DragOver);
@@ -1458,7 +1460,7 @@
             this.pageStatistics.Margin = new System.Windows.Forms.Padding(4);
             this.pageStatistics.Name = "pageStatistics";
             this.pageStatistics.Padding = new System.Windows.Forms.Padding(4);
-            this.pageStatistics.Size = new System.Drawing.Size(678, 481);
+            this.pageStatistics.Size = new System.Drawing.Size(678, 480);
             this.pageStatistics.TabIndex = 0;
             this.pageStatistics.Text = "Statistics";
             this.pageStatistics.UseVisualStyleBackColor = true;
@@ -1471,7 +1473,7 @@
             this.rtbStatistics.Location = new System.Drawing.Point(4, 4);
             this.rtbStatistics.Name = "rtbStatistics";
             this.rtbStatistics.ReadOnly = true;
-            this.rtbStatistics.Size = new System.Drawing.Size(670, 473);
+            this.rtbStatistics.Size = new System.Drawing.Size(670, 472);
             this.rtbStatistics.TabIndex = 0;
             this.rtbStatistics.Text = "";
             // 
@@ -1485,7 +1487,7 @@
             this.pageInspectors.Margin = new System.Windows.Forms.Padding(4);
             this.pageInspectors.Name = "pageInspectors";
             this.pageInspectors.Padding = new System.Windows.Forms.Padding(4);
-            this.pageInspectors.Size = new System.Drawing.Size(678, 480);
+            this.pageInspectors.Size = new System.Drawing.Size(678, 481);
             this.pageInspectors.TabIndex = 1;
             this.pageInspectors.Text = "Inspectors";
             this.pageInspectors.UseVisualStyleBackColor = true;
@@ -1499,7 +1501,7 @@
             this.tabsResponse.Multiline = true;
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
-            this.tabsResponse.Size = new System.Drawing.Size(670, 245);
+            this.tabsResponse.Size = new System.Drawing.Size(670, 246);
             this.tabsResponse.TabIndex = 1;
             this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
             // 
@@ -1598,7 +1600,7 @@
             this.pageAutoResponder.Location = new System.Drawing.Point(4, 28);
             this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
             this.pageAutoResponder.Name = "pageAutoResponder";
-            this.pageAutoResponder.Size = new System.Drawing.Size(678, 480);
+            this.pageAutoResponder.Size = new System.Drawing.Size(678, 481);
             this.pageAutoResponder.TabIndex = 2;
             this.pageAutoResponder.Text = "AutoResponder";
             this.pageAutoResponder.UseVisualStyleBackColor = true;
@@ -1619,7 +1621,7 @@
             this.pageComposer.Location = new System.Drawing.Point(4, 28);
             this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
             this.pageComposer.Name = "pageComposer";
-            this.pageComposer.Size = new System.Drawing.Size(678, 480);
+            this.pageComposer.Size = new System.Drawing.Size(678, 481);
             this.pageComposer.TabIndex = 3;
             this.pageComposer.Text = "Composer";
             this.pageComposer.UseVisualStyleBackColor = true;
@@ -1671,12 +1673,18 @@
             // splitterMain
             // 
             this.splitterMain.BackColor = System.Drawing.Color.LightSlateGray;
-            this.splitterMain.Location = new System.Drawing.Point(357, 83);
+            this.splitterMain.Location = new System.Drawing.Point(357, 84);
             this.splitterMain.Margin = new System.Windows.Forms.Padding(4);
             this.splitterMain.Name = "splitterMain";
-            this.splitterMain.Size = new System.Drawing.Size(4, 513);
+            this.splitterMain.Size = new System.Drawing.Size(4, 512);
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
+            // 
+            // tsddbKeepOnly
+            // 
+            this.tsddbKeepOnly.Name = "tsddbKeepOnly";
+            this.tsddbKeepOnly.Size = new System.Drawing.Size(89, 27);
+            this.tsddbKeepOnly.Text = "Keep: All Exchanges";
             // 
             // frmViewer
             // 
@@ -1881,6 +1889,7 @@
         private System.Windows.Forms.ColumnHeader colComments;
         private System.Windows.Forms.ToolStripLabel tslVersion;
         private System.Windows.Forms.ToolStripButton tsbScreenshot;
+        private System.Windows.Forms.ToolStripDropDownButton tsddbKeepOnly;
     }
 }
 

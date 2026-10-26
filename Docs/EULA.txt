@@ -1,6 +1,4 @@
-﻿This code fell off a truck. It's not ready to use yet.
-
-===========
+﻿NOTE: This is Alpha Code. Use with caution.
 
 Code for Clearinet is available from https://github.com/ericlaw1979/clearinet and is released under the MIT License.
 

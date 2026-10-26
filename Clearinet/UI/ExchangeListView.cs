@@ -371,24 +371,26 @@ namespace Clearinet
                 return;
             }
 
-            // TODO: For perf, we need to ensure we're not firing events during this process.
-            BeginUpdate();
-
-            // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the
-            // list of SelectedIndicies and delete all but them downward.
-
-            SelectedItems.Clear();
-            int iX = Items.Count - 1; // Start at the end.
-            while (iX >= 0 && (iToKeep > 0))
+            int cToDelete = Items.Count - iToKeep;
+            var itemsToDelete = new ListViewItem[cToDelete];
+            for (int iX = 0; iX < cToDelete; ++iX)
             {
-                Items[iX].Selected = true;
-                --iToKeep;
-                --iX;
+                itemsToDelete[iX] = Items[iX];
             }
+            StoreItemsBeforeDeletion(itemsToDelete);
 
-            RemoveUnselected();
-            SelectedItems.Clear();
-            EndUpdate();
+            BeginUpdate();
+            try
+            {
+                for (int iX = cToDelete - 1; iX >= 0; --iX)
+                {
+                    Items.RemoveAt(iX);
+                }
+            }
+            finally
+            {
+                EndUpdate();
+            }
         }
 
         internal void RemoveUnselected()

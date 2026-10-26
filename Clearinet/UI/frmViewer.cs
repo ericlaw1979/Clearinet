@@ -19,7 +19,6 @@ namespace Clearinet
         public frmViewer()
         {
             InitializeComponent();
-            Win32UI.SetCueText(txtLogSearch, "Search log (Enter to find next)");
 
             // TODO: This is a hack. Eventually we will be smarter.
             lvExchanges.ConfigureColumn(colID.Index, ColumnSortType.Numeric);
@@ -588,6 +587,8 @@ namespace Clearinet
             if (miViewStayOnTop.Checked) TopMost = true;
 
             miViewAutoScroll.Checked = CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true);
+            int keepOnly = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only", 0);
+            tsddbKeepOnly.Text = "Keep: " + (keepOnly == 0 ? "All Exchanges" : $"{keepOnly} Exchanges");
 
             splitRequestResponse.SplitPosition =
                 CApp.Prefs.GetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
@@ -640,7 +641,17 @@ namespace Clearinet
             this.lvExchanges.AllowDrop = true;
 
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
+            Win32UI.SetCueText(txtLogSearch, "Search log (Enter to find next)");
 
+            var keepOnlyMenu = (ToolStripDropDownMenu)tsddbKeepOnly.DropDown;
+            keepOnlyMenu.ShowCheckMargin = false;
+            keepOnlyMenu.ShowImageMargin = false;
+            foreach (int limit in new[] { 100, 250, 500, 1000, 2500, 5000, 10000, 0 })
+            {
+                var item = new ToolStripMenuItem(limit == 0 ? "All Exchanges" : $"{limit} Exchanges") { Tag = limit };
+                item.Click += tsddbKeepOnly_Click;
+                tsddbKeepOnly.DropDownItems.Add(item);
+            }
 
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
             CApp.gwHoneyDew.createGig("UpdateMemoryCounter", () => UpdateMemoryCounter(), 5000);
@@ -1192,7 +1203,7 @@ namespace Clearinet
             {
                 // Flush deferred inserts before restoring sorting.
                 // TODO: Handle KeepOnly
-                // int TrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keeponly", 0);
+                // int TrimTo = CApp.Prefs.GetInt32Pref("", 0);
                 lvExchanges.EndUpdate();
                 lvExchanges.ListViewItemSorter = sorter;
             }
@@ -1248,6 +1259,15 @@ namespace Clearinet
             lvExchanges.Items.Add(lvi);
 
             // TODO: deal with delayed scroll/trim
+            int iTrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only", 0);
+            if (iTrimTo > 0 && lvExchanges.Items.Count > iTrimTo)
+            {
+                LazyGigWorker.bookGig("TrimExchanges", 250, () =>
+                {
+                    CApp.UIInvokeAsync(() => lvExchanges.Tail(iTrimTo));
+                });
+            }
+
         }
 
         private void AddFormatting(ListViewItem lvi, Exchange xc)
@@ -2266,7 +2286,7 @@ namespace Clearinet
             int cSelected = lvExchanges.SelectedCount;
             if (cSelected < 1)
             {
-                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{(lvExchanges.IsScrolledToBottom() ? "**TODO: BOTTOM**" : string.Empty)}";
+                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{(lvExchanges.IsScrolledToBottom() ? "*" : string.Empty)}";
             }
             else
             {
@@ -2854,6 +2874,13 @@ namespace Clearinet
                     tsbScreenshot.Enabled = true;
                 }
             }
+        }
+
+        private void tsddbKeepOnly_Click(object sender, EventArgs e)
+        {
+            var item = (ToolStripMenuItem)sender;
+            CApp.Prefs.SetInt32Pref("app.ui.exchangelist.keep_only", (int)item.Tag);
+            tsddbKeepOnly.Text = $"Keep: {item}";
         }
     }
 
