@@ -43,21 +43,24 @@
             this.pbColorPick = new System.Windows.Forms.PictureBox();
             this.btnColorPicker = new System.Windows.Forms.Button();
             this.txtColorRGB = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.gbHexer = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.txtHex = new System.Windows.Forms.TextBox();
             this.btnUnicode = new System.Windows.Forms.Button();
             this.txtDecimal = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.gbClipboard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udStringLength)).BeginInit();
             this.gbColor.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbColorPick)).BeginInit();
-            this.groupBox1.SuspendLayout();
+            this.gbHexer.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbClipboard
             // 
+            this.gbClipboard.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.gbClipboard.Controls.Add(this.lblCurrentClipboard);
             this.gbClipboard.Controls.Add(this.label1);
             this.gbClipboard.Controls.Add(this.label2);
@@ -162,6 +165,8 @@
             // 
             // gbColor
             // 
+            this.gbColor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.gbColor.Controls.Add(this.lblProcessInfo);
             this.gbColor.Controls.Add(this.lblColors);
             this.gbColor.Controls.Add(this.txtColorHex);
@@ -194,8 +199,8 @@
             this.lblColors.Name = "lblColors";
             this.lblColors.Size = new System.Drawing.Size(567, 47);
             this.lblColors.TabIndex = 7;
-            this.lblColors.Text = "Drag the dropper to sample a screen color and its window\'s process, edit the HTML" +
-    " color, or click the button to choose a color.";
+            this.lblColors.Text = "Drag the dropper to sample a screen pixel, or edit a hex color, or click the butt" +
+    "on to choose from a picker.";
             // 
             // txtColorHex
             // 
@@ -241,27 +246,30 @@
             this.txtColorRGB.Size = new System.Drawing.Size(148, 28);
             this.txtColorRGB.TabIndex = 1;
             // 
-            // groupBox1
+            // gbHexer
             // 
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.txtHex);
-            this.groupBox1.Controls.Add(this.btnUnicode);
-            this.groupBox1.Controls.Add(this.txtDecimal);
-            this.groupBox1.Location = new System.Drawing.Point(12, 378);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.groupBox1.Size = new System.Drawing.Size(616, 125);
-            this.groupBox1.TabIndex = 9;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Hexer";
+            this.gbHexer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbHexer.Controls.Add(this.label5);
+            this.gbHexer.Controls.Add(this.label4);
+            this.gbHexer.Controls.Add(this.label3);
+            this.gbHexer.Controls.Add(this.txtHex);
+            this.gbHexer.Controls.Add(this.btnUnicode);
+            this.gbHexer.Controls.Add(this.txtDecimal);
+            this.gbHexer.Location = new System.Drawing.Point(12, 378);
+            this.gbHexer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.gbHexer.Name = "gbHexer";
+            this.gbHexer.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.gbHexer.Size = new System.Drawing.Size(616, 125);
+            this.gbHexer.TabIndex = 9;
+            this.gbHexer.TabStop = false;
+            this.gbHexer.Text = "Hexer";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold);
-            this.label4.Location = new System.Drawing.Point(200, 48);
+            this.label4.Location = new System.Drawing.Point(289, 79);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(21, 23);
             this.label4.TabIndex = 9;
@@ -271,7 +279,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold);
-            this.label3.Location = new System.Drawing.Point(13, 46);
+            this.label3.Location = new System.Drawing.Point(102, 77);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(32, 23);
             this.label3.TabIndex = 8;
@@ -280,7 +288,7 @@
             // txtHex
             // 
             this.txtHex.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtHex.Location = new System.Drawing.Point(46, 46);
+            this.txtHex.Location = new System.Drawing.Point(135, 77);
             this.txtHex.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtHex.Name = "txtHex";
             this.txtHex.Size = new System.Drawing.Size(148, 28);
@@ -288,7 +296,7 @@
             // 
             // btnUnicode
             // 
-            this.btnUnicode.Location = new System.Drawing.Point(381, 43);
+            this.btnUnicode.Location = new System.Drawing.Point(470, 74);
             this.btnUnicode.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnUnicode.Name = "btnUnicode";
             this.btnUnicode.Size = new System.Drawing.Size(46, 30);
@@ -300,23 +308,34 @@
             // txtDecimal
             // 
             this.txtDecimal.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtDecimal.Location = new System.Drawing.Point(227, 45);
+            this.txtDecimal.Location = new System.Drawing.Point(316, 76);
             this.txtDecimal.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtDecimal.Name = "txtDecimal";
             this.txtDecimal.Size = new System.Drawing.Size(148, 28);
             this.txtDecimal.TabIndex = 1;
             // 
+            // label5
+            // 
+            this.label5.Location = new System.Drawing.Point(21, 26);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(567, 47);
+            this.label5.TabIndex = 10;
+            this.label5.Text = "Convert between hex and decimal, or use the button to lookup a Unicode codepoint." +
+    "";
+            // 
             // frmMezerTools
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(640, 506);
-            this.Controls.Add(this.groupBox1);
+            this.ClientSize = new System.Drawing.Size(640, 519);
+            this.Controls.Add(this.gbHexer);
             this.Controls.Add(this.gbColor);
             this.Controls.Add(this.gbClipboard);
             this.Font = new System.Drawing.Font("Tahoma", 10F);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "frmMezerTools";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "MezerTools";
             this.gbClipboard.ResumeLayout(false);
             this.gbClipboard.PerformLayout();
@@ -324,8 +343,8 @@
             this.gbColor.ResumeLayout(false);
             this.gbColor.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbColorPick)).EndInit();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.gbHexer.ResumeLayout(false);
+            this.gbHexer.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -347,11 +366,12 @@
         private System.Windows.Forms.PictureBox pbColorPick;
         private System.Windows.Forms.Label lblColors;
         private System.Windows.Forms.Label lblProcessInfo;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox gbHexer;
         private System.Windows.Forms.TextBox txtHex;
         private System.Windows.Forms.Button btnUnicode;
         private System.Windows.Forms.TextBox txtDecimal;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label5;
     }
 }

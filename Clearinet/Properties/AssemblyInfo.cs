@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.2.6")]
+[assembly: AssemblyVersion("0.0.2.7")]
 
 // Selected Release Version History
 // v0.0.2.6 - Oct 26-2026 - The one with all the "26" - Add Timeline, MezerTools, Add ContextAction, ToolsAction to script, Add KeepOnly, Log formatting via !/_ prefix, Enhance QuickExec, Performance, 
