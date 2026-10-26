@@ -178,11 +178,22 @@ namespace Clearinet
                 case Keys.A | Keys.Control:
                     if (TextLength == 0)
                     {
-                        CApp.UI.lvExchanges.SelectAll(); // Convenience. 
+                        CApp.UI.lvExchanges.SelectAll(); // Convenience: If empty, Ctrl+A should select all Exchanges. 
                         return true;
                     }
                     break;
-
+                case Keys.Control | Keys.Shift | Keys.Delete:
+                    // If user confirms, wipe all history entries.
+                    if (DialogResult.Yes == MessageBox.Show("Are you sure you want to wipe all QuickExec history?", "Confirm Wipe",
+                                                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2))
+                        _history.Clear();
+                    return true;
+                case Keys.Control | Keys.Delete:
+                    var sHistoryToWipe = Text;
+                    // Wipe any history entries matching the current text.
+                    _history.RemoveAll(s => s.OICEquals(sHistoryToWipe));
+                    Clear();
+                    return true;
                 case Keys.Escape:
                     if (TextLength > 0)
                     {
