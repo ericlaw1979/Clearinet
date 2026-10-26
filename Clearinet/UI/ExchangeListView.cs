@@ -125,11 +125,15 @@ namespace Clearinet
             if (Items.Count == 0) return true;
             if (!IsHandleCreated) return false;
 
-            ListViewItem topItem = TopItem;
-            if (topItem == null) return false;
-
-            int itemsPerPage = Win32ListViewAPI.SendMessage(Handle, Win32ListViewAPI.LVM_GETCOUNTPERPAGE, IntPtr.Zero, IntPtr.Zero).ToInt32();
-            return topItem.Index + itemsPerPage >= Items.Count;
+            /* TODO: Decide what best approach is: using TopItem+CountPerPage, or by using GetScrollInfo
+             * https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getscrollinfo
+             * 
+             ListViewItem topItem = TopItem;
+             if (null == topItem) return true;
+             // Issue: We could probably cache this until the control resizes.
+             int itemsPerPage = Win32ListViewAPI.SendMessage(Handle, Win32ListViewAPI.LVM_GETCOUNTPERPAGE, IntPtr.Zero, IntPtr.Zero).ToInt32();
+             return topItem.Index + itemsPerPage >= Items.Count /* -2 (tolerance) */
+            return Win32UI.IsScrolledToBottom(this);
         }
 
         private void ExchangeListView_ItemDrag(object sender, ItemDragEventArgs e)

@@ -118,15 +118,26 @@ namespace Clearinet
 
         internal static bool IsScrolledToBottom(RichTextBox textBox)
         {
-            if ((GetWindowLong(textBox.Handle, -16 /* GWL_STYLE */) & 0x00200000 /* WS_VSCROLL */) == 0) return true;
+            // Rich edit's SB_BOTTOM can stop one pixel short of the inclusive scrollbar limit.
+            return IsScrolledToBottom(textBox.Handle, 1 + 10 /*loose*/);
+        }
+
+        internal static bool IsScrolledToBottom(ListView listView)
+        {
+            return IsScrolledToBottom(listView.Handle, 0 + 10 /*loose*/);
+        }
+
+        private static bool IsScrolledToBottom(IntPtr handle, int bottomTolerance)
+        {
+            if ((GetWindowLong(handle, -16 /* GWL_STYLE */) & 0x00200000 /* WS_VSCROLL */) == 0) return true;
 
             var info = new SCROLLINFO { cbSize = Marshal.SizeOf(typeof(SCROLLINFO)), fMask = 7 };
-            if (!GetScrollInfo(textBox.Handle, 1 /* SB_VERT */, ref info))
+            if (!GetScrollInfo(handle, 1 /* SB_VERT */, ref info))
             {
                 throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
             }
-            // Rich edit's SB_BOTTOM can stop one pixel short of the inclusive scrollbar limit.
-            return info.nPos >= info.nMax - (int)info.nPage;
+            long bottom = Math.Max((long)info.nMin, (long)info.nMax - Math.Max((long)info.nPage - 1, 0));
+            return info.nPos >= bottom - bottomTolerance;
         }
 
         internal static Point GetScrollPosition(RichTextBox textBox)
@@ -145,6 +156,11 @@ namespace Clearinet
         {
             SendMessage(textBox.Handle, 0x0115 /* WM_VSCROLL */, (IntPtr)7 /* SB_BOTTOM */, IntPtr.Zero);
         }
+
+        internal static void ScrollToBottom(ListView lv)
+        {
+            SendMessage(lv.Handle, 0x0115 /* WM_VSCROLL */, (IntPtr)7 /* SB_BOTTOM */, IntPtr.Zero);
+        }
     }
 
     internal static class Win32ListViewAPI
@@ -157,7 +173,6 @@ namespace Clearinet
 
         const int LVS_EX_BORDERSELECT = 0x8000;
         const int LVM_SETEXTENDEDLISTVIEWSTYLE = 0x1036;
-
 
         private const int LVM_FIRST = 0x1000;
         public const int LVM_GETHEADER = LVM_FIRST + 31;

@@ -1215,11 +1215,12 @@ namespace Clearinet
             if (bWasPreviouslyAtBottom &&
                 CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true))
             {
-                int iLatest = this.lvExchanges.Items.Count - 1;
+                Win32UI.ScrollToBottom(lvExchanges);
+                /*int iLatest = this.lvExchanges.Items.Count - 1;
                 if (iLatest > -1)
                 {
                     lvExchanges.EnsureVisible(iLatest);
-                }
+                }*/
             }
 
             // TODO: Where should this method live? CApp.OnExchangesAdded?.Invoke(this, EventArgs.Empty);

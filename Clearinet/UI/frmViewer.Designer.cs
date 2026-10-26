@@ -137,6 +137,7 @@
             this.tstxtLookup = new System.Windows.Forms.ToolStripTextBox();
             this.tslVersion = new System.Windows.Forms.ToolStripLabel();
             this.tsbScreenshot = new System.Windows.Forms.ToolStripButton();
+            this.tsddbKeepOnly = new System.Windows.Forms.ToolStripDropDownButton();
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
@@ -197,7 +198,6 @@
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.tsddbKeepOnly = new System.Windows.Forms.ToolStripDropDownButton();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -1102,6 +1102,12 @@
             this.tsbScreenshot.ToolTipText = "Store Screenshot";
             this.tsbScreenshot.Click += new System.EventHandler(this.tsbScreenshot_Click);
             // 
+            // tsddbKeepOnly
+            // 
+            this.tsddbKeepOnly.Name = "tsddbKeepOnly";
+            this.tsddbKeepOnly.Size = new System.Drawing.Size(155, 27);
+            this.tsddbKeepOnly.Text = "Keep: All Exchanges";
+            // 
             // pnlTopGoldbar
             // 
             this.pnlTopGoldbar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(222)))));
@@ -1487,7 +1493,7 @@
             this.pageInspectors.Margin = new System.Windows.Forms.Padding(4);
             this.pageInspectors.Name = "pageInspectors";
             this.pageInspectors.Padding = new System.Windows.Forms.Padding(4);
-            this.pageInspectors.Size = new System.Drawing.Size(678, 481);
+            this.pageInspectors.Size = new System.Drawing.Size(678, 480);
             this.pageInspectors.TabIndex = 1;
             this.pageInspectors.Text = "Inspectors";
             this.pageInspectors.UseVisualStyleBackColor = true;
@@ -1501,7 +1507,7 @@
             this.tabsResponse.Multiline = true;
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
-            this.tabsResponse.Size = new System.Drawing.Size(670, 246);
+            this.tabsResponse.Size = new System.Drawing.Size(670, 245);
             this.tabsResponse.TabIndex = 1;
             this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
             // 
@@ -1600,7 +1606,7 @@
             this.pageAutoResponder.Location = new System.Drawing.Point(4, 28);
             this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
             this.pageAutoResponder.Name = "pageAutoResponder";
-            this.pageAutoResponder.Size = new System.Drawing.Size(678, 481);
+            this.pageAutoResponder.Size = new System.Drawing.Size(678, 480);
             this.pageAutoResponder.TabIndex = 2;
             this.pageAutoResponder.Text = "AutoResponder";
             this.pageAutoResponder.UseVisualStyleBackColor = true;
@@ -1621,7 +1627,7 @@
             this.pageComposer.Location = new System.Drawing.Point(4, 28);
             this.pageComposer.Margin = new System.Windows.Forms.Padding(4);
             this.pageComposer.Name = "pageComposer";
-            this.pageComposer.Size = new System.Drawing.Size(678, 481);
+            this.pageComposer.Size = new System.Drawing.Size(678, 480);
             this.pageComposer.TabIndex = 3;
             this.pageComposer.Text = "Composer";
             this.pageComposer.UseVisualStyleBackColor = true;
@@ -1633,7 +1639,7 @@
             this.pageLog.Location = new System.Drawing.Point(4, 28);
             this.pageLog.Margin = new System.Windows.Forms.Padding(4);
             this.pageLog.Name = "pageLog";
-            this.pageLog.Size = new System.Drawing.Size(678, 481);
+            this.pageLog.Size = new System.Drawing.Size(678, 480);
             this.pageLog.TabIndex = 4;
             this.pageLog.Text = "Log";
             this.pageLog.UseVisualStyleBackColor = true;
@@ -1647,7 +1653,7 @@
             this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
             this.rtbLog.Name = "rtbLog";
             this.rtbLog.ReadOnly = true;
-            this.rtbLog.Size = new System.Drawing.Size(678, 454);
+            this.rtbLog.Size = new System.Drawing.Size(678, 453);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
             this.rtbLog.WordWrap = false;
@@ -1658,7 +1664,7 @@
             this.txtLogSearch.AccessibleName = "Search log";
             this.txtLogSearch.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtLogSearch.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txtLogSearch.Location = new System.Drawing.Point(0, 454);
+            this.txtLogSearch.Location = new System.Drawing.Point(0, 453);
             this.txtLogSearch.Name = "txtLogSearch";
             this.txtLogSearch.Size = new System.Drawing.Size(678, 27);
             this.txtLogSearch.TabIndex = 1;
@@ -1679,12 +1685,6 @@
             this.splitterMain.Size = new System.Drawing.Size(4, 512);
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
-            // 
-            // tsddbKeepOnly
-            // 
-            this.tsddbKeepOnly.Name = "tsddbKeepOnly";
-            this.tsddbKeepOnly.Size = new System.Drawing.Size(89, 27);
-            this.tsddbKeepOnly.Text = "Keep: All Exchanges";
             // 
             // frmViewer
             // 
