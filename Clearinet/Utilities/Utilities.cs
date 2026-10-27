@@ -874,5 +874,10 @@ namespace Clearinet
                 return defaultColor;
             }
         }
+
+        internal static string DescribeException(Exception eX)
+        {
+            return $"{eX.GetType().Name}: {eX.Message}\n{eX.StackTrace}\n";
+        }
     }
 }

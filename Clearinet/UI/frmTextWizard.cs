@@ -207,7 +207,8 @@ namespace Clearinet
                                 catch (Exception eX)
                                 {
                                     arrLatestOutput = Utilities.UrlDecodeToBytes(sText, encodingInput);
-                                    sOutput = Utilities.UrlDecode(sText, encodingInput);
+                                    sOutput = Utilities.UrlDecode(sText, encodingInput) +
+                                        "==================" + Utilities.DescribeException(eX);
                                 }
                             }
                         }

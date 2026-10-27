@@ -82,6 +82,14 @@ namespace Clearinet
                 var sSwitch = sArg.Substring(1);
                 if (!sSwitch.HasText()) continue;
 
+                if (sSwitch.OICEquals("-uncleanShutdown"))
+                {
+                    // TODO: Implement cleanup operations for unclean shutdowns. This is a placeholder for future functionality.
+                    MessageBox.Show("Clearinet was not properly exited when Windows restarted.\n"
+                        + "Performing cleanup operations...", "TODO:NYI");
+                    return;
+                }
+
                 if (sSwitch.IndexOf("port:", StringComparison.OrdinalIgnoreCase) == 1)
                 {
                     if (int.TryParse(sArg.Substring(sArg.IndexOf("port:", StringComparison.OrdinalIgnoreCase) + 5),

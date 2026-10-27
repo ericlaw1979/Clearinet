@@ -198,7 +198,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell -Command "$destDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Clearinet\Extensions'; if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }; Copy-Item -Path '$(TargetPath)', '$(TargetDir)Be.Windows.Forms.HexBox.dll', '$(TargetDir)Microsoft.Web.WebView2.Core.dll', '$(TargetDir)Microsoft.Web.WebView2.WinForms.dll' -Destination $destDir -Force; Copy-Item -Path '$(TargetDir)runtimes' -Destination $destDir -Recurse -Force"</PostBuildEvent>
+    <PostBuildEvent>powershell -Command "$destDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Clearinet\Extensions'; if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }; Copy-Item -Path '$(TargetPath)',  '$(TargetDir)Microsoft.Web.WebView2.Core.dll', '$(TargetDir)Microsoft.Web.WebView2.WinForms.dll' -Destination $destDir -Force; Copy-Item -Path '$(TargetDir)runtimes' -Destination $destDir -Recurse -Force"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\Clearinet\packages\Microsoft.Web.WebView2.1.0.4258.31\build\Microsoft.Web.WebView2.targets" Condition="Exists('..\Clearinet\packages\Microsoft.Web.WebView2.1.0.4258.31\build\Microsoft.Web.WebView2.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
