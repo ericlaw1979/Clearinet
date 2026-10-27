@@ -270,7 +270,7 @@ namespace Clearinet
                 }
 
                 {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUIColumn), false) as BindUIButton;
+                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUIButton), false) as BindUIButton;
                     if (null != b) { doBindUIButton(mi, b); continue; }
                 }
 
