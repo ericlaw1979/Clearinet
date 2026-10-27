@@ -10,15 +10,11 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 
-// TODO: May need to use the BetterTreeView control to avoid issues with
-// hangs on tooltips for modern OS? Or maybe that's been fixed in the intervening years?
-// If so, we should remove the BetterTreeView control from the project and references to it.
-
 namespace Extensions
 {
     public sealed class DataView : UserControl
     {
-        readonly TreeView tree;
+        readonly BetterTreeView tree;
         readonly TextBox search;
         readonly Label searchStatus;
         readonly Label message;
@@ -29,7 +25,7 @@ namespace Extensions
 
         public DataView()
         {
-            tree = new TreeView { Dock = DockStyle.Fill, HideSelection = false, BackColor = CONFIG.colorDisabledEdit };
+            tree = new BetterTreeView { Dock = DockStyle.Fill, HideSelection = false, BackColor = CONFIG.colorDisabledEdit };
             message = new Label { Dock = DockStyle.Fill, Padding = new Padding(12) };
             search = new TextBox { Dock = DockStyle.Fill, AccessibleName = "Find nodes", BorderStyle = BorderStyle.FixedSingle };
             searchStatus = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(6) };
