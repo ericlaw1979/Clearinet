@@ -32,11 +32,16 @@ namespace Clearinet.CaptureEngine
         /// where the target is a servicehost or UWP app process.
         /// </summary>
         private readonly Dictionary<uint, string> _processNames = new Dictionary<uint, string>();
-        private readonly Dictionary<EndpointKey, uint> _localOwners = new Dictionary<EndpointKey, uint>();
-        private byte[] _ipv4Buffer = Array.Empty<byte>();
-        private byte[] _ipv6Buffer = Array.Empty<byte>();
-        private bool _hasSnapshot;
-        private long _tcpTableFetchedAt;
+        private readonly TcpTableSnapshot _ipv4Table = new TcpTableSnapshot();
+        private readonly TcpTableSnapshot _ipv6Table = new TcpTableSnapshot();
+
+        private sealed class TcpTableSnapshot
+        {
+            internal readonly Dictionary<EndpointKey, uint> Owners = new Dictionary<EndpointKey, uint>();
+            internal byte[] Buffer = Array.Empty<byte>();
+            internal bool HasSnapshot;
+            internal long FetchedAt;
+        }
 
         public MapSocketToProcess() : this(TimeSpan.FromSeconds(10)) { }
 
@@ -55,9 +60,10 @@ namespace Clearinet.CaptureEngine
         /// <summary>
         /// Returns processname:PID for the local client identified by an inbound connection's RemoteEndPoint.
         /// Matches only the TCP table's local endpoint; never attributes the connection to its accepting server.
-        /// Returns null for an unknown, exited, or ambiguous owner, including clients absent from the cached snapshot.
-        /// Reuse this instance to cache TCP ownership and process names for the constructor-specified duration.
-        /// A zero duration disables caching;
+        /// Returns null for an unknown, exited, or ambiguous owner.
+        /// Reuse this instance to cache TCP ownership by address family and process names for the constructor-specified duration.
+        /// A missing endpoint in a cached table triggers one refresh of that address family's table and a retry.
+        /// IPv4-mapped IPv6 endpoints use the IPv4 table. A zero duration disables caching.
         /// </summary>
         public string MapSocketToOriginatingProcess(IPEndPoint endpoint)
         {
@@ -68,17 +74,21 @@ namespace Clearinet.CaptureEngine
 
             lock (_syncRoot)
             {
-                EnsureTcpTableIsCurrent();
-
                 IPAddress address = endpoint.Address;
+                if (address.IsIPv4MappedToIPv6) address = address.MapToIPv4();
                 bool isIpv6 = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6;
+                TcpTableSnapshot table = isIpv6 ? _ipv6Table : _ipv4Table;
+                bool refreshed = EnsureTcpTableIsCurrent(table, isIpv6);
                 EndpointKey key = new EndpointKey(address.GetAddressBytes(), 0, isIpv6,
                     isIpv6 ? (uint)address.ScopeId : 0, endpoint.Port);
                 uint processId;
-                if (!_localOwners.TryGetValue(key, out processId) || processId == AmbiguousOwner)
+                if (!table.Owners.TryGetValue(key, out processId))
                 {
-                    return null;
+                    if (refreshed) return null;
+                    EnsureTcpTableIsCurrent(table, isIpv6, true);
+                    if (!table.Owners.TryGetValue(key, out processId)) return null;
                 }
+                if (processId == AmbiguousOwner) return null;
 
                 string processName;
                 if (!_processNames.TryGetValue(processId, out processName))
@@ -106,24 +116,23 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private void EnsureTcpTableIsCurrent()
+        private bool EnsureTcpTableIsCurrent(TcpTableSnapshot table, bool isIpv6, bool forceRefresh = false)
         {
-            if (_hasSnapshot && Stopwatch.GetTimestamp() - _tcpTableFetchedAt < _cacheDurationTicks)
+            if (!forceRefresh && table.HasSnapshot && Stopwatch.GetTimestamp() - table.FetchedAt < _cacheDurationTicks)
             {
-                return;
+                return false;
             }
 
             // TODO: Consider using GetExtendedTcpTable with the TCP_TABLE_OWNER_MODULE_ALL
-            int ipv4RowCount = ReadTcpTable(ref _ipv4Buffer, AfInet, 24);
-            int ipv6RowCount = ReadTcpTable(ref _ipv6Buffer, AfInet6, 56);
+            int rowCount = ReadTcpTable(ref table.Buffer, isIpv6 ? AfInet6 : AfInet, isIpv6 ? 56 : 24);
 
-            _hasSnapshot = false;
-            _localOwners.Clear();
-            IndexTcpTable(_ipv4Buffer, ipv4RowCount, false);
-            IndexTcpTable(_ipv6Buffer, ipv6RowCount, true);
+            table.HasSnapshot = false;
+            table.Owners.Clear();
+            IndexTcpTable(table.Owners, table.Buffer, rowCount, isIpv6);
             _processNames.Clear();
-            _tcpTableFetchedAt = Stopwatch.GetTimestamp();
-            _hasSnapshot = true;
+            table.FetchedAt = Stopwatch.GetTimestamp();
+            table.HasSnapshot = true;
+            return true;
         }
 
         private static int ReadTcpTable(ref byte[] buffer, int addressFamily, int rowSize)
@@ -171,7 +180,7 @@ namespace Clearinet.CaptureEngine
             throw new Win32Exception((int)ErrorInsufficientBuffer, "The TCP table changed repeatedly while it was being read.");
         }
 
-        private void IndexTcpTable(byte[] buffer, int rowCount, bool isIpv6)
+        private static void IndexTcpTable(Dictionary<EndpointKey, uint> owners, byte[] buffer, int rowCount, bool isIpv6)
         {
             int rowSize = isIpv6 ? 56 : 24;
             for (int index = 0, offset = sizeof(uint); index < rowCount; index++, offset += rowSize)
@@ -190,7 +199,7 @@ namespace Clearinet.CaptureEngine
                     processId = BitConverter.ToUInt32(buffer, offset + 20);
                 }
 
-                AddOwner(_localOwners, localEndpoint, processId);
+                AddOwner(owners, localEndpoint, processId);
             }
         }
 
