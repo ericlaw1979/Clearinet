@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -786,6 +787,27 @@ namespace Clearinet
         }
 
 
+        // TODO: This is a hack used by the facade. Get rid of it.
+        /// <summary>
+        /// Updates a capture-engine facade without executing the request-processing state machine.
+        /// Call on the UI thread with independently owned headers and body arrays.
+        /// </summary>
+        public void UpdateFromCapture(HTTPRequestHeaders request, byte[] requestBody,
+            HTTPResponseHeaders response, byte[] responseBody, ExchangeFlags flags, ExchangeState capturedState)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (!Enum.IsDefined(typeof(ExchangeState), capturedState))
+                throw new ArgumentOutOfRangeException(nameof(capturedState));
+            EnsureID();
+            RequestHeaders = request;
+            RequestBody = requestBody ?? Array.Empty<byte>();
+            ResponseHeaders = response;
+            ResponseBody = responseBody ?? Array.Empty<byte>();
+            BitFlags = flags;
+            _state = capturedState;
+            CApp.UI?.UpdateViewItem(this);
+        }
+
         public string RequestMethod
         {
             get
@@ -826,7 +848,10 @@ namespace Clearinet
         {
             return this.RequestMethod.OICEquals(sTestFor);
         }
-
+        internal bool HTTPMethodIs(params string[] sMethods)
+        {
+            return sMethods.Any(m => this.RequestMethod.OICEquals(m));
+        }
 
         public bool WriteMetadataToStream(Stream strmMetadata)
         {
@@ -950,7 +975,6 @@ namespace Clearinet
                 sTarget.Write(ResponseBody, 0, ResponseBody.Length);
             }
         }
-
     }
 
 

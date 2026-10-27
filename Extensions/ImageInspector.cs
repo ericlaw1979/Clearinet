@@ -113,7 +113,9 @@ namespace Extensions
             oView.pbImage.Cursor = Cursors.Default;
         }
 
-        public override int ScoreForContentType(string sMIME) => (sMIME.OICStartsWith("image/") ? 90 : -1);
+        public override int ScoreForContentType(string sMIME) => (
+            // I can't handle AVIF yet.
+            sMIME.OICStartsWith("image/avif") ? 0 : sMIME.OICStartsWith("image/") ? 90 : -1);
 
         public override int GetOrder() => 200;
     }

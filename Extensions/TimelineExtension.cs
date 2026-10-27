@@ -251,7 +251,7 @@ namespace Extensions
         {
             float barWidth = Math.Max(2f, barRight - barLeft);
             float actualBarRight = barLeft + barWidth;
-            Color barColor = CONFIG.GetResponseColor(row.Exchange);
+            Color barColor = CONFIG.GetExchangeColor(row.Exchange);
 
             using (var barBrush = new SolidBrush(barColor))
             using (var barPen = new Pen(barColor, 1f))

@@ -13,13 +13,13 @@ namespace Clearinet
     /// Configuration class for the Clearinet application. This class contains static properties 
     /// and methods to manage application settings and configurations. 
     /// 
-    /// TODO: Generally, most of these should be removed in favor of using the Preferences system,
+    /// TODO: Generally, many of these should be removed in favor of using the Preferences system,
     /// but they exist here for Fiddler compatibility to reduce the burden of porting extensions.
     /// </summary>
     public static class CONFIG
     {
         internal static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
-        internal static readonly Color COLOR_DATA_RESPONSE = Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");
+        internal static readonly Color COLOR_DATA_RESPONSE = Color.DeepSkyBlue; // Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
         // This-instance-only override settings (set by command line)
@@ -331,10 +331,16 @@ namespace Clearinet
             CApp.alert("not yet implemented");
         }
 
-        public static Color GetResponseColor(Exchange exchange)
+        /// <summary>
+        /// The Exchange coloring is mostly based on the response MIME type, although
+        /// the request method is also used to remove less interesting exchanges.
+        /// </summary>
+        /// <param name="exchange"></param>
+        /// <returns></returns>
+        public static Color GetExchangeColor(Exchange exchange)
         {
             string mediaType = exchange == null ? string.Empty : exchange.MediaType;
-            if (exchange.HTTPMethodIs("CONNECT"))
+            if (exchange.HTTPMethodIs("CONNECT", "HEAD"))
             {
                 return Color.Gray;
             }

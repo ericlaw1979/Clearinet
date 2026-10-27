@@ -1186,30 +1186,53 @@ namespace Clearinet
             AddFormatting(lvi, xc);
         }
 
-        private void addExchangesToListView(IEnumerable<Exchange> exchanges)
-        {
-            if (CApp.isClosing) return;
-            bool bAtBottom = lvExchanges.IsScrolledToBottom();
+        private bool _updatingExchangeBatch;
 
+        /// <summary>
+        /// Applies a bounded batch of capture updates on the UI thread, sorting and scrolling once.
+        /// </summary>
+        public void RunExchangeUpdateBatch(Action update)
+        {
+            if (update == null) throw new ArgumentNullException(nameof(update));
+            if (InvokeRequired) throw new InvalidOperationException("Exchange batches must run on the UI thread.");
+            if (CApp.isClosing) return;
+            if (_updatingExchangeBatch)
+            {
+                update();
+                return;
+            }
+            bool bAtBottom = lvExchanges.IsScrolledToBottom();
             var sorter = lvExchanges.ListViewItemSorter;
+            _updatingExchangeBatch = true;
             lvExchanges.BeginUpdate();
             try
             {
                 lvExchanges.ListViewItemSorter = null;
-                foreach (Exchange exchange in exchanges)
-                {
-                    addExchangeToListView(exchange);
-                }
+                update();
             }
             finally
             {
                 // Flush deferred inserts before restoring sorting.
-                // TODO: Handle KeepOnly
-                // int TrimTo = CApp.Prefs.GetInt32Pref("", 0);
-                lvExchanges.EndUpdate();
-                lvExchanges.ListViewItemSorter = sorter;
+                try
+                {
+                    lvExchanges.EndUpdate();
+                }
+                finally
+                {
+                    lvExchanges.ListViewItemSorter = sorter;
+                    _updatingExchangeBatch = false;
+                }
+                ScheduleExchangeTrim();
+                onExchangeAdded(bAtBottom);
             }
-            onExchangeAdded(bAtBottom);
+        }
+
+        private void addExchangesToListView(IEnumerable<Exchange> exchanges)
+        {
+            RunExchangeUpdateBatch(() =>
+            {
+                foreach (Exchange exchange in exchanges) addExchangeToListView(exchange);
+            });
         }
 
         private void onExchangeAdded(bool bWasPreviouslyAtBottom)
@@ -1219,10 +1242,7 @@ namespace Clearinet
             {
                 Win32UI.ScrollToBottom(lvExchanges);
                 /*int iLatest = this.lvExchanges.Items.Count - 1;
-                if (iLatest > -1)
-                {
-                    lvExchanges.EnsureVisible(iLatest);
-                }*/
+                if (iLatest > -1) lvExchanges.EnsureVisible(iLatest); */
             }
 
             // TODO: Where should this method live? CApp.OnExchangesAdded?.Invoke(this, EventArgs.Empty);
@@ -1238,6 +1258,8 @@ namespace Clearinet
                 lvExchanges.Invoke((Action<Exchange>)addExchangeToListView, xc);
                 return;
             }
+            bool bAtBottom = !_updatingExchangeBatch && lvExchanges.IsScrolledToBottom();
+
             ListViewItem lvi = new ListViewItem(xc.id.ToString())
             {
                 Tag = xc
@@ -1261,7 +1283,15 @@ namespace Clearinet
             AddFormatting(lvi, xc);
             lvExchanges.Items.Add(lvi);
 
-            // TODO: deal with delayed scroll/trim
+            if (!_updatingExchangeBatch)
+            {
+                ScheduleExchangeTrim();
+                onExchangeAdded(bAtBottom);
+            }
+        }
+
+        private void ScheduleExchangeTrim()
+        {
             int iTrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only", 0);
             if (iTrimTo > 0 && lvExchanges.Items.Count > iTrimTo)
             {
@@ -1270,7 +1300,6 @@ namespace Clearinet
                     CApp.UIInvokeAsync(() => lvExchanges.Tail(iTrimTo));
                 });
             }
-
         }
 
         private void AddFormatting(ListViewItem lvi, Exchange xc)
@@ -1298,7 +1327,7 @@ namespace Clearinet
                 }
                 else if (xc.bHasResponse)
                 {
-                    lvi.ForeColor = CONFIG.GetResponseColor(xc);
+                    lvi.ForeColor = CONFIG.GetExchangeColor(xc);
                 }
             }
             if (xc["ui-strikeout"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
