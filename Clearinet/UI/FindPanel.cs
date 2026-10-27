@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Windows.Forms;
 
@@ -85,20 +86,20 @@ namespace Clearinet.UI
                     }
                     if (bRequestBody && exch.RequestBody.HasData())
                     {
-                        ++iMatchCount;
                         string sBody = cbDecode.Checked ? exch.GetRequestBodyAsString() : Encoding.UTF8.GetString(exch.RequestBody);
                         if (sBody.OICContains(sSearchFor))
                         {
+                            ++iMatchCount;
                             _MarkFound(exch, bSelectMatches);
                             continue;
                         }
                     }
                     if (bResponseBody && exch.ResponseBody.HasData())
                     {
-                        ++iMatchCount;
                         string sBody = cbDecode.Checked ? exch.GetResponseBodyAsString() : Encoding.UTF8.GetString(exch.ResponseBody);
                         if (sBody.OICContains(sSearchFor))
                         {
+                            ++iMatchCount;
                             _MarkFound(exch, bSelectMatches);
                             continue;
                         }
@@ -109,6 +110,7 @@ namespace Clearinet.UI
                 }
                 if (iMatchCount > 0 && bSelectMatches)
                 {
+                    Debug.Assert(CApp.UI.lvExchanges.SelectedCount > 0);
                     CApp.UI.lvExchanges.EnsureVisible(CApp.UI.lvExchanges.SelectedIndices[0]);
                     CApp.UI.lvExchanges.Focus();
                 }

@@ -1522,6 +1522,7 @@ namespace Clearinet
                 ResumeLayout();
             }
             if (sFindText.HasText()) CApp.oFindPanel.txtToFind.Text = sFindText;
+            CApp.oFindPanel.txtToFind.SelectAll();
             CApp.oFindPanel.txtToFind.Focus();
         }
 
