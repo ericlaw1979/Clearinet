@@ -312,15 +312,34 @@ namespace Clearinet
             if (sFind.OICStartsWith("exact:"))
             {
                 sFind = sFind.Substring(6);
-                rtbFindOption = RichTextBoxFinds.MatchCase;
+                rtbFindOption |= RichTextBoxFinds.MatchCase;
             }
+
+            /* Should we offer a way to find-previous? Need to change the offset to start if so.
+             * if (Control.ModifierKeys.HasFlag(Keys.Shift))
+            {
+                rtbFindOption |= RichTextBoxFinds.Reverse;
+            }*/
 
             if (!bMarkAll)
             {
-                // Easy mode: Find the next match
-                Find(sFind,
-                    Math.Min(SelectionStart + 1, TextLength),  // Start offset
-                    RichTextBoxFinds.None);
+                // Easy mode: Find the next match...
+                var ixStartAt = SelectionStart + 1;
+                var match = Find(sFind,
+                    Math.Min(ixStartAt, TextLength),  // Start offset
+                    rtbFindOption);
+
+                if (match < 0 && ixStartAt > 0)
+                {
+                    match = Find(sFind, 0, rtbFindOption);
+                }
+                if (match < 0)
+                {
+                    CApp.UI.SetStatusText("No matching text found.");
+                    return;
+                }
+                CApp.UI.SetStatusText("Log match found. Press Enter to find the next match.");
+                return;
             }
 
             // Hard mode: Highlight all matches
@@ -358,6 +377,7 @@ namespace Clearinet
             finally
             {
                 LockWindowUpdate(IntPtr.Zero);
+                Refresh();
             }
         }
     }

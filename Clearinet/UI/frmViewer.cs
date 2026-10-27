@@ -1829,6 +1829,12 @@ namespace Clearinet
                 return;
             }
 
+            if (e.KeyData == Keys.Space)
+            {
+                GetFirstSelectedExchange()?.ViewItem?.EnsureVisible();
+                return;
+            }
+
             if (e.Modifiers == Keys.Alt)
             {
                 if (e.KeyCode == Keys.Enter)
@@ -2374,7 +2380,15 @@ namespace Clearinet
             if (e.KeyCode != Keys.Enter) return;
             e.SuppressKeyPress = e.Handled = true;
 
+            // TODO: Do we need any of this code, or can we just use the .Search we added to RichTextBoxv5?
+            RichTextBoxFinds rtbFindOption = RichTextBoxFinds.None;
             string searchText = txtLogSearch.Text;
+            if (searchText.OICStartsWith("exact:"))
+            {
+                searchText = searchText.Substring(6);
+                rtbFindOption |= RichTextBoxFinds.MatchCase;
+            }
+
             if (searchText.Length == 0)
             {
                 SetStatusText("Enter text to search the log.");
@@ -2382,17 +2396,16 @@ namespace Clearinet
             }
 
             int start = rtbLog.SelectionStart + rtbLog.SelectionLength;
-            int match = rtbLog.Find(searchText, start, RichTextBoxFinds.None);
+            int match = rtbLog.Find(searchText, start, rtbFindOption);
             if (match < 0 && start > 0)
             {
-                match = rtbLog.Find(searchText, 0, RichTextBoxFinds.None);
+                match = rtbLog.Find(searchText, 0, rtbFindOption);
             }
             if (match < 0)
             {
                 SetStatusText("No matching text found in the log.");
                 return;
             }
-            rtbLog.ScrollToCaret();
             SetStatusText("Log match found. Press Enter to find the next match.");
         }
 
