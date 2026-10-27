@@ -314,6 +314,11 @@ namespace Clearinet
                 sFind = sFind.Substring(6);
                 rtbFindOption |= RichTextBoxFinds.MatchCase;
             }
+            if (sFind.OICStartsWith("regex:"))
+            {
+                sFind = sFind.Substring(6);
+                CApp.UI.SetStatusText("TODO: NYI - REGEX search is not yet implemented.");
+            }
 
             /* Should we offer a way to find-previous? Need to change the offset to start if so.
              * if (Control.ModifierKeys.HasFlag(Keys.Shift))

@@ -2388,6 +2388,11 @@ namespace Clearinet
                 searchText = searchText.Substring(6);
                 rtbFindOption |= RichTextBoxFinds.MatchCase;
             }
+            if (searchText.OICStartsWith("regex:"))
+            {
+                searchText = searchText.Substring(6);
+                CApp.UI.SetStatusText("TODO: NYI - REGEX search is not yet implemented.");
+            }
 
             if (searchText.Length == 0)
             {

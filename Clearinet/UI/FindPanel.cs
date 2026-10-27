@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Clearinet.UI
@@ -11,7 +12,7 @@ namespace Clearinet.UI
         {
             InitializeComponent();
             txtToFind.Text = CApp.Prefs.GetStringPref("app.find.lastfind.text.ephemeral", string.Empty);
-            Win32UI.SetCueText(txtToFind, "Plaintext to find, or REGEX:");
+            Win32UI.SetCueText(txtToFind, "Plaintext to find, EXACT: or REGEX:");
             ccbxWhere.CheckItems.AddRange(new object[] {
                 "URLs", "ExchangeListbox Columns", "Request Headers", "Request Body", "Response Headers", "Response Body"});
             // cbxFindIn.SelectedIndex = CApp.Prefs.GetInt32Pref("app.find.lastfind.findin", 0);
@@ -50,12 +51,28 @@ namespace Clearinet.UI
                     return;
                 }
 
+                Func<string, bool> isMatch;
+                if (sSearchFor.OICStartsWith("exact:"))
+                {
+                    sSearchFor = sSearchFor.Substring(6);
+                    isMatch = text => text.IndexOf(sSearchFor, StringComparison.Ordinal) >= 0;
+                }
+                else if (sSearchFor.OICStartsWith("regex:"))
+                {
+                    var regex = new Regex(sSearchFor.Substring(6), RegexOptions.None, TimeSpan.FromSeconds(1));
+                    isMatch = regex.IsMatch;
+                }
+                else
+                {
+                    isMatch = text => text.OICContains(sSearchFor);
+                }
+
                 bool bDecode = cbDecode.Checked;
                 if (bSelectMatches) CApp.UI.lvExchanges.SelectedItems.Clear();
                 var iMatchCount = 0;
                 foreach (Exchange exch in CApp.UI.GetAllExchanges())
                 {
-                    if (bURLs && exch.fullUrl.OICContains(sSearchFor))
+                    if (bURLs && isMatch(exch.fullUrl))
                     {
                         ++iMatchCount;
                         _MarkFound(exch, bSelectMatches);
@@ -65,20 +82,20 @@ namespace Clearinet.UI
                     {
                         string sAllCols = _GetAllColumnText(exch.ViewItem);
 
-                        if (sAllCols.OICContains(sSearchFor))
+                        if (isMatch(sAllCols))
                         {
                             ++iMatchCount;
                             _MarkFound(exch, bSelectMatches);
                             continue;
                         }
                     }
-                    if (bRequestHeaders && true == exch.RequestHeaders?.ToString().OICContains(sSearchFor))
+                    if (bRequestHeaders && exch.RequestHeaders != null && isMatch(exch.RequestHeaders.ToString()))
                     {
                         ++iMatchCount;
                         _MarkFound(exch, bSelectMatches);
                         continue;
                     }
-                    if (bResponseHeaders && true == exch.ResponseHeaders?.ToString().OICContains(sSearchFor))
+                    if (bResponseHeaders && exch.ResponseHeaders != null && isMatch(exch.ResponseHeaders.ToString()))
                     {
                         ++iMatchCount;
                         _MarkFound(exch, bSelectMatches);
@@ -87,7 +104,7 @@ namespace Clearinet.UI
                     if (bRequestBody && exch.RequestBody.HasData())
                     {
                         string sBody = cbDecode.Checked ? exch.GetRequestBodyAsString() : Encoding.UTF8.GetString(exch.RequestBody);
-                        if (sBody.OICContains(sSearchFor))
+                        if (isMatch(sBody))
                         {
                             ++iMatchCount;
                             _MarkFound(exch, bSelectMatches);
@@ -97,7 +114,7 @@ namespace Clearinet.UI
                     if (bResponseBody && exch.ResponseBody.HasData())
                     {
                         string sBody = cbDecode.Checked ? exch.GetResponseBodyAsString() : Encoding.UTF8.GetString(exch.ResponseBody);
-                        if (sBody.OICContains(sSearchFor))
+                        if (isMatch(sBody))
                         {
                             ++iMatchCount;
                             _MarkFound(exch, bSelectMatches);
