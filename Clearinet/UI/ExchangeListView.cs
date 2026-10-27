@@ -120,6 +120,10 @@ namespace Clearinet
             return arrExchanges;
         }
 
+        // TODO: I *think* what I really want to do is keep a simple boolean flag that tracks
+        // whether the user has scrolled up at all (clearing that flag if they scroll down to the bottom).
+        // That way, scrolling up becomes a simple "Don't keep autoscrolling" flag and we don't need to worry
+        // about the minutia of painting, delayed additions, etc.
         public bool IsScrolledToBottom()
         {
             if (Items.Count == 0) return true;

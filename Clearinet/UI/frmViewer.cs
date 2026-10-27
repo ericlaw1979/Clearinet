@@ -2325,13 +2325,14 @@ namespace Clearinet
         {
             Debug.Assert(!CApp.UI.InvokeRequired);
             int cSelected = lvExchanges.SelectedCount;
+            var sBottomMarker = (lvExchanges.IsScrolledToBottom() ? "*" : "^");  //TODO: Remove
             if (cSelected < 1)
             {
-                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{(lvExchanges.IsScrolledToBottom() ? "*" : string.Empty)}";
+                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{sBottomMarker}";
             }
             else
             {
-                tslSelCount.Text = $"{cSelected:N0} / {lvExchanges.TotalCount:N0}";
+                tslSelCount.Text = $"{sBottomMarker}{cSelected:N0} / {lvExchanges.TotalCount:N0}";
             }
         }
 

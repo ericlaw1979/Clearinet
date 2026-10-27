@@ -875,7 +875,7 @@ namespace Clearinet
             }
         }
 
-        internal static string DescribeException(Exception eX)
+        public static string DescribeException(Exception eX)
         {
             return $"{eX.GetType().Name}: {eX.Message}\n{eX.StackTrace}\n";
         }
