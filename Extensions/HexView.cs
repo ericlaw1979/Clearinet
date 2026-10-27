@@ -100,6 +100,10 @@ namespace Extensions
                 Buffer.BlockCopy(bodyBytes, 0, bytes, headerBytes.Length, bodyBytes.Length);
                 hexBox.HeaderEndOffset = headerBytes.Length - 1;
             }
+            else
+            {
+                hexBox.HeaderEndOffset = -1;
+            }
             hexBox.ByteProvider = new DynamicByteProvider(bytes);
             UpdateOffsetAndSelection();
         }
