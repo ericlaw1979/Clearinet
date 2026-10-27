@@ -360,8 +360,7 @@ namespace Clearinet
                 return Color.Purple;
             }
 
-            if (mediaType.OICContains("json") ||
-                mediaType.OICContains("xml"))
+            if (mediaType.OICContains("json", "xml", "protobuf", "msgpack", "cbor"))
             {
                 return COLOR_DATA_RESPONSE;
             }

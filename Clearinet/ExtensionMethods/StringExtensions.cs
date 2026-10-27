@@ -4,9 +4,18 @@ namespace Clearinet
 {
     public static class StringExtensions
     {
-        public static bool OICContains(this String sIn, String sMatch)
+        public static bool OICContains(this string sIn, String sMatch)
         {
             return (-1 < sIn.IndexOf(sMatch, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static bool OICContains(this string sIs, params string[] sMatch)
+        {
+            for (var i = 0; i < sMatch.Length; i++)
+            {
+                if (sIs.IndexOf(sMatch[i], StringComparison.OrdinalIgnoreCase) > -1) return true;
+            }
+            return false;
         }
 
         public static bool OICEquals(this String sIn, String sMatch)
