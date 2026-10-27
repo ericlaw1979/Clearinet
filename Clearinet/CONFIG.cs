@@ -125,7 +125,7 @@ namespace Clearinet
                     continue;
                 }
 
-                _ShowValidArgs();
+                _ShowValidArgs($"\n\n'{sSwitch}' is unknown.");
             }
         }
 
@@ -209,7 +209,7 @@ namespace Clearinet
             }
         }
 
-        private static void _ShowValidArgs()
+        private static void _ShowValidArgs(string sFooter = "")
         {
             string sValidOptions = "Usage:\n\tclearinet.exe [options] [CaptureToLoad.saz]\n\nOptions:\n\n" +
             "-viewer\t\tOpen a non-proxy 'Viewer' mode\n" +
@@ -217,7 +217,8 @@ namespace Clearinet
             "-noattach\tDo not attach as the system proxy on boot\n" +
             "-noscript\t\tDisable the script engine (for troubleshooting)\n" +
             "-port:####\tUse the specified port to listen\n" +
-            "-?\t\tShow this list\n";
+            "-?\t\tShow this list\n" +
+            sFooter;
 
             MessageBox.Show(sValidOptions, "Clearinet Options");
         }
