@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.Label lblTransform;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmTextWizard));
             this.pnlFill = new System.Windows.Forms.Panel();
             this.txtOutput = new System.Windows.Forms.TextBox();
@@ -41,19 +40,9 @@
             this.lblExplain = new System.Windows.Forms.Label();
             this.txtInput = new System.Windows.Forms.TextBox();
             this.splitInputOutput = new System.Windows.Forms.Splitter();
-            lblTransform = new System.Windows.Forms.Label();
             this.pnlFill.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // lblTransform
-            // 
-            lblTransform.AutoSize = true;
-            lblTransform.Location = new System.Drawing.Point(3, 10);
-            lblTransform.Name = "lblTransform";
-            lblTransform.Size = new System.Drawing.Size(19, 13);
-            lblTransform.TabIndex = 0;
-            lblTransform.Text = "&To";
             // 
             // pnlFill
             // 
@@ -83,7 +72,6 @@
             // panel2
             // 
             this.panel2.Controls.Add(this.cbxOutputTo);
-            this.panel2.Controls.Add(lblTransform);
             this.panel2.Controls.Add(this.btnSetInputFromOutput);
             this.panel2.Controls.Add(this.lnkEncodings);
             this.panel2.Controls.Add(this.cbViewBytes);
@@ -108,17 +96,17 @@
             this.cbxOutputTo.Location = new System.Drawing.Point(531, 7);
             this.cbxOutputTo.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxOutputTo.Name = "cbxOutputTo";
-            this.cbxOutputTo.Size = new System.Drawing.Size(207, 21);
+            this.cbxOutputTo.Size = new System.Drawing.Size(207, 29);
             this.cbxOutputTo.TabIndex = 3;
             this.cbxOutputTo.SelectedIndexChanged += new System.EventHandler(this.cbxOutputTo_SelectedIndexChanged);
             // 
             // btnSetInputFromOutput
             // 
             this.btnSetInputFromOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSetInputFromOutput.Location = new System.Drawing.Point(756, 6);
+            this.btnSetInputFromOutput.Location = new System.Drawing.Point(756, 4);
             this.btnSetInputFromOutput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnSetInputFromOutput.Name = "btnSetInputFromOutput";
-            this.btnSetInputFromOutput.Size = new System.Drawing.Size(210, 24);
+            this.btnSetInputFromOutput.Size = new System.Drawing.Size(210, 28);
             this.btnSetInputFromOutput.TabIndex = 4;
             this.btnSetInputFromOutput.Text = "Se&nd output to input";
             this.btnSetInputFromOutput.UseVisualStyleBackColor = true;
@@ -129,7 +117,7 @@
             this.lnkEncodings.AutoSize = true;
             this.lnkEncodings.Location = new System.Drawing.Point(397, 10);
             this.lnkEncodings.Name = "lnkEncodings";
-            this.lnkEncodings.Size = new System.Drawing.Size(88, 13);
+            this.lnkEncodings.Size = new System.Drawing.Size(137, 21);
             this.lnkEncodings.TabIndex = 2;
             this.lnkEncodings.TabStop = true;
             this.lnkEncodings.Text = "TODO:Encodings";
@@ -141,7 +129,7 @@
             this.cbViewBytes.Location = new System.Drawing.Point(271, 9);
             this.cbViewBytes.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbViewBytes.Name = "cbViewBytes";
-            this.cbViewBytes.Size = new System.Drawing.Size(78, 17);
+            this.cbViewBytes.Size = new System.Drawing.Size(118, 25);
             this.cbViewBytes.TabIndex = 2;
             this.cbViewBytes.Text = "&View Bytes";
             this.cbViewBytes.UseVisualStyleBackColor = true;
@@ -177,10 +165,10 @@
             "Epoch",
             "JWT Token Decoder",
             "CBOR"});
-            this.cbxTransforms.Location = new System.Drawing.Point(28, 7);
+            this.cbxTransforms.Location = new System.Drawing.Point(16, 6);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";
-            this.cbxTransforms.Size = new System.Drawing.Size(228, 21);
+            this.cbxTransforms.Size = new System.Drawing.Size(228, 29);
             this.cbxTransforms.TabIndex = 1;
             this.cbxTransforms.SelectedIndexChanged += new System.EventHandler(this.cbxTransforms_SelectedIndexChanged);
             // 
@@ -223,7 +211,7 @@
             // 
             // frmTextWizard
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(979, 478);
             this.Controls.Add(this.pnlFill);

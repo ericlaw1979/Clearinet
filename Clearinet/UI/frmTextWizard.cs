@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PeterO.Cbor;
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -278,7 +279,26 @@ namespace Clearinet
                             else  // CBOR to JSON
                             {
                                 byte[] cborBytes = Convert.FromBase64String(sText);
-                                var cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(cborBytes);
+
+                                CBORObject cborObject;
+                                try
+                                {
+                                    cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(cborBytes);
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (ex.Message.StartsWith("Too many bytes.") && (cborBytes.Length > 1))
+                                    {
+                                        // try again after stripping the first byte from cborBytes, which may be a CTAP status byte.
+                                        byte[] arrStripped = new byte[cborBytes.Length - 1];
+                                        Buffer.BlockCopy(cborBytes, 1, arrStripped, 0, arrStripped.Length);
+                                        cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(arrStripped);
+                                    }
+                                    else
+                                    {
+                                        throw;
+                                    }
+                                }
                                 sOutput = cborObject.ToJSONString();
                             }
                         }
