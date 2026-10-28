@@ -72,7 +72,7 @@ namespace Clearinet
         }
 
         #region ACTIONS
-        private void actMinimizeToTray()
+        public void actMinimizeToTray()
         {
             if (trayIcon == null)
             {
@@ -100,6 +100,11 @@ namespace Clearinet
             actActivateMainWindow();
         }
 
+        // legacy script api
+        public void actRestoreWindow()
+        {
+            actActivateMainWindow();
+        }
         private void actActivateMainWindow()
         {
             if (trayIcon != null && trayIcon.Visible)
@@ -108,8 +113,15 @@ namespace Clearinet
                 WindowState = trayRestoreState;
                 trayIcon.Visible = false;
             }
+            else
+            {
+                Show();
+            }
             if (!Win32UI.BringWindowToForeground(Handle))
-                CApp.Log.Log("Unable to bring the main Clearinet window to the foreground.");
+            {
+                Debug.Assert(false);
+                // CApp.Log.Log("Unable to bring the main Clearinet window to the foreground.");
+            }
         }
 
         /// <summary>
@@ -199,6 +211,11 @@ namespace Clearinet
             actUpdateInspector(true, true);
         }
 
+        // legacy script API
+        public void actExit()
+        {
+            this.Close();
+        }
         public void actShowTextransform(string sText)
         {
             frmTextWizard oFrm = new frmTextWizard(sText)
@@ -908,39 +925,54 @@ namespace Clearinet
             actSaveExchanges(GetAllExchanges());
         }
 
-        private bool actSaveExchanges(Exchange[] arrExchanges)
+        public void actSaveAllExchanges(string sFilename, string sPassword = null)
+        {
+            if (!actSaveExchanges(lvExchanges.GetAllExchanges(), sFilename, sPassword))
+            {
+                CApp.UI.SetStatusText("Save failed.");
+            }
+        }
+
+        public bool actSaveExchanges(Exchange[] arrExchanges, string sFilename = null, string sPassword = null)
         {
             if (arrExchanges?.Length < 1) return false;
 
             try
             {
-                (string sFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
-                if (!sFilename.HasText()) return false;
-                string sPassword = null;
-                if (2 == iType) // Password protected?
+
+                if (!sFilename.HasText())
                 {
-                    sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
+                    (string sObtainedFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                    sFilename = sObtainedFilename;
+                    if (!sFilename.HasText()) return false;
+
+                    if (2 == iType) // Password protected?
                     {
-                        Kind = frmPrompt.PromptKind.Password,
-                        OwnerWindow = CApp.UI,
-                        ReturnNullOnCancel = true,
-                        Title = "Password-Protect Session Archive",
-                        PromptText = "Enter a password to encrypt this Session Archive:"
-                    });
-                    if (null == sPassword) return false; // Cancel Save
-                    if (!sPassword.HasText()) sPassword = null;
-                }
-                else
-                {
-                    if (!CApp.Prefs.GetBoolPref("app.saz.warn_about_data_protection", false))
+                        sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
+                        {
+                            Kind = frmPrompt.PromptKind.Password,
+                            OwnerWindow = CApp.UI,
+                            ReturnNullOnCancel = true,
+                            Title = "Password-Protect Session Archive",
+                            PromptText = "Enter a password to encrypt this Session Archive:"
+                        });
+                        if (null == sPassword) return false; // Cancel Save
+                        if (!sPassword.HasText()) sPassword = null;
+                    }
+                    else
                     {
-                        // TODO: This is important enough to have a custom dialog with a link to a help topic.
-                        CApp.DoNotifyUser(
-                            "Captured Network Data may contain passwords and other private data. Protect access and share only with people you trust.\n\nTo encrypt a SAZ file when supplying the file's name, use the 'Save As Type' dropdown to select 'Password Protected SAZ'.",
-                            "Security and Privacy", MessageBoxIcon.Warning);
-                        CApp.Prefs.SetBoolPref("app.saz.warn_about_data_protection", true);
+                        if (!CApp.Prefs.GetBoolPref("app.saz.warn_about_data_protection", false))
+                        {
+                            // TODO: This is important enough to have a custom dialog with a link to a help topic.
+                            CApp.DoNotifyUser(
+                                "Captured Network Data may contain passwords and other private data. Protect access and share only with people you trust.\n\nTo encrypt a SAZ file when supplying the file's name, use the 'Save As Type' dropdown to select 'Password Protected SAZ'.",
+                                "Security and Privacy", MessageBoxIcon.Warning);
+                            CApp.Prefs.SetBoolPref("app.saz.warn_about_data_protection", true);
+                        }
                     }
                 }
+                if (!sFilename.HasText()) return false;
+
                 using (LongRunningOperation lro = new LongRunningOperation("Saving Exchanges...", true))
                 {
                     SAZFile.SaveTo(sFilename, arrExchanges, sPassword, lro: lro);
@@ -1082,8 +1114,10 @@ namespace Clearinet
 
         private void actExportExchanges(Exchange[] arrExchanges)
         {
+            if (arrExchanges?.Length < 1) return;
             string sFilename = Utilities.ObtainSaveFilename("Export Exchanges to HAR...", "HAR format|*.har|Any file|*.*");
             if (!sFilename.HasText()) return;
+            Utilities.EnsurePathExists(sFilename);
 
             if (sFilename.OICEndsWithAny(".har", ".json"))
             {
@@ -2116,6 +2150,12 @@ namespace Clearinet
             XC.oFlags["ui-backcolor"] = "OrangeRed";
         }
 
+        // legacy script api
+        public void actCaptureScreenshot(bool bCountdown)
+        {
+            // TODO: Support countdown.
+            actAddDesktopScreenshot();
+        }
         private void actAddDesktopScreenshot()
         {
             try

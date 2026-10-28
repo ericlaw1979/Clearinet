@@ -407,6 +407,7 @@ namespace Clearinet
         internal static bool SaveTo(string filePath, Exchange[] exchanges, string password = null, string comment = null, LongRunningOperation lro = null)
         {
             if (exchanges == null || exchanges.Length < 1) throw new ArgumentException("No Exchanges to save.");
+            Utilities.EnsurePathExists(filePath);
             ZipFile zf = new ZipFile();
             // Each Exchange writes at least 3 files. SAZ Files with over 21844 exchanges
             // need Zip64 because without it the number of files exceeds the 65535 file

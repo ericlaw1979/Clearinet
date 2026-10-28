@@ -365,6 +365,21 @@ namespace Clearinet
             }
         }
 
+        public static bool EnsurePathExists(string filename)
+        {
+            try
+            {
+                string directory = Path.GetDirectoryName(filename);
+                Directory.CreateDirectory(directory);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CApp.Log.Log($"Unable to create directory for file:\n\n{filename}\n\n{Utilities.DescribeException(ex)}");
+                return false;
+            }
+        }
+
         public static void DiffExchanges(Exchange x1, Exchange x2)
         {
             string tempDirectory = Path.Combine(Path.GetTempPath(), "Clearinet-Diff-" + Guid.NewGuid().ToString("N"));

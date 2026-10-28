@@ -143,6 +143,31 @@ class Handlers {
                 CApp.UI.SetStatusText("Removed all except Content-Type: " + sArgs[1]);
             return true;
         
+            case "hide":
+                CApp.UI.actMinimizeToTray();
+            return true;
+
+            case "screenshot":
+                // Capture a screenshot and store it in the Exchange list.
+                CApp.UI.actCaptureScreenshot(false);
+                return true;
+
+            case "show":
+                // Show the main window. (Useful from ExecAction.exe scripts)
+                CApp.UI.actRestoreWindow();
+                return true;
+
+            case "quit":
+                CApp.UI.actExit();
+                return true;
+
+            case "dump":
+                var sDumpFilename:String = CONFIG.GetPath("Captures") + "Clearinet_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".saz";
+                CApp.UI.actSaveAllExchanges(sDumpFilename);
+                CApp.UI.SetStatusText("Stored all Exchanges in " + sDumpFilename);
+                CApp.UI.actRemoveAllExchanges();
+            return true;
+
             case "stayalive":
                 CApp.UI.SetStatusText("disallow close");
                 bCanClose = false;
@@ -169,6 +194,10 @@ class Handlers {
                 return true;
 
             default:
+                if (sAction.StartsWith("http")) {
+                    Utilities.LaunchHyperlink(sArgs[0]);
+                    return true;
+                }
                 CApp.UI.SetStatusText("Unknown execaction: " + sAction);
                 CApp.alert("OnExecAction '" + sAction + "' was called with " + (sArgs.Length - 1).toString() + " arguments.");
                 return false;
