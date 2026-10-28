@@ -256,7 +256,7 @@ namespace Clearinet
 
                         break;
 
-                    case 24: // CBOR
+                    case 24: // CBOR. See https://cbor.me/
                         try
                         {
                             sText = sText.Trim();
@@ -279,6 +279,7 @@ namespace Clearinet
                             else  // CBOR to JSON
                             {
                                 byte[] cborBytes = Convert.FromBase64String(sText);
+                                string sFooter = string.Empty;
 
                                 CBORObject cborObject;
                                 try
@@ -293,13 +294,14 @@ namespace Clearinet
                                         byte[] arrStripped = new byte[cborBytes.Length - 1];
                                         Buffer.BlockCopy(cborBytes, 1, arrStripped, 0, arrStripped.Length);
                                         cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(arrStripped);
+                                        sFooter = "\r\n\r\n[Note: First byte of input was stripped. Perhaps a CTAP status byte?]";
                                     }
                                     else
                                     {
                                         throw;
                                     }
                                 }
-                                sOutput = cborObject.ToJSONString();
+                                sOutput = cborObject.ToJSONString() + sFooter;
                             }
                         }
                         catch (Exception ex)
