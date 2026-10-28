@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -24,6 +25,7 @@ namespace Clearinet.UI
         private void _MarkFound(Exchange exch, bool bSelectMatches)
         {
             exch.ViewItem.BackColor = CONFIG.colorHighlight;
+            exch["ui-backcolor"] = ColorTranslator.ToHtml(CONFIG.colorHighlight);
             if (bSelectMatches) exch.ViewItem.Selected = true;
         }
 

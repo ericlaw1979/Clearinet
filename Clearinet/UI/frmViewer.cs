@@ -1808,6 +1808,64 @@ namespace Clearinet
         {
             lvExchanges.SelectAll();
         }
+
+        /// <summary>
+        /// Navigate the results of the last find operation.
+        /// </summary>
+        /// <param name="bNext">True to navigate next, false to navigate to prior.</param>
+        internal void actNavigateFindResults(bool bNext)
+        {
+            if (lvExchanges.ItemCount < 2) return;
+
+            // First, figure out where we are.
+            Exchange xcActive = GetFirstSelectedExchange();
+            if (null == xcActive) xcActive = (lvExchanges.Items[0].Tag as Exchange);
+            if (null == xcActive?.ViewItem) return;
+
+            // We currently mark all matches with a backcolor of CONFIG.colorHighlight, so
+            // we are going to navigate to the next/previous item with that backcolor.
+            var sSearchColor = ColorTranslator.ToHtml(CONFIG.colorHighlight);
+            int ix = xcActive.ViewItem.Index;
+
+            if (bNext)
+            {
+                ++ix; // Start looking after the current item.
+                while (ix < lvExchanges.ItemCount)
+                {
+                    Exchange xcMaybe = lvExchanges.Items[ix].Tag as Exchange;
+                    // Found it.
+                    if (sSearchColor == xcMaybe?["ui-backcolor"])
+                    {
+                        xcActive.ViewItem.Selected = false;
+                        xcMaybe.ViewItem.Focused = true;
+                        xcMaybe.ViewItem.Selected = true;
+                        xcMaybe.ViewItem.EnsureVisible();
+                        return;
+                    }
+                    ++ix;
+                }
+            }
+            else
+            {
+                --ix; // Start looking before the current item.
+                while (ix >= 0)
+                {
+                    Exchange xcMaybe = lvExchanges.Items[ix].Tag as Exchange;
+                    if (sSearchColor == xcMaybe?["ui-backcolor"])
+                    {
+                        xcActive.ViewItem.Selected = false;
+                        xcMaybe.ViewItem.Focused = true;
+                        xcMaybe.ViewItem.Selected = true;
+                        xcMaybe.ViewItem.EnsureVisible();
+                        return;
+                    }
+                    --ix;
+                }
+            }
+
+            CApp.UI.SetStatusText("No more matches.");
+        }
+
         private void lvExchanges_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == Keys.Oemplus)
@@ -1824,7 +1882,10 @@ namespace Clearinet
             }
             if (e.KeyData == Keys.Enter)
             {
-                actInspectExchange();
+                if (lvExchanges.SelectedCount == 1)
+                    actInspectExchange();
+                else
+                    actActivateTab("Statistics");
                 e.SuppressKeyPress = e.Handled = true;
                 return;
             }
@@ -1868,6 +1929,11 @@ namespace Clearinet
                     case Keys.C:
                         e.SuppressKeyPress = e.Handled = true;
                         miEditCopyExchange.PerformClick();
+                        break;
+
+                    case Keys.I:
+                        e.SuppressKeyPress = e.Handled = true;
+                        lvExchanges.InvertSelection();
                         break;
 
                     case Keys.W:
@@ -1915,9 +1981,22 @@ namespace Clearinet
 
             switch (e.KeyCode)
             {
+                case Keys.Oemcomma: // >
+                    e.Handled = e.SuppressKeyPress = true;
+                    actNavigateFindResults(false);
+                    return;
+
+                case Keys.F3:
+                case Keys.OemPeriod: // <
+                    e.SuppressKeyPress = e.Handled = true;
+                    actNavigateFindResults(true);
+                    return;
+
                 case Keys.Escape:
                     e.SuppressKeyPress = e.Handled = true;
+                    CApp.PauseReporting = true;
                     lvExchanges.SelectedItems.Clear();
+                    CApp.PauseReporting = false;
                     break;
 
                 case Keys.Back:

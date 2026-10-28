@@ -99,6 +99,7 @@ namespace Clearinet
             }
             set
             {
+                // TODO: Check if InvokeRequired on the mainform and throw if it is.
                 _bPauseReporting = value;
                 if (!_bPauseReporting)
                 {

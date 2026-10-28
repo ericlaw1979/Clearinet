@@ -403,6 +403,14 @@ namespace Clearinet
             }
         }
 
+        public int ItemCount
+        {
+            get
+            {
+                return this.Items.Count;
+            }
+        }
+
         /// <summary>
         /// Text to show when there are not items in the ListView
         /// </summary>
