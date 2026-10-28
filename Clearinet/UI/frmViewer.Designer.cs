@@ -948,7 +948,7 @@
             // 
             // tslSelCount
             // 
-            this.tslSelCount.AutoSize = false;
+            this.tslSelCount.AutoSize = true;
             this.tslSelCount.Name = "tslSelCount";
             this.tslSelCount.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
             this.tslSelCount.Size = new System.Drawing.Size(80, 26);
@@ -957,7 +957,7 @@
             // 
             // tslMemory
             // 
-            this.tslMemory.AutoSize = false;
+            this.tslMemory.AutoSize = true;
             this.tslMemory.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslMemory.Name = "tslMemory";
             this.tslMemory.Size = new System.Drawing.Size(60, 26);

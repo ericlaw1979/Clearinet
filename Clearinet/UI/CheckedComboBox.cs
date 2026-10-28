@@ -182,14 +182,14 @@ public class CheckedComboBox : ComboBox
                 summary = EmptyText;
             }
 
-            // TODO: Tightly-coupled to the FindPanel.
+            // TODO: This is too tightly-coupled to the FindPanel's SearchTargets, we need to undo that.
             // Summarize:
             summary = summary.Replace("ExchangeListbox Columns", "Columns");
             summary = summary.Replace("Request Headers;Request Body", "Requests");
             summary = summary.Replace("Response Headers;Response Body", "Responses");
             summary = summary.Replace("Requests;Responses", "Network Traffic");
             Items.Clear();
-            Items.Add(summary);
+            Items.Add("in " + summary);
             SelectedIndex = 0;
         }
         finally

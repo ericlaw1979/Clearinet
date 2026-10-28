@@ -1517,7 +1517,7 @@ namespace Clearinet
                 SuspendLayout();
                 pnlLeftBottom.Controls.Add(CApp.oFindPanel);
                 CApp.oFindPanel.Dock = DockStyle.Fill;
-                pnlLeftBottom.Height = 100;
+                pnlLeftBottom.Height = 120; // TODO: Set based on DPI?
                 pnlLeftBottom.Visible = true;
                 ResumeLayout();
             }
