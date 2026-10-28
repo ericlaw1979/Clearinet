@@ -70,60 +70,64 @@ namespace Clearinet.UI
                 bool bDecode = cbDecode.Checked;
                 if (bSelectMatches) CApp.UI.lvExchanges.SelectedItems.Clear();
                 var iMatchCount = 0;
-                foreach (Exchange exch in CApp.UI.GetAllExchanges())
+                foreach (Exchange xc in CApp.UI.GetAllExchanges())
                 {
-                    if (bURLs && isMatch(exch.fullUrl))
+                    if (bURLs && isMatch(xc.fullUrl))
                     {
                         ++iMatchCount;
-                        _MarkFound(exch, bSelectMatches);
+                        _MarkFound(xc, bSelectMatches);
                         continue;
                     }
                     if (bExchangeListboxColumns)
                     {
-                        string sAllCols = _GetAllColumnText(exch.ViewItem);
+                        string sAllCols = _GetAllColumnText(xc.ViewItem);
 
                         if (isMatch(sAllCols))
                         {
                             ++iMatchCount;
-                            _MarkFound(exch, bSelectMatches);
+                            _MarkFound(xc, bSelectMatches);
                             continue;
                         }
                     }
-                    if (bRequestHeaders && exch.RequestHeaders != null && isMatch(exch.RequestHeaders.ToString()))
+                    if (bRequestHeaders && xc.RequestHeaders != null && isMatch(xc.RequestHeaders.ToString()))
                     {
                         ++iMatchCount;
-                        _MarkFound(exch, bSelectMatches);
+                        _MarkFound(xc, bSelectMatches);
                         continue;
                     }
-                    if (bResponseHeaders && exch.ResponseHeaders != null && isMatch(exch.ResponseHeaders.ToString()))
+                    if (bResponseHeaders && xc.ResponseHeaders != null && isMatch(xc.ResponseHeaders.ToString()))
                     {
                         ++iMatchCount;
-                        _MarkFound(exch, bSelectMatches);
+                        _MarkFound(xc, bSelectMatches);
                         continue;
                     }
-                    if (bRequestBody && exch.RequestBody.HasData())
+                    if (bRequestBody && xc.RequestBody.HasData())
                     {
-                        string sBody = cbDecode.Checked ? exch.GetRequestBodyAsString() : Encoding.UTF8.GetString(exch.RequestBody);
+                        string sBody = cbDecode.Checked ? xc.GetRequestBodyAsString() : Encoding.UTF8.GetString(xc.RequestBody);
                         if (isMatch(sBody))
                         {
                             ++iMatchCount;
-                            _MarkFound(exch, bSelectMatches);
+                            _MarkFound(xc, bSelectMatches);
                             continue;
                         }
                     }
-                    if (bResponseBody && exch.ResponseBody.HasData())
+                    if (bResponseBody && xc.ResponseBody.HasData())
                     {
-                        string sBody = cbDecode.Checked ? exch.GetResponseBodyAsString() : Encoding.UTF8.GetString(exch.ResponseBody);
-                        if (isMatch(sBody))
+                        bool bResponseIsBinary = Utilities.IsMediaTypeBinary(xc.MediaType);
+                        if (!bResponseIsBinary || cbSearchBinaries.Checked)
                         {
-                            ++iMatchCount;
-                            _MarkFound(exch, bSelectMatches);
-                            continue;
+                            string sBody = cbDecode.Checked ? xc.GetResponseBodyAsString() : Encoding.UTF8.GetString(xc.ResponseBody);
+                            if (isMatch(sBody))
+                            {
+                                ++iMatchCount;
+                                _MarkFound(xc, bSelectMatches);
+                                continue;
+                            }
                         }
                     }
 
                     // Not found; unmark the item.
-                    exch.ViewItem.BackColor = CApp.UI.lvExchanges.BackColor;
+                    xc.ViewItem.BackColor = CApp.UI.lvExchanges.BackColor;
                 }
                 if (iMatchCount > 0 && bSelectMatches)
                 {

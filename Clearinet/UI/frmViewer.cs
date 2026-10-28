@@ -1915,6 +1915,11 @@ namespace Clearinet
 
             switch (e.KeyCode)
             {
+                case Keys.Escape:
+                    e.SuppressKeyPress = e.Handled = true;
+                    lvExchanges.SelectedItems.Clear();
+                    break;
+
                 case Keys.Back:
                     e.SuppressKeyPress = e.Handled = true;
                     lvExchanges.ActivatePreviousItem();
@@ -2053,7 +2058,7 @@ namespace Clearinet
                 try
                 {
                     byte[] body = File.ReadAllBytes(path);
-                    string contentType = Utilities.MimeTypeFromFilename(path);
+                    string contentType = Utilities.MediaTypeFromFilename(path);
                     exResult = CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", contentType, body);
                 }
                 catch (Exception eX)
