@@ -867,7 +867,7 @@ namespace Clearinet
             }
             catch (Exception eX)
             {
-                sbResult.Append($"Threw: {eX}\r\n{eX.StackTrace}");
+                sbResult.Append(Utilities.DescribeException(eX));
             }
 
             sbResult.Append("------------------------------------\r\n");

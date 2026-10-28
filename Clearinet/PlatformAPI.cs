@@ -15,6 +15,7 @@ namespace Clearinet
     public class PlatformAPI
     {
         private const ushort IMAGE_FILE_MACHINE_ARM64 = 0xAA64;
+        private const ushort IMAGE_FILE_MACHINE_AMD64 = 0x8664;
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool IsWow64Process2(IntPtr hProcess, out ushort processMachine, out ushort nativeMachine);
@@ -27,16 +28,16 @@ namespace Clearinet
             Environment.OSVersion.Platform == PlatformID.Win32NT &&
             Environment.OSVersion.Version >= new Version(10, 0, 16299);
 
-        public static bool IsRunningInX64EmulationOnArm64()
+        public static bool IsNativeArchitectureArm64()
         {
             if (!Environment.Is64BitProcess || !IsIsWow64Process2Supported)
             {
                 return false;
             }
 
-            if (IsWow64Process2(GetCurrentProcess(), out ushort processMachine, out ushort nativeMachine))
+            if (IsWow64Process2(GetCurrentProcess(), out ushort _, out ushort nativeMachine))
             {
-                return nativeMachine == IMAGE_FILE_MACHINE_ARM64;
+                return (nativeMachine == IMAGE_FILE_MACHINE_ARM64);
             }
 
             return false;
@@ -313,6 +314,26 @@ namespace Clearinet
         internal static void RestoreSleep()
         {
             SetThreadExecutionState(ExecutionState.ES_CONTINUOUS);
+        }
+
+        internal static string GetProcessArchitecture()
+        {
+            switch (RuntimeInformation.ProcessArchitecture)
+            {
+                case Architecture.X64:
+                    return IsNativeArchitectureArm64() ? "x64-on-Arm64" : "x64";
+                case Architecture.Arm64:
+                    return "arm64";
+                case Architecture.X86:
+                    Debug.Assert(false, "I think you're lying.");
+                    return "x86";
+                case Architecture.Arm:
+                    Debug.Assert(false, "I think you're lying.");
+                    return "arm32";
+                default:
+                    Debug.Assert(false, "I'm intrigued.");
+                    return "unknownCPU";
+            }
         }
     }
 }

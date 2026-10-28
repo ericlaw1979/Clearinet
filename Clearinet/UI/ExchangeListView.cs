@@ -433,7 +433,7 @@ namespace Clearinet
             ColumnInfo ci = Columns[ix].Tag as ColumnInfo? ?? new ColumnInfo();
             ci.SortType = cst;
             Columns[ix].Tag = ci;
-            Trace.WriteLine($"Configured column #{ix} ({Columns[ix].Text}) with sort mode {cst}");
+            // Trace.WriteLine($"Configured column #{ix} ({Columns[ix].Text}) with sort mode {cst}");
         }
 
         internal void AddBoundColumn(string sTitle, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)

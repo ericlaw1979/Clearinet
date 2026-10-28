@@ -71,15 +71,7 @@ namespace Clearinet
             DateTime builtDate = assembly.GetCustomAttribute<AssemblyBuiltDateAttribute>()?.BuiltDate ?? new DateTime(1885, 9, 2);
 
             string bitness = Environment.Is64BitProcess ? "64-bit" : "32-bit";
-            string architecture;
-            if (PlatformAPI.IsRunningInX64EmulationOnArm64())
-            {
-                architecture = "AMD64 (emulated on Arm64)";
-            }
-            else
-            {
-                architecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") ?? "x86";
-            }
+            string architecture = PlatformAPI.GetProcessArchitecture();
 
             double privateBytesMB = 0; // Total Exclusive Memory allocated
             double workingSetMB = 0;   // Total Physical RAM (includes shared DLLs)
@@ -96,7 +88,9 @@ namespace Clearinet
             string osName = Environment.OSVersion.Platform == PlatformID.Win32NT ? "WinNT" : Environment.OSVersion.Platform.ToString();
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{CApp.VersionString} for {targetFramework}");
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
+            sb.AppendLine($"Clearinet {fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}" +
+                          $".{fvi.FilePrivatePart} for {targetFramework}");
             sb.AppendLine($"Built:\t{builtDate:yyyy-MMM-d}");
             sb.AppendLine($"Updated:\t{updatedDate:yyyy-MMM-d}");
             sb.AppendLine(string.Empty);
