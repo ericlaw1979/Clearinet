@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0. LAST UPDATED FOR V0.0.2.6
+// This file will be updated before v1.0. LAST UPDATED FOR V0.0.2.7
 import System;
 import System.Windows.Forms;
 import Clearinet;
@@ -7,7 +7,7 @@ import Clearinet;
 class Handlers {
 
     static function OnBeforeRequest(XC: Exchange) {
-   	 // XC["x-replywithfile"] = "C:\\temp\\foo.html";
+        // XC["x-replywithfile"] = "C:\\temp\\foo.html";
         XC["ui-backcolor"] = "LimeGreen";
     }
 
@@ -17,136 +17,135 @@ class Handlers {
 
     static var bCanClose: boolean = true;
     static var sMyInfo: String;
-    
+
     // This function runs on every compile of the script.
     static function Main() {
         var today: Date = new Date();
         sMyInfo = today.toString();
-      	// if (!CONFIG.isViewerMode) CApp.PlaySound("C:\\Windows\\Media\\notify.wav");
+        // if (!CONFIG.isViewerMode) CApp.PlaySound("C:\\Windows\\Media\\notify.wav");
         // if (!CONFIG.isViewerMode) CApp.alert("Hello from script!\n\n" + sMyInfo+"\n"+CApp.VersionString);
-        var sKey="Win+Shift+G";
-        CApp.UI.SetStatusText("Binding '"+sKey+"' to 'paste' returned: " + CApp.UI.bindHotkeyToExecAction(sKey, "paste"));
+        var sKey = "Win+Shift+G";
+        CApp.UI.SetStatusText("Binding '" + sKey + "' to 'paste' returned: " + CApp.UI.bindHotkeyToExecAction(sKey, "paste"));
         CApp.UI.SetStatusText("Your script has compiled and loaded!");
     }
 
     public static BindUIButton("SingleBrowserMode \uD83D\uDC40")
     function LaunchSingleInstance() {
-      Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
-    }
+    Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
+}
     
     public static BindTextCodec("to UPPERCASE")
-    function codecToUpper(input: String): String {
-      return input.ToUpper();
-    }
+function codecToUpper(input: String): String {
+    return input.ToUpper();
+}
      
     public static BindUIColumn("Content-Encoding", false)
-    function FillCTColumn(xc: Exchange): String {
-        if (xc.bHasResponse) return xc.ResponseHeaders["Content-Encoding"];
-        return String.Empty;
-    }
+function FillCTColumn(xc: Exchange): String {
+    if (xc.bHasResponse) return xc.ResponseHeaders["Content-Encoding"];
+    return String.Empty;
+}
 
     // Use Numeric sorting
     public static BindUIColumn("RequestBody", true)
-    function FillSizeColumn(xc: Exchange): String {
-        if (null == xc.RequestBody) return 0;
-        return xc.RequestBody.Length.ToString("N0");
-    }
+function FillSizeColumn(xc: Exchange): String {
+    if (null == xc.RequestBody) return 0;
+    return xc.RequestBody.Length.ToString("N0");
+}
 
     public BindUITab("Flags")
-    static function FlagsReport(arrXC: Exchange[]):String {
-      var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
-      for (var i:int = 0; i<arrXC.Length; ++i)
-      {
+static function FlagsReport(arrXC: Exchange[]): String {
+    var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
+    for (var i: int = 0; i < arrXC.Length; ++i) {
         sbOut.AppendLine("FLAGS");
         sbOut.AppendFormat("Exchange Flags #{0} (for '{1}')\n", arrXC[i].id, arrXC[i].fullUrl);
-        for(var sFlag in arrXC[i].oFlags)
+        for (var sFlag in arrXC[i].oFlags)
             sbOut.AppendFormat("\t{0}:\t\t{1}\n", sFlag.Key, sFlag.Value);
-        
+
         sbOut.AppendFormat("\n BitFlags: {0}\n\n", arrXC[i].BitFlags);
-        
+
         if (arrXC[i].ResponseHeaders.Exists("Content-Encoding")) {
-          var strDecoded = arrXC[i].GetResponseBodyAsString();
-          sbOut.AppendLine("== Content was compressed.========== \nDecoded content is " + strDecoded.Length.ToString()+ " bytes.\n");
-          sbOut.AppendLine("Decoded content: " + strDecoded.slice(0, 2048));
+            var strDecoded = arrXC[i].GetResponseBodyAsString();
+            sbOut.AppendLine("== Content was compressed.========== \nDecoded content is " + strDecoded.Length.ToString() + " bytes.\n");
+            sbOut.AppendLine("Decoded content: " + strDecoded.slice(0, 2048));
         }
-      }
-      return sbOut.ToString();
     }
+    return sbOut.ToString();
+}
 
     public static ContextAction("Decode Selected Exchanges")
-    function DoRemoveEncoding(arrXC: Exchange[]) {
-        for (var x: int = 0; x < arrXC.Length; ++x) {
-            arrXC[x].utilDecodeRequest();
-            arrXC[x].utilDecodeResponse();
-        }
-        CApp.UI.actUpdateInspector(true, true);
+function DoRemoveEncoding(arrXC: Exchange[]) {
+    for (var x: int = 0; x < arrXC.Length; ++x) {
+        arrXC[x].utilDecodeRequest();
+        arrXC[x].utilDecodeResponse();
     }
+    CApp.UI.actUpdateInspector(true, true);
+}
 
     public static ToolsAction("Reset Script")
-    function DoManualReload() {
-        CApp.UI.actFlashWindow();
-        CApp.scriptRules.ReloadScript();
-    }
-      
-    static function OnBoot() {
-      CApp.Log.Log("[Script] OnBoot");
-    }
-        
-    static function OnAttach() {
-      CApp.Log.Log("[Script] OnAttach");
-    }
+function DoManualReload() {
+    CApp.UI.actFlashWindow();
+    CApp.scriptRules.ReloadScript();
+}
 
-    static function OnDetach() {
-      CApp.Log.Log("[Script] OnDetach");
-    }
-    
-    static function OnShutdown() {
-      CApp.Log.Log("[Script] OnShutdown");
-      if (!CONFIG.isViewerMode) CApp.alert("Bye! Thanks for playing\n" + sMyInfo);
-    }
-    
-    static function OnBeforeShutdown(): boolean {
-      if (!bCanClose) CApp.alert("Close is disallowed. QuickExec 'sesame' to unlock");
-      return bCanClose;
-    }
-        
-     static function OnExecAction(sArgs: String[]): Boolean {
-       var sAction = sArgs[0].toLowerCase();
-        switch (sAction) {
+static function OnBoot() {
+    CApp.Log.Log("[Script] OnBoot");
+}
+
+static function OnAttach() {
+    CApp.Log.Log("[Script] OnAttach");
+}
+
+static function OnDetach() {
+    CApp.Log.Log("[Script] OnDetach");
+}
+
+static function OnShutdown() {
+    CApp.Log.Log("[Script] OnShutdown");
+    // if (!CONFIG.isViewerMode) CApp.alert("Bye! Thanks for playing\n" + sMyInfo);
+}
+
+static function OnBeforeShutdown(): boolean {
+    if (!bCanClose) CApp.alert("Close is disallowed. QuickExec 'sesame' to unlock");
+    return bCanClose;
+}
+
+static function OnExecAction(sArgs: String[]): Boolean {
+    var sAction = sArgs[0].toLowerCase();
+    switch (sAction) {
         case "find":
-           if (sArgs.length>1) CApp.UI.actBeginFinding(sArgs[1]); else CApp.UI.actBeginFinding();
-           break;
-           
+            if (sArgs.length > 1) CApp.UI.actBeginFinding(sArgs[1]); else CApp.UI.actBeginFinding();
+            break;
+
         case "stayalive":
-        CApp.UI.SetStatusText("disallow close");
-        bCanClose = false;
-        return;
-        
+            CApp.UI.SetStatusText("disallow close");
+            bCanClose = false;
+            return;
+
         case "sesame":
-        CApp.UI.SetStatusText("Now allowing close");
-        bCanClose = true;
-        return;
-        
+            CApp.UI.SetStatusText("Now allowing close");
+            bCanClose = true;
+            return;
+
         case "ver":
-        MessageBox.Show(CApp.VersionString);
-        return true;
-        
+            CApp.alert(CApp.VersionString);
+            return true;
+
         case "paste":
-          if (CApp.UI.actPasteFromClipboard()) {
-            CApp.UI.actFlashWindow();
-            CApp.PlaySound("C:\\Windows\\Media\\Windows Print complete.wav")
-          }
-          break;
-        
+            if (CApp.UI.actPasteFromClipboard()) {
+                CApp.UI.actFlashWindow();
+                CApp.PlaySound("C:\\Windows\\Media\\Windows Print complete.wav")
+            }
+            break;
+
         case "log":
-        CApp.Log.Log(Array(sArgs).slice(1).join(" "));
-        return true;
-        
+            CApp.Log.Log(Array(sArgs).slice(1).join(" "));
+            return true;
+
         default:
-          CApp.UI.SetStatusText("Unknown execaction: " + sAction);
-          MessageBox.Show("OnExecAction '"+ sAction +"' was called with " + (sArgs.Length-1).toString() + " arguments.", "Script");
-          return false;
-        }
-     }
+            CApp.UI.SetStatusText("Unknown execaction: " + sAction);
+            CApp.alert("OnExecAction '" + sAction + "' was called with " + (sArgs.Length - 1).toString() + " arguments.");
+            return false;
+    }
+}
 
 }
