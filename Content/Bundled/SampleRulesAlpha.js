@@ -112,10 +112,37 @@ class Handlers {
     static function OnExecAction(sArgs: String[]): Boolean {
         var sAction = sArgs[0].toLowerCase();
         switch (sAction) {
+            case "clear":
+            case "cls":
+                CApp.UI.actRemoveAllExchanges();
+                return true;
+
+            case "start":
+                CApp.actAttachProxy();
+                return true;
+            case "stop":
+                CApp.actDetachProxy();
+                return true;
+        
             case "find":
                 if (sArgs.length > 1) CApp.UI.actBeginFinding(sArgs[1]); else CApp.UI.actBeginFinding();
                 break;
 
+            case "keeponly":
+                if (2 > sArgs.Length) { CApp.UI.SetStatusText("Error: Specify Content-Type to retain."); return false;}
+
+                CApp.UI.actSelectExchanges(
+                    function (xc: Exchange): boolean {
+                        return xc.MediaType.Contains(sArgs[1].ToLower());
+                    },
+                    Int32.MaxValue,
+                    true);
+
+                CApp.UI.actRemoveUnselectedExchanges();
+                CApp.UI.lvExchanges.SelectedItems.Clear();
+                CApp.UI.SetStatusText("Removed all except Content-Type: " + sArgs[1]);
+            return true;
+        
             case "stayalive":
                 CApp.UI.SetStatusText("disallow close");
                 bCanClose = false;
