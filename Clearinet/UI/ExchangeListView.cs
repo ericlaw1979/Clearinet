@@ -239,6 +239,8 @@ namespace Clearinet
             foreach (ListViewItem lvi in Items) lvi.Selected = true;
             EndUpdate();
         }
+
+        // TODO: Do we need to override Clear() instead?
         internal void ClearExchanges()
         {
             BeginUpdate();

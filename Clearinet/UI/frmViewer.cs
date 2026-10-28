@@ -127,6 +127,56 @@ namespace Clearinet
             Win32UI.activateTitledTab(sTabTitle, tabsViews);
         }
 
+        // Script-friendly shim: accepts a JScript.NET function object. This
+        // is messy because JScript.NET doesn't support generics or mapping to delegates,
+        // so we have to use reflection to invoke the function.
+        public void actSelectExchanges(object oCriteriaChecker, int iMatchAtMost = Int32.MaxValue, bool bClearSelectionFirst = true)
+        {
+            if (oCriteriaChecker == null) throw new ArgumentNullException(nameof(oCriteriaChecker));
+
+            actSelectExchangesMatchingCriteria(
+                (x) => InvokeScriptPredicate(oCriteriaChecker, x),
+                iMatchAtMost,
+                bClearSelectionFirst
+            );
+        }
+
+        private static bool InvokeScriptPredicate(object checker, Exchange xc)
+        {
+            if (checker == null) throw new ArgumentNullException(nameof(checker));
+            object result;
+
+            // try Invoke/Call methods (including non-public)
+            var flags = System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.Public |
+                        System.Reflection.BindingFlags.NonPublic;
+
+            foreach (var mi in checker.GetType().GetMethods(flags))
+            {
+                if (mi.Name != "Invoke" && mi.Name != "Call") continue;
+
+                var p = mi.GetParameters();
+                try
+                {
+                    if (p.Length == 2 && p[0].ParameterType == typeof(object[]) && p[1].ParameterType == typeof(object))
+                    {
+                        result = mi.Invoke(checker, new object[] { new object[] { xc }, null });
+                        return result as bool? ?? false; // CoerceNullableBool(result);
+                    }
+                }
+                catch
+                {
+                    // try next overload
+                }
+            }
+
+            throw new ArgumentException(
+                "Script callback object is not invokable. Type=" + checker.GetType().FullName,
+                nameof(checker));
+        }
+
+        // TODO: The word you're looking for is Predicate 
+
         public void actSelectExchangesMatchingCriteria(Func<Exchange, bool?> oCriteriaChecker, int iMatchAtMost = Int32.MaxValue, bool bClearSelectionFirst = true)
         {
             CApp.PauseReporting = true;
@@ -1534,6 +1584,11 @@ namespace Clearinet
         {
             lvExchanges.RemoveSelected();
         }
+
+        public void actRemoveUnselectedExchanges()
+        {
+            lvExchanges.RemoveUnselected();
+        }
         private void miEditRemoveUnselected_Click(object sender, EventArgs e)
         {
             lvExchanges.RemoveUnselected();
@@ -2329,6 +2384,10 @@ namespace Clearinet
             lvExchanges.SelectAll();
         }
 
+        public void actRemoveAllExchanges()
+        {
+            lvExchanges.ClearExchanges();
+        }
         private void miEditRemoveAll_Click(object sender, EventArgs e)
         {
             lvExchanges.ClearExchanges();
