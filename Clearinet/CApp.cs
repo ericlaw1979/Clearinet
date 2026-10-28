@@ -46,22 +46,28 @@ namespace Clearinet
             get
             {
                 FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
-                string sFeatures = ""; // eventually " (+SAZ)";
+                string sFeatures = string.Empty; // Legacy would include " (+SAZ)" but that seems spammy?;
                 string sPlatform = "Clearinet";
                 string sCPU = String.Empty;
                 switch (RuntimeInformation.ProcessArchitecture)
                 {
                     case Architecture.X64:
-                        sCPU = "x64";
-                        break;
-                    case Architecture.X86:
-                        sCPU = "x86";
-                        break;
-                    case Architecture.Arm:
-                        sCPU = "arm";
+                        sCPU = PlatformAPI.IsRunningInX64EmulationOnArm64() ? "x64-on-Arm64" : "x64";
                         break;
                     case Architecture.Arm64:
                         sCPU = "arm64";
+                        break;
+                    case Architecture.X86:
+                        Debug.Assert(false, "I think you're lying.");
+                        sCPU = "x86";
+                        break;
+                    case Architecture.Arm:
+                        Debug.Assert(false, "I think you're lying.");
+                        sCPU = "arm";
+                        break;
+                    default:
+                        Debug.Assert(false, "I'm intrigued.");
+                        sCPU = "unknownCPU";
                         break;
                 }
                 return $"{sPlatform}/{fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}.{fvi.FilePrivatePart} ({sCPU}){sFeatures}";
