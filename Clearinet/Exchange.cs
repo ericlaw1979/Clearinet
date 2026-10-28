@@ -409,7 +409,7 @@ namespace Clearinet
             try
             {
                 byte[] arrBody = File.ReadAllBytes(sFilename);
-                string sContentType = Utilities.MimeTypeFromFilename(sFilename);
+                string sContentType = Utilities.MediaTypeFromFilename(sFilename);
                 ResponseBody = arrBody;
                 ResponseHeaders = new HTTPResponseHeaders(200, "Clearinet X-RepliedWithFile", new[] { $"Content-Length: {arrBody.Length}", $"Content-Type: {sContentType}" });
 

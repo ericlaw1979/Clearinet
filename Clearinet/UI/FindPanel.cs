@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Clearinet.UI
@@ -11,7 +13,7 @@ namespace Clearinet.UI
         {
             InitializeComponent();
             txtToFind.Text = CApp.Prefs.GetStringPref("app.find.lastfind.text.ephemeral", string.Empty);
-            Win32UI.SetCueText(txtToFind, "Plaintext to find, or REGEX:");
+            Win32UI.SetCueText(txtToFind, "Plaintext to find, EXACT: or REGEX:");
             ccbxWhere.CheckItems.AddRange(new object[] {
                 "URLs", "ExchangeListbox Columns", "Request Headers", "Request Body", "Response Headers", "Response Body"});
             // cbxFindIn.SelectedIndex = CApp.Prefs.GetInt32Pref("app.find.lastfind.findin", 0);
@@ -23,6 +25,7 @@ namespace Clearinet.UI
         private void _MarkFound(Exchange exch, bool bSelectMatches)
         {
             exch.ViewItem.BackColor = CONFIG.colorHighlight;
+            exch["ui-backcolor"] = ColorTranslator.ToHtml(CONFIG.colorHighlight);
             if (bSelectMatches) exch.ViewItem.Selected = true;
         }
 
@@ -50,63 +53,83 @@ namespace Clearinet.UI
                     return;
                 }
 
+                Func<string, bool> isMatch;
+                if (sSearchFor.OICStartsWith("exact:"))
+                {
+                    sSearchFor = sSearchFor.Substring(6);
+                    isMatch = text => text.IndexOf(sSearchFor, StringComparison.Ordinal) >= 0;
+                }
+                else if (sSearchFor.OICStartsWith("regex:"))
+                {
+                    var regex = new Regex(sSearchFor.Substring(6), RegexOptions.None, TimeSpan.FromSeconds(1));
+                    isMatch = regex.IsMatch;
+                }
+                else
+                {
+                    isMatch = text => text.OICContains(sSearchFor);
+                }
+
                 bool bDecode = cbDecode.Checked;
                 if (bSelectMatches) CApp.UI.lvExchanges.SelectedItems.Clear();
                 var iMatchCount = 0;
-                foreach (Exchange exch in CApp.UI.GetAllExchanges())
+                foreach (Exchange xc in CApp.UI.GetAllExchanges())
                 {
-                    if (bURLs && exch.fullUrl.OICContains(sSearchFor))
+                    if (bURLs && isMatch(xc.fullUrl))
                     {
                         ++iMatchCount;
-                        _MarkFound(exch, bSelectMatches);
+                        _MarkFound(xc, bSelectMatches);
                         continue;
                     }
                     if (bExchangeListboxColumns)
                     {
-                        string sAllCols = _GetAllColumnText(exch.ViewItem);
+                        string sAllCols = _GetAllColumnText(xc.ViewItem);
 
-                        if (sAllCols.OICContains(sSearchFor))
+                        if (isMatch(sAllCols))
                         {
                             ++iMatchCount;
-                            _MarkFound(exch, bSelectMatches);
+                            _MarkFound(xc, bSelectMatches);
                             continue;
                         }
                     }
-                    if (bRequestHeaders && true == exch.RequestHeaders?.ToString().OICContains(sSearchFor))
+                    if (bRequestHeaders && xc.RequestHeaders != null && isMatch(xc.RequestHeaders.ToString()))
                     {
                         ++iMatchCount;
-                        _MarkFound(exch, bSelectMatches);
+                        _MarkFound(xc, bSelectMatches);
                         continue;
                     }
-                    if (bResponseHeaders && true == exch.ResponseHeaders?.ToString().OICContains(sSearchFor))
+                    if (bResponseHeaders && xc.ResponseHeaders != null && isMatch(xc.ResponseHeaders.ToString()))
                     {
                         ++iMatchCount;
-                        _MarkFound(exch, bSelectMatches);
+                        _MarkFound(xc, bSelectMatches);
                         continue;
                     }
-                    if (bRequestBody && exch.RequestBody.HasData())
+                    if (bRequestBody && xc.RequestBody.HasData())
                     {
-                        string sBody = cbDecode.Checked ? exch.GetRequestBodyAsString() : Encoding.UTF8.GetString(exch.RequestBody);
-                        if (sBody.OICContains(sSearchFor))
+                        string sBody = cbDecode.Checked ? xc.GetRequestBodyAsString() : Encoding.UTF8.GetString(xc.RequestBody);
+                        if (isMatch(sBody))
                         {
                             ++iMatchCount;
-                            _MarkFound(exch, bSelectMatches);
+                            _MarkFound(xc, bSelectMatches);
                             continue;
                         }
                     }
-                    if (bResponseBody && exch.ResponseBody.HasData())
+                    if (bResponseBody && xc.ResponseBody.HasData())
                     {
-                        string sBody = cbDecode.Checked ? exch.GetResponseBodyAsString() : Encoding.UTF8.GetString(exch.ResponseBody);
-                        if (sBody.OICContains(sSearchFor))
+                        bool bResponseIsBinary = Utilities.IsMediaTypeBinary(xc.MediaType);
+                        if (!bResponseIsBinary || cbSearchBinaries.Checked)
                         {
-                            ++iMatchCount;
-                            _MarkFound(exch, bSelectMatches);
-                            continue;
+                            string sBody = cbDecode.Checked ? xc.GetResponseBodyAsString() : Encoding.UTF8.GetString(xc.ResponseBody);
+                            if (isMatch(sBody))
+                            {
+                                ++iMatchCount;
+                                _MarkFound(xc, bSelectMatches);
+                                continue;
+                            }
                         }
                     }
 
                     // Not found; unmark the item.
-                    exch.ViewItem.BackColor = CApp.UI.lvExchanges.BackColor;
+                    xc.ViewItem.BackColor = CApp.UI.lvExchanges.BackColor;
                 }
                 if (iMatchCount > 0 && bSelectMatches)
                 {

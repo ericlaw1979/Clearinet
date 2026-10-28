@@ -95,12 +95,13 @@ namespace Clearinet
                 return String.Equals(lviToTest.SubItems[ixColumn].Text ?? string.Empty, sFindText);
             }, bClearSelectionFirst: !bGrowSelection);
 
-            CApp.UI.SetStatusText($"Selected {this.SelectedCount} Exchanges matching column {ixColumn} value '{sFindText}'.");
+            var sColTitle = Columns[ixColumn].Text ?? $"Col#{ixColumn}";
+            CApp.UI.SetStatusText($"Selected {this.SelectedCount} Exchanges matching '{sColTitle}'='{sFindText}'.");
         }
 
         public Exchange[] GetAllExchanges()
         {
-            int iCount = Items.Count;
+            int iCount = ItemCount;
             Exchange[] arrExchanges = new Exchange[iCount];
             for (int ix = 0; ix < iCount; ++ix)
             {
@@ -120,6 +121,10 @@ namespace Clearinet
             return arrExchanges;
         }
 
+        // TODO: I *think* what I really want to do is keep a simple boolean flag that tracks
+        // whether the user has scrolled up at all (clearing that flag if they scroll down to the bottom).
+        // That way, scrolling up becomes a simple "Don't keep autoscrolling" flag and we don't need to worry
+        // about the minutia of painting, delayed additions, etc.
         public bool IsScrolledToBottom()
         {
             if (Items.Count == 0) return true;
@@ -231,10 +236,7 @@ namespace Clearinet
         {
             // TODO: For perf, we need to ensure we're not firing events during this process.
             BeginUpdate();
-            foreach (ListViewItem lvi in Items)
-            {
-                lvi.Selected = true;
-            }
+            foreach (ListViewItem lvi in Items) lvi.Selected = true;
             EndUpdate();
         }
         internal void ClearExchanges()
@@ -466,8 +468,24 @@ namespace Clearinet
 
         public void AddExtensionMenuItem(ToolStripMenuItem tsmi)
         {
-            // TODO: put this in the right place rather than just shoving it at the top.
+            // TODO: put the new menu item in the right place rather than just
+            // shoving extension commands at the top.
             ContextMenuStrip.Items.Insert(0, tsmi);
+        }
+
+        internal void InvertSelection()
+        {
+            if (InvokeRequired)
+            {
+                CApp.UIInvokeAsync(() => InvertSelection());
+                return;
+            }
+            CApp.PauseReporting = true;
+            BeginUpdate();
+            foreach (ListViewItem lvi in Items) lvi.Selected = !lvi.Selected;
+            EndUpdate();
+            CApp.PauseReporting = false;
+            CApp.UI.actUpdateInspector(true, true);
         }
     }
 

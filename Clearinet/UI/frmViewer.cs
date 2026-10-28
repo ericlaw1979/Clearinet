@@ -1808,6 +1808,64 @@ namespace Clearinet
         {
             lvExchanges.SelectAll();
         }
+
+        /// <summary>
+        /// Navigate the results of the last find operation.
+        /// </summary>
+        /// <param name="bNext">True to navigate next, false to navigate to prior.</param>
+        internal void actNavigateFindResults(bool bNext)
+        {
+            if (lvExchanges.ItemCount < 2) return;
+
+            // First, figure out where we are.
+            Exchange xcActive = GetFirstSelectedExchange();
+            if (null == xcActive) xcActive = (lvExchanges.Items[0].Tag as Exchange);
+            if (null == xcActive?.ViewItem) return;
+
+            // We currently mark all matches with a backcolor of CONFIG.colorHighlight, so
+            // we are going to navigate to the next/previous item with that backcolor.
+            var sSearchColor = ColorTranslator.ToHtml(CONFIG.colorHighlight);
+            int ix = xcActive.ViewItem.Index;
+
+            if (bNext)
+            {
+                ++ix; // Start looking after the current item.
+                while (ix < lvExchanges.ItemCount)
+                {
+                    Exchange xcMaybe = lvExchanges.Items[ix].Tag as Exchange;
+                    // Found it.
+                    if (sSearchColor == xcMaybe?["ui-backcolor"])
+                    {
+                        xcActive.ViewItem.Selected = false;
+                        xcMaybe.ViewItem.Focused = true;
+                        xcMaybe.ViewItem.Selected = true;
+                        xcMaybe.ViewItem.EnsureVisible();
+                        return;
+                    }
+                    ++ix;
+                }
+            }
+            else
+            {
+                --ix; // Start looking before the current item.
+                while (ix >= 0)
+                {
+                    Exchange xcMaybe = lvExchanges.Items[ix].Tag as Exchange;
+                    if (sSearchColor == xcMaybe?["ui-backcolor"])
+                    {
+                        xcActive.ViewItem.Selected = false;
+                        xcMaybe.ViewItem.Focused = true;
+                        xcMaybe.ViewItem.Selected = true;
+                        xcMaybe.ViewItem.EnsureVisible();
+                        return;
+                    }
+                    --ix;
+                }
+            }
+
+            CApp.UI.SetStatusText("No more matches.");
+        }
+
         private void lvExchanges_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == Keys.Oemplus)
@@ -1824,8 +1882,17 @@ namespace Clearinet
             }
             if (e.KeyData == Keys.Enter)
             {
-                actInspectExchange();
+                if (lvExchanges.SelectedCount == 1)
+                    actInspectExchange();
+                else
+                    actActivateTab("Statistics");
                 e.SuppressKeyPress = e.Handled = true;
+                return;
+            }
+
+            if (e.KeyData == Keys.Space)
+            {
+                GetFirstSelectedExchange()?.ViewItem?.EnsureVisible();
                 return;
             }
 
@@ -1862,6 +1929,11 @@ namespace Clearinet
                     case Keys.C:
                         e.SuppressKeyPress = e.Handled = true;
                         miEditCopyExchange.PerformClick();
+                        break;
+
+                    case Keys.I:
+                        e.SuppressKeyPress = e.Handled = true;
+                        lvExchanges.InvertSelection();
                         break;
 
                     case Keys.W:
@@ -1909,6 +1981,24 @@ namespace Clearinet
 
             switch (e.KeyCode)
             {
+                case Keys.Oemcomma: // >
+                    e.Handled = e.SuppressKeyPress = true;
+                    actNavigateFindResults(false);
+                    return;
+
+                case Keys.F3:
+                case Keys.OemPeriod: // <
+                    e.SuppressKeyPress = e.Handled = true;
+                    actNavigateFindResults(true);
+                    return;
+
+                case Keys.Escape:
+                    e.SuppressKeyPress = e.Handled = true;
+                    CApp.PauseReporting = true;
+                    lvExchanges.SelectedItems.Clear();
+                    CApp.PauseReporting = false;
+                    break;
+
                 case Keys.Back:
                     e.SuppressKeyPress = e.Handled = true;
                     lvExchanges.ActivatePreviousItem();
@@ -2047,7 +2137,7 @@ namespace Clearinet
                 try
                 {
                     byte[] body = File.ReadAllBytes(path);
-                    string contentType = Utilities.MimeTypeFromFilename(path);
+                    string contentType = Utilities.MediaTypeFromFilename(path);
                     exResult = CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", contentType, body);
                 }
                 catch (Exception eX)
@@ -2325,13 +2415,14 @@ namespace Clearinet
         {
             Debug.Assert(!CApp.UI.InvokeRequired);
             int cSelected = lvExchanges.SelectedCount;
+            var sBottomMarker = (lvExchanges.IsScrolledToBottom() ? "*" : "^");  //TODO: Remove
             if (cSelected < 1)
             {
-                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{(lvExchanges.IsScrolledToBottom() ? "*" : string.Empty)}";
+                tslSelCount.Text = $"{lvExchanges.TotalCount:N0}{sBottomMarker}";
             }
             else
             {
-                tslSelCount.Text = $"{cSelected:N0} / {lvExchanges.TotalCount:N0}";
+                tslSelCount.Text = $"{sBottomMarker}{cSelected:N0} / {lvExchanges.TotalCount:N0}";
             }
         }
 
@@ -2373,7 +2464,20 @@ namespace Clearinet
             if (e.KeyCode != Keys.Enter) return;
             e.SuppressKeyPress = e.Handled = true;
 
+            // TODO: Do we need any of this code, or can we just use the .Search we added to RichTextBoxv5?
+            RichTextBoxFinds rtbFindOption = RichTextBoxFinds.None;
             string searchText = txtLogSearch.Text;
+            if (searchText.OICStartsWith("exact:"))
+            {
+                searchText = searchText.Substring(6);
+                rtbFindOption |= RichTextBoxFinds.MatchCase;
+            }
+            if (searchText.OICStartsWith("regex:"))
+            {
+                searchText = searchText.Substring(6);
+                CApp.UI.SetStatusText("TODO: NYI - REGEX search is not yet implemented.");
+            }
+
             if (searchText.Length == 0)
             {
                 SetStatusText("Enter text to search the log.");
@@ -2381,17 +2485,16 @@ namespace Clearinet
             }
 
             int start = rtbLog.SelectionStart + rtbLog.SelectionLength;
-            int match = rtbLog.Find(searchText, start, RichTextBoxFinds.None);
+            int match = rtbLog.Find(searchText, start, rtbFindOption);
             if (match < 0 && start > 0)
             {
-                match = rtbLog.Find(searchText, 0, RichTextBoxFinds.None);
+                match = rtbLog.Find(searchText, 0, rtbFindOption);
             }
             if (match < 0)
             {
                 SetStatusText("No matching text found in the log.");
                 return;
             }
-            rtbLog.ScrollToCaret();
             SetStatusText("Log match found. Press Enter to find the next match.");
         }
 

@@ -264,7 +264,20 @@ namespace Clearinet
         #endregion
 
 
-        public static string MimeTypeFromFilename(string filename)
+        public static bool IsMediaTypeBinary(string sMediaType)
+        {
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types
+            if (!sMediaType.HasText()) return false;
+            if (sMediaType.OICStartsWith("image/")) return !sMediaType.OICEquals("image/svg+xml");
+            if (sMediaType.OICStartsWith("text/")) return false;
+            if (sMediaType.OICStartsWithAny("audio/", "video/", "font/", "application/octet")) return true;
+            if (sMediaType.OICStartsWithAny("application/pdf", "application/vnd.ms-", "application/zip", "application/x-7z-")) return true;
+
+            // TODO: Extensible list.
+            return false;
+        }
+
+        public static string MediaTypeFromFilename(string filename)
         {
             if (!filename.HasText()) return "application/octet-stream";
 
@@ -875,7 +888,7 @@ namespace Clearinet
             }
         }
 
-        internal static string DescribeException(Exception eX)
+        public static string DescribeException(Exception eX)
         {
             return $"{eX.GetType().Name}: {eX.Message}\n{eX.StackTrace}\n";
         }

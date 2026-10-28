@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("0.0.2.7")]
 
 // Selected Release Version History
-// v0.0.2.7 - Oct 27-2026 - Enhance HexView with colors, add more settings to Options in preparation for a real proxy engine.
+// v0.0.2.7 - Oct 28-2026 - Enhance find (EXACT:, REGEX:, Search binaries, navigate between results with < and > keys); Enhance HexView with colors, add more settings to Options in preparation for a real proxy engine.
 // v0.0.2.6 - Oct 26-2026 - The one with all the "26" - Add Timeline, MezerTools, Add ContextAction, ToolsAction to script, Add KeepOnly, Log formatting via !/_ prefix, Enhance QuickExec, Performance, 
 // v0.0.2.5 - Oct 22-2026 - Improve performance, QuickExec, Textransformer, Add hotkey, Workaround DotNetZip bug with encrypted but uncompressed entries
 // v0.0.2.4 - Oct 20-2026 - Add CopyAsCURL, ReplayInBrowser, Alt+Click in Exchanges list, Improve timers, Enhance Composer, X-ReplyWithFile

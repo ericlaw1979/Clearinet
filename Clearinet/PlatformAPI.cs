@@ -14,6 +14,34 @@ namespace Clearinet
     /// </summary>
     public class PlatformAPI
     {
+        private const ushort IMAGE_FILE_MACHINE_ARM64 = 0xAA64;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool IsWow64Process2(IntPtr hProcess, out ushort processMachine, out ushort nativeMachine);
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetCurrentProcess();
+
+        // Windows 10 Version 1709 is Build 16299
+        private static readonly bool IsIsWow64Process2Supported =
+            Environment.OSVersion.Platform == PlatformID.Win32NT &&
+            Environment.OSVersion.Version >= new Version(10, 0, 16299);
+
+        public static bool IsRunningInX64EmulationOnArm64()
+        {
+            if (!Environment.Is64BitProcess || !IsIsWow64Process2Supported)
+            {
+                return false;
+            }
+
+            if (IsWow64Process2(GetCurrentProcess(), out ushort processMachine, out ushort nativeMachine))
+            {
+                return nativeMachine == IMAGE_FILE_MACHINE_ARM64;
+            }
+
+            return false;
+        }
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetPhysicalCursorPos(out Point point);
 

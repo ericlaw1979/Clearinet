@@ -71,7 +71,15 @@ namespace Clearinet
             DateTime builtDate = assembly.GetCustomAttribute<AssemblyBuiltDateAttribute>()?.BuiltDate ?? new DateTime(1885, 9, 2);
 
             string bitness = Environment.Is64BitProcess ? "64-bit" : "32-bit";
-            string architecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") ?? "x86";
+            string architecture;
+            if (PlatformAPI.IsRunningInX64EmulationOnArm64())
+            {
+                architecture = "AMD64 (emulated on Arm64)";
+            }
+            else
+            {
+                architecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") ?? "x86";
+            }
 
             double privateBytesMB = 0; // Total Exclusive Memory allocated
             double workingSetMB = 0;   // Total Physical RAM (includes shared DLLs)

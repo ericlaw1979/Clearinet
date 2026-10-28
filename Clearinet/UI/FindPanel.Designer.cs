@@ -34,15 +34,16 @@
             this.cbDecode = new System.Windows.Forms.CheckBox();
             this.ccbxWhere = new CheckedComboBox();
             this.btnFindClose = new System.Windows.Forms.Button();
+            this.cbSearchBinaries = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // cbSelectMatches
             // 
             this.cbSelectMatches.AutoSize = true;
-            this.cbSelectMatches.Location = new System.Drawing.Point(4, 62);
+            this.cbSelectMatches.Location = new System.Drawing.Point(247, 62);
             this.cbSelectMatches.Margin = new System.Windows.Forms.Padding(4);
             this.cbSelectMatches.Name = "cbSelectMatches";
-            this.cbSelectMatches.Size = new System.Drawing.Size(117, 21);
+            this.cbSelectMatches.Size = new System.Drawing.Size(144, 25);
             this.cbSelectMatches.TabIndex = 4;
             this.cbSelectMatches.Text = "Select Matches";
             this.cbSelectMatches.UseVisualStyleBackColor = true;
@@ -55,26 +56,26 @@
             this.txtToFind.Location = new System.Drawing.Point(6, 4);
             this.txtToFind.Margin = new System.Windows.Forms.Padding(4);
             this.txtToFind.Name = "txtToFind";
-            this.txtToFind.Size = new System.Drawing.Size(352, 24);
+            this.txtToFind.Size = new System.Drawing.Size(352, 28);
             this.txtToFind.TabIndex = 0;
             this.txtToFind.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtToFind_KeyDown);
             // 
             // lblLookIn
             // 
             this.lblLookIn.AutoSize = true;
-            this.lblLookIn.Location = new System.Drawing.Point(3, 32);
+            this.lblLookIn.Location = new System.Drawing.Point(2, 35);
             this.lblLookIn.Name = "lblLookIn";
-            this.lblLookIn.Size = new System.Drawing.Size(57, 17);
+            this.lblLookIn.Size = new System.Drawing.Size(68, 21);
             this.lblLookIn.TabIndex = 2;
             this.lblLookIn.Text = "Look in:";
             // 
             // cbDecode
             // 
             this.cbDecode.AutoSize = true;
-            this.cbDecode.Location = new System.Drawing.Point(129, 62);
+            this.cbDecode.Location = new System.Drawing.Point(106, 62);
             this.cbDecode.Margin = new System.Windows.Forms.Padding(4);
             this.cbDecode.Name = "cbDecode";
-            this.cbDecode.Size = new System.Drawing.Size(117, 21);
+            this.cbDecode.Size = new System.Drawing.Size(141, 25);
             this.cbDecode.TabIndex = 5;
             this.cbDecode.Text = "Decode bodies";
             this.cbDecode.TextAlign = System.Drawing.ContentAlignment.TopLeft;
@@ -87,10 +88,10 @@
             this.ccbxWhere.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.ccbxWhere.EmptyText = "-- Search Where --";
             this.ccbxWhere.FormattingEnabled = true;
-            this.ccbxWhere.Location = new System.Drawing.Point(67, 29);
+            this.ccbxWhere.Location = new System.Drawing.Point(67, 32);
             this.ccbxWhere.Margin = new System.Windows.Forms.Padding(4);
             this.ccbxWhere.Name = "ccbxWhere";
-            this.ccbxWhere.Size = new System.Drawing.Size(291, 25);
+            this.ccbxWhere.Size = new System.Drawing.Size(291, 29);
             this.ccbxWhere.SummarySeparator = ";";
             this.ccbxWhere.TabIndex = 3;
             // 
@@ -109,10 +110,23 @@
             this.btnFindClose.UseVisualStyleBackColor = false;
             this.btnFindClose.Click += new System.EventHandler(this.btnFindClose_Click);
             // 
+            // cbSearchBinaries
+            // 
+            this.cbSearchBinaries.AutoSize = true;
+            this.cbSearchBinaries.Location = new System.Drawing.Point(7, 62);
+            this.cbSearchBinaries.Margin = new System.Windows.Forms.Padding(4);
+            this.cbSearchBinaries.Name = "cbSearchBinaries";
+            this.cbSearchBinaries.Size = new System.Drawing.Size(91, 25);
+            this.cbSearchBinaries.TabIndex = 7;
+            this.cbSearchBinaries.Text = "Binaries";
+            this.cbSearchBinaries.TextAlign = System.Drawing.ContentAlignment.TopLeft;
+            this.cbSearchBinaries.UseVisualStyleBackColor = true;
+            // 
             // FindPanel
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.cbSearchBinaries);
             this.Controls.Add(this.btnFindClose);
             this.Controls.Add(this.cbDecode);
             this.Controls.Add(this.lblLookIn);
@@ -136,5 +150,6 @@
         private System.Windows.Forms.Label lblLookIn;
         private System.Windows.Forms.CheckBox cbDecode;
         private System.Windows.Forms.Button btnFindClose;
+        private System.Windows.Forms.CheckBox cbSearchBinaries;
     }
 }

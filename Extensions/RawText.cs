@@ -20,6 +20,17 @@ namespace Extensions
             Win32UI.SetCueText(txtFind, " Find... (Ctrl+Enter to highlight all)");
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.F) && rtbRaw.ContainsFocus)
+            {
+                txtFind.Focus();
+                txtFind.SelectAll();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         public void Clear()
         {
             rtbRaw.Clear();
@@ -121,6 +132,7 @@ namespace Extensions
             if (e.KeyCode == Keys.F3)
             {
                 txtFind.Focus();
+                txtFind.SelectAll();
                 e.Handled = e.SuppressKeyPress = true;
             }
         }

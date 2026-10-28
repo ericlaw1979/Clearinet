@@ -28,9 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.pnlBottom = new System.Windows.Forms.Panel();
             this.txtFind = new System.Windows.Forms.TextBox();
-            this.mnuContext = new System.Windows.Forms.ContextMenuStrip();
+            this.mnuContext = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miSendToTextWizard = new System.Windows.Forms.ToolStripMenuItem();
             this.miCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.miPaste = new System.Windows.Forms.ToolStripMenuItem();

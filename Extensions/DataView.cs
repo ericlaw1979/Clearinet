@@ -15,6 +15,7 @@ namespace Extensions
     public sealed class DataView : UserControl
     {
         readonly BetterTreeView tree;
+        readonly ContextMenuStrip contextMenu;
         readonly TextBox search;
         readonly Label searchStatus;
         readonly Label message;
@@ -26,6 +27,23 @@ namespace Extensions
         public DataView()
         {
             tree = new BetterTreeView { Dock = DockStyle.Fill, HideSelection = false, BackColor = CONFIG.colorDisabledEdit };
+            contextMenu = new ContextMenuStrip();
+            var copy = new ToolStripMenuItem("&Copy");
+            var copySubtree = new ToolStripMenuItem("Copy &Subtree");
+            var sendToTextransformer = new ToolStripMenuItem("Send to &Textransformer");
+            copy.Click += (sender, e) => CopySelectedNode(false);
+            copySubtree.Click += (sender, e) => CopySelectedNode(true);
+            sendToTextransformer.Click += (sender, e) => CApp.UI.actShowTextransform(tree.SelectedNode.Text);
+            contextMenu.Items.AddRange(new ToolStripItem[] { copy, copySubtree, sendToTextransformer });
+            contextMenu.Opening += (sender, e) =>
+            {
+                copy.Enabled = copySubtree.Enabled = sendToTextransformer.Enabled = tree.SelectedNode != null;
+            };
+            tree.ContextMenuStrip = contextMenu;
+            tree.MouseDown += (sender, e) =>
+            {
+                if (e.Button == MouseButtons.Right) tree.SelectedNode = tree.GetNodeAt(e.Location);
+            };
             message = new Label { Dock = DockStyle.Fill, Padding = new Padding(12) };
             search = new TextBox { Dock = DockStyle.Fill, AccessibleName = "Find nodes", BorderStyle = BorderStyle.FixedSingle };
             searchStatus = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(6) };
@@ -74,18 +92,40 @@ namespace Extensions
                 if (e.KeyData == Keys.Space)
                 {
                     var n = tree.SelectedNode;
-                    n.BackColor = (n.BackColor == CONFIG.colorHighlight) ? n.BackColor = tree.BackColor : CONFIG.colorHighlight;
+                    if (n != null) n.BackColor = n.BackColor == CONFIG.colorHighlight ? tree.BackColor : CONFIG.colorHighlight;
                     e.SuppressKeyPress = e.Handled = true;
                 }
                 if (e.KeyCode == Keys.C && e.Modifiers == Keys.Control)
                 {
-                    var n = tree.SelectedNode;
-                    PlatformAPI.WriteToClipboard(n?.Text ?? string.Empty);  // TODO: What we really want to do is copy the entire subtree in the data model...
+                    CopySelectedNode(false);
                     e.SuppressKeyPress = e.Handled = true;
                 }
             };
             SetFontSize(CONFIG.flFontSize);
             Clear();
+        }
+
+        private void CopySelectedNode(bool includeChildren)
+        {
+            TreeNode selected = tree.SelectedNode;
+            if (selected == null) return;
+            if (!includeChildren)
+            {
+                PlatformAPI.WriteToClipboard(selected.Text);
+                return;
+            }
+            var text = new StringBuilder();
+            var pending = new Stack<Tuple<TreeNode, int>>();
+            pending.Push(Tuple.Create(selected, 0));
+            while (pending.Count > 0)
+            {
+                var entry = pending.Pop();
+                if (entry.Item1 != selected) text.AppendLine();
+                text.Append('\t', entry.Item2).Append(entry.Item1.Text);
+                for (int i = entry.Item1.Nodes.Count - 1; i >= 0; i--)
+                    pending.Push(Tuple.Create(entry.Item1.Nodes[i], entry.Item2 + 1));
+            }
+            PlatformAPI.WriteToClipboard(text.ToString());
         }
 
         internal static int ScoreForContentType(string contentType, bool request = false)
@@ -398,7 +438,11 @@ namespace Extensions
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            if (disposing) viewFont?.Dispose();
+            if (disposing)
+            {
+                contextMenu.Dispose();
+                viewFont?.Dispose();
+            }
         }
 
 

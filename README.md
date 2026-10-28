@@ -13,9 +13,13 @@ A .NET WinForms application that has the look-and-feel of an 2010-era Windows ap
 
 The request and response **Cookies** inspectors display `Cookie`/`Cookie2` and `Set-Cookie`/`Set-Cookie2` headers in a read-only text view. Each cookie appears separately, with response attributes on individual lines. The request inspector shows the total character count of all cookie header values (including separators, excluding header names) and each cookie's `name=value` character count (excluding surrounding whitespace; quotes and escapes count as displayed).
 
+Right-click a node in the **Data** inspector to **Copy** its displayed text, **Copy Subtree** as tab-indented lines (including collapsed descendants), or **Send to Textransformer** to open the tool with that node's displayed text. Ctrl+C also copies the current node's text.
+
 The NetLog importer accepts Chromium's JSON and JSONL captures, including gzip-compressed files and JSON/JSONL entries in ZIP archives. JSONL records use the same analysis as JSON captures; a capture without a final `end` record can be imported if all records are complete. Malformed JSONL records abort the import with an error.
 
 QuickExec offers inline autocomplete from previous commands as you type. Up/Down browse commands matching your typed prefix (case-insensitive), newest first, keeping your typed prefix unselected and selecting only the completed suffix so you can replace it by typing; Down past the newest match restores your draft. Repeated commands move to the newest position.
+
+Find searches for case-insensitive literal substrings by default. Prefix the search with `EXACT:` for a case-sensitive literal substring, or `REGEX:` for a .NET regular expression (case-sensitive by default; use `(?i)` for case-insensitive matching). Prefix names are case-insensitive and apply to all selected search targets. Invalid patterns and regular expression timeouts are reported as search failures.
 
 The Screenshot toolbar button shows a four-second countdown ending with "cheese!", then captures the full desktop across all monitors and adds it as a generated Exchange with an `image/jpeg` response. The countdown disappears before capture, and the button cannot start another capture while counting down. Closing the viewer cancels the pending capture. Screenshots include visible desktop content, so review them before sharing or saving an archive.
 
