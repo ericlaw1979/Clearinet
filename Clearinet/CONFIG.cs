@@ -345,7 +345,12 @@ namespace Clearinet
 
         internal static void RevertToDefaultAppearance()
         {
-            CApp.alert("not yet implemented");
+            CApp.Prefs.RemovePref("app.ui.darkmode");
+            CApp.Prefs.RemovePref("app.ui.exchangelist.column_layout");
+            CApp.Prefs.RemovePref("app.ui.inspector.splitter");
+            CApp.Prefs.RemovePref("app.ui.main.splitter");
+            CApp.Prefs.RemovePref("app.ui.appearance.color_disablededit");
+            CApp.Prefs.RemovePref("app.ui.appearance.color_highlight");
         }
 
         /// <summary>
