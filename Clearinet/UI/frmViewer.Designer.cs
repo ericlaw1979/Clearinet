@@ -104,6 +104,7 @@
             this.miViewInspectors = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewComposer = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewTabs = new System.Windows.Forms.ToolStripMenuItem();
+            this.miViewTabsAboutConfig = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewAutoScroll = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewSquish = new System.Windows.Forms.ToolStripMenuItem();
             this.miViewRefresh = new System.Windows.Forms.ToolStripMenuItem();
@@ -142,6 +143,17 @@
             this.pnlTopGoldbar = new System.Windows.Forms.Panel();
             this.lblTodo = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
+            this.lvExchanges = new Clearinet.ExchangeListView();
+            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colMethod = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colScheme = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colResponseSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colMediaType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colProcess = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colComments = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.mnuExchange = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mnuExchangeCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.miExchangeCopyUrl = new System.Windows.Forms.ToolStripMenuItem();
@@ -164,9 +176,11 @@
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
             this.miExchangeProperties = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLeftBottom = new System.Windows.Forms.Panel();
+            this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
             this.tabsViews = new System.Windows.Forms.TabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
+            this.rtbStatistics = new Clearinet.RichTextBoxV5();
             this.pageInspectors = new System.Windows.Forms.TabPage();
             this.tabsResponse = new System.Windows.Forms.TabControl();
             this.mnuInspectors = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -186,20 +200,6 @@
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.rtbStatistics = new Clearinet.RichTextBoxV5();
-            this.lvExchanges = new Clearinet.ExchangeListView();
-            this.colID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colMethod = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colScheme = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colResponseSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colMediaType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colProcess = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colComments = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.txtQuickExec = new Clearinet.QuickExecBox();
-            this.miViewTabsAboutConfig = new System.Windows.Forms.ToolStripMenuItem();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -812,6 +812,13 @@
             this.miViewTabs.Size = new System.Drawing.Size(224, 22);
             this.miViewTabs.Text = "Extra Ta&bs";
             // 
+            // miViewTabsAboutConfig
+            // 
+            this.miViewTabsAboutConfig.Name = "miViewTabsAboutConfig";
+            this.miViewTabsAboutConfig.Size = new System.Drawing.Size(149, 22);
+            this.miViewTabsAboutConfig.Text = "&about:config";
+            this.miViewTabsAboutConfig.Click += new System.EventHandler(this.miViewTabsAboutConfig_Click);
+            // 
             // miViewAutoScroll
             // 
             this.miViewAutoScroll.Checked = true;
@@ -1158,6 +1165,96 @@
             this.pnlLeft.Size = new System.Drawing.Size(357, 518);
             this.pnlLeft.TabIndex = 6;
             // 
+            // lvExchanges
+            // 
+            this.lvExchanges.Activation = System.Windows.Forms.ItemActivation.OneClick;
+            this.lvExchanges.AllowColumnReorder = true;
+            this.lvExchanges.AutoArrange = false;
+            this.lvExchanges.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lvExchanges.CausesValidation = false;
+            this.lvExchanges.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.colID,
+            this.colResult,
+            this.colMethod,
+            this.colScheme,
+            this.colHost,
+            this.colPath,
+            this.colResponseSize,
+            this.colMediaType,
+            this.colProcess,
+            this.colComments});
+            this.lvExchanges.ContextMenuStrip = this.mnuExchange;
+            this.lvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
+            this.lvExchanges.FullRowSelect = true;
+            this.lvExchanges.HideSelection = false;
+            this.lvExchanges.LabelWrap = false;
+            this.lvExchanges.Location = new System.Drawing.Point(0, 0);
+            this.lvExchanges.Margin = new System.Windows.Forms.Padding(4);
+            this.lvExchanges.Name = "lvExchanges";
+            this.lvExchanges.Size = new System.Drawing.Size(357, 476);
+            this.lvExchanges.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this.lvExchanges.TabIndex = 4;
+            this.lvExchanges.UseCompatibleStateImageBehavior = false;
+            this.lvExchanges.View = System.Windows.Forms.View.Details;
+            this.lvExchanges.SelectedIndexChanged += new System.EventHandler(this.lvExchanges_SelectedIndexChanged);
+            this.lvExchanges.DoubleClick += new System.EventHandler(this.lvExchanges_DoubleClick);
+            this.lvExchanges.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyDown);
+            this.lvExchanges.KeyUp += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyUp);
+            this.lvExchanges.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lvExchanges_MouseDown);
+            // 
+            // colID
+            // 
+            this.colID.Text = "#";
+            this.colID.Width = 30;
+            // 
+            // colResult
+            // 
+            this.colResult.Text = "Result";
+            this.colResult.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // colMethod
+            // 
+            this.colMethod.Text = "Method";
+            this.colMethod.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.colMethod.Width = 80;
+            // 
+            // colScheme
+            // 
+            this.colScheme.Text = "Protocol";
+            // 
+            // colHost
+            // 
+            this.colHost.Text = "Host";
+            this.colHost.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.colHost.Width = 200;
+            // 
+            // colPath
+            // 
+            this.colPath.Text = "Path";
+            this.colPath.Width = 500;
+            // 
+            // colResponseSize
+            // 
+            this.colResponseSize.Text = "Body";
+            this.colResponseSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.colResponseSize.Width = 80;
+            // 
+            // colMediaType
+            // 
+            this.colMediaType.Text = "MediaType";
+            this.colMediaType.Width = 100;
+            // 
+            // colProcess
+            // 
+            this.colProcess.Text = "Process";
+            this.colProcess.Width = 80;
+            // 
+            // colComments
+            // 
+            this.colComments.Text = "Comments";
+            this.colComments.Width = 200;
+            // 
             // mnuExchange
             // 
             this.mnuExchange.ImageScalingSize = new System.Drawing.Size(20, 20);
@@ -1337,6 +1434,21 @@
             this.pnlLeftBottom.TabIndex = 5;
             this.pnlLeftBottom.Visible = false;
             // 
+            // txtQuickExec
+            // 
+            this.txtQuickExec.BackColor = System.Drawing.Color.Black;
+            this.txtQuickExec.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txtQuickExec.CueText = "[Alt+;] Type a command or HELP";
+            this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
+            this.txtQuickExec.Location = new System.Drawing.Point(0, 498);
+            this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
+            this.txtQuickExec.Name = "txtQuickExec";
+            this.txtQuickExec.Size = new System.Drawing.Size(357, 20);
+            this.txtQuickExec.TabIndex = 3;
+            this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
+            // 
             // pnlMain
             // 
             this.pnlMain.Controls.Add(this.tabsViews);
@@ -1380,6 +1492,18 @@
             this.pageStatistics.Text = "Statistics";
             this.pageStatistics.UseVisualStyleBackColor = true;
             // 
+            // rtbStatistics
+            // 
+            this.rtbStatistics.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbStatistics.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbStatistics.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rtbStatistics.Location = new System.Drawing.Point(4, 4);
+            this.rtbStatistics.Name = "rtbStatistics";
+            this.rtbStatistics.ReadOnly = true;
+            this.rtbStatistics.Size = new System.Drawing.Size(670, 481);
+            this.rtbStatistics.TabIndex = 0;
+            this.rtbStatistics.Text = "";
+            // 
             // pageInspectors
             // 
             this.pageInspectors.Controls.Add(this.tabsResponse);
@@ -1404,7 +1528,7 @@
             this.tabsResponse.Multiline = true;
             this.tabsResponse.Name = "tabsResponse";
             this.tabsResponse.SelectedIndex = 0;
-            this.tabsResponse.Size = new System.Drawing.Size(670, 256);
+            this.tabsResponse.Size = new System.Drawing.Size(670, 254);
             this.tabsResponse.TabIndex = 1;
             this.tabsResponse.SelectedIndexChanged += new System.EventHandler(this.tabsResponse_SelectedIndexChanged);
             // 
@@ -1550,7 +1674,7 @@
             this.rtbLog.Margin = new System.Windows.Forms.Padding(4);
             this.rtbLog.Name = "rtbLog";
             this.rtbLog.ReadOnly = true;
-            this.rtbLog.Size = new System.Drawing.Size(678, 468);
+            this.rtbLog.Size = new System.Drawing.Size(678, 466);
             this.rtbLog.TabIndex = 0;
             this.rtbLog.Text = "";
             this.rtbLog.WordWrap = false;
@@ -1561,7 +1685,7 @@
             this.txtLogSearch.AccessibleName = "Search log";
             this.txtLogSearch.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtLogSearch.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txtLogSearch.Location = new System.Drawing.Point(0, 468);
+            this.txtLogSearch.Location = new System.Drawing.Point(0, 466);
             this.txtLogSearch.Name = "txtLogSearch";
             this.txtLogSearch.Size = new System.Drawing.Size(678, 23);
             this.txtLogSearch.TabIndex = 1;
@@ -1582,130 +1706,6 @@
             this.splitterMain.Size = new System.Drawing.Size(4, 518);
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
-            // 
-            // rtbStatistics
-            // 
-            this.rtbStatistics.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbStatistics.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbStatistics.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rtbStatistics.Location = new System.Drawing.Point(4, 4);
-            this.rtbStatistics.Name = "rtbStatistics";
-            this.rtbStatistics.ReadOnly = true;
-            this.rtbStatistics.Size = new System.Drawing.Size(670, 481);
-            this.rtbStatistics.TabIndex = 0;
-            this.rtbStatistics.Text = "";
-            // 
-            // lvExchanges
-            // 
-            this.lvExchanges.Activation = System.Windows.Forms.ItemActivation.OneClick;
-            this.lvExchanges.AllowColumnReorder = true;
-            this.lvExchanges.AutoArrange = false;
-            this.lvExchanges.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lvExchanges.CausesValidation = false;
-            this.lvExchanges.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colID,
-            this.colResult,
-            this.colMethod,
-            this.colScheme,
-            this.colHost,
-            this.colPath,
-            this.colResponseSize,
-            this.colMediaType,
-            this.colProcess,
-            this.colComments});
-            this.lvExchanges.ContextMenuStrip = this.mnuExchange;
-            this.lvExchanges.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lvExchanges.EmptyText = "No Exchanges captured or loaded (or all are hidden)";
-            this.lvExchanges.FullRowSelect = true;
-            this.lvExchanges.HideSelection = false;
-            this.lvExchanges.LabelWrap = false;
-            this.lvExchanges.Location = new System.Drawing.Point(0, 0);
-            this.lvExchanges.Margin = new System.Windows.Forms.Padding(4);
-            this.lvExchanges.Name = "lvExchanges";
-            this.lvExchanges.Size = new System.Drawing.Size(357, 476);
-            this.lvExchanges.Sorting = System.Windows.Forms.SortOrder.Ascending;
-            this.lvExchanges.TabIndex = 4;
-            this.lvExchanges.UseCompatibleStateImageBehavior = false;
-            this.lvExchanges.View = System.Windows.Forms.View.Details;
-            this.lvExchanges.SelectedIndexChanged += new System.EventHandler(this.lvExchanges_SelectedIndexChanged);
-            this.lvExchanges.DoubleClick += new System.EventHandler(this.lvExchanges_DoubleClick);
-            this.lvExchanges.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyDown);
-            this.lvExchanges.KeyUp += new System.Windows.Forms.KeyEventHandler(this.lvExchanges_KeyUp);
-            this.lvExchanges.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lvExchanges_MouseDown);
-            // 
-            // colID
-            // 
-            this.colID.Text = "#";
-            this.colID.Width = 30;
-            // 
-            // colResult
-            // 
-            this.colResult.Text = "Result";
-            this.colResult.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            // 
-            // colMethod
-            // 
-            this.colMethod.Text = "Method";
-            this.colMethod.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.colMethod.Width = 80;
-            // 
-            // colScheme
-            // 
-            this.colScheme.Text = "Protocol";
-            // 
-            // colHost
-            // 
-            this.colHost.Text = "Host";
-            this.colHost.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.colHost.Width = 200;
-            // 
-            // colPath
-            // 
-            this.colPath.Text = "Path";
-            this.colPath.Width = 500;
-            // 
-            // colResponseSize
-            // 
-            this.colResponseSize.Text = "Body";
-            this.colResponseSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.colResponseSize.Width = 80;
-            // 
-            // colMediaType
-            // 
-            this.colMediaType.Text = "MediaType";
-            this.colMediaType.Width = 100;
-            // 
-            // colProcess
-            // 
-            this.colProcess.Text = "Process";
-            this.colProcess.Width = 80;
-            // 
-            // colComments
-            // 
-            this.colComments.Text = "Comments";
-            this.colComments.Width = 200;
-            // 
-            // txtQuickExec
-            // 
-            this.txtQuickExec.BackColor = System.Drawing.Color.Black;
-            this.txtQuickExec.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txtQuickExec.CueText = "[Alt+;] Type a command or HELP";
-            this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;
-            this.txtQuickExec.Location = new System.Drawing.Point(0, 498);
-            this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
-            this.txtQuickExec.Name = "txtQuickExec";
-            this.txtQuickExec.Size = new System.Drawing.Size(357, 20);
-            this.txtQuickExec.TabIndex = 3;
-            this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
-            // 
-            // miViewTabsAboutConfig
-            // 
-            this.miViewTabsAboutConfig.Name = "miViewTabsAboutConfig";
-            this.miViewTabsAboutConfig.Size = new System.Drawing.Size(180, 22);
-            this.miViewTabsAboutConfig.Text = "&about:config";
-            this.miViewTabsAboutConfig.Click += new System.EventHandler(this.miViewTabsAboutConfig_Click);
             // 
             // frmViewer
             // 

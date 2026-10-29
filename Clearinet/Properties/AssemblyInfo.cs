@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.2.7")]
+[assembly: AssemblyVersion("0.0.2.8")]
 
 // Selected Release Version History
 // v0.0.2.7 - Oct 28-2026 - Enhance find (EXACT:, REGEX:, Search binaries, navigate between results with < and > keys); add QuickLinks; Enhance HexView with colors, add more settings to Options in preparation for a real proxy engine.
