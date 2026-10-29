@@ -1665,7 +1665,8 @@ namespace Clearinet
         private void miEdit_DropDownOpening(object sender, EventArgs e)
         {
             // Requires 1+ Exchange in the list
-            miEditSelectAll.Enabled = miEditCopy.Enabled = miEditMark.Enabled = miEditRemoveSelected.Enabled = (lvExchanges.SelectedCount > 0);
+            miEditSelectAll.Enabled = miEditCopy.Enabled = miEditMark.Enabled = miEditRemoveSelected.Enabled =
+                miEditCopyResponseDataURI.Enabled = (lvExchanges.SelectedCount > 0);
             // Requires 1+ *selected* Exchange in the list
             miEditUnlock.Enabled = miEditRemove.Enabled = miEditFind.Enabled =
                 miEditCopyForAI.Enabled = miEditCopyExchange.Enabled = miEditCopyHeaders.Enabled =
@@ -2746,10 +2747,38 @@ namespace Clearinet
             {
                 sbAllHeaders.AppendLine("```http");
                 sbAllHeaders.AppendLine(arrExch[ix].RequestHeaders?.ToString());
+
+                if (arrExch[ix].RequestBody?.Length > 0)
+                {
+                    sbAllHeaders.AppendLine();
+                    sbAllHeaders.AppendLine(arrExch[ix].DescribeRequestBodyForAI());
+                    sbAllHeaders.AppendLine();
+                }
+
                 sbAllHeaders.AppendLine(arrExch[ix].ResponseHeaders?.ToString());
+                if (arrExch[ix].ResponseBody?.Length > 0)
+                {
+                    sbAllHeaders.AppendLine();
+                    sbAllHeaders.AppendLine(arrExch[ix].DescribeResponseBodyForAI());
+                    sbAllHeaders.AppendLine();
+                }
                 sbAllHeaders.AppendLine("```");
             }
             PlatformAPI.WriteToClipboard(sbAllHeaders.ToString());
+        }
+
+        private void miEditCopyResponseDataURI_Click(object sender, EventArgs e)
+        {
+            Exchange[] arrExch = GetSelectedExchanges();
+            if (arrExch.Length < 1) return;
+            StringBuilder sbAllURIs = new StringBuilder();
+            var ix = 0;
+            for (; ix < arrExch.Length; ++ix)
+            {
+                sbAllURIs.AppendLine(arrExch[ix].ResponseBodyAsDataURL());
+            }
+            if (1 == ix) sbAllURIs.Length -= Environment.NewLine.Length; // Remove trailing newline if only one exchange
+            PlatformAPI.WriteToClipboard(sbAllURIs.ToString());
         }
 
         private void miEditCopyExchange_Click(object sender, EventArgs e)
@@ -3161,6 +3190,8 @@ namespace Clearinet
         {
             PrefView.CreatePrefsTab(tabsViews);
         }
+
+
     }
 
     public class LongRunningOperation : IDisposable

@@ -77,6 +77,7 @@
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.miEditCopyTerseSummary = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopySummary = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyResponseDataURI = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditPasteAsExchanges = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemove = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveSelected = new System.Windows.Forms.ToolStripMenuItem();
@@ -200,6 +201,7 @@
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
+            this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -521,11 +523,13 @@
             // 
             this.miEditCopy.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miEditCopyURL,
-            this.miEditCopyForAI,
+            this.miEditCopyCurl,
+            this.toolStripMenuItem8,
+            this.miEditCopyResponseDataURI,
+            this.toolStripMenuItem2,
             this.miEditCopyExchange,
             this.miEditCopyHeaders,
-            this.miEditCopyCurl,
-            this.toolStripMenuItem2,
+            this.miEditCopyForAI,
             this.miEditCopyTerseSummary,
             this.miEditCopySummary});
             this.miEditCopy.Name = "miEditCopy";
@@ -585,6 +589,13 @@
             this.miEditCopySummary.Size = new System.Drawing.Size(188, 22);
             this.miEditCopySummary.Text = "&Full Summary Table";
             this.miEditCopySummary.Click += new System.EventHandler(this.miEditCopySummary_Click);
+            // 
+            // miEditCopyResponseDataURI
+            // 
+            this.miEditCopyResponseDataURI.Name = "miEditCopyResponseDataURI";
+            this.miEditCopyResponseDataURI.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyResponseDataURI.Text = "Response &DataURI";
+            this.miEditCopyResponseDataURI.Click += new System.EventHandler(this.miEditCopyResponseDataURI_Click);
             // 
             // miEditPasteAsExchanges
             // 
@@ -1707,6 +1718,11 @@
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             // 
+            // toolStripMenuItem8
+            // 
+            this.toolStripMenuItem8.Name = "toolStripMenuItem8";
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(185, 6);
+            // 
             // frmViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1913,6 +1929,8 @@
         private System.Windows.Forms.ToolStripDropDownButton tsddbKeepOnly;
         private System.Windows.Forms.ToolStripButton tsbDecompress;
         private System.Windows.Forms.ToolStripMenuItem miViewTabsAboutConfig;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyResponseDataURI;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem8;
     }
 }
 

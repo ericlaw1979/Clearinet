@@ -47,6 +47,15 @@ namespace Clearinet
             return $"Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]";
         }
 
+        public string ResponseBodyAsDataURL()
+        {
+            if (!ResponseBody.HasData()) return "data:application/octet-stream;";
+            string sMime = this.MediaType;
+            if (!sMime.HasText()) sMime = "application/octet-stream";
+            string sBase64 = Convert.ToBase64String(GetResponseBodyAsDecodedBytes());
+            return $"data:{sMime};base64,{sBase64}";
+        }
+
         public string ToLongString()
         {
             StringBuilder sb = new StringBuilder();
@@ -491,6 +500,15 @@ namespace Clearinet
         {
             byte[] decompressed = DecodeBodyFromHeaders(ResponseHeaders, ResponseBody);
             return Encoding.UTF8.GetString(decompressed); // TODO: Use the charset from the Content-Type header if present.
+        }
+
+        public byte[] GetRequestBodyAsDecodedBytes()
+        {
+            return DecodeBodyFromHeaders(RequestHeaders, RequestBody);
+        }
+        public byte[] GetResponseBodyAsDecodedBytes()
+        {
+            return DecodeBodyFromHeaders(ResponseHeaders, ResponseBody);
         }
 
         public static byte[] DecodeBodyFromHeaders(HTTPHeaders headers, byte[] bodyBytes)
@@ -974,6 +992,37 @@ namespace Clearinet
             {
                 sTarget.Write(ResponseBody, 0, ResponseBody.Length);
             }
+        }
+
+        internal string DescribeRequestBodyForAI()
+        {
+            if (!RequestBody.HasData()) return "(No request body.)";
+            var arrBody = GetRequestBodyAsDecodedBytes();
+            if (RequestBody.Length < 512)
+            {
+                return $"(Request body is the base64-decoding of {Encoding.UTF8.GetString(arrBody)}.)";
+            }
+            else
+            {
+                string sBase64 = Convert.ToBase64String(arrBody, 0, 256, Base64FormattingOptions.InsertLineBreaks);
+                return $"(Request body starts with the base64-decoding of {sBase64}...)";
+            }
+        }
+
+        internal string DescribeResponseBodyForAI()
+        {
+            if (!ResponseBody.HasData()) return "(No response body.)";
+            var arrBody = GetResponseBodyAsDecodedBytes();
+            if (ResponseBody.Length < 512)
+            {
+                return $"(Response body is the base64-decoding of {Encoding.UTF8.GetString(arrBody)}.)";
+            }
+            else
+            {
+                string sBase64 = Convert.ToBase64String(arrBody, 0, 256, Base64FormattingOptions.InsertLineBreaks);
+                return $"(Response body starts with the base64-decoding of {sBase64}...)";
+            }
+
         }
     }
 
