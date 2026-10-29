@@ -489,6 +489,50 @@ namespace Clearinet
             CApp.PauseReporting = false;
             CApp.UI.actUpdateInspector(true, true);
         }
+
+        /// <summary>
+        /// Returns a serializable string of the columns (Title/Width) in display order.
+        /// We use ~ and § as delimiters because we need characters unlikely to appear in titles.
+        /// </summary>
+        internal string GetColumnLayout()
+        {
+            string[] arrColumnsInDisplayOrder = new string[Columns.Count];
+            for (int ix = 0; ix < Columns.Count; ++ix)
+            {
+                ColumnHeader col = Columns[ix];
+                arrColumnsInDisplayOrder[col.DisplayIndex] = $"{col.Text}~{col.Width}";
+            }
+            return string.Join("§", arrColumnsInDisplayOrder);
+        }
+
+        internal void ApplyColumnLayout(string sLayout)
+        {
+            if (!sLayout.HasText()) return;
+            string[] arrColumns = sLayout.Split(new[] { '§' }, StringSplitOptions.RemoveEmptyEntries);
+            var i = 0;
+            foreach (var colLayout in arrColumns)
+            {
+                string[] arrParts = colLayout.Split(new[] { '~' }, StringSplitOptions.RemoveEmptyEntries);
+                if (arrParts.Length != 2) continue;
+                string sTitle = arrParts[0];
+                ColumnHeader col = GetColumnByTitle(sTitle);
+                if (col == null) continue;
+
+                col.DisplayIndex = i++;
+
+                if (!int.TryParse(arrParts[1], out int iWidth)) continue;
+                col.Width = iWidth;
+            }
+        }
+
+        internal ColumnHeader GetColumnByTitle(string sTitle)
+        {
+            foreach (ColumnHeader col in Columns)
+            {
+                if (String.Equals(col.Text, sTitle, StringComparison.OrdinalIgnoreCase)) return col;
+            }
+            return null;
+        }
     }
 
     /// <summary>
