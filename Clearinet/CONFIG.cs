@@ -125,6 +125,11 @@ namespace Clearinet
                     continue;
                 }
 
+                // Ignore switches which Visual Studio adds to the command line when debugging.
+                if (sSwitch.OICEqualsAny("noprofile", "nologo", "noninteractive", "Command"))
+                {
+                    continue;
+                }
                 _ShowValidArgs($"\n\n'{sSwitch}' is unknown.");
             }
         }

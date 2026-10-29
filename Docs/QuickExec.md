@@ -24,3 +24,4 @@ Eventually, this feature will include autocomplete and a scrollable history list
 
 ### Diagnostic Commands
 - `lm` logs all loaded .NET modules to the Log tab
+- `!dns hostname` looks up a hostname using the system DNS resolver and switches to the Log tab. The lookup runs without blocking the UI and logs the resolved hostname, any aliases, and all returned IPv4/IPv6 addresses, or an error if resolution fails. Example: `!dns google.com`.

@@ -3,9 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -208,6 +211,7 @@ namespace Clearinet
                     "cls - Clear the Exchanges list\n" +
                     "select <mime>\n" +
                     "tail <#> - Keep only the most recent # of Exchanges\n" +
+                    "!dns <hostname> - Log a DNS lookup\n" +
                     "lro <TestLongRunningOperation name>",
                     "QuickExec QuickHelp", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
@@ -339,6 +343,19 @@ namespace Clearinet
                 return true;
             }
 
+            if (sCmd == "!dns")
+            {
+                if (arrParams.Length != 2 || string.IsNullOrWhiteSpace(arrParams[1]))
+                {
+                    CApp.DoNotifyUser(CApp.UI, "Usage: !dns <hostname>", "Invalid Parameters", MessageBoxIcon.Error);
+                    return true;
+                }
+
+                UI.actActivateTab("Log");
+                _ = LookupDnsAsync(arrParams[1]);
+                return true;
+            }
+
             if (sCommand.StartsWith("?")) // TODO: "Find as you type"
             {
                 var sFind = sCommand.Substring(1).Trim();
@@ -400,6 +417,34 @@ namespace Clearinet
 
             if (null == scriptRules) return false;
             return scriptRules.RunExecAction(arrParams);
+        }
+
+        private static async Task LookupDnsAsync(string hostname)
+        {
+            Log.Log($"Looking up {hostname} in DNS...");
+            try
+            {
+                IPHostEntry entry = await Dns.GetHostEntryAsync(hostname);
+                var result = new StringBuilder();
+                result.AppendLine($"DNS lookup for {hostname}: {entry.HostName}");
+                foreach (string alias in entry.Aliases)
+                {
+                    result.AppendLine($"  Alias: {alias}");
+                }
+                foreach (IPAddress address in entry.AddressList)
+                {
+                    result.AppendLine($"  {address}");
+                }
+                Log.Log(result.ToString().TrimEnd());
+            }
+            catch (SocketException ex)
+            {
+                Log.Log($"DNS lookup for {hostname} failed ({ex.SocketErrorCode}): {ex.Message}");
+            }
+            catch (ArgumentException ex)
+            {
+                Log.Log($"DNS lookup for {hostname} failed: {ex.Message}");
+            }
         }
 
         internal static void _DumpModulesToLog()
