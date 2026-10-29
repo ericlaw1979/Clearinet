@@ -69,16 +69,17 @@ namespace Clearinet
         #endregion
 
         // Note: This method doesn't use any PInvoke APIs, but this class is a handy place to put it.
-        internal static void activateTitledTab(string title, TabControl tabSet)
+        internal static bool activateTitledTab(string title, TabControl tabSet)
         {
             for (int i = 0; i < tabSet.TabPages.Count; i++)
             {
                 if (tabSet.TabPages[i].Text.OICEquals(title))
                 {
                     tabSet.SelectedTab = tabSet.TabPages[i];
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         public static TabPage GetPageFromPoint(TabControl tabSet, Point p)

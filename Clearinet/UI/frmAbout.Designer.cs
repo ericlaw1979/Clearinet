@@ -47,7 +47,7 @@
             this.txtAbout.Multiline = true;
             this.txtAbout.Name = "txtAbout";
             this.txtAbout.ReadOnly = true;
-            this.txtAbout.Size = new System.Drawing.Size(480, 244);
+            this.txtAbout.Size = new System.Drawing.Size(354, 197);
             this.txtAbout.TabIndex = 1;
             // 
             // pbIcon
@@ -66,9 +66,9 @@
             this.lnkWebsite.AutoSize = true;
             this.lnkWebsite.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.lnkWebsite.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkWebsite.Location = new System.Drawing.Point(0, 269);
+            this.lnkWebsite.Location = new System.Drawing.Point(0, 229);
             this.lnkWebsite.Name = "lnkWebsite";
-            this.lnkWebsite.Size = new System.Drawing.Size(197, 24);
+            this.lnkWebsite.Size = new System.Drawing.Size(134, 17);
             this.lnkWebsite.TabIndex = 3;
             this.lnkWebsite.TabStop = true;
             this.lnkWebsite.Text = "https://Clearinet.app";
@@ -76,11 +76,11 @@
             // 
             // frmAbout
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(606, 293);
+            this.ClientSize = new System.Drawing.Size(480, 246);
             this.Controls.Add(this.lnkWebsite);
             this.Controls.Add(this.pbIcon);
             this.Controls.Add(this.txtAbout);

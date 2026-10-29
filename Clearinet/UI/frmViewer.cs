@@ -134,9 +134,9 @@ namespace Clearinet
             Win32UI.FlashWindow(Handle, true);
         }
 
-        public void actActivateTab(string sTabTitle)
+        public bool actActivateTab(string sTabTitle)
         {
-            Win32UI.activateTitledTab(sTabTitle, tabsViews);
+            return Win32UI.activateTitledTab(sTabTitle, tabsViews);
         }
 
         // Script-friendly shim: accepts a JScript.NET function object. This
@@ -3150,6 +3150,11 @@ namespace Clearinet
             }
             actUpdateInspector(true, true); // TODO: Should only do this if we're the single thing inspected.
             CApp.UI.SetStatusText($"Decompressed {arrXC.Length:N0} selected Exchanges.");
+        }
+
+        private void miViewTabsAboutConfig_Click(object sender, EventArgs e)
+        {
+            PrefView.CreatePrefsTab(tabsViews);
         }
     }
 
