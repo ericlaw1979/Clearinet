@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.CodeDom.Compiler;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -40,21 +39,19 @@ namespace Clearinet
         public event RulesCompileFailedHandler RulesCompileFailed;
 
         /// <summary>
-        /// Maps script-created ToolstripMenuItems to the backing method or field 
-        /// Used by ToolsAction, ContextAction, and eventually rulesoption.
-        /// Note: Value may be a MethodInfo, a FieldInfo, or null.
+        /// Tracks script-created menu items and their backing methods for removal on reload.
         /// </summary>
-        private static Hashtable htMenuScripts = new Hashtable();
+        private static readonly Dictionary<ToolStripItem, MethodInfo> htMenuScripts = new Dictionary<ToolStripItem, MethodInfo>();
 
-        private static Hashtable htButtonScripts = new Hashtable();
+        private static readonly Dictionary<ToolStripItem, MethodInfo> htButtonScripts = new Dictionary<ToolStripItem, MethodInfo>();
 
-        private static Dictionary<FieldInfo, string> dictFieldBackingPrefs = new Dictionary<FieldInfo, string>();
+        private static readonly Dictionary<FieldInfo, string> dictFieldBackingPrefs = new Dictionary<FieldInfo, string>();
 
-        private List<BindUITab> listBoundTabs = new List<BindUITab>();
-        private List<BindUIColumn> listBoundColumns = new List<BindUIColumn>();
+        private readonly List<BindUITab> listBoundTabs = new List<BindUITab>();
+        private readonly List<BindUIColumn> listBoundColumns = new List<BindUIColumn>();
 
-        private List<BindTextCodec> listBoundTextCodecs = new List<BindTextCodec>();
-        private List<PreferenceBag.PrefWatcher> listWeaklyHeldWatchers = new List<PreferenceBag.PrefWatcher>();
+        private readonly List<BindTextCodec> listBoundTextCodecs = new List<BindTextCodec>();
+        private readonly List<PreferenceBag.PrefWatcher> listWeaklyHeldWatchers = new List<PreferenceBag.PrefWatcher>();
 
         private Action<Exchange> _methodOnBeforeRequest;
         private Action<Exchange> _methodOnBeforeResponse;
@@ -66,7 +63,7 @@ namespace Clearinet
 
         private MethodInfo _methodExecAction;
 
-        private static UInt64 tcLatestScriptLoad = 0;
+        private static ulong tcLatestScriptLoad = 0;
         internal JScriptEngine(string scriptPath)
         {
             if (CONFIG.Overrides.DisableScript)
@@ -198,11 +195,11 @@ namespace Clearinet
                 compilerParameters.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location); // Clearinet
 
                 // TODO: Document this preference and the SECURITY IMPACT of unqualified paths.
-                String[] slAdditionalAssemblies = CApp.Prefs.GetStringPref("scripting.references", String.Empty).Split(';');
+                string[] slAdditionalAssemblies = CApp.Prefs.GetStringPref("scripting.references", string.Empty).Split(';');
                 foreach (string sPath in slAdditionalAssemblies)
                 {
                     string sPathTrimmed = sPath.Trim();
-                    if (String.IsNullOrEmpty(sPathTrimmed)) continue;
+                    if (string.IsNullOrEmpty(sPathTrimmed)) continue;
                     compilerParameters.ReferencedAssemblies.Add(sPathTrimmed);
                 }
                 #endregion ADD_REFERENCES
@@ -257,37 +254,22 @@ namespace Clearinet
             //
 
             // Look at each public static method in the Handlers class and bind targets based on the attributes we find.
-            foreach (MethodInfo mi in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            foreach (MethodInfo method in _typeHandlers.GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
-                {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(BindTextCodec), false) as BindTextCodec;
-                    if (null != b) { doBindTextCodec(mi, b); continue; }
-                }
+                BindTextCodec textCodec = method.GetCustomAttribute<BindTextCodec>(false);
+                if (textCodec != null) { doBindTextCodec(method, textCodec); continue; }
 
-                {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUIColumn), false) as BindUIColumn;
-                    if (null != b) { doBindUIColumn(mi, b); continue; }
-                }
+                BindUIColumn column = method.GetCustomAttribute<BindUIColumn>(false);
+                if (column != null) { doBindUIColumn(method, column); continue; }
 
-                {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUIButton), false) as BindUIButton;
-                    if (null != b) { doBindUIButton(mi, b); continue; }
-                }
+                BindUIButton button = method.GetCustomAttribute<BindUIButton>(false);
+                if (button != null) { doBindUIButton(method, button); continue; }
 
-                {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(BindUITab), false) as BindUITab;
-                    if (null != b) { doBindUITab(mi, b); continue; }
-                }
+                BindUITab tab = method.GetCustomAttribute<BindUITab>(false);
+                if (tab != null) { doBindUITab(method, tab); continue; }
 
-                {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(ContextAction), false) as ContextAction;
-                    if (null != b) { doBindUIContextAction(mi, b); continue; }
-                }
-
-                {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(ToolsAction), false) as ToolsAction;
-                    if (null != b) { doBindUIToolsAction(mi, b); continue; }
-                }
+                ContextAction contextAction = method.GetCustomAttribute<ContextAction>(false);
+                if (contextAction != null) { doBindUIContextAction(method, contextAction); continue; }
 
                 {
                     var b = Attribute.GetCustomAttribute(mi, typeof(QuickLinkMenu), false) as QuickLinkMenu;
@@ -349,6 +331,8 @@ namespace Clearinet
             {
                 if ((eX is TargetInvocationException) && (eX.InnerException != null)) eX = eX.InnerException;
                 CApp.ReportException(eX, "Your QuickLink function failed.");
+                ToolsAction toolsAction = method.GetCustomAttribute<ToolsAction>(false);
+                if (toolsAction != null) { doBindUIToolsAction(method, toolsAction); continue; }
             }
         }
 
@@ -537,26 +521,20 @@ namespace Clearinet
         private void ClearPriorScriptButtons()
         {
             // First, clear any existing buttons that were added by a previous script.
-            foreach (DictionaryEntry de in htButtonScripts)
+            foreach (ToolStripItem item in htButtonScripts.Keys)
             {
-                if (de.Key is ToolStripItem tsi)
-                {
-                    tsi.GetCurrentParent()?.Items.Remove(tsi);
-                    tsi.Dispose();
-                }
+                item.GetCurrentParent()?.Items.Remove(item);
+                item.Dispose();
             }
             htButtonScripts.Clear();
         }
 
         private void ClearPriorScriptMenus()
         {
-            foreach (DictionaryEntry de in htMenuScripts)
+            foreach (ToolStripItem item in htMenuScripts.Keys)
             {
-                if (de.Key is ToolStripItem tsi)
-                {
-                    tsi.GetCurrentParent()?.Items.Remove(tsi);
-                    tsi.Dispose();
-                }
+                item.GetCurrentParent()?.Items.Remove(item);
+                item.Dispose();
             }
             htMenuScripts.Clear();
         }
