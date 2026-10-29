@@ -3078,6 +3078,12 @@ namespace Clearinet
             miTools.DropDownItems.Add(tsmi);
         }
 
+        public void AddExtensionTopLevelMenu(ToolStripMenuItem tsmi)
+        {
+            // Insert the new menu to the left of the Help menu.
+            MainMenuStrip.Items.Insert(MainMenuStrip.Items.Count - 1, tsmi);
+        }
+
         private async void tsbScreenshot_Click(object sender, EventArgs e)
         {
             if (!tsbScreenshot.Enabled) return;

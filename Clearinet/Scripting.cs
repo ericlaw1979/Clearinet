@@ -289,6 +289,66 @@ namespace Clearinet
                     if (null != b) { doBindUIToolsAction(mi, b); continue; }
                 }
 
+                {
+                    var b = Attribute.GetCustomAttribute(mi, typeof(QuickLinkMenu), false) as QuickLinkMenu;
+                    if (null != b) { doBindUIQuickLinkMenu(mi, b); continue; }
+                }
+
+            }
+        }
+
+        private void doBindUIQuickLinkMenu(MethodInfo mi, QuickLinkMenu b)
+        {
+            if ((mi.GetParameters().Length != 2) || ((mi.GetParameters())[0].ParameterType != typeof(string)) ||
+                                                    ((mi.GetParameters())[1].ParameterType != typeof(string)))
+            {
+                CApp.Log.LogFormat($"!Warning: QuickLinkMenu `{b.MenuTitle}`must defined as `function(string sText, string sAction)`. Skipping.");
+                return;
+            }
+            QuickLinkItem[] arrQLI = (QuickLinkItem[])Attribute.GetCustomAttributes(mi, typeof(QuickLinkItem));
+            if (arrQLI?.Length < 1)
+            {
+                CApp.Log.LogFormat($"!Warning: QuickLinkMenu `{b.MenuTitle}` has no QuickLinkItem attributes defined on `{mi.Name}`. Skipping.");
+                return;
+            }
+            else
+            {
+                Array.Sort<QuickLinkItem>(arrQLI);
+            }
+
+            ToolStripMenuItem tsmi = new ToolStripMenuItem
+            {
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Text = b.MenuTitle,
+                Tag = mi
+            };
+
+            CApp.UI.AddExtensionTopLevelMenu(tsmi);
+            htMenuScripts.Add(tsmi, null);
+
+            ToolStripMenuItem tsmiItem;
+            foreach (QuickLinkItem qli in arrQLI)
+            {
+                tsmiItem = new ToolStripMenuItem(qli.ItemText);
+                tsmiItem.Tag = qli.ItemAction;
+                tsmi.DropDownItems.Add(tsmiItem);
+                htMenuScripts.Add(tsmiItem, mi);
+                tsmiItem.Click += new EventHandler(doQuickLinkClick);
+            }
+        }
+
+        private void doQuickLinkClick(object sender, EventArgs e)
+        {
+            try
+            {
+                ToolStripMenuItem tsmi = (ToolStripMenuItem)sender;
+                MethodInfo mi = (MethodInfo)htMenuScripts[sender];
+                mi.Invoke(null, new object[] { tsmi.Text, tsmi.Tag as String });
+            }
+            catch (Exception eX)
+            {
+                if ((eX is TargetInvocationException) && (eX.InnerException != null)) eX = eX.InnerException;
+                CApp.ReportException(eX, "Your QuickLink function failed.");
             }
         }
 

@@ -52,6 +52,16 @@ class Handlers {
     return xc.RequestBody.Length.ToString("N0");
     }
 
+    // Add a "Links" top-level menu to the main window.
+    QuickLinkMenu("&Links") 
+    QuickLinkItem("Clearinet on GitHub", "https://github.com/ericlaw1979/Clearinet")
+    QuickLinkItem("Edge Team's Demos", "https://github.com/MicrosoftEdge/Demos")
+    QuickLinkItem("Eric's Tests", "https://debugtheweb.com/test/")
+    public static function DoLinksMenu(sText: String, sAction: String)
+    {
+        Utilities.LaunchHyperlink(sAction);
+    }
+    
     public BindUITab("Flags")
     static function FlagsReport(arrXC: Exchange[]): String {
         var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();

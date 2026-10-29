@@ -81,6 +81,51 @@ namespace Clearinet
         }
     }
 
+    // Bind a top-level menu. The items on it will come from QuickLinkItem attributes on the same method.
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+    public sealed class QuickLinkMenu : Attribute
+    {
+        private string _menuTitle;
+        public QuickLinkMenu(string menuTitle)
+        {
+            _menuTitle = menuTitle;
+        }
+
+        public string MenuTitle
+        {
+            get => _menuTitle;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+    public sealed class QuickLinkItem : Attribute, IComparable<QuickLinkItem>
+    {
+        private string _itemTitle;
+        private string _itemAction;
+
+        public QuickLinkItem(string itemTitle, string itemAction)
+        {
+            _itemTitle = itemTitle;
+            _itemAction = itemAction;
+        }
+
+        public string ItemText
+        {
+            get => _itemTitle;
+        }
+
+        public string ItemAction
+        {
+            get => _itemAction;
+        }
+
+        // Alpha-sort the items.
+        public int CompareTo(QuickLinkItem other)
+        {
+            return String.Compare(_itemTitle, other._itemTitle);
+        }
+    }
+
     /// <summary>
     /// Bind a Tools menu item to the method.
     /// </summary>
