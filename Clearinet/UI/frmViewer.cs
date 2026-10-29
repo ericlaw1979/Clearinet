@@ -72,7 +72,7 @@ namespace Clearinet
         }
 
         #region ACTIONS
-        private void actMinimizeToTray()
+        public void actMinimizeToTray()
         {
             if (trayIcon == null)
             {
@@ -100,6 +100,11 @@ namespace Clearinet
             actActivateMainWindow();
         }
 
+        // legacy script api
+        public void actRestoreWindow()
+        {
+            actActivateMainWindow();
+        }
         private void actActivateMainWindow()
         {
             if (trayIcon != null && trayIcon.Visible)
@@ -108,8 +113,15 @@ namespace Clearinet
                 WindowState = trayRestoreState;
                 trayIcon.Visible = false;
             }
+            else
+            {
+                Show();
+            }
             if (!Win32UI.BringWindowToForeground(Handle))
-                CApp.Log.Log("Unable to bring the main Clearinet window to the foreground.");
+            {
+                Debug.Assert(false);
+                // CApp.Log.Log("Unable to bring the main Clearinet window to the foreground.");
+            }
         }
 
         /// <summary>
@@ -122,10 +134,60 @@ namespace Clearinet
             Win32UI.FlashWindow(Handle, true);
         }
 
-        public void actActivateTab(string sTabTitle)
+        public bool actActivateTab(string sTabTitle)
         {
-            Win32UI.activateTitledTab(sTabTitle, tabsViews);
+            return Win32UI.activateTitledTab(sTabTitle, tabsViews);
         }
+
+        // Script-friendly shim: accepts a JScript.NET function object. This
+        // is messy because JScript.NET doesn't support generics or mapping to delegates,
+        // so we have to use reflection to invoke the function.
+        public void actSelectExchanges(object oCriteriaChecker, int iMatchAtMost = Int32.MaxValue, bool bClearSelectionFirst = true)
+        {
+            if (oCriteriaChecker == null) throw new ArgumentNullException(nameof(oCriteriaChecker));
+
+            actSelectExchangesMatchingCriteria(
+                (x) => InvokeScriptPredicate(oCriteriaChecker, x),
+                iMatchAtMost,
+                bClearSelectionFirst
+            );
+        }
+
+        private static bool InvokeScriptPredicate(object checker, Exchange xc)
+        {
+            if (checker == null) throw new ArgumentNullException(nameof(checker));
+            object result;
+
+            // try Invoke/Call methods (including non-public)
+            var flags = System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.Public |
+                        System.Reflection.BindingFlags.NonPublic;
+
+            foreach (var mi in checker.GetType().GetMethods(flags))
+            {
+                if (mi.Name != "Invoke" && mi.Name != "Call") continue;
+
+                var p = mi.GetParameters();
+                try
+                {
+                    if (p.Length == 2 && p[0].ParameterType == typeof(object[]) && p[1].ParameterType == typeof(object))
+                    {
+                        result = mi.Invoke(checker, new object[] { new object[] { xc }, null });
+                        return result as bool? ?? false; // CoerceNullableBool(result);
+                    }
+                }
+                catch
+                {
+                    // try next overload
+                }
+            }
+
+            throw new ArgumentException(
+                "Script callback object is not invokable. Type=" + checker.GetType().FullName,
+                nameof(checker));
+        }
+
+        // TODO: The word you're looking for is Predicate 
 
         public void actSelectExchangesMatchingCriteria(Func<Exchange, bool?> oCriteriaChecker, int iMatchAtMost = Int32.MaxValue, bool bClearSelectionFirst = true)
         {
@@ -149,6 +211,11 @@ namespace Clearinet
             actUpdateInspector(true, true);
         }
 
+        // legacy script API
+        public void actExit()
+        {
+            this.Close();
+        }
         public void actShowTextransform(string sText)
         {
             frmTextWizard oFrm = new frmTextWizard(sText)
@@ -858,39 +925,54 @@ namespace Clearinet
             actSaveExchanges(GetAllExchanges());
         }
 
-        private bool actSaveExchanges(Exchange[] arrExchanges)
+        public void actSaveAllExchanges(string sFilename, string sPassword = null)
+        {
+            if (!actSaveExchanges(lvExchanges.GetAllExchanges(), sFilename, sPassword))
+            {
+                CApp.UI.SetStatusText("Save failed.");
+            }
+        }
+
+        public bool actSaveExchanges(Exchange[] arrExchanges, string sFilename = null, string sPassword = null)
         {
             if (arrExchanges?.Length < 1) return false;
 
             try
             {
-                (string sFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
-                if (!sFilename.HasText()) return false;
-                string sPassword = null;
-                if (2 == iType) // Password protected?
+
+                if (!sFilename.HasText())
                 {
-                    sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
+                    (string sObtainedFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                    sFilename = sObtainedFilename;
+                    if (!sFilename.HasText()) return false;
+
+                    if (2 == iType) // Password protected?
                     {
-                        Kind = frmPrompt.PromptKind.Password,
-                        OwnerWindow = CApp.UI,
-                        ReturnNullOnCancel = true,
-                        Title = "Password-Protect Session Archive",
-                        PromptText = "Enter a password to encrypt this Session Archive:"
-                    });
-                    if (null == sPassword) return false; // Cancel Save
-                    if (!sPassword.HasText()) sPassword = null;
-                }
-                else
-                {
-                    if (!CApp.Prefs.GetBoolPref("app.saz.warn_about_data_protection", false))
+                        sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
+                        {
+                            Kind = frmPrompt.PromptKind.Password,
+                            OwnerWindow = CApp.UI,
+                            ReturnNullOnCancel = true,
+                            Title = "Password-Protect Session Archive",
+                            PromptText = "Enter a password to encrypt this Session Archive:"
+                        });
+                        if (null == sPassword) return false; // Cancel Save
+                        if (!sPassword.HasText()) sPassword = null;
+                    }
+                    else
                     {
-                        // TODO: This is important enough to have a custom dialog with a link to a help topic.
-                        CApp.DoNotifyUser(
-                            "Captured Network Data may contain passwords and other private data. Protect access and share only with people you trust.\n\nTo encrypt a SAZ file when supplying the file's name, use the 'Save As Type' dropdown to select 'Password Protected SAZ'.",
-                            "Security and Privacy", MessageBoxIcon.Warning);
-                        CApp.Prefs.SetBoolPref("app.saz.warn_about_data_protection", true);
+                        if (!CApp.Prefs.GetBoolPref("app.saz.warn_about_data_protection", false))
+                        {
+                            // TODO: This is important enough to have a custom dialog with a link to a help topic.
+                            CApp.DoNotifyUser(
+                                "Captured Network Data may contain passwords and other private data. Protect access and share only with people you trust.\n\nTo encrypt a SAZ file when supplying the file's name, use the 'Save As Type' dropdown to select 'Password Protected SAZ'.",
+                                "Security and Privacy", MessageBoxIcon.Warning);
+                            CApp.Prefs.SetBoolPref("app.saz.warn_about_data_protection", true);
+                        }
                     }
                 }
+                if (!sFilename.HasText()) return false;
+
                 using (LongRunningOperation lro = new LongRunningOperation("Saving Exchanges...", true))
                 {
                     SAZFile.SaveTo(sFilename, arrExchanges, sPassword, lro: lro);
@@ -1032,8 +1114,10 @@ namespace Clearinet
 
         private void actExportExchanges(Exchange[] arrExchanges)
         {
+            if (arrExchanges?.Length < 1) return;
             string sFilename = Utilities.ObtainSaveFilename("Export Exchanges to HAR...", "HAR format|*.har|Any file|*.*");
             if (!sFilename.HasText()) return;
+            Utilities.EnsurePathExists(sFilename);
 
             if (sFilename.OICEndsWithAny(".har", ".json"))
             {
@@ -1519,7 +1603,7 @@ namespace Clearinet
                 SuspendLayout();
                 pnlLeftBottom.Controls.Add(CApp.oFindPanel);
                 CApp.oFindPanel.Dock = DockStyle.Fill;
-                pnlLeftBottom.Height = 100;
+                pnlLeftBottom.Height = 120; // TODO: Set based on DPI?
                 pnlLeftBottom.Visible = true;
                 ResumeLayout();
             }
@@ -1535,6 +1619,11 @@ namespace Clearinet
         private void miEditRemoveSelected_Click(object sender, EventArgs e)
         {
             lvExchanges.RemoveSelected();
+        }
+
+        public void actRemoveUnselectedExchanges()
+        {
+            lvExchanges.RemoveUnselected();
         }
         private void miEditRemoveUnselected_Click(object sender, EventArgs e)
         {
@@ -2063,6 +2152,12 @@ namespace Clearinet
             XC.oFlags["ui-backcolor"] = "OrangeRed";
         }
 
+        // legacy script api
+        public void actCaptureScreenshot(bool bCountdown)
+        {
+            // TODO: Support countdown.
+            actAddDesktopScreenshot();
+        }
         private void actAddDesktopScreenshot()
         {
             try
@@ -2331,6 +2426,10 @@ namespace Clearinet
             lvExchanges.SelectAll();
         }
 
+        public void actRemoveAllExchanges()
+        {
+            lvExchanges.ClearExchanges();
+        }
         private void miEditRemoveAll_Click(object sender, EventArgs e)
         {
             lvExchanges.ClearExchanges();
@@ -3053,6 +3152,11 @@ namespace Clearinet
             }
             actUpdateInspector(true, true); // TODO: Should only do this if we're the single thing inspected.
             CApp.UI.SetStatusText($"Decompressed {arrXC.Length:N0} selected Exchanges.");
+        }
+
+        private void miViewTabsAboutConfig_Click(object sender, EventArgs e)
+        {
+            PrefView.CreatePrefsTab(tabsViews);
         }
     }
 

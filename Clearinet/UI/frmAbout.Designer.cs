@@ -42,21 +42,21 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtAbout.BackColor = System.Drawing.SystemColors.Control;
             this.txtAbout.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txtAbout.Location = new System.Drawing.Point(111, 16);
-            this.txtAbout.Margin = new System.Windows.Forms.Padding(4);
+            this.txtAbout.Location = new System.Drawing.Point(111, 14);
+            this.txtAbout.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.txtAbout.Multiline = true;
             this.txtAbout.Name = "txtAbout";
             this.txtAbout.ReadOnly = true;
-            this.txtAbout.Size = new System.Drawing.Size(293, 201);
+            this.txtAbout.Size = new System.Drawing.Size(354, 197);
             this.txtAbout.TabIndex = 1;
             // 
             // pbIcon
             // 
             this.pbIcon.Image = ((System.Drawing.Image)(resources.GetObject("pbIcon.Image")));
             this.pbIcon.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbIcon.InitialImage")));
-            this.pbIcon.Location = new System.Drawing.Point(4, 16);
+            this.pbIcon.Location = new System.Drawing.Point(4, 14);
             this.pbIcon.Name = "pbIcon";
-            this.pbIcon.Size = new System.Drawing.Size(100, 104);
+            this.pbIcon.Size = new System.Drawing.Size(100, 89);
             this.pbIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbIcon.TabIndex = 2;
             this.pbIcon.TabStop = false;
@@ -64,10 +64,11 @@
             // lnkWebsite
             // 
             this.lnkWebsite.AutoSize = true;
+            this.lnkWebsite.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.lnkWebsite.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkWebsite.Location = new System.Drawing.Point(108, 216);
+            this.lnkWebsite.Location = new System.Drawing.Point(0, 229);
             this.lnkWebsite.Name = "lnkWebsite";
-            this.lnkWebsite.Size = new System.Drawing.Size(127, 17);
+            this.lnkWebsite.Size = new System.Drawing.Size(134, 17);
             this.lnkWebsite.TabIndex = 3;
             this.lnkWebsite.TabStop = true;
             this.lnkWebsite.Text = "https://Clearinet.app";
@@ -75,16 +76,19 @@
             // 
             // frmAbout
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(419, 242);
+            this.AutoSize = true;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.ClientSize = new System.Drawing.Size(480, 246);
             this.Controls.Add(this.lnkWebsite);
             this.Controls.Add(this.pbIcon);
             this.Controls.Add(this.txtAbout);
-            this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Font = new System.Drawing.Font("Tahoma", 10F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.KeyPreview = true;
-            this.Margin = new System.Windows.Forms.Padding(4);
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.MaximizeBox = false;
             this.Name = "frmAbout";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;

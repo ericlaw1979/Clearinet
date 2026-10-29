@@ -16,16 +16,19 @@ namespace Clearinet.UI
             Win32UI.SetCueText(txtToFind, "Plaintext to find, EXACT: or REGEX:");
             ccbxWhere.CheckItems.AddRange(new object[] {
                 "URLs", "ExchangeListbox Columns", "Request Headers", "Request Body", "Response Headers", "Response Body"});
-            // cbxFindIn.SelectedIndex = CApp.Prefs.GetInt32Pref("app.find.lastfind.findin", 0);
-            // cbxWhichComponent.SelectedIndex = CApp.Prefs.GetInt32Pref("app.find.lastfind.whichcomponent", 0);
+            // TODO: Restore last-find targets from prefs, if any. For now, just check all.
             ccbxWhere.CheckAll();
             cbSelectMatches.Checked = CApp.Prefs.GetBoolPref("app.find.lastfind.selectmatches", true);
+            cbDecode.Checked = CApp.Prefs.GetBoolPref("app.find.lastfind.decodebodies", true);
+            cbSearchBinaries.Checked = CApp.Prefs.GetBoolPref("app.find.lastfind.searchbinaries", false);
+            dudColor.SelectedItem = dudColor.Items[0]; //CApp.Prefs.GetStringPref("app.find.lastfind.highlightcolor", "Yellow");
+                                                       //   dudColor.BackColor = Utilities.ParseColor(dudColor.SelectedItem.ToString());
         }
 
         private void _MarkFound(Exchange exch, bool bSelectMatches)
         {
-            exch.ViewItem.BackColor = CONFIG.colorHighlight;
-            exch["ui-backcolor"] = ColorTranslator.ToHtml(CONFIG.colorHighlight);
+            exch.ViewItem.BackColor = colorSearchResult;
+            exch["ui-backcolor"] = ColorTranslator.ToHtml(colorSearchResult);
             if (bSelectMatches) exch.ViewItem.Selected = true;
         }
 
@@ -185,6 +188,20 @@ namespace Clearinet.UI
             CApp.oFindPanel.Parent.Controls.Remove(CApp.oFindPanel);
             CApp.oFindPanel.Dispose();
             CApp.oFindPanel = null;
+        }
+
+        private void dudColor_SelectedItemChanged(object sender, EventArgs e)
+        {
+            if (dudColor.SelectedItem != null)
+            {
+                CApp.Prefs.SetStringPref("app.find.lastfind.highlightcolor", dudColor.SelectedItem.ToString());
+                dudColor.BackColor = Utilities.ParseColor(dudColor.SelectedItem.ToString());
+            }
+        }
+
+        public Color colorSearchResult
+        {
+            get { return dudColor.BackColor; }
         }
     }
 }

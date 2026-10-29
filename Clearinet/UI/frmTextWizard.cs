@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PeterO.Cbor;
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -255,7 +256,7 @@ namespace Clearinet
 
                         break;
 
-                    case 24: // CBOR
+                    case 24: // CBOR. See https://cbor.me/
                         try
                         {
                             sText = sText.Trim();
@@ -278,8 +279,29 @@ namespace Clearinet
                             else  // CBOR to JSON
                             {
                                 byte[] cborBytes = Convert.FromBase64String(sText);
-                                var cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(cborBytes);
-                                sOutput = cborObject.ToJSONString();
+                                string sFooter = string.Empty;
+
+                                CBORObject cborObject;
+                                try
+                                {
+                                    cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(cborBytes);
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (ex.Message.StartsWith("Too many bytes.") && (cborBytes.Length > 1))
+                                    {
+                                        // try again after stripping the first byte from cborBytes, which may be a CTAP status byte.
+                                        byte[] arrStripped = new byte[cborBytes.Length - 1];
+                                        Buffer.BlockCopy(cborBytes, 1, arrStripped, 0, arrStripped.Length);
+                                        cborObject = PeterO.Cbor.CBORObject.DecodeFromBytes(arrStripped);
+                                        sFooter = "\r\n\r\n[Note: First byte of input was stripped. Perhaps a CTAP status byte?]";
+                                    }
+                                    else
+                                    {
+                                        throw;
+                                    }
+                                }
+                                sOutput = cborObject.ToJSONString() + sFooter;
                             }
                         }
                         catch (Exception ex)

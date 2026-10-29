@@ -168,6 +168,9 @@ namespace Clearinet
         {
             switch (sWhich)
             {
+                case "Captures":
+                    return CApp.Prefs.GetStringPref("app.paths.captures",
+                                         $"{GetPath("UserFolder")}Captures{Path.DirectorySeparatorChar}");
                 case "Editor.Code":
                     return CApp.Prefs.GetStringPref("user.paths.editors.code", "notepad.exe");
                 case "Tools.Diff":
@@ -189,7 +192,7 @@ namespace Clearinet
                                                 $"{GetPath("UserFolder")}ImportExport{Path.DirectorySeparatorChar}");
                 case "RulesScript":          // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.script",
-                                                $"{GetPath("UserFolder")}CustomRules_0_0_2_6.js");
+                                                $"{GetPath("UserFolder")}CustomRules_0_0_2_7.js");
                 case "SampleRulesScript":    // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.sample_script",
                                                 $"{Application.StartupPath}{Path.DirectorySeparatorChar}SampleRulesALPHA.js");
