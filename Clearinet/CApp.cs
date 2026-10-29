@@ -651,6 +651,7 @@ namespace Clearinet
             scriptRules?.DoOnShutdown();
             oExtensions.CallAllOnBeforeUnloads();
             AppShutdown?.Invoke();
+            Utilities.CleanupTempDirectories();
             CONFIG.SaveAllSettings(UI);
 
             // ENSURE THIS STAYS LAST!

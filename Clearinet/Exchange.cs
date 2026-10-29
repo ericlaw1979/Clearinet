@@ -965,6 +965,7 @@ namespace Clearinet
             return ms.ToArray();
         }
 
+        // TODO: Rewrite this to the WriteToStream() method in HTTPHeaders, and then call that for both request and response.
         internal void WriteTrafficToStream(Stream sTarget)
         {
             if (null != RequestHeaders)

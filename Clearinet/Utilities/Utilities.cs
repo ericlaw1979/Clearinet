@@ -416,12 +416,33 @@ namespace Clearinet
         }
 
         static List<string> directoriesToRemove = new List<string>();
-        private static void CleanupOnExit(string tempDirectory)
+        public static void CleanupOnExit(string tempDirectory)
         {
-            directoriesToRemove.Add(tempDirectory);
-            // TODO: Implement cleanup logic if needed, such as deleting temporary files on application exit.
+            lock (directoriesToRemove)
+            {
+                directoriesToRemove.Add(tempDirectory);
+            }
+        }
 
-            //             Directory.Delete(tempDirectory, recursive: true);
+        public static void CleanupTempDirectories()
+        {
+            lock (directoriesToRemove)
+            {
+                foreach (var dir in directoriesToRemove)
+                {
+                    try
+                    {
+                        if (Directory.Exists(dir))
+                        {
+                            Directory.Delete(dir, recursive: true);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"Failed to delete temporary directory: {dir}. Error: {ex.Message}");
+                    }
+                }
+            }
         }
 
         public static void LaunchHyperlink(string sURL)
@@ -432,7 +453,7 @@ namespace Clearinet
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Unable to launch the requested hyperlink:\n\n{ex.Message}", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Unable to launch the hyperlink:\n\n{ex.Message}", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -445,7 +466,7 @@ namespace Clearinet
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Unable to launch the requested application:\n\n{sApp} {sParams}\n\n{ex.Message}", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Unable to launch the app:\n\n{sApp} {sParams}\n\n{ex.Message}", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

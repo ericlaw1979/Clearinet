@@ -93,10 +93,10 @@
             "Clipboard",
             "Fake Exchange",
             "File..."});
-            this.cbxOutputTo.Location = new System.Drawing.Point(531, 7);
+            this.cbxOutputTo.Location = new System.Drawing.Point(595, 7);
             this.cbxOutputTo.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxOutputTo.Name = "cbxOutputTo";
-            this.cbxOutputTo.Size = new System.Drawing.Size(207, 21);
+            this.cbxOutputTo.Size = new System.Drawing.Size(155, 21);
             this.cbxOutputTo.TabIndex = 3;
             this.cbxOutputTo.SelectedIndexChanged += new System.EventHandler(this.cbxOutputTo_SelectedIndexChanged);
             // 
@@ -126,7 +126,7 @@
             // cbViewBytes
             // 
             this.cbViewBytes.AutoSize = true;
-            this.cbViewBytes.Location = new System.Drawing.Point(271, 9);
+            this.cbViewBytes.Location = new System.Drawing.Point(214, 9);
             this.cbViewBytes.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbViewBytes.Name = "cbViewBytes";
             this.cbViewBytes.Size = new System.Drawing.Size(78, 17);
@@ -165,10 +165,10 @@
             "Epoch",
             "JWT Token Decoder",
             "CBOR"});
-            this.cbxTransforms.Location = new System.Drawing.Point(16, 6);
+            this.cbxTransforms.Location = new System.Drawing.Point(4, 7);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";
-            this.cbxTransforms.Size = new System.Drawing.Size(228, 21);
+            this.cbxTransforms.Size = new System.Drawing.Size(204, 21);
             this.cbxTransforms.TabIndex = 1;
             this.cbxTransforms.SelectedIndexChanged += new System.EventHandler(this.cbxTransforms_SelectedIndexChanged);
             // 
