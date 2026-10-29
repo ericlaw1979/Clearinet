@@ -256,8 +256,11 @@ namespace Clearinet
                         InsertFilenames(Utilities.ObtainOpenFilenames("Insert filenames into QuickExec", "All files (*.*)|*.*"));
                     return true;
                 case Keys.Tab:
+                    if (string.IsNullOrWhiteSpace(Text)) break;
                     if (SelectionStart < TextLength)
                     {
+                        bool completing = _historyIndex >= 0 && SelectionStart == _typedText.Length
+                            && SelectionLength == TextLength - SelectionStart;
                         int position = SelectionStart;
                         string text = Text;
                         while (position < text.Length)
@@ -265,13 +268,17 @@ namespace Clearinet
                             char c = text[position++];
                             if (c == ' ' || c == '/' || c == '\\') break;
                         }
-                        Select(position, 0);
-                        return true;
+                        if (completing) _typedText = text.Substring(0, position);
+                        Select(position, completing ? TextLength - position : 0);
                     }
-                    break;
+                    return true;
                 case Keys.Shift | Keys.Tab:
+                    if (string.IsNullOrWhiteSpace(Text)) break;
                     if (SelectionStart > 0)
                     {
+                        bool completing = _historyIndex >= 0 && SelectionStart == _typedText.Length
+                            && SelectionLength == TextLength - SelectionStart;
+                        int selectionEnd = SelectionStart + SelectionLength;
                         int position = SelectionStart - 1;
                         string text = Text;
                         while (position > 0)
@@ -280,10 +287,10 @@ namespace Clearinet
                             if (c == ' ' || c == '/' || c == '\\') break;
                             --position;
                         }
-                        Select(position, 0);
-                        return true;
+                        if (completing) _typedText = text.Substring(0, position);
+                        Select(position, selectionEnd - position);
                     }
-                    break;
+                    return true;
                 case Keys.A | Keys.Control:
                     if (TextLength == 0)
                     {

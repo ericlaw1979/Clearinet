@@ -84,22 +84,24 @@ public static class QuickExecHistoryTests
 				Check(box.Text == text && box.SelectionStart == position && box.SelectionLength == 0,
 					"Tab did not advance to the next separator/end: " + position);
 			}
-			Check(!box.TryKey(Keys.Tab), "Tab at the end prevented normal focus navigation.");
+			Check(box.TryKey(Keys.Tab) && box.SelectionStart == text.Length && box.SelectionLength == 0,
+				"Tab at the end of nonblank text did not retain focus and selection.");
 			foreach (int position in new[] { 10, 9, 7, 5, 3, 0 })
 			{
 				box.Key(Keys.Shift | Keys.Tab);
-				Check(box.Text == text && box.SelectionStart == position && box.SelectionLength == 0,
-					"Shift+Tab did not return to the previous separator/start: " + position);
+				Check(box.Text == text && box.SelectionStart == position && box.SelectedText == text.Substring(position),
+					"Shift+Tab did not grow the selection backward to the previous separator/start: " + position);
 			}
-			Check(!box.TryKey(Keys.Shift | Keys.Tab), "Shift+Tab at the start prevented normal focus navigation.");
+			Check(box.TryKey(Keys.Shift | Keys.Tab) && box.SelectedText == text,
+				"Shift+Tab at the start of nonblank text did not retain focus and selection.");
 			box.Select(4, 3);
 			box.Key(Keys.Tab);
 			Check(box.Text == text && box.SelectionStart == 5 && box.SelectionLength == 0,
 				"Tab did not navigate from the beginning of a selected suffix.");
 			box.Select(6, 3);
 			box.Key(Keys.Shift | Keys.Tab);
-			Check(box.Text == text && box.SelectionStart == 5 && box.SelectionLength == 0,
-				"Shift+Tab did not navigate backward from inside a segment.");
+			Check(box.Text == text && box.SelectionStart == 5 && box.SelectedText == text.Substring(5, 4),
+				"Shift+Tab did not extend an existing selection while preserving its right edge.");
 			box.Text = "\u00e9\tword";
 			box.Select(0, 0);
 			box.Key(Keys.Tab);
@@ -108,6 +110,31 @@ public static class QuickExecHistoryTests
 			box.Clear();
 			Check(!box.TryKey(Keys.Tab) && !box.TryKey(Keys.Shift | Keys.Tab),
 				"Empty QuickExec prevented normal focus navigation.");
+			box.Text = "   ";
+			box.Select(1, 0);
+			Check(!box.TryKey(Keys.Tab) && !box.TryKey(Keys.Shift | Keys.Tab),
+				"Whitespace-only QuickExec prevented normal focus navigation.");
+			box.OnExecute += delegate(ExecuteEventArgs e) { e.Handled = true; };
+			box.Text = text;
+			box.Key(Keys.Enter);
+			box.Type("g");
+			foreach (int position in new[] { 3, 5, 7, 9, 10, 13 })
+			{
+				box.Key(Keys.Tab);
+				Check(box.Text == text && box.SelectionStart == position && box.SelectedText == text.Substring(position),
+					"Tab did not retain the remaining completion across separators: " + position);
+			}
+			Check(box.TryKey(Keys.Tab) && box.SelectionStart == text.Length && box.SelectionLength == 0,
+				"Tab after accepting the entire suggestion did not retain focus.");
+			foreach (int position in new[] { 10, 9, 7, 5, 3, 0 })
+			{
+				box.Key(Keys.Shift | Keys.Tab);
+				Check(box.Text == text && box.SelectionStart == position && box.SelectedText == text.Substring(position),
+					"Shift+Tab did not restore the uncommitted suggestion across separators: " + position);
+			}
+			box.Key(Keys.Tab);
+			Check(box.Text == text && box.SelectionStart == 3 && box.SelectedText == text.Substring(3),
+				"Tab after Shift+Tab did not accept only the traversed portion of the suggestion.");
 		}
 	}
 
@@ -369,19 +396,50 @@ public static class QuickExecHistoryTests
 				box.Clear();
 				box.Type("se");
 				box.Key(Keys.Tab);
-				Check(box.Text == "select image" && box.SelectionStart == 7 && box.SelectionLength == 0,
-					"Tab did not advance through an autocomplete suffix without changing it.");
-				box.Key(Keys.Shift | Keys.Tab);
-				Check(box.Text == "select image" && box.SelectionStart == 0 && box.SelectionLength == 0,
-					"Shift+Tab did not return to the start of the completed command.");
+				Check(box.Text == "select image" && box.SelectionStart == 7 && box.SelectedText == "image",
+					"Tab did not accept the traversed prefix and preserve the remaining autocomplete selection.");
+				box.Key(Keys.Down);
+				Check(box.Text == "select " && box.SelectionStart == 7 && box.SelectionLength == 0,
+					"Down did not restore the prefix accepted with Tab.");
 				box.Clear();
 				box.Type("se");
-				box.Key(Keys.Shift | Keys.Tab);
-				Check(box.Text == "select image" && box.SelectionStart == 0 && box.SelectionLength == 0,
-					"Shift+Tab did not navigate backward with an autocomplete suffix selected.");
 				box.Key(Keys.Tab);
-				box.Type("new ");
-				Check(box.Text == "select new image", "Typing after Tab navigation replaced or corrupted the completion.");
+				box.Type("t");
+				Check(box.Text == "select text" && box.SelectionStart == 8 && box.SelectedText == "ext",
+					"Typing after Tab did not replace the remaining suggestion and offer a different completion.");
+				box.Type("z");
+				Check(box.Text == "select tz" && box.SelectionStart == 9 && box.SelectionLength == 0,
+					"Typing an unmatched prefix did not discard the selected completion.");
+				box.Clear();
+				box.Type("se");
+				box.Key(Keys.Tab);
+				box.Key(Keys.Tab);
+				Check(box.Text == "select image" && box.SelectionStart == 12 && box.SelectionLength == 0,
+					"Tab did not accept the final segment of a suggestion.");
+				box.Key(Keys.Shift | Keys.Tab);
+				box.Key(Keys.Shift | Keys.Tab);
+				Check(box.Text == "select image" && box.SelectionStart == 0 && box.SelectedText == box.Text,
+					"Shift+Tab did not select the entire completed command when returning to the start.");
+				box.Clear();
+				box.Type("se");
+				box.Key(Keys.Tab);
+				box.Key(Keys.Shift | Keys.Tab);
+				Check(box.Text == "select image" && box.SelectionStart == 0 && box.SelectedText == box.Text,
+					"Shift+Tab committed the remaining autocomplete suffix instead of growing the selection.");
+				box.Key(Keys.Down);
+				Check(box.Text == expected[3] && box.SelectionStart == 0 && box.SelectedText == box.Text,
+					"Down did not match history using the shortened prefix after Shift+Tab.");
+				box.Key(Keys.Down);
+				Check(box.Text == "" && box.SelectionLength == 0,
+					"Down past the newest match did not restore the shortened prefix after Shift+Tab.");
+				box.Type("se");
+				box.Key(Keys.Shift | Keys.Tab);
+				Check(box.Text == "select image" && box.SelectionStart == 0 && box.SelectedText == box.Text,
+					"Shift+Tab did not grow the original autocomplete selection backward.");
+				box.Key(Keys.Tab);
+				box.Type("t");
+				Check(box.Text == "select text" && box.SelectionStart == 8 && box.SelectedText == "ext",
+					"Typing after backward/forward navigation did not replace the suffix and offer another completion.");
 				string executed = null;
 				box.OnExecute += delegate(ExecuteEventArgs e) { executed = e.Command; e.Handled = true; };
 				box.Clear();

@@ -6,7 +6,7 @@ The QuickExec box sits below the Web Exchanges list and allows you to rapidly ex
 
 QuickExec autocompletes from command history as you type. Up/Down browse commands matching your typed prefix, selecting the suggested suffix so typing replaces it. Down past the newest match restores your draft.
 
-Tab moves the cursor just after the next space, `/`, or `\`; Shift+Tab moves back to the previous such position. With no further separator, they move to the end or beginning of the text. This works with typed text and history suggestions, clearing any selection without changing the text. At the end, Tab moves focus normally; at the beginning, Shift+Tab moves focus normally.
+Tab moves the cursor just after the next space, `/`, or `\`; Shift+Tab moves back to the previous such position, growing the selection backward while preserving its right edge. With no further separator, they move to the end or beginning of the text. When advancing through a selected history suggestion, Tab accepts the portion it passes over and leaves the remaining suggestion selected, so typing replaces it and can offer another matching completion. Shift+Tab makes the traversed portion uncommitted again, leaving it and the remaining suggestion selected. Tab otherwise clears the selection without changing the text. Both keys keep focus in QuickExec, including at the text boundaries, unless the text is empty or whitespace-only.
 
 - Ctrl+U inserts the full URLs of the selected Exchanges, separated by spaces.
 - Ctrl+I opens a file picker allowing one or more files, then inserts their full filenames, each double-quoted and separated by spaces. Canceling leaves the text unchanged.
