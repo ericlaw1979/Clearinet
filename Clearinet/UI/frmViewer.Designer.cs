@@ -468,7 +468,7 @@
             // 
             this.miFileImport.Name = "miFileImport";
             this.miFileImport.Size = new System.Drawing.Size(189, 22);
-            this.miFileImport.Text = "&Import Exchanges";
+            this.miFileImport.Text = "&Import Exchanges...";
             this.miFileImport.Click += new System.EventHandler(this.miFileImport_Click);
             // 
             // miFileExport
@@ -908,7 +908,7 @@
             // 
             this.miHelpAbout.Name = "miHelpAbout";
             this.miHelpAbout.Size = new System.Drawing.Size(184, 22);
-            this.miHelpAbout.Text = "&About";
+            this.miHelpAbout.Text = "&About...";
             this.miHelpAbout.Click += new System.EventHandler(this.miHelpAbout_Click);
             // 
             // ssStatus
