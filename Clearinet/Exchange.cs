@@ -517,13 +517,13 @@ namespace Clearinet
             if (headers == null || !decoded.HasData()) return decoded;
 
             List<string> transferEncodings = GetEncodingTokens(headers, "Transfer-Encoding");
-            for (int i = transferEncodings.Count - 1; i >= 0 && decoded.HasData(); i--)
+            for (int i = transferEncodings.Count - 1; i >= 0 && decoded.HasData(); --i)
             {
                 decoded = DecodeTransferEncoding(transferEncodings[i], decoded);
             }
 
             List<string> contentEncodings = GetEncodingTokens(headers, "Content-Encoding");
-            for (int i = contentEncodings.Count - 1; i >= 0 && decoded.HasData(); i--)
+            for (int i = contentEncodings.Count - 1; i >= 0 && decoded.HasData(); --i)
             {
                 decoded = DecodeContentEncoding(contentEncodings[i], decoded);
             }
@@ -554,7 +554,7 @@ namespace Clearinet
             if (string.IsNullOrWhiteSpace(headerValue)) return;
 
             string[] parts = headerValue.Split(',');
-            for (int i = 0; i < parts.Length; i++)
+            for (int i = 0; i < parts.Length; ++i)
             {
                 string token = parts[i]?.Trim();
                 if (string.IsNullOrEmpty(token)) continue;
@@ -565,10 +565,7 @@ namespace Clearinet
                     token = token.Substring(0, parameterDelimiter).Trim();
                 }
 
-                if (!string.IsNullOrEmpty(token))
-                {
-                    tokens.Add(token);
-                }
+                if (!string.IsNullOrEmpty(token)) tokens.Add(token);
             }
         }
 
@@ -804,7 +801,6 @@ namespace Clearinet
             this._arrRequestBody = arrReqBody; // CLONE?
         }
 
-
         // TODO: This is a hack used by the facade. Get rid of it.
         /// <summary>
         /// Updates a capture-engine facade without executing the request-processing state machine.
@@ -858,7 +854,6 @@ namespace Clearinet
             }
             // TODO: configure both request and respones to stream
         }
-
 
         public bool isTunnel { get => HTTPMethodIs("CONNECT"); }
 
@@ -1025,6 +1020,5 @@ namespace Clearinet
 
         }
     }
-
 
 }
