@@ -96,7 +96,7 @@
             this.cbxOutputTo.Location = new System.Drawing.Point(531, 7);
             this.cbxOutputTo.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxOutputTo.Name = "cbxOutputTo";
-            this.cbxOutputTo.Size = new System.Drawing.Size(207, 29);
+            this.cbxOutputTo.Size = new System.Drawing.Size(207, 21);
             this.cbxOutputTo.TabIndex = 3;
             this.cbxOutputTo.SelectedIndexChanged += new System.EventHandler(this.cbxOutputTo_SelectedIndexChanged);
             // 
@@ -117,7 +117,7 @@
             this.lnkEncodings.AutoSize = true;
             this.lnkEncodings.Location = new System.Drawing.Point(397, 10);
             this.lnkEncodings.Name = "lnkEncodings";
-            this.lnkEncodings.Size = new System.Drawing.Size(137, 21);
+            this.lnkEncodings.Size = new System.Drawing.Size(88, 13);
             this.lnkEncodings.TabIndex = 2;
             this.lnkEncodings.TabStop = true;
             this.lnkEncodings.Text = "TODO:Encodings";
@@ -129,7 +129,7 @@
             this.cbViewBytes.Location = new System.Drawing.Point(271, 9);
             this.cbViewBytes.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbViewBytes.Name = "cbViewBytes";
-            this.cbViewBytes.Size = new System.Drawing.Size(118, 25);
+            this.cbViewBytes.Size = new System.Drawing.Size(78, 17);
             this.cbViewBytes.TabIndex = 2;
             this.cbViewBytes.Text = "&View Bytes";
             this.cbViewBytes.UseVisualStyleBackColor = true;
@@ -168,7 +168,7 @@
             this.cbxTransforms.Location = new System.Drawing.Point(16, 6);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";
-            this.cbxTransforms.Size = new System.Drawing.Size(228, 29);
+            this.cbxTransforms.Size = new System.Drawing.Size(228, 21);
             this.cbxTransforms.TabIndex = 1;
             this.cbxTransforms.SelectedIndexChanged += new System.EventHandler(this.cbxTransforms_SelectedIndexChanged);
             // 
@@ -211,7 +211,7 @@
             // 
             // frmTextWizard
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(979, 478);
             this.Controls.Add(this.pnlFill);

@@ -685,32 +685,23 @@ namespace Clearinet
                 ResumeLayout();
             }
 
-
             // TODO: Add event handlers for allow back/forward mouse buttons to change between active tabs
             // TODO: Grab system network config
-            // TODO: Start the core Proxy listener
-
             rtbStatistics.BackColor = rtbLog.BackColor = CONFIG.colorDisabledEdit;
             CApp.ProxyAttach += HandleProxyAttached;
             CApp.ProxyDetach += HandleProxyDetached;
 
+            CApp.OnAppBoot();       // ISSUE: We need to figure out whether to wait for the form to SHOW before calling this.
             frmSplashScreen.CloseSplashScreen();
-            CApp.OnAppBoot();
-
-            if (CApp.Prefs.GetBoolPref("app.attach_on_startup", false)  // TODO: Change after we have a proxy
-                && !CONFIG.Overrides.NoAttachOnStartup) { CApp.actAttachProxy(); }
 
             timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
             timerReportUpdater.Tick += new EventHandler(timerReportUpdater_Tick);
             CApp.CalculateReport += UpdateStatisticsTab;
 
-            this.lvExchanges.DragDrop += lvExchanges_DragDrop;
-            this.lvExchanges.DragEnter += lvExchanges_DragEnter;
-            this.lvExchanges.AllowDrop = true;
-
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             Win32UI.SetCueText(txtLogSearch, "Search log (Enter to find next)");
 
+            tslVersion.Text = CApp.VersionString.TrimBefore("/");
             var keepOnlyMenu = (ToolStripDropDownMenu)tsddbKeepOnly.DropDown;
             keepOnlyMenu.ShowCheckMargin = false;
             keepOnlyMenu.ShowImageMargin = false;
@@ -721,13 +712,14 @@ namespace Clearinet
                 tsddbKeepOnly.DropDownItems.Add(item);
             }
 
-            CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
-            CApp.gwHoneyDew.createGig("UpdateMemoryCounter", () => UpdateMemoryCounter(), 5000);
-
             // =========================== Move TODOs ===========================
             // Today, I only use the VS Designer on a 100% DPI device because otherwise
             // the VS designer corrupts the layout. So when working on other devices, I
             // have to manually add these event handlers until I can move them later.
+            this.lvExchanges.DragDrop += lvExchanges_DragDrop;
+            this.lvExchanges.DragEnter += lvExchanges_DragEnter;
+            this.lvExchanges.AllowDrop = true;
+
             btnRunToComplete.Click += (s, ea) =>
             {
                 if (GetFirstSelectedExchange() is Exchange x)
@@ -747,10 +739,15 @@ namespace Clearinet
                 }
             };
             // =========================== /End Move TODOs ===========================
+            txtQuickExec.LoadHistory();
+            CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
+            CApp.gwHoneyDew.createGig("UpdateMemoryCounter", () => UpdateMemoryCounter(), 5000);
 
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
-            txtQuickExec.LoadHistory();
-            tslVersion.Text = CApp.VersionString.TrimBefore("/");
+
+            if (CApp.Prefs.GetBoolPref("app.attach_on_startup", false)  // TODO: Change after we have a proxy
+                && !CONFIG.Overrides.NoAttachOnStartup) { CApp.actAttachProxy(); }
+
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
