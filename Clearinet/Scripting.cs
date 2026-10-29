@@ -271,11 +271,11 @@ namespace Clearinet
                 ContextAction contextAction = method.GetCustomAttribute<ContextAction>(false);
                 if (contextAction != null) { doBindUIContextAction(method, contextAction); continue; }
 
-                {
-                    var b = Attribute.GetCustomAttribute(mi, typeof(QuickLinkMenu), false) as QuickLinkMenu;
-                    if (null != b) { doBindUIQuickLinkMenu(mi, b); continue; }
-                }
+                ToolsAction toolsAction = method.GetCustomAttribute<ToolsAction>(false);
+                if (toolsAction != null) { doBindUIToolsAction(method, toolsAction); continue; }
 
+                QuickLinkMenu quickLinkMenu = method.GetCustomAttribute<QuickLinkMenu>(false);
+                if (quickLinkMenu != null) { doBindUIQuickLinkMenu(method, quickLinkMenu); continue; }
             }
         }
 
@@ -324,15 +324,13 @@ namespace Clearinet
             try
             {
                 ToolStripMenuItem tsmi = (ToolStripMenuItem)sender;
-                MethodInfo mi = (MethodInfo)htMenuScripts[sender];
+                MethodInfo mi = (MethodInfo)htMenuScripts[tsmi];
                 mi.Invoke(null, new object[] { tsmi.Text, tsmi.Tag as String });
             }
             catch (Exception eX)
             {
                 if ((eX is TargetInvocationException) && (eX.InnerException != null)) eX = eX.InnerException;
                 CApp.ReportException(eX, "Your QuickLink function failed.");
-                ToolsAction toolsAction = method.GetCustomAttribute<ToolsAction>(false);
-                if (toolsAction != null) { doBindUIToolsAction(method, toolsAction); continue; }
             }
         }
 

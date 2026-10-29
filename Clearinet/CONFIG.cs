@@ -249,7 +249,7 @@ namespace Clearinet
             }
             catch (Exception eX)
             {
-                Debug.Assert(false);
+                Debug.Assert(false, Utilities.DescribeException(eX));
             }
         }
 
