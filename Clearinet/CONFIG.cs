@@ -126,7 +126,7 @@ namespace Clearinet
                 }
 
                 // Ignore switches which Visual Studio adds to the command line when debugging.
-                if (sSwitch.OICEqualsAny("noprofile", "nologo", "noninteractive", "Command"))
+                if (sSwitch.OICEqualsAny("noprofile", "nologo", "noninteractive", "STA", "Command"))
                 {
                     continue;
                 }

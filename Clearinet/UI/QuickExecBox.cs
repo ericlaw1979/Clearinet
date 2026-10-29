@@ -29,6 +29,11 @@ namespace Clearinet
         private bool _updatingText;
         private bool _historyLoaded;
 
+        public QuickExecBox()
+        {
+            AllowDrop = true;
+        }
+
         internal void LoadHistory()
         {
             _historyLoaded = false;
@@ -165,6 +170,65 @@ namespace Clearinet
             if (this.IsHandleCreated) Win32UI.SetCueText(this, CueText);
         }
 
+        private void InsertFilenames(string[] filenames)
+        {
+            if (ReadOnly || filenames == null || filenames.Length == 0) return;
+            SelectedText = string.Join(" ", Array.ConvertAll(filenames, filename => "\"" + filename + "\""));
+        }
+
+        protected override void OnDragEnter(DragEventArgs e)
+        {
+            base.OnDragEnter(e);
+            SetFileDropEffect(e);
+        }
+
+        protected override void OnDragOver(DragEventArgs e)
+        {
+            base.OnDragOver(e);
+            SetFileDropEffect(e);
+        }
+
+        private void SetFileDropEffect(DragEventArgs e)
+        {
+            e.Effect = !ReadOnly && e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop)
+                ? e.AllowedEffect & DragDropEffects.Copy : DragDropEffects.None;
+        }
+
+        protected override void OnDragDrop(DragEventArgs e)
+        {
+            base.OnDragDrop(e);
+            SetFileDropEffect(e);
+            if (e.Effect == DragDropEffects.None) return;
+            InsertFilenames((string[])e.Data.GetData(DataFormats.FileDrop));
+            Focus();
+        }
+
+        private bool TryPasteFiles()
+        {
+            if (ReadOnly) return false;
+            try
+            {
+                if (!Clipboard.ContainsFileDropList()) return false;
+                var files = Clipboard.GetFileDropList();
+                string[] filenames = new string[files.Count];
+                files.CopyTo(filenames, 0);
+                InsertFilenames(filenames);
+                return true;
+            }
+            catch (System.Runtime.InteropServices.ExternalException ex)
+            {
+                CApp.Log.Log("Unable to paste files into QuickExec: " + ex.Message);
+                return true;
+            }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_PASTE = 0x0302;
+            if (m.Msg == WM_PASTE && TryPasteFiles()) return;
+            base.WndProc(ref m);
+        }
+
         /// <summary>
         /// Override of CmdKey to handle low-level keystrokes
         /// </summary>
@@ -175,6 +239,51 @@ namespace Clearinet
         {
             switch (keyData)
             {
+                case Keys.Control | Keys.V:
+                case Keys.Shift | Keys.Insert:
+                    if (TryPasteFiles()) return true;
+                    break;
+                case Keys.Control | Keys.U:
+                    if (!ReadOnly)
+                    {
+                        Exchange[] exchanges = CApp.UI.GetSelectedExchanges();
+                        if (exchanges.Length > 0)
+                            SelectedText = string.Join(" ", Array.ConvertAll(exchanges, exchange => exchange.fullUrl));
+                    }
+                    return true;
+                case Keys.Control | Keys.I:
+                    if (!ReadOnly)
+                        InsertFilenames(Utilities.ObtainOpenFilenames("Insert filenames into QuickExec", "All files (*.*)|*.*"));
+                    return true;
+                case Keys.Tab:
+                    if (SelectionStart < TextLength)
+                    {
+                        int position = SelectionStart;
+                        string text = Text;
+                        while (position < text.Length)
+                        {
+                            char c = text[position++];
+                            if (c == ' ' || c == '/' || c == '\\') break;
+                        }
+                        Select(position, 0);
+                        return true;
+                    }
+                    break;
+                case Keys.Shift | Keys.Tab:
+                    if (SelectionStart > 0)
+                    {
+                        int position = SelectionStart - 1;
+                        string text = Text;
+                        while (position > 0)
+                        {
+                            char c = text[position - 1];
+                            if (c == ' ' || c == '/' || c == '\\') break;
+                            --position;
+                        }
+                        Select(position, 0);
+                        return true;
+                    }
+                    break;
                 case Keys.A | Keys.Control:
                     if (TextLength == 0)
                     {

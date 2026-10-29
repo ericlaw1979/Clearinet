@@ -4,7 +4,15 @@ The QuickExec box sits below the Web Exchanges list and allows you to rapidly ex
 
 <img width="922" height="177" alt="image" src="https://github.com/user-attachments/assets/6c0d8506-c55a-4481-b714-84701cdcb836" />
 
-Eventually, this feature will include autocomplete and a scrollable history list (using the up/down arrow keys), but these [conveniences are `NOTYETIMPLEMENTED`](https://github.com/ericlaw1979/Clearinet/issues/25).
+QuickExec autocompletes from command history as you type. Up/Down browse commands matching your typed prefix, selecting the suggested suffix so typing replaces it. Down past the newest match restores your draft.
+
+Tab moves the cursor just after the next space, `/`, or `\`; Shift+Tab moves back to the previous such position. With no further separator, they move to the end or beginning of the text. This works with typed text and history suggestions, clearing any selection without changing the text. At the end, Tab moves focus normally; at the beginning, Shift+Tab moves focus normally.
+
+- Ctrl+U inserts the full URLs of the selected Exchanges, separated by spaces.
+- Ctrl+I opens a file picker allowing one or more files, then inserts their full filenames, each double-quoted and separated by spaces. Canceling leaves the text unchanged.
+- Drag files from the shell onto QuickExec, or copy files in the shell and paste with Ctrl+V, Shift+Insert, or the Paste command, to insert their double-quoted, space-delimited paths. Ordinary text paste is unchanged. Files are not moved or opened.
+
+These operations insert at the cursor or replace selected text (including an autocomplete suggestion). They do not add spaces before or after the inserted group.
 
 ## Built in Commands
 
