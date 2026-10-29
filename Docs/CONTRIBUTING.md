@@ -66,6 +66,33 @@ copies the DLL to `Documents\Clearinet\ImportExport`. Assembly metadata and
 the minimum compatible Clearinet version remain in
 `Transcoders\Properties\AssemblyInfo.cs`.
 
+### Building Extensions on Windows
+
+`Extensions\Extensions.csproj` is SDK-style and targets .NET Framework 4.8.1
+with Windows Forms. Use the same Visual Studio workload and targeting pack
+described above. From a Visual Studio developer terminal at the repository
+root, restore the legacy Clearinet dependencies and build:
+
+```powershell
+nuget restore .\Clearinet\packages.config -PackagesDirectory .\Clearinet\packages
+msbuild .\Extensions\Extensions.csproj -restore -p:Configuration=Release '-bl:{}'
+```
+
+Extensions uses `PackageReference`; MSBuild restores its packages automatically
+with `-restore`. Only Clearinet still needs the separate `packages.config`
+restore. To build all three projects, use
+`msbuild .\Clearinet\Clearinet.slnx -restore -p:Configuration=Release '-bl:{}'`
+after restoring Clearinet's packages.
+
+The output remains `Extensions\bin\Release\CAE-Default.dll` (or `bin\Debug`
+for Debug builds), without a target-framework subfolder. The output includes
+the inspector dependencies and WebView2 loaders under
+`runtimes\win-x86\native`, `runtimes\win-x64\native`, and
+`runtimes\win-arm64\native`. The post-build event copies the extension,
+WebView2 Core and WinForms assemblies, and the `runtimes` directory to
+`Documents\Clearinet\Extensions`. Assembly metadata and the minimum compatible
+Clearinet version remain in `Extensions\Properties\AssemblyInfo.cs`.
+
 ## Pull requests
 
 - Keep pull requests focused on one change. Large, unrelated changes are
