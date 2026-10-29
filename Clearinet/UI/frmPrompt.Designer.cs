@@ -43,10 +43,10 @@
             this.txtResponse.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtResponse.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtResponse.Location = new System.Drawing.Point(125, 156);
-            this.txtResponse.Margin = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            this.txtResponse.Location = new System.Drawing.Point(100, 125);
+            this.txtResponse.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.txtResponse.Name = "txtResponse";
-            this.txtResponse.Size = new System.Drawing.Size(416, 24);
+            this.txtResponse.Size = new System.Drawing.Size(333, 20);
             this.txtResponse.TabIndex = 0;
             this.txtResponse.TextChanged += new System.EventHandler(this.txtResponse_TextChanged);
             // 
@@ -57,11 +57,12 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rePrompt.BackColor = System.Drawing.SystemColors.Control;
             this.rePrompt.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rePrompt.Location = new System.Drawing.Point(125, 30);
-            this.rePrompt.Margin = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            this.rePrompt.Location = new System.Drawing.Point(100, 24);
+            this.rePrompt.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            this.rePrompt.MinimumSize = new System.Drawing.Size(300, 80);
             this.rePrompt.Name = "rePrompt";
             this.rePrompt.ReadOnly = true;
-            this.rePrompt.Size = new System.Drawing.Size(416, 118);
+            this.rePrompt.Size = new System.Drawing.Size(333, 94);
             this.rePrompt.TabIndex = 1;
             this.rePrompt.Text = "";
             // 
@@ -69,10 +70,10 @@
             // 
             this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(358, 209);
-            this.btnOk.Margin = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            this.btnOk.Location = new System.Drawing.Point(286, 167);
+            this.btnOk.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(84, 30);
+            this.btnOk.Size = new System.Drawing.Size(67, 24);
             this.btnOk.TabIndex = 2;
             this.btnOk.Text = "OK";
             this.btnOk.UseVisualStyleBackColor = true;
@@ -81,10 +82,10 @@
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(456, 209);
-            this.btnCancel.Margin = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            this.btnCancel.Location = new System.Drawing.Point(365, 167);
+            this.btnCancel.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(84, 30);
+            this.btnCancel.Size = new System.Drawing.Size(67, 24);
             this.btnCancel.TabIndex = 3;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
@@ -93,10 +94,10 @@
             // 
             this.pbPromptIcon.BackColor = System.Drawing.Color.Transparent;
             this.pbPromptIcon.Image = global::Clearinet.Properties.Resources.PromptQuery;
-            this.pbPromptIcon.Location = new System.Drawing.Point(28, 30);
+            this.pbPromptIcon.Location = new System.Drawing.Point(22, 24);
             this.pbPromptIcon.Margin = new System.Windows.Forms.Padding(2);
             this.pbPromptIcon.Name = "pbPromptIcon";
-            this.pbPromptIcon.Size = new System.Drawing.Size(80, 80);
+            this.pbPromptIcon.Size = new System.Drawing.Size(64, 64);
             this.pbPromptIcon.TabIndex = 4;
             this.pbPromptIcon.TabStop = false;
             // 
@@ -106,9 +107,10 @@
             this.lblChecksum.AutoSize = true;
             this.lblChecksum.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblChecksum.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.lblChecksum.Location = new System.Drawing.Point(24, 209);
+            this.lblChecksum.Location = new System.Drawing.Point(19, 167);
+            this.lblChecksum.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblChecksum.Name = "lblChecksum";
-            this.lblChecksum.Size = new System.Drawing.Size(72, 17);
+            this.lblChecksum.Size = new System.Drawing.Size(55, 13);
             this.lblChecksum.TabIndex = 5;
             this.lblChecksum.Text = "Checksum";
             this.lblChecksum.Visible = false;
@@ -116,10 +118,11 @@
             // frmPrompt
             // 
             this.AcceptButton = this.btnOk;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSize = true;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(575, 252);
+            this.ClientSize = new System.Drawing.Size(460, 202);
             this.Controls.Add(this.lblChecksum);
             this.Controls.Add(this.pbPromptIcon);
             this.Controls.Add(this.btnCancel);
@@ -130,7 +133,8 @@
             this.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            this.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            this.MaximizeBox = false;
             this.Name = "frmPrompt";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Clearinet has a question";
