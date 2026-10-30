@@ -594,7 +594,7 @@ namespace Clearinet
                 OnNotification(null, oEA);
             }
 
-            MessageBox.Show(sMessage, sTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(CApp.UI, sMessage, sTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         #endregion
 
