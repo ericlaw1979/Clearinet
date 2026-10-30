@@ -783,17 +783,22 @@ namespace Clearinet
             Utilities.DiffExchanges(x1, x2);
         }
 
-        private void actInspectInNewWindow()
+        public void actInspectInNewWindow(Exchange xc = null)
         {
-            Exchange[] xc = GetSelectedExchanges();
-            if (xc?.Length < 1) return;
+            Exchange[] arrXC;
+            if (null != xc) { arrXC = new Exchange[] { xc }; }
+            else
+            {
+                arrXC = GetSelectedExchanges();
+                if (arrXC?.Length < 1) return;
+            }
             int iXOffset = 0;
             int iYOffset = 0;
 
             // "Tile" the windows so that they don't all appear in the same location. Limit the number of windows to avoid overwhelming the user.
-            for (int x = 0; x < Math.Min(xc.Length, CApp.Prefs.GetInt32Pref("app.limits.max_new_inspect_windows", 5)); ++x)
+            for (int x = 0; x < Math.Min(arrXC.Length, CApp.Prefs.GetInt32Pref("app.limits.max_new_inspect_windows", 5)); ++x)
             {
-                Form f = new frmInspect(xc[x]);
+                Form f = new frmInspect(arrXC[x]);
                 f.Show();
                 if (x == 0)
                 {

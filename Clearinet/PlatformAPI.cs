@@ -176,7 +176,7 @@ namespace Clearinet
             SND_NODEFAULT = 0x0002,
             SND_LOOP = 0x0008,
             SND_NOSTOP = 0x0010,
-            SND_NOWAIT = 0x00002000,
+            SND_NOWAIT = 0x00002000,  // Not supported. https://learn.microsoft.com/en-us/previous-versions/dd743680(v=vs.85)
             SND_ALIAS = 0x00010000,
             SND_FILENAME = 0x00020000,
         }
@@ -190,7 +190,7 @@ namespace Clearinet
         public static void PlaySoundFile(string sFilename)
         {
             PlaySound(sFilename, IntPtr.Zero,
-                     SoundFlags.SND_ASYNC | SoundFlags.SND_NOSTOP | SoundFlags.SND_FILENAME | SoundFlags.SND_NODEFAULT);
+                     SoundFlags.SND_ASYNC | SoundFlags.SND_FILENAME | SoundFlags.SND_NODEFAULT);
         }
 
         #region SystemClockResolution
