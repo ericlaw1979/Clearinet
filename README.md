@@ -15,6 +15,8 @@ The request and response **Cookies** inspectors display `Cookie`/`Cookie2` and `
 
 Right-click a node in the **Data** inspector to **Copy** its displayed text, **Copy Subtree** as tab-indented lines (including collapsed descendants), or **Send to Textransformer** to open the tool with that node's displayed text. Ctrl+C also copies the current node's text.
 
+Right-click an Exchange list column header to search that column (case-insensitive substring matching), flag all rows with repeated column values in blue/bold (case-insensitive, including repeated empty values), or hide the column. **Ensure all columns are visible...** restores every column to at least 40 pixels wide without shrinking wider columns. **Customize columns...** is not yet implemented.
+
 The NetLog importer accepts Chromium's JSON and JSONL captures, including gzip-compressed files and JSON/JSONL entries in ZIP archives. JSONL records use the same analysis as JSON captures; a capture without a final `end` record can be imported if all records are complete. Malformed JSONL records abort the import with an error.
 
 QuickExec offers inline autocomplete from previous commands as you type. Up/Down browse commands matching your typed prefix (case-insensitive), newest first, keeping your typed prefix unselected and selecting only the completed suffix so you can replace it by typing; Down past the newest match restores your draft. Repeated commands move to the newest position.

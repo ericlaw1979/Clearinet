@@ -44,6 +44,115 @@ namespace Clearinet
 
         public Action OnExchangesAdded;
 
+        private ContextMenuStrip headerMenu;
+        private Font headerMenuFont;
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == 0x007B /* WM_CONTEXTMENU */ && m.LParam != new IntPtr(-1) && View == View.Details)
+            {
+                long coordinates = m.LParam.ToInt64();
+                Point screenPoint = new Point(unchecked((short)coordinates), unchecked((short)(coordinates >> 16)));
+                IntPtr header = Win32ListViewAPI.SendMessage(Handle, Win32ListViewAPI.LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
+                if (header != IntPtr.Zero && Win32ListViewAPI.WindowFromPoint(screenPoint) == header)
+                {
+                    Point headerPoint = screenPoint;
+                    if (!Win32ListViewAPI.ScreenToClient(header, ref headerPoint))
+                        throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+                    var hit = new Win32ListViewAPI.HDHITTESTINFO { pt = headerPoint };
+                    int index = Win32ListViewAPI.SendMessage(header, Win32ListViewAPI.HDM_HITTEST, IntPtr.Zero, ref hit).ToInt32();
+                    ShowHeaderMenu(index >= 0 && index < Columns.Count ? Columns[index] : null, screenPoint);
+                    m.Result = IntPtr.Zero;
+                    return;
+                }
+            }
+            base.WndProc(ref m);
+        }
+
+        private void ShowHeaderMenu(ColumnHeader column, Point screenPoint)
+        {
+            headerMenu?.Dispose();
+            headerMenuFont?.Dispose();
+            headerMenu = new ContextMenuStrip();
+            headerMenuFont = new Font(headerMenu.Font, FontStyle.Bold);
+            headerMenu.Items.Add(new ToolStripLabel((column?.Text ?? "Columns").Replace("&", "&&"))
+            {
+                Font = headerMenuFont,
+                AutoToolTip = false
+            });
+            headerMenu.Items.Add("Search this Column...", null, (sender, e) =>
+            {
+                string text = frmPrompt.GetUserString(new frmPrompt.PromptOptions
+                {
+                    Title = $"Search {column.Text}",
+                    PromptText = $"Enter the string to search for in '{column.Text}':",
+                    ReturnNullOnCancel = true,
+                    OwnerWindow = FindForm()
+                });
+                if (text != null) SearchColumn(column, text);
+            }).Enabled = column != null;
+            headerMenu.Items.Add("Flag duplicates", null, (sender, e) => FlagColumnDuplicates(column)).Enabled = column != null;
+            headerMenu.Items.Add("Hide this column", null, (sender, e) => column.Width = 0).Enabled = column != null;
+            headerMenu.Items.Add(new ToolStripSeparator());
+            headerMenu.Items.Add("Ensure all columns are visible...", null, (sender, e) =>
+            {
+                foreach (ColumnHeader col in Columns) col.Width = Math.Max(40, col.Width);
+            });
+            headerMenu.Items.Add("Customize columns...", null, (sender, e) =>
+                CApp.DoNotifyUser(FindForm(), "Not yet implemented.", "Customize columns", MessageBoxIcon.Information));
+            headerMenu.Show(screenPoint);
+        }
+
+        private void SearchColumn(ColumnHeader column, string text)
+        {
+            int index = column.Index;
+            if (index < 0)
+            {
+                CApp.UI.SetStatusText("The column is no longer available.");
+                return;
+            }
+            CApp.UI.actSelectExchangesMatchingCriteria(x =>
+                x.ViewItem.SubItems.Count > index && x.ViewItem.SubItems[index].Text.OICContains(text));
+            if (SelectedCount > 0) EnsureVisible(SelectedIndices[0]);
+            CApp.UI.SetStatusText($"Selected {SelectedCount} Exchanges matching '{column.Text}' containing '{text}'.");
+        }
+
+        private void FlagColumnDuplicates(ColumnHeader column)
+        {
+            int index = column.Index;
+            if (index < 0)
+            {
+                CApp.UI.SetStatusText("The column is no longer available.");
+                return;
+            }
+            var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (ListViewItem item in Items)
+            {
+                if (item.SubItems.Count <= index) continue;
+                string value = item.SubItems[index].Text;
+                counts.TryGetValue(value, out int count);
+                counts[value] = count + 1;
+            }
+            var duplicates = new List<Exchange>();
+            foreach (ListViewItem item in Items)
+            {
+                if (item.SubItems.Count > index && counts[item.SubItems[index].Text] > 1 && item.Tag is Exchange exchange)
+                    duplicates.Add(exchange);
+            }
+            CApp.UI.MarkExchanges(duplicates.ToArray());
+            CApp.UI.SetStatusText($"Flagged {duplicates.Count} Exchanges with duplicate '{column.Text}' values.");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                headerMenu?.Dispose();
+                headerMenuFont?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         // lvi may be null, ixColumn may be -1 if no column was hit.
         public (ListViewItem lvi, int ixColumn) GetItemAndColumnAt(Point pt)
         {

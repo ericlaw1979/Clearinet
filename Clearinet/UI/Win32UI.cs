@@ -184,6 +184,25 @@ namespace Clearinet
         public const int HDM_FIRST = 0x1200;
         public const int HDM_GETITEM = HDM_FIRST + 11;
         public const int HDM_SETITEM = HDM_FIRST + 12;
+        public const int HDM_HITTEST = HDM_FIRST + 6;
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct HDHITTESTINFO
+        {
+            public Point pt;
+            public uint flags;
+            public int iItem;
+        }
+
+        [DllImport("user32.dll")]
+        internal static extern IntPtr WindowFromPoint(Point point);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool ScreenToClient(IntPtr hWnd, ref Point point);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref HDHITTESTINFO lParam);
 
         public const int HDI_FORMAT = 0x0004;
 
