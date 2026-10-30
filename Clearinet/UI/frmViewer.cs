@@ -722,6 +722,8 @@ namespace Clearinet
             this.lvExchanges.DragEnter += lvExchanges_DragEnter;
             this.lvExchanges.AllowDrop = true;
 
+            this.rtbLog.LinkClicked += (s, eal) => Utilities.LaunchHyperlink(eal.LinkText);
+
             btnRunToComplete.Click += (s, ea) =>
             {
                 if (GetFirstSelectedExchange() is Exchange x)
@@ -3111,6 +3113,10 @@ namespace Clearinet
         {
             // TODO: put this in the right place rather than just shoving it at the bottom.
             miTools.DropDownItems.Add(tsmi);
+        }
+        public void AddViewExtraTabsMenuItem(ToolStripMenuItem tsmi)
+        {
+            miViewTabs.DropDownItems.Add(tsmi);
         }
 
         public void AddExtensionTopLevelMenu(ToolStripMenuItem tsmi)

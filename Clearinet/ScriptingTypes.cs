@@ -52,6 +52,8 @@ namespace Clearinet
         internal bool _isHTML;
         internal string _sOptions;
         internal string _sTitle;
+
+        internal ToolStripMenuItem _tsmi;
         internal TabPage _pageTab;
         internal CalculateReportHandler _delegate;
 

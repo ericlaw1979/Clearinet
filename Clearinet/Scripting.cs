@@ -159,10 +159,10 @@ namespace Clearinet
             {
                 CApp.Log.Log($"CompileScript(`{_scriptPath}`");
                 // Clear any prior script state before compiling the new script.
-                ClearPriorScriptColumns();
                 if (_isReadyForCalls)
                 {
                     _ClearCachedHandlerMethods();
+                    ClearPriorScriptColumns();
                     ClearPriorScriptButtons();
                     ClearPriorScriptMenus();
                     ClearPriorScriptTabs();
@@ -246,9 +246,7 @@ namespace Clearinet
         private void _bindUIElements()
         {
             // This method iterates through all public static fields in the Handlers class,
-            // looking for functions that have a BindUIButton attribute. For each such function found, it inserts a
-            // new button at the start (left) of the CApp.UI toolbar, and binds the button's click event to the specified method in the script.
-            // an example looks like:
+            // looking for functions that have a Bind* attribute. e.g.
             //   public static BindUIButton("SingleBrowserMode \uD83D\uDC40")
             //   function LaunchSingleInstance() {
             //   Utilities.LaunchNative('msedge.exe', '--user-data-dir="%temp%\\throwaway" --no-first-run --proxy-server=127.0.0.1:' + CONFIG.ListenPort.ToString() + " about:blank");
@@ -285,7 +283,7 @@ namespace Clearinet
             if ((mi.GetParameters().Length != 2) || ((mi.GetParameters())[0].ParameterType != typeof(string)) ||
                                                     ((mi.GetParameters())[1].ParameterType != typeof(string)))
             {
-                CApp.Log.LogFormat($"!Warning: QuickLinkMenu `{b.MenuTitle}`must defined as `function(string sText, string sAction)`. Skipping.");
+                CApp.Log.LogFormat($"!Warning: QuickLinkMenu `{b.MenuTitle}`must defined as `function(sText: string, sAction: string)`. Skipping.");
                 return;
             }
             QuickLinkItem[] arrQLI = (QuickLinkItem[])Attribute.GetCustomAttributes(mi, typeof(QuickLinkItem));
@@ -337,6 +335,13 @@ namespace Clearinet
 
         private void doBindUIContextAction(MethodInfo mi, ContextAction b)
         {
+            ParameterInfo[] parameters = mi.GetParameters();
+            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange[]))
+            {
+                CApp.Log.Log($"!Warning: BindUIColumn({b._sTitle}) function must be defined as `function(xc: Exchange[]):`. Skipping.");
+                return;
+            }
+
             ToolStripMenuItem tsmi = new ToolStripMenuItem
             {
                 Text = b._sTitle,
@@ -395,14 +400,13 @@ namespace Clearinet
 
         private void doBindTextCodec(MethodInfo mi, BindTextCodec b)
         {
-            MethodInfo methodToInvoke = mi;
-            // 1. Validate that the method signature matches: string MethodName(string input)
-            if (mi.ReturnType != typeof(string)) return;
-
             ParameterInfo[] parameters = mi.GetParameters();
-            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string)) return;
+            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string) || mi.ReturnType != typeof(string))
+            {
+                CApp.Log.Log($"!Warning: BindTextCode({b.Name}) function must be defined as `function(from:string):string`. Skipping.");
+                return;
+            }
 
-            // 2. Create a strongly-typed delegate matching Func<string, string>
             Func<string, string> CodecMethod =
                 (Func<string, string>)Delegate.CreateDelegate(typeof(Func<string, string>), mi);
 
@@ -438,17 +442,16 @@ namespace Clearinet
 
         private void doBindUIColumn(MethodInfo mi, BindUIColumn b)
         {
-            // 1. Validate that the method signature matches: string MethodName(Exchange exchange)
-            if (mi.ReturnType != typeof(string)) return;
-
             ParameterInfo[] parameters = mi.GetParameters();
-            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange)) return;
+            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange) || mi.ReturnType != typeof(string))
+            {
+                CApp.Log.Log($"!Warning: BindUIColumn({b._sTitle}) function must be defined as `function(xc: Exchange):string`. Skipping.");
+                return;
+            }
 
-            // 2. Create a strongly-typed delegate matching Func<Exchange, string>
             Func<Exchange, string> columnProvider =
                 (Func<Exchange, string>)Delegate.CreateDelegate(typeof(Func<Exchange, string>), mi);
 
-            // 3. Register the delegate with your ListView/UI helper
             ColumnHeader column = CApp.UI.lvExchanges.AddBoundColumn(
                 b._sTitle,
                 b._sortNumerically ? ColumnSortType.Numeric : ColumnSortType.Text,
@@ -470,7 +473,30 @@ namespace Clearinet
         private void doBindUITab(MethodInfo mi, BindUITab b)
         {
             ParameterInfo[] parameters = mi.GetParameters();
-            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange)) return;
+            if (parameters.Length != 1 || parameters[0].ParameterType != typeof(Exchange[]) || (mi.ReturnType != typeof(string)))
+            {
+                CApp.Log.LogFormat($"!Warning: BindUITab `{b._sTitle}` must be defined as `function(arrXC: Exchange[]):string`. Skipping.");
+                return;
+            }
+
+            listBoundTabs.Add(b);
+
+            // If the tab was marked as hidden, we don't create a tab page, but instead
+            // create a menu item that will create the tab on demand.
+            if (b._sOptions?.OICContains("<hidden>") == true)
+            {
+                // Remove the option so we don't keep it hidden if the user asks for it.
+                b._sOptions = b._sOptions.Replace("<hidden>", string.Empty);
+                b._tsmi = new ToolStripMenuItem(b._sTitle);
+                b._tsmi.Click += (s, ea) =>
+                {
+                    if (null == b._pageTab) doBindUITab(mi, b);
+                    CApp.UI.tabsViews.SelectedTab = b._pageTab;
+                    return;
+                };
+                CApp.UI.AddViewExtraTabsMenuItem(b._tsmi);
+                return;
+            }
 
             TabPage page = new TabPage
             {
@@ -478,15 +504,20 @@ namespace Clearinet
                 Tag = b
             };
 
-            // TODO: Support HTML tabs. For now, we just create a RichTextBox tab for each BindUITab.
             RichTextBoxV5 rtb = new RichTextBoxV5
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 BackColor = CONFIG.colorDisabledEdit,
-                WordWrap = false,
                 BorderStyle = BorderStyle.None
             };
+            rtb.WordWrap = !(b._sOptions?.OICContains("<nowrap>") == true);
+            if (b._sOptions?.OICContains("<fixedwidth>") == true) rtb.Font = new System.Drawing.Font("Consolas", 10f);
+            if (b._sOptions?.OICContains("<nolink>") == true)
+                rtb.DetectUrls = false;
+            else
+                rtb.LinkClicked += (s, e) => Utilities.LaunchHyperlink(e.LinkText);
+            if (b._sOptions?.OICContains("<html>") == true) CApp.Log.Log($"!Script tab `{b._sTitle}` is marked as HTML but this is not yet supported.");
             page.Controls.Add(rtb);
 
             CalculateReportHandler reportHandler = (arrExchanges) =>
@@ -509,7 +540,6 @@ namespace Clearinet
             b._pageTab = page;
             CApp.CalculateReport += reportHandler;
             CApp.UI.tabsViews.TabPages.Add(page);
-            listBoundTabs.Add(b);
         }
 
         private void ClearPriorScriptTabs()
@@ -521,6 +551,11 @@ namespace Clearinet
                 {
                     CApp.UI.tabsViews.TabPages.Remove(tab._pageTab);
                     tab._pageTab.Dispose();
+                }
+                if (null != tab._tsmi)
+                {
+                    tab._tsmi.GetCurrentParent()?.Items.Remove(tab._tsmi);
+                    tab._tsmi.Dispose();
                 }
             }
             listBoundTabs.Clear();
@@ -709,7 +744,7 @@ namespace Clearinet
 
         public void Dispose()
         {
-            // TODO: Do we tear down the Bound UI?
+            // TODO: Do we tear down the Bound UI, or are we just gonna let the app exit?
             if (!_isDisposed)
             {
                 _watcher?.Dispose();

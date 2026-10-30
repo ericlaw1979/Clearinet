@@ -62,7 +62,7 @@ class Handlers {
         Utilities.LaunchHyperlink(sAction);
     }
     
-    public BindUITab("Flags")
+    public BindUITab("Flags", "<fixedwidth><nowrap><nolink><hidden>")
     static function FlagsReport(arrXC: Exchange[]): String {
         var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
         for (var i: int = 0; i < arrXC.Length; ++i) {
@@ -89,6 +89,7 @@ class Handlers {
             arrXC[x].utilDecodeResponse();
         }
         CApp.UI.actUpdateInspector(true, true);
+        CApp.UI.SetStatusText("Decoded " + x.ToString() + " Exchanges.");
     }
 
     public static ToolsAction("Reset Script")
