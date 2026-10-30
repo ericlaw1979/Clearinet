@@ -75,14 +75,22 @@ namespace Clearinet
         }
         private static void ApplyCommandLine()
         {
-            foreach (string sArg in Environment.GetCommandLineArgs())
+            string[] arguments = Environment.GetCommandLineArgs();
+            bool automatedTest = false;
+            foreach (string sArg in arguments)
             {
                 if (!sArg.OICStartsWithAny("/", "-")) continue;
 
                 var sSwitch = sArg.Substring(1);
                 if (!sSwitch.HasText()) continue;
 
-                if (sSwitch.OICEquals("-uncleanShutdown"))
+                if (sArg.OICEquals("AutomatedTest"))
+                {
+                    automatedTest = true;
+                    continue;
+                }
+
+                if (sSwitch.OICEquals("uncleanShutdown"))
                 {
                     // TODO: Implement cleanup operations for unclean shutdowns. This is a placeholder for future functionality.
                     MessageBox.Show("Clearinet was not properly exited when Windows restarted.\n"
@@ -125,9 +133,9 @@ namespace Clearinet
                     continue;
                 }
 
-                // Ignore switches which Visual Studio adds to the command line when debugging.
-                if (sSwitch.OICEqualsAny("noprofile", "nologo", "noninteractive", "STA", "Command"))
+                if (automatedTest)
                 {
+                    Trace.WriteLine($"Automated test: ignoring unknown command-line argument '{sArg}'.");
                     continue;
                 }
                 _ShowValidArgs($"\n\n'{sSwitch}' is unknown.");
