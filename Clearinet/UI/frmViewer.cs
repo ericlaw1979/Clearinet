@@ -1160,7 +1160,7 @@ namespace Clearinet
                 return;
             }
             // TODO: Can we put importer filenames into the MRU and have the right thing happen?
-            TranscoderTuple tt = CApp.oTranscoders.GetImporterForExt(Path.GetExtension(sPath));
+            TranscoderTuple tt = CApp.oTranscoders?.GetImporterForExt(Path.GetExtension(sPath));
             if (null == tt)
             {
                 CApp.DoNotifyUser($"No importer found for {Path.GetExtension(sPath)}", "NYI");
@@ -2192,7 +2192,7 @@ namespace Clearinet
             }
         }
 
-        private void MarkExchanges(Exchange[] exchanges)
+        internal void MarkExchanges(Exchange[] exchanges)
         {
             foreach (var xc in exchanges)
             {
