@@ -1163,7 +1163,7 @@ namespace Clearinet
             TranscoderTuple tt = CApp.oTranscoders?.GetImporterForExt(Path.GetExtension(sPath));
             if (null == tt)
             {
-                CApp.DoNotifyUser($"No importer found for {Path.GetExtension(sPath)}", "NYI");
+                CApp.DoNotifyUser($"No importer was found for the file type of\n'{Path.GetExtension(sPath)}'.", "Clearinet Import");
                 return;
             }
             IExchangeImporter oImporter = (IExchangeImporter)Activator.CreateInstance(tt.typeTranscoder);
