@@ -742,6 +742,11 @@ namespace Clearinet
                     actUpdateInspector(true, true);
                 }
             };
+            tslVersion.DoubleClickEnabled = true;
+            tslVersion.DoubleClick += (s, ea) =>
+            {
+                miHelpAbout.PerformClick();
+            };
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
