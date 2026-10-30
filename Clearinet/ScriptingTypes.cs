@@ -31,12 +31,17 @@ namespace Clearinet
         internal string _sTitle;
         internal bool _sortNumerically;
 
-        public BindUIColumn(string sTitle) : this(sTitle, false) { }
+        internal int _initialWidth = 60;
 
-        public BindUIColumn(string sTitle, bool bSortNumerically)
+        public BindUIColumn(string sTitle) : this(sTitle, 60, false) { }
+
+        public BindUIColumn(string sTitle, bool bSortNumerically) : this(sTitle, 60, bSortNumerically) { }
+
+        public BindUIColumn(string sTitle, int initialWidth, bool bSortNumerically)
         {
             // Disallow characters used as delimiters in serialization.
             _sTitle = sTitle.Replace('§', '$').Replace('~', '-');
+            _initialWidth = initialWidth;
             _sortNumerically = bSortNumerically;
         }
     }
@@ -85,7 +90,7 @@ namespace Clearinet
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
     public sealed class QuickLinkMenu : Attribute
     {
-        private string _menuTitle;
+        private readonly string _menuTitle;
         public QuickLinkMenu(string menuTitle)
         {
             _menuTitle = menuTitle;
@@ -100,8 +105,8 @@ namespace Clearinet
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public sealed class QuickLinkItem : Attribute, IComparable<QuickLinkItem>
     {
-        private string _itemTitle;
-        private string _itemAction;
+        private readonly string _itemTitle;
+        private readonly string _itemAction;
 
         public QuickLinkItem(string itemTitle, string itemAction)
         {

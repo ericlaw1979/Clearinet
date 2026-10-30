@@ -18,10 +18,12 @@ import Clearinet;
 // JavaScript, but there are some differences to be aware of. The samples below should
 // help you understand them.
 
-// TODO: Add URLs to Wiki of Script Examples
-// Many examples can be found within https://gist.github.com/ericlaw1979, but they will
-// require light customization to work in Clearinet (e.g. replace mention of "fiddler" with
-// "clearinet".
+// Check out this handy page of examples and instructions: 
+//     https://github.com/ericlaw1979/Clearinet/blob/main/Docs/SCRIPT_EXAMPLES.md
+
+// Further examples can be found within https://gist.github.com/ericlaw1979, but they will
+// require light customization to work in Clearinet; see the SCRIPT_EXAMPLES.md file
+// for help.
 
 // JScript.NET Reference:
 // https://learn.microsoft.com/en-us/dotnet/api/microsoft.jscript?view=netframework-4.8.1
@@ -54,14 +56,20 @@ class Handlers
       }
       
       public BindUIColumn("OrigID", 50, //width 
-      			   1,    // order
-      			   true) // Sort numerically
+         			   true) // Sort numerically
 	static function ShowOriginalID(oEx: oEx): String {
 		// Note: In the SAZ format, the term "Exchange" 
 		// is written as "Session"
 		return oEx["x-OriginalSessionID"];
 	}
     */
+    
+    // Add a text transformer to the Textransform window
+    /*
+    public static BindTextCodec("to UPPERCASE")
+    function codecToUpper(input: String): String {
+        return input.ToUpper();
+    }*/     
     
     // Add toolbar button for "Single Browser Mode", where only
     // one browser window will send its traffic to Clearinet.
@@ -84,18 +92,17 @@ class Handlers
     {
         Utilities.LaunchHyperlink(sAction);
     }
-    */
 
     // Add a "Flags" tab to the main interface
     /*
-       public BindUITab("Flags")
-       static function FlagsReport(arrEx: Exchange[]):String {
+    public BindUITab("Flags", "<fixedwidth><nowrap><nolink><hidden>")
+    static function FlagsReport(arrXC: Exchange[]):String {
         var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
-        for (var i:int = 0; i<arrEx.Length; ++i)
+        for (var i:int = 0; i<arrXC.Length; ++i)
         {
             sbOut.AppendLine("FLAGS");
-            sbOut.AppendFormat("{0}: {1}\n", arrEx[i].id, arrEx[i].fullUrl);
-            for(var sFlag in arrEx[i].oFlags)
+            sbOut.AppendFormat("{0}: {1}\n", arrXC[i].id, arrXC[i].fullUrl);
+            for(var sFlag in arrXC[i].oFlags)
             {
                 sbOut.AppendFormat("\t{0}:\t\t{1}\n", sFlag.Key, sFlag.Value);
             }
@@ -104,18 +111,18 @@ class Handlers
     }
     
     public BindUITab("ReadTiming", true)  // TRUE here means "Show the content as HTML"  
-    static function readsReport(arrEx: Exchange[]):String {
+    static function readsReport(arrXC: Exchange[]):String {
         var oSB: System.Text.StringBuilder = new System.Text.StringBuilder();
         oSB.Append("<html><head></head><body>");
-        for (var i:int = 0; i<arrEx.Length; ++i)
+        for (var i:int = 0; i<arrXC.Length; ++i)
         {
-            var sClt:String = arrEx[i].Timers.ClientReads.ToString();
-            var sSrv:String = arrEx[i].Timers.ServerReads.ToString();
+            var sClt:String = arrXC[i].Timers.ClientReads.ToString();
+            var sSrv:String = arrXC[i].Timers.ServerReads.ToString();
             
             oSB.AppendFormat(
                 "<h1>Exchange #{0}</h1><pre>{1}</pre><br /><br /><h2>Client Writes to Clearinet</h2><pre>{2}</pre><br /><h2>Clearinet Reads from Server</h2><pre>{3}</pre>", 
-                arrEx[i].id, 
-                Utilities.HtmlEncode(arrEx[i].fullUrl),
+                arrXC[i].id, 
+                Utilities.HtmlEncode(arrXC[i].fullUrl),
                 sClt,
                 sSrv
                 ,""  // For reasons unexplored, .AddFormat with 4 values causes "more than one method or property matches this argument list". 
@@ -134,14 +141,14 @@ class Handlers
     // RulesOption variables to their defaults.
     public static ToolsAction("Reset Script")
     function DoManualReload() { 
-        AppObject.ReloadScript();
+        CApp.ReloadScript();
     }
 
     public static ContextAction("Decode Selected Exchanges")
-    function DoRemoveEncoding(arrEx: Exchange[]) {
-        for (var x:int = 0; x<arrEx.Length; ++x){
-            arrEx[x].utilDecodeRequest();
-            arrEx[x].utilDecodeResponse();
+    function DoRemoveEncoding(arrXC: Exchange[]) {
+        for (var x:int = 0; x<arrXC.Length; ++x){
+            arrXC[x].utilDecodeRequest();
+            arrXC[x].utilDecodeResponse();
         }
         UI.actUpdateInspector(true,true);
     }
@@ -260,7 +267,7 @@ class Handlers
 
     /*
     static function OnBoot() {
-        AppObject.alert("Clearinet has finished booting");
+        CApp.alert("Clearinet has finished booting");
         System.Diagnostics.Process.Start("msedge.exe");
 
         UI.ActivateRequestInspector("HEADERS");
@@ -291,7 +298,7 @@ class Handlers
     // This function runs each time your script loads & compiles.
     static function Main() {
         var today: Date = new Date();
-        AppObject.StatusText = " CustomRules.js loaded at: " + today;
+        CApp.StatusText = " CustomRules.js loaded at: " + today;
 
         // Add column with the response's "Server" header
         // UI.lvExchanges.AddBoundColumn("Server", 50, "@response.server");
@@ -321,56 +328,56 @@ class Handlers
     // the ExecAction.exe command line utility.
     static function OnExecAction(sArgs: String[]): Boolean {
 
-        AppObject.StatusText = "ExecAction: " + sArgs[0];
+        CApp.StatusText = "ExecAction: " + sArgs[0];
 
         var sAction = sArgs[0].toLowerCase();
         switch (sAction) {
         case "bold":
-            if (2>sArgs.Length) {uiBoldURL=null; AppObject.StatusText="Bolding cleared"; return false;}
-            uiBoldURL = sArgs[1]; AppObject.StatusText="Bolding requests for " + uiBoldURL;
+            if (2>sArgs.Length) {uiBoldURL=null; CApp.StatusText="Bolding cleared"; return false;}
+            uiBoldURL = sArgs[1]; CApp.StatusText="Bolding requests for " + uiBoldURL;
             return true;
         case "bp":
-            AppObject.alert("bpu = breakpoint request for url\nbpm = breakpoint request method\nbps=breakpoint response status\nbpafter = breakpoint response for url");
+            CApp.alert("bpu = breakpoint request for url\nbpm = breakpoint request method\nbps=breakpoint response status\nbpafter = breakpoint response for url");
             return true;
         case "bps":
-            if (2>sArgs.Length) {bpStatus=-1; AppObject.StatusText="Response Status breakpoint cleared"; return false;}
-            bpStatus = parseInt(sArgs[1]); AppObject.StatusText="Response status breakpoint for " + sArgs[1];
+            if (2>sArgs.Length) {bpStatus=-1; CApp.StatusText="Response Status breakpoint cleared"; return false;}
+            bpStatus = parseInt(sArgs[1]); CApp.StatusText="Response status breakpoint for " + sArgs[1];
             return true;
         case "bpv":
         case "bpm":
-            if (2>sArgs.Length) {bpMethod=null; AppObject.StatusText="Request Method breakpoint cleared"; return false;}
-            bpMethod = sArgs[1].toUpperCase(); AppObject.StatusText="Request Method breakpoint for " + bpMethod;
+            if (2>sArgs.Length) {bpMethod=null; CApp.StatusText="Request Method breakpoint cleared"; return false;}
+            bpMethod = sArgs[1].toUpperCase(); CApp.StatusText="Request Method breakpoint for " + bpMethod;
             return true;
         case "bpu":
-            if (2>sArgs.Length) {bpRequestURL=null; AppObject.StatusText="RequestURL breakpoint cleared"; return false;}
+            if (2>sArgs.Length) {bpRequestURL=null; CApp.StatusText="RequestURL breakpoint cleared"; return false;}
             bpRequestURL = sArgs[1]; 
-            AppObject.StatusText="RequestURL breakpoint for "+sArgs[1];
+            CApp.StatusText="RequestURL breakpoint for "+sArgs[1];
             return true;
         case "bpa":
         case "bpafter":
-            if (2>sArgs.Length) {bpResponseURL=null; AppObject.StatusText="Cleared ResponseURL breakpoint"; return false;}
+            if (2>sArgs.Length) {bpResponseURL=null; CApp.StatusText="Cleared ResponseURL breakpoint"; return false;}
             bpResponseURL = sArgs[1]; 
-            AppObject.StatusText="ResponseURL breakpoint for "+sArgs[1];
+            CApp.StatusText="ResponseURL breakpoint for "+sArgs[1];
             return true;
         case "overridehost":
-            if (3sArgs.Length) {gs_OverridenHost=null; AppObject.StatusText="Cleared Host Override"; return false;}
+            if (3sArgs.Length) {gs_OverridenHost=null; CApp.StatusText="Cleared Host Override"; return false;}
             gs_OverridenHost = sArgs[1].toLowerCase();
             gs_OverrideHostWith = sArgs[2];
-            AppObject.StatusText="Connecting to [" + gs_OverrideHostWith + "] for requests to [" + gs_OverridenHost + "]";
+            CApp.StatusText="Connecting to [" + gs_OverrideHostWith + "] for requests to [" + gs_OverridenHost + "]";
             return true;
         case "urlreplace":
-            if (3>sArgs.Length) {gs_ReplaceToken=null; AppObject.StatusText="Cleared URL Replacement"; return false;}
+            if (3>sArgs.Length) {gs_ReplaceToken=null; CApp.StatusText="Cleared URL Replacement"; return false;}
             gs_ReplaceToken = sArgs[1];
             gs_ReplaceTokenWith = sArgs[2].Replace(" ", "%20");
-            AppObject.StatusText="Replacing [" + gs_ReplaceToken + "] in URLs with [" + gs_ReplaceTokenWith + "]";
+            CApp.StatusText="Replacing [" + gs_ReplaceToken + "] in URLs with [" + gs_ReplaceTokenWith + "]";
             return true;
         case "allbut":
         case "keeponly":
-            if (2>sArgs.Length) { AppObject.StatusText="Error: Specify Content-Type to retain."; return false;}
+            if (2>sArgs.Length) { CApp.StatusText="Error: Specify Content-Type to retain."; return false;}
             UI.actSelectExchangesWithResponseHeaderValue("Content-Type", sArgs[1]);
             UI.actRemoveUnselectedExchanges();
             UI.lvExchanges.SelectedItems.Clear();
-            AppObject.StatusText="Removed all except Content-Type: " + sArgs[1];
+            CApp.StatusText="Removed all except Content-Type: " + sArgs[1];
             return true;
         case "stop":
             UI.actDetachProxy();
@@ -397,7 +404,7 @@ class Handlers
             UI.actMinimizeToTray();
             return true;
         case "log":
-            AppObject.Log.LogString((2>sArgs.Length) ? "QuickExec logged empty string..." : sArgs[1]);
+            CApp.Log.LogString((2>sArgs.Length) ? "QuickExec logged empty string..." : sArgs[1]);
             return true;
         case "screenshot":
             // Capture a screenshot and store it in the Exchange list.
@@ -407,10 +414,6 @@ class Handlers
             // Show the main window. (Useful from ExecAction.exe scripts)
             UI.actRestoreWindow();
             return true;
-        case "tail":
-            if (2>sArgs.Length) { AppObject.StatusText="Please specify # of exchanges to trim the list to."; return false;}
-            UI.TrimExchangeList(int.Parse(sArgs[1]));
-            return true;
         case "quit":
             UI.actExit();
             return true;
@@ -418,18 +421,19 @@ class Handlers
             var sDumpFilename:String = CONFIG.GetPath("Captures") + "Clearinet_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".saz";
             UI.actSelectAll();
             UI.actSaveExchangesToZip(sDumpFilename);
-            AppObject.StatusText = "Stored all exchanges in " + sDumpFilename;
+            CApp.StatusText = "Stored all exchanges in " + sDumpFilename;
             UI.actRemoveAllExchanges();
             return true;
 
         default:
             if (sAction.StartsWith("http")) {
-                AppObject.LaunchHyperlink(sArgs[0]);
+                CApp.LaunchHyperlink(sArgs[0]);
                 return true;
             }
       }  
       
-      AppObject.StatusText = "Requested ExecAction: '" + sAction + "' doesn't exist. Type HELP to learn more.";
-      return false;
+    CApp.UI.SetStatusText("Unknown execaction: " + sAction);
+    CApp.alert("OnExecAction '" + sAction + "' was called with " + (sArgs.Length - 1).toString() + " arguments.");
+    return false;
     } // end of OnExecAction
 }

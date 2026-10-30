@@ -325,8 +325,10 @@ namespace Clearinet
             ToolStripMenuItem tsmiItem;
             foreach (QuickLinkItem qli in arrQLI)
             {
-                tsmiItem = new ToolStripMenuItem(qli.ItemText);
-                tsmiItem.Tag = qli.ItemAction;
+                tsmiItem = new ToolStripMenuItem(qli.ItemText)
+                {
+                    Tag = qli.ItemAction
+                };
                 tsmi.DropDownItems.Add(tsmiItem);
                 htMenuScripts.Add(tsmiItem, mi);
                 tsmiItem.Click += new EventHandler(doQuickLinkClick);
@@ -469,6 +471,7 @@ namespace Clearinet
 
             ColumnHeader column = CApp.UI.lvExchanges.AddBoundColumn(
                 b._sTitle,
+                b._initialWidth,
                 b._sortNumerically ? ColumnSortType.Numeric : ColumnSortType.Text,
                 columnProvider
             );
@@ -524,9 +527,9 @@ namespace Clearinet
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 BackColor = CONFIG.colorDisabledEdit,
-                BorderStyle = BorderStyle.None
+                BorderStyle = BorderStyle.None,
+                WordWrap = !(b._sOptions?.OICContains("<nowrap>") == true)
             };
-            rtb.WordWrap = !(b._sOptions?.OICContains("<nowrap>") == true);
             if (b._sOptions?.OICContains("<fixedwidth>") == true) rtb.Font = new System.Drawing.Font("Consolas", 10f);
             if (b._sOptions?.OICContains("<nolink>") == true)
                 rtb.DetectUrls = false;

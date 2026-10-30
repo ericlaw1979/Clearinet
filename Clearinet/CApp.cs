@@ -92,10 +92,7 @@ namespace Clearinet
         internal static void OnCalculateReport(Exchange[] arrExchanges)
         {
             if (_bPauseReporting || isClosing) return;
-            if (null != CalculateReport)
-            {
-                CalculateReport(arrExchanges);
-            }
+            CalculateReport?.Invoke(arrExchanges);
         }
         public static event CalculateReportHandler CalculateReport;
         #endregion
