@@ -70,6 +70,14 @@ namespace Extensions
                 {
                     arrBody = Utilities.ConvertWebPToPNG(arrBody);
                 }
+                else
+                    if (sContentType.OICStartsWith("image/jxl") || arrBody.Length > 12 &&
+                        arrBody[0] == 0x00 && arrBody[1] == 0x00 && arrBody[2] == 0x00 && arrBody[3] == 0x0C &&
+                        arrBody[4] == 0x4A && arrBody[5] == 0x58 && arrBody[6] == 0x4C && arrBody[7] == 0x20 &&
+                        arrBody[8] == 0x0D && arrBody[9] == 0x0A && arrBody[10] == 0x87 && arrBody[11] == 0x0A)
+                    {
+                        arrBody = Utilities.ConvertJXLToJPEG(arrBody);
+                    }
 
                 if (sContentType.OICStartsWith("image/svg+xml"))
                 {
