@@ -9,3 +9,6 @@ This document aims to collect areas in which Clearinet is improved over Telerik'
 # UI
 - Find panel in page
 - Long-running operation UI
+
+# Images
+- JXL support
