@@ -46,7 +46,8 @@ why this project exists at all.
    the version in `global.json` (once one exists) or the current .NET LTS.
 3. `dotnet build` from the repository root should succeed with no
    warnings-as-errors on Windows and macOS; CI checks both.
-4. `dotnet test` should pass.
+4. Run the standalone regression scripts described in [Running the tests](TESTING.md).
+   These scripts are not discovered by `dotnet test`.
 
 ### Building Transcoders on Windows
 
