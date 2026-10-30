@@ -23,7 +23,7 @@ namespace Clearinet
 
 
     /// <summary>
-    /// Bind a new tab to the method. The method should return a string, which will be displayed in the tab.
+    /// Bind a column to a method returning a string for an Exchange. The column is removed when the script reloads.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class BindUIColumn : Attribute
@@ -31,14 +31,12 @@ namespace Clearinet
         internal string _sTitle;
         internal bool _sortNumerically;
 
-        public BindUIColumn(string sTitle)
-        {
-            _sTitle = sTitle;
-        }
+        public BindUIColumn(string sTitle) : this(sTitle, false) { }
 
         public BindUIColumn(string sTitle, bool bSortNumerically)
         {
-            _sTitle = sTitle;
+            // Disallow characters used as delimiters in serialization.
+            _sTitle = sTitle.Replace('§', '$').Replace('~', '-');
             _sortNumerically = bSortNumerically;
         }
     }

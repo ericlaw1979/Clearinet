@@ -48,7 +48,7 @@ namespace Clearinet
         private static readonly Dictionary<FieldInfo, string> dictFieldBackingPrefs = new Dictionary<FieldInfo, string>();
 
         private readonly List<BindUITab> listBoundTabs = new List<BindUITab>();
-        private readonly List<BindUIColumn> listBoundColumns = new List<BindUIColumn>();
+        private readonly List<ColumnHeader> listBoundColumns = new List<ColumnHeader>();
 
         private readonly List<BindTextCodec> listBoundTextCodecs = new List<BindTextCodec>();
         private readonly List<PreferenceBag.PrefWatcher> listWeaklyHeldWatchers = new List<PreferenceBag.PrefWatcher>();
@@ -159,6 +159,7 @@ namespace Clearinet
             {
                 CApp.Log.Log($"CompileScript(`{_scriptPath}`");
                 // Clear any prior script state before compiling the new script.
+                ClearPriorScriptColumns();
                 if (_isReadyForCalls)
                 {
                     _ClearCachedHandlerMethods();
@@ -448,13 +449,22 @@ namespace Clearinet
                 (Func<Exchange, string>)Delegate.CreateDelegate(typeof(Func<Exchange, string>), mi);
 
             // 3. Register the delegate with your ListView/UI helper
-            CApp.UI.lvExchanges.AddBoundColumn(
+            ColumnHeader column = CApp.UI.lvExchanges.AddBoundColumn(
                 b._sTitle,
                 b._sortNumerically ? ColumnSortType.Numeric : ColumnSortType.Text,
                 columnProvider
             );
 
-            listBoundColumns.Add(b);
+            listBoundColumns.Add(column);
+        }
+
+        private void ClearPriorScriptColumns()
+        {
+            foreach (ColumnHeader column in listBoundColumns)
+            {
+                CApp.UI.lvExchanges.RemoveBoundColumn(column);
+            }
+            listBoundColumns.Clear();
         }
 
         private void doBindUITab(MethodInfo mi, BindUITab b)

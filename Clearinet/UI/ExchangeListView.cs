@@ -438,8 +438,15 @@ namespace Clearinet
             // Trace.WriteLine($"Configured column #{ix} ({Columns[ix].Text}) with sort mode {cst}");
         }
 
-        internal void AddBoundColumn(string sTitle, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
+        internal ColumnHeader AddBoundColumn(string sTitle, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
         {
+            // Clearinet uses column titles as unique identifiers for layout serialization, so if we already have a column
+            // of a given title, rename it.
+            while (GetColumnByTitle(sTitle) != null)
+            {
+                sTitle = $"{sTitle}.bis";
+            }
+
             // By default, let's right-align numeric columns.
             ColumnHeader newCol = this.Columns.Add(sTitle, 60,
                 columnSortType == ColumnSortType.Numeric ? HorizontalAlignment.Right : HorizontalAlignment.Left);
@@ -449,7 +456,51 @@ namespace Clearinet
                 SortType = columnSortType,
                 Provider = columnProvider
             };
-            this.Columns[this.Columns.Count - 1].Tag = ci;
+            newCol.Tag = ci;
+            foreach (ListViewItem item in Items)
+            {
+                while (item.SubItems.Count < Columns.Count) item.SubItems.Add(string.Empty);
+                item.SubItems[newCol.Index].Text = item.Tag is Exchange exchange
+                    ? PopulateColumn(newCol.Index, exchange) : string.Empty;
+            }
+            return newCol;
+        }
+
+        internal void RemoveBoundColumn(ColumnHeader column)
+        {
+            int index = Columns.IndexOf(column);
+            if (index < 0) return;
+
+            BeginUpdate();
+            try
+            {
+                Columns.Remove(column);
+                foreach (ListViewItem item in Items)
+                {
+                    if (index < item.SubItems.Count) item.SubItems.RemoveAt(index);
+                }
+                column.Tag = null;
+                column.Dispose();
+
+                if (sorter.SortColumn == index)
+                {
+                    sorter.SortColumn = 0;
+                    sorter.SortType = Columns.Count > 0
+                        ? (Columns[0].Tag as ColumnInfo?)?.SortType ?? ColumnSortType.Numeric
+                        : ColumnSortType.Text;
+                    sorter.Order = Columns.Count > 0 ? SortOrder.Ascending : SortOrder.None;
+                }
+                else if (sorter.SortColumn > index)
+                {
+                    --sorter.SortColumn;
+                }
+                SetColumnHeaderSortIcon(sorter.SortColumn, sorter.Order);
+                Sort();
+            }
+            finally
+            {
+                EndUpdate();
+            }
         }
 
         internal string PopulateColumn(int i, Exchange x)
@@ -507,21 +558,33 @@ namespace Clearinet
 
         internal void ApplyColumnLayout(string sLayout)
         {
-            if (!sLayout.HasText()) return;
-            string[] arrColumns = sLayout.Split(new[] { '§' }, StringSplitOptions.RemoveEmptyEntries);
-            var i = 0;
-            foreach (var colLayout in arrColumns)
+            try
             {
-                string[] arrParts = colLayout.Split(new[] { '~' }, StringSplitOptions.RemoveEmptyEntries);
-                if (arrParts.Length != 2) continue;
-                string sTitle = arrParts[0];
-                ColumnHeader col = GetColumnByTitle(sTitle);
-                if (col == null) continue;
+                if (!sLayout.HasText()) return;
+                string[] arrColumns = sLayout.Split(new[] { '§' }, StringSplitOptions.RemoveEmptyEntries);
+                var i = 0;
+                foreach (var colLayout in arrColumns)
+                {
+                    string[] arrParts = colLayout.Split(new[] { '~' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (arrParts.Length != 2) continue;
+                    string sTitle = arrParts[0];
+                    ColumnHeader col = GetColumnByTitle(sTitle);
+                    if (col == null) continue;
 
-                col.DisplayIndex = i++;
+                    // If we accidentally end up with more columns in the serialized layout than we
+                    // have in the ListView, just ignore the extra ones.
+                    if (i < Columns.Count)
+                    {
+                        col.DisplayIndex = i++;
+                    }
 
-                if (!int.TryParse(arrParts[1], out int iWidth)) continue;
-                col.Width = iWidth;
+                    if (!int.TryParse(arrParts[1], out int iWidth)) continue;
+                    col.Width = iWidth;
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Failed to apply column layout");
             }
         }
 
