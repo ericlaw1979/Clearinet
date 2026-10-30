@@ -74,13 +74,14 @@ namespace Clearinet
             headerMenu?.Dispose();
             headerMenuFont?.Dispose();
             headerMenu = new ContextMenuStrip();
+            headerMenu.ShowCheckMargin = headerMenu.ShowImageMargin = false;
             headerMenuFont = new Font(headerMenu.Font, FontStyle.Bold);
             headerMenu.Items.Add(new ToolStripLabel((column?.Text ?? "Columns").Replace("&", "&&"))
             {
                 Font = headerMenuFont,
                 AutoToolTip = false
             });
-            headerMenu.Items.Add("Search this Column...", null, (sender, e) =>
+            headerMenu.Items.Add("&Search this Column...", null, (sender, e) =>
             {
                 string text = frmPrompt.GetUserString(new frmPrompt.PromptOptions
                 {
@@ -91,14 +92,14 @@ namespace Clearinet
                 });
                 if (text != null) SearchColumn(column, text);
             }).Enabled = column != null;
-            headerMenu.Items.Add("Flag duplicates", null, (sender, e) => FlagColumnDuplicates(column)).Enabled = column != null;
-            headerMenu.Items.Add("Hide this column", null, (sender, e) => column.Width = 0).Enabled = column != null;
+            headerMenu.Items.Add("&Flag duplicates", null, (sender, e) => FlagColumnDuplicates(column)).Enabled = column != null;
+            headerMenu.Items.Add("&Hide this column", null, (sender, e) => column.Width = 0).Enabled = column != null;
             headerMenu.Items.Add(new ToolStripSeparator());
-            headerMenu.Items.Add("Ensure all columns are visible...", null, (sender, e) =>
+            headerMenu.Items.Add("Ensure all columns are &visible", null, (sender, e) =>
             {
-                foreach (ColumnHeader col in Columns) col.Width = Math.Max(40, col.Width);
+                foreach (ColumnHeader col in Columns) col.Width = Math.Max(60, col.Width);
             });
-            headerMenu.Items.Add("Customize columns...", null, (sender, e) =>
+            headerMenu.Items.Add("&Customize columns...", null, (sender, e) =>
                 CApp.DoNotifyUser(FindForm(), "Not yet implemented.", "Customize columns", MessageBoxIcon.Information));
             headerMenu.Show(screenPoint);
         }
@@ -114,7 +115,7 @@ namespace Clearinet
             CApp.UI.actSelectExchangesMatchingCriteria(x =>
                 x.ViewItem.SubItems.Count > index && x.ViewItem.SubItems[index].Text.OICContains(text));
             if (SelectedCount > 0) EnsureVisible(SelectedIndices[0]);
-            CApp.UI.SetStatusText($"Selected {SelectedCount} Exchanges matching '{column.Text}' containing '{text}'.");
+            CApp.UI.SetStatusText($"Selected {SelectedCount} Exchanges where '{column.Text}'='{text}'.");
         }
 
         private void FlagColumnDuplicates(ColumnHeader column)
@@ -205,7 +206,7 @@ namespace Clearinet
             }, bClearSelectionFirst: !bGrowSelection);
 
             var sColTitle = Columns[ixColumn].Text ?? $"Col#{ixColumn}";
-            CApp.UI.SetStatusText($"Selected {this.SelectedCount} Exchanges matching '{sColTitle}'='{sFindText}'.");
+            CApp.UI.SetStatusText($"Selected {this.SelectedCount} Exchanges where '{sColTitle}'='{sFindText}'.");
         }
 
         public Exchange[] GetAllExchanges()
