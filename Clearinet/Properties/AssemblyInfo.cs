@@ -15,9 +15,10 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.2.8")]
+[assembly: AssemblyVersion("0.0.2.9")]
 
 // Selected Release Version History
+// v0.0.2.8 - Oct-29-2026 - Improve QuickExec, Improve Copy for AI and add Copy Response DataURI
 // v0.0.2.7 - Oct-28-2026 - Enhance find (EXACT:, REGEX:, Search binaries, navigate between results with < and > keys); add QuickLinks; Enhance HexView with colors, add more settings to Options in preparation for a real proxy engine.
 // v0.0.2.6 - Oct-26-2026 - The one with all the "26" - Add Timeline, MezerTools, Add ContextAction, ToolsAction to script, Add KeepOnly, Log formatting via !/_ prefix, Enhance QuickExec, Performance, 
 // v0.0.2.5 - Oct-22-2026 - Improve performance, QuickExec, Textransformer, Add hotkey, Workaround DotNetZip bug with encrypted but uncompressed entries
