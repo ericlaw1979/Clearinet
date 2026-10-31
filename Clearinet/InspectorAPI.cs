@@ -96,17 +96,16 @@ namespace Clearinet
         /// <summary>
         /// Is the Inspector in Edit mode?
         /// </summary>
-        protected bool bReadOnly { get; set; }
+        public virtual bool bReadOnly { get; set; }
 
         /// <summary>
         /// Set to false when an Exchange is assigned.
         /// Set it to true if the user makes any edits.
         /// </summary>
-        protected bool bDirty { get; set; }
-        public void MarkDirty()
-        {
-            bDirty = true;
-        }
+        public virtual bool bDirty { get; set; }
+
+        // Legacy had a method public virtual bool UnsetDirtyFlag() but I don't know if we need it
+
 
         protected abstract bool CommitIsAllowed(Exchange oX);
 
@@ -131,7 +130,7 @@ namespace Clearinet
 
         public virtual void SetFontSize(float flSize)
         {
-            if (CApp.isTracing) Trace.WriteLine($"Inspector:{this} ignored font size update.");
+            if (CApp.isTracing) Trace.WriteLine($"Inspector:{this} didn't implement SetFontSize.");
         }
         public virtual void ShowAboutBox()
         {

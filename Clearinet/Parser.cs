@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Clearinet
 {
-    internal static class Parser
+    public static class Parser
     {
         internal static bool ParseHeaderLines(HTTPHeaders headers, string[] arrHeaderLines, int iStartFrom, ref string sErrors)
         {
@@ -106,62 +106,68 @@ namespace Clearinet
             }
         }
 
+        // Parse Request Line (e.g., "GET /index.html HTTP/1.1")
+        public static (string method, string path, string version, string sorigin) ParseRequestLine(string requestLine)
+        {
+            if (string.IsNullOrWhiteSpace(requestLine))
+            {
+                throw new FormatException("Invalid HTTP request: missing request line.");
+            }
+            // Split the request line into parts
+            string[] parts = requestLine.Split(new[] { ' ' }, 3, StringSplitOptions.None);
+            if (parts.Length < 3)
+            {
+                throw new FormatException($"Malformed HTTP request line: '{requestLine}'");
+            }
+            string method = parts[0];
+            string path = parts[1];
+            string version = parts[2];
+            // Extract the origin from the path if present (e.g., "http://example.com/path")
+            string sorigin = null;
+
+            // Make the path relative.
+            // For non-CONNECT requests, check whether the origin was present
+            // in the request line. It typically *will* be if the client knows
+            // that it's talking to a proxy. But there are both capture and load
+            // scenarios where the request path starts with /whatever.html
+            if (!method.OICEquals("CONNECT"))
+            {
+                if (!path.StartsWith("/") && path.Contains(":"))
+                {
+                    if (path.OICStartsWith("data:"))
+                    {
+                        sorigin = "data:";
+                        path = path.Substring(5); // Strip off the "data:" prefix
+                    }
+                    else
+                    {
+                        // https://server.com/path?query 
+                        int ixDelimiter = path.IndexOf(':');
+                        if (ixDelimiter < (path.Length - 1) && path[ixDelimiter + 1] == '/') ixDelimiter++;
+                        if (ixDelimiter < (path.Length - 1) && path[ixDelimiter + 1] == '/') ixDelimiter++;
+                        ixDelimiter = path.IndexOf('/', ixDelimiter + 1);
+                        if (ixDelimiter > 0)
+                        {
+                            sorigin = path.Substring(0, ixDelimiter);
+                            path = path.Substring(ixDelimiter);
+                        }
+                        else
+                        {   // TODO: HTTP Protocol violation, empty request path (e.g. "http://missingtrailingslash.com")
+                            sorigin = path;
+                            path = "/";
+                        }
+                    }
+                }
+            }
+            return (method, path, version, sorigin);
+        }
+
         public static (string method, string path, string version, string[] headers, string sorigin) ParseRequestHeaders(string headerString)
         {
             using (var reader = new StringReader(headerString))
             {
                 string requestLine = reader.ReadLine();
-                if (string.IsNullOrWhiteSpace(requestLine))
-                {
-                    throw new FormatException("Invalid HTTP request: missing request line.");
-                }
-
-                // Parse Request Line (e.g., "GET /index.html HTTP/1.1")
-                string[] requestParts = requestLine.Split(' ');
-                if (requestParts.Length < 3)
-                {
-                    throw new FormatException($"Malformed HTTP request line: '{requestLine}'");
-                }
-
-                string method = requestParts[0];
-                string path = requestParts[1];
-                string version = requestParts[2];
-                string sorigin = null;
-
-                // Make the path relative.
-                // For non-CONNECT requests, check whether the origin was present
-                // in the request line. It typically *will* be if the client knows
-                // that it's talking to a proxy. But there are both capture and load
-                // scenarios where the request path starts with /whatever.html
-                if (!method.OICEquals("CONNECT"))
-                {
-                    if (!path.StartsWith("/") && path.Contains(":"))
-                    {
-                        if (path.OICStartsWith("data:"))
-                        {
-                            sorigin = "data:";
-                            path = path.Substring(5); // Strip off the "data:" prefix
-                        }
-                        else
-                        {
-                            // https://server.com/path?query 
-                            int ixDelimiter = path.IndexOf(':');
-                            if (ixDelimiter < (path.Length - 1) && path[ixDelimiter + 1] == '/') ixDelimiter++;
-                            if (ixDelimiter < (path.Length - 1) && path[ixDelimiter + 1] == '/') ixDelimiter++;
-                            ixDelimiter = path.IndexOf('/', ixDelimiter + 1);
-                            if (ixDelimiter > 0)
-                            {
-                                sorigin = path.Substring(0, ixDelimiter);
-                                path = path.Substring(ixDelimiter);
-                            }
-                            else
-                            {   // TODO: HTTP Protocol violation, empty request path (e.g. "http://missingtrailingslash.com")
-                                sorigin = path;
-                                path = "/";
-                            }
-                        }
-                    }
-                }
+                var (method, path, version, sorigin) = ParseRequestLine(requestLine);
 
                 // Parse remaining header lines
                 var headerList = new List<string>();
