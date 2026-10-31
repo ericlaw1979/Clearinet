@@ -151,9 +151,13 @@ namespace Clearinet
                     bool bValue = (bool)field.GetValue(null);
                     CApp.Prefs.SetBoolPref(prefName, bValue);
                 }
+                else if (field.FieldType == typeof(string))
+                {
+                    CApp.Prefs.SetStringPref(prefName, (string)field.GetValue(null));
+                }
                 else
                 {
-                    CApp.Log.Log($"!Warning: Field '{field.Name}' is not a boolean; cannot store its value in backing preference '{prefName}'.");
+                    CApp.Log.Log($"!Warning: Field '{field.Name}' is not a boolean or string. Cannot store its value in backing preference '{prefName}'.");
                 }
             }
             dictPrefBackedFields.Clear();
@@ -312,7 +316,7 @@ namespace Clearinet
                 if (tab != null) { doBindUITab(method, tab); continue; }
 
                 ContextAction contextAction = method.GetCustomAttribute<ContextAction>(false);
-                if (contextAction != null) { doBindUIContextAction(method, contextAction); continue; }
+                if (contextAction != null) { doBindUIContextAction(method, contextAction); /* fallthrough, can also be ToolsAction */ }
 
                 ToolsAction toolsAction = method.GetCustomAttribute<ToolsAction>(false);
                 if (toolsAction != null) { doBindUIToolsAction(method, toolsAction); continue; }
@@ -337,6 +341,21 @@ namespace Clearinet
 
                     BindUIButton fieldButton = field.GetCustomAttribute<BindUIButton>(false);
                     if (fieldButton != null) { doBindUIButtonToField(field, fieldButton); continue; }  // ISSUE: Do we want to allow binding to both a menu and a toolbar button?
+
+                    RulesOption fieldRulesOption = field.GetCustomAttribute<RulesOption>(false);
+                    if (fieldRulesOption != null) { doBindRulesOption(field, fieldRulesOption); continue; }
+                }
+                else if (field.FieldType == typeof(string))
+                {
+                    // If the field has a BindPref attribute, we need to load the backing preference
+                    // and set the field value accordingly, BEFORE binding any UI to it.
+                    BindPref bp = field.GetCustomAttribute<BindPref>(false);
+                    if (bp != null)
+                    {
+                        dictPrefBackedFields.Add(field, bp._sPref);
+                        string sValue = CApp.Prefs.GetStringPref(bp._sPref, (string)field.GetValue(null));
+                        field.SetValue(null, sValue);
+                    }
 
                     RulesOption fieldRulesOption = field.GetCustomAttribute<RulesOption>(false);
                     if (fieldRulesOption != null) { doBindRulesOption(field, fieldRulesOption); continue; }
@@ -494,31 +513,81 @@ namespace Clearinet
 
         private void doBindRulesOption(FieldInfo fieldInfo, RulesOption b)
         {
-            ToolStripMenuItem tsmi = new ToolStripMenuItem
-            {
-                Text = b._sTitle,
-                ToolTipText = b._sTooltip ?? $"Toggle {b._sTitle}",
-                CheckOnClick = true,
-                DisplayStyle = ToolStripItemDisplayStyle.Text,
-                Checked = (bool)fieldInfo.GetValue(null),
-                Tag = fieldInfo
-            };
+            ToolStripMenuItem tsmi;
 
-            tsmi.Click += (sender, args) =>
+            if (fieldInfo.FieldType == typeof(bool))
             {
-                try
+                tsmi = new ToolStripMenuItem
                 {
-                    fieldInfo.SetValue(null, tsmi.Checked);
-                    if (fieldInfo.GetCustomAttribute<BindPref>(false) is BindPref bp)
+                    Text = b._sTitle,
+                    ToolTipText = b._sTooltip ?? $"Toggle {b._sTitle}",
+                    CheckOnClick = true,
+                    DisplayStyle = ToolStripItemDisplayStyle.Text,
+                    Checked = (bool)fieldInfo.GetValue(null),
+                    Tag = fieldInfo
+                };
+
+                tsmi.Click += (sender, args) =>
+                {
+                    try
                     {
-                        CApp.Prefs.SetBoolPref(bp._sPref, tsmi.Checked);
+                        fieldInfo.SetValue(null, tsmi.Checked);
+                        if (fieldInfo.GetCustomAttribute<BindPref>(false) is BindPref bp)
+                        {
+                            CApp.Prefs.SetBoolPref(bp._sPref, tsmi.Checked);
+                        }
                     }
-                }
-                catch (Exception eX)
+                    catch (Exception eX)
+                    {
+                        CApp.ReportException(eX, $"RulesOption toggle failed: {fieldInfo.Name}");
+                    }
+                };
+            }
+            else if (fieldInfo.FieldType == typeof(string))
+            {
+                tsmi = new ToolStripMenuItem
                 {
-                    CApp.ReportException(eX, $"RulesOption toggle failed: {fieldInfo.Name}");
-                }
-            };
+                    Text = b._sTitle,
+                    ToolTipText = b._sTooltip ?? $"Set {b._sTitle}",
+                    DisplayStyle = ToolStripItemDisplayStyle.Text,
+                    Tag = fieldInfo
+                };
+
+                tsmi.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        frmPrompt.PromptOptions fpo = new frmPrompt.PromptOptions
+                        {
+                            ReturnNullOnCancel = true,
+                            Kind = frmPrompt.PromptKind.Default,
+                            OwnerWindow = CApp.UI,
+                            Title = $"Set {b._sTitle}",
+                            PromptText = $"Enter a new value for {b._sTitle}:",
+                            DefaultValue = (string)fieldInfo.GetValue(null)
+
+                        };
+                        string sNewValue = frmPrompt.GetUserString(fpo);
+                        if (null != sNewValue)
+                        {
+                            fieldInfo.SetValue(null, sNewValue);
+                            if (fieldInfo.GetCustomAttribute<BindPref>(false) is BindPref bp)
+                            {
+                                CApp.Prefs.SetStringPref(bp._sPref, sNewValue);
+                            }
+                        }
+                    }
+                    catch (Exception eX)
+                    {
+                        CApp.ReportException(eX, $"RulesOption set failed: {fieldInfo.Name}");
+                    }
+                };
+            }
+            else
+            {
+                Debug.Assert(false);
+                return;
+            }
 
             CApp.UI.AddExtensionRulesMenuItem(tsmi);
             htMenuScripts[tsmi] = null;

@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0. LAST UPDATED for v0.0.2.9
+// This file will be updated before v1.0. LAST UPDATED for v0.0.3.0
 import System;
 import System.Windows.Forms;
 import Clearinet;
@@ -45,20 +45,6 @@ class Handlers
 // BindUIButton, you can add a button to the toolbar. By adding a QuickLinks
 // menu, you can add a new item to the top-level menu.
 //
-    // =============
-    // Following are simple examples you can uncomment to try...
-    // =============
-    
-    static function OnBeforeRequest(XC: Exchange) {
-        // XC["x-replywithfile"] = "C:\\temp\\foo.html";
-        XC["ui-backcolor"] = "LimeGreen";
-    }
-
-    static function OnBeforeResponse(XC: Exchange) {
-        XC["ui-backcolor"] = "#FFF5DD";
-    }
-
-    static var bCanClose: boolean = true;
     static var sMyInfo: String;
 
     // This function runs on every compile of the script.
@@ -70,29 +56,53 @@ class Handlers
         var sKey = "Win+Shift+G";
         CApp.UI.SetStatusText("Binding '" + sKey + "' to 'paste' returned: " + CApp.UI.bindHotkeyToExecAction(sKey, "paste"));
         CApp.UI.SetStatusText("Your script has compiled and loaded!");
-    }
-
-    public static BindUIButton("SingleBrowserMode \uD83D\uDC40")
-    function LaunchSingleInstance() {
-        Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
+        CApp.UI.lvExchanges.AddBoundColumn("Server", 50, "@response.Server");   // Add a Response Header column.
+        CApp.UI.lvExchanges.AddBoundColumn("Accept", 50, "@request.Accept");    // Add a Request Header column.
+        CApp.UI.lvExchanges.AddBoundColumn("ui-backcolor", 50, "ui-backcolor"); // Add an Exchange Flag column.
     }
     
+    // This function runs when the script is unloaded.
+    static function OnRetire() {
+        CApp.Log.Log("! The script '" + sMyInfo + "' is retiring at " + new Date());
+        CApp.UI.lvExchanges.RemoveBoundColumn("Server");
+        CApp.UI.lvExchanges.RemoveBoundColumn("Accept");
+        CApp.UI.lvExchanges.RemoveBoundColumn("ui-backcolor");
+    }
+
+    // The BindUIButton attribute makes this a toggle on the toolbar.
+    BindUIButton("AllowClose", "Allow Clearinet to close without blocking.")
+    BindPref("demoscript.ephemeral.allow_close")
+    public static var bCanClose: boolean = true;
+
+    RulesOption("Some Random Toggler&2")
+    BindPref("demoscript.randomToggle#2")
+    public static var bRandomToggler2: boolean;
+
+    RulesOption("A Persisted String...")
+    BindPref("demoscript.user_persisted_string")
+    public static var sString: String = "default value from script";
+
+    BindUIButton("SingleBrowserMode \uD83D\uDC40", "Launches a browser pointed at the Clearinet proxy.")
+    public static function LaunchSingleInstance() {
+        Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
+    }
+
     public static BindTextCodec("to UPPERCASE")
-        function codecToUpper(input: String): String {
+    function codecToUpper(input: String): String {
         return input.ToUpper();
     }
      
-    public static BindUIColumn("Content-Encoding", false)
-    function FillCTColumn(xc: Exchange): String {
+    BindUIColumn("Content-Encoding", false)
+    public static function FillCTColumn(xc: Exchange): String {
         if (xc.bHasResponse) return xc.ResponseHeaders["Content-Encoding"];
         return String.Empty;
     }
 
     // Use Numeric sorting
-    public static BindUIColumn("RequestBody", true)
-    function FillSizeColumn(xc: Exchange): String {
+    BindUIColumn("RequestBody", true)
+    public static function FillSizeColumn(xc: Exchange): String {
         if (null == xc.RequestBody) return 0;
-    return xc.RequestBody.Length.ToString("N0");
+        return xc.RequestBody.Length.ToString("N0");
     }
 
     // Add a "Links" top-level menu to the main window.
@@ -105,8 +115,8 @@ class Handlers
         Utilities.LaunchHyperlink(sAction);
     }
     
-    public BindUITab("Flags", "<fixedwidth><nowrap><nolink><hidden>")
-    static function FlagsReport(arrXC: Exchange[]): String {
+    BindUITab("Flags", "<fixedwidth><nowrap><nolink><hidden>")
+    public static function FlagsReport(arrXC: Exchange[]): String {
         var sbOut: System.Text.StringBuilder = new System.Text.StringBuilder();
         for (var i: int = 0; i < arrXC.Length; ++i) {
             sbOut.AppendLine("FLAGS");
@@ -125,8 +135,9 @@ class Handlers
         return sbOut.ToString();
     }
 
-    public static ContextAction("Decode Selected Exchanges")
-    function DoRemoveEncoding(arrXC: Exchange[]) {
+    ToolsAction("Decode Selected Exchanges")
+    ContextAction("Decode Exchanges")
+    public static function DoRemoveEncoding(arrXC: Exchange[]) {
         for (var x: int = 0; x < arrXC.Length; ++x) {
             arrXC[x].utilDecodeRequest();
             arrXC[x].utilDecodeResponse();
@@ -135,8 +146,8 @@ class Handlers
         CApp.UI.SetStatusText("Decoded " + x.ToString() + " Exchanges.");
     }
 
-    public static ToolsAction("Reset Script")
-    function DoManualReload() {
+    ToolsAction("Reset Script")
+    public static function DoManualReload() {
         CApp.UI.actFlashWindow();
         CApp.scriptRules.ReloadScript();
     }
@@ -163,6 +174,19 @@ class Handlers
         return bCanClose;
     }
 
+    // ================================================================================
+    // Functions called during Exchange processing...
+    // ================================================================================
+    static function OnBeforeRequest(XC: Exchange) {
+        // XC["x-replywithfile"] = "C:\\temp\\foo.html";
+        XC["ui-backcolor"] = "LimeGreen";
+    }
+
+    static function OnBeforeResponse(XC: Exchange) {
+        XC["ui-backcolor"] = "#FFF5DD";
+    }
+
+    // ================================================================================
     static function OnExecAction(sArgs: String[]): Boolean {
         var sAction = sArgs[0].toLowerCase();
         switch (sAction) {
@@ -251,8 +275,7 @@ class Handlers
                 if (sAction.StartsWith("http")) {
                     Utilities.LaunchHyperlink(sArgs[0]);
                     return true;
-    		}
-    	
+    		    }
         }
         CApp.UI.SetStatusText("Unknown execaction: " + sAction);
         CApp.alert("OnExecAction '" + sAction + "' was called with " + (sArgs.Length - 1).toString() + " arguments.");

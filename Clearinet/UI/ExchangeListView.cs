@@ -619,7 +619,7 @@ namespace Clearinet
             return newCol;
         }
 
-        internal bool RemoveBoundColumn(string sTitle) // Todo:should this be public
+        public bool RemoveBoundColumn(string sTitle)
         {
             ColumnHeader column = this.GetColumnByTitle(sTitle);
             if (null == column) return false;
