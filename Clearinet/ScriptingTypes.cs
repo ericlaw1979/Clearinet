@@ -7,17 +7,44 @@ namespace Clearinet
     public delegate void RulesAfterCompileHandler();
     public delegate void RulesCompileFailedHandler(string sDescription, int iLine, int iStartColumn, int iEndColumn);
 
+    [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
+    public sealed class BindPref : Attribute
+    {
+        internal string _sPref;
+
+        public BindPref(string sName)
+        {
+            _sPref = sName;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field, Inherited = false)]
+    public sealed class RulesOption : Attribute
+    {
+        internal string _sTitle;
+        internal string _sTooltip; // TODO: Hook this up if we can do so without breaking the attribute's signature.
+
+        public RulesOption(string sTitle)
+        {
+            _sTitle = sTitle;
+        }
+    }
+
     /// <summary>
-    /// Bind a toolbar button to the method.
+    /// Bind a toolbar button to the method or the boolean field.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field, Inherited = false)]
     public sealed class BindUIButton : Attribute
     {
         internal string _sText;
+        internal string _sTooltip;
 
-        public BindUIButton(string sText)
+        public BindUIButton(string sText) : this(sText, null) { }
+
+        public BindUIButton(string sText, string sTooltip)
         {
             _sText = sText;
+            _sTooltip = sTooltip;
         }
     }
 
@@ -173,18 +200,6 @@ namespace Clearinet
             _sSubmenu = sSubmenu;
         }*/
     }
-
-    [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
-    public sealed class BindPref : Attribute
-    {
-        internal string _sPref;
-
-        public BindPref(string sName)
-        {
-            _sPref = sName;
-        }
-    }
-
 
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class BindTextCodec : Attribute

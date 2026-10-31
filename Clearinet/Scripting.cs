@@ -16,13 +16,14 @@ namespace Clearinet
         private readonly string _scriptPath;
         private readonly FileSystemWatcher _watcher;
         // TODO: Do we actually need this? Do we have multi-threading concerns to worry about?
-        // The script engine is only called from the main UI thread, and the FileSystemWatcher
+        //
+        // Script compilation is only called from the main UI thread, and the FileSystemWatcher
         // events are also raised on the main UI thread due to our use of SynchronizingObject.
         private readonly object _syncLock = new object();
 
         private Assembly _compiledAssembly;
         /// <summary>
-        /// The Handlers class from the rules file.
+        /// The Handlers class from the script file.
         /// </summary>
         private Type _typeHandlers;
         private bool _isDisposed;
@@ -45,17 +46,26 @@ namespace Clearinet
 
         private static readonly Dictionary<ToolStripItem, MethodInfo> htButtonScripts = new Dictionary<ToolStripItem, MethodInfo>();
 
-        private static readonly Dictionary<FieldInfo, string> dictFieldBackingPrefs = new Dictionary<FieldInfo, string>();
+        // todo: any reason to keep the toggle buttons separate?
+        private static readonly Dictionary<ToolStripItem, FieldInfo> htButtonFields = new Dictionary<ToolStripItem, FieldInfo>();
+
+
+        /// <summary>
+        /// Stores backing-field preference values keyed by field metadata.
+        /// </summary>
+        private static readonly Dictionary<FieldInfo, string> dictPrefBackedFields = new Dictionary<FieldInfo, string>();
+
+        // nyi
+        private readonly List<PreferenceBag.PrefWatcher> listPrefWatchers = new List<PreferenceBag.PrefWatcher>();
 
         private readonly List<BindUITab> listBoundTabs = new List<BindUITab>();
         private readonly List<ColumnHeader> listBoundColumns = new List<ColumnHeader>();
 
         private readonly List<BindTextCodec> listBoundTextCodecs = new List<BindTextCodec>();
-        private readonly List<PreferenceBag.PrefWatcher> listWeaklyHeldWatchers = new List<PreferenceBag.PrefWatcher>();
 
         private Action<Exchange> _methodOnBeforeRequest;
         private Action<Exchange> _methodOnBeforeResponse;
-        // TODO: WebSockets Not yet implemented private Action<WebSocketMessage> _methodOnWebSocketMessage;
+        // TODO: WebSockets NYI private Action<WebSocketMessage> _methodOnWebSocketMessage;
         private Action<Exchange> _methodOnPeekAtRequestHeaders;
         private Action<Exchange> _methodOnPeekAtResponseHeaders;
         private Action<Exchange> _methodOnReturningError;
@@ -121,6 +131,35 @@ namespace Clearinet
 
         public void UnloadScript()
         {
+            // TODO: Free all of the listPrefWatchers here. We want to do this before we go write a bunch of preferences 
+            // just below here.
+            // listWeaklyHeldWatchers.ForEach(w => w.Dispose());
+
+            // For each entry in dictFieldBackingPrefs, we will store the field's value in the backing preference.
+            // This ensures that when the script is reloaded, the field's value is restored from the backing preference.
+            //
+            // Note: Because changes in Bound UI will update the field immediately, this may be redundant. However, because
+            // the script may have changed the field's value without the user interacting with the UI, we store the "final"
+            // value here.
+            //
+            foreach (var kvp in dictPrefBackedFields)
+            {
+                FieldInfo field = kvp.Key;
+                string prefName = kvp.Value;
+                if (field.FieldType == typeof(bool))
+                {
+                    bool bValue = (bool)field.GetValue(null);
+                    CApp.Prefs.SetBoolPref(prefName, bValue);
+                }
+                else
+                {
+                    CApp.Log.Log($"!Warning: Field '{field.Name}' is not a boolean; cannot store its value in backing preference '{prefName}'.");
+                }
+            }
+            dictPrefBackedFields.Clear();
+
+            CallMethod("OnRetire");
+
             lock (_syncLock)
             {
                 _isReadyForCalls = false;
@@ -129,8 +168,11 @@ namespace Clearinet
                 _clearPriorScriptButtons();
                 _clearPriorScriptMenus();
                 _clearPriorScriptTabs();
-                listBoundTextCodecs.Clear();
                 // Anything else?
+
+                // TODO: The old script engine is still alive and clearing here doesn't
+                // drop the reference to the old script. TODO: Notify any open textransform to refresh?
+                listBoundTextCodecs.Clear();
             }
         }
 
@@ -174,20 +216,7 @@ namespace Clearinet
             {
                 CApp.Log.Log($"CompileScript(`{_scriptPath}`");
                 // Clear any prior script state before compiling the new script.
-                if (_isReadyForCalls)
-                {
-                    _clearCachedHandlerMethods();
-                    _clearPriorScriptColumns();
-                    _clearPriorScriptButtons();
-                    _clearPriorScriptMenus();
-                    _clearPriorScriptTabs();
-
-                    // TODO: The old script engine is still alive and clearing here doesn't
-                    // drop the reference to the old script. TODO: Notify any open textransform to refresh?
-                    listBoundTextCodecs.Clear();
-                    //listWeaklyHeldWatchers.ForEach(w => w.Dispose());
-                }
-                _isReadyForCalls = false;
+                UnloadScript();
                 string scriptContent;
                 using (var stream = new FileStream(_scriptPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var reader = new StreamReader(stream))
@@ -290,6 +319,36 @@ namespace Clearinet
 
                 QuickLinkMenu quickLinkMenu = method.GetCustomAttribute<QuickLinkMenu>(false);
                 if (quickLinkMenu != null) { doBindUIQuickLinkMenu(method, quickLinkMenu); continue; }
+            }
+
+            foreach (FieldInfo field in _typeHandlers.GetFields(BindingFlags.Public | BindingFlags.Static))
+            {
+                if (field.FieldType == typeof(bool))       // Boolean-based rules
+                {
+                    // If the field has a BindPref attribute, we need to load the backing preference
+                    // and set the field value accordingly, BEFORE binding any UI to it.
+                    BindPref bp = field.GetCustomAttribute<BindPref>(false);
+                    if (bp != null)
+                    {
+                        dictPrefBackedFields.Add(field, bp._sPref);
+                        bool bValue = CApp.Prefs.GetBoolPref(bp._sPref, (bool)field.GetValue(null));
+                        field.SetValue(null, bValue);
+                    }
+
+                    BindUIButton fieldButton = field.GetCustomAttribute<BindUIButton>(false);
+                    if (fieldButton != null) { doBindUIButtonToField(field, fieldButton); continue; }  // ISSUE: Do we want to allow binding to both a menu and a toolbar button?
+
+                    RulesOption fieldRulesOption = field.GetCustomAttribute<RulesOption>(false);
+                    if (fieldRulesOption != null) { doBindRulesOption(field, fieldRulesOption); continue; }
+                }
+                else
+                {
+                    if (null != field.GetCustomAttribute<BindUIButton>(false) ||
+                        null != field.GetCustomAttribute<RulesOption>(false) ||
+                            null != field.GetCustomAttribute<BindPref>(false))
+                        CApp.Log.Log($"!Warning: Fields attributed by BindPref/BindUIButton/RulesOption must be boolean; '{field.Name}' is a '{field.FieldType}'. Skipping.");
+                }
+
             }
         }
 
@@ -432,11 +491,78 @@ namespace Clearinet
             listBoundTextCodecs.Add(b);
         }
 
+
+        private void doBindRulesOption(FieldInfo fieldInfo, RulesOption b)
+        {
+            ToolStripMenuItem tsmi = new ToolStripMenuItem
+            {
+                Text = b._sTitle,
+                ToolTipText = b._sTooltip ?? $"Toggle {b._sTitle}",
+                CheckOnClick = true,
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Checked = (bool)fieldInfo.GetValue(null),
+                Tag = fieldInfo
+            };
+
+            tsmi.Click += (sender, args) =>
+            {
+                try
+                {
+                    fieldInfo.SetValue(null, tsmi.Checked);
+                    if (fieldInfo.GetCustomAttribute<BindPref>(false) is BindPref bp)
+                    {
+                        CApp.Prefs.SetBoolPref(bp._sPref, tsmi.Checked);
+                    }
+                }
+                catch (Exception eX)
+                {
+                    CApp.ReportException(eX, $"RulesOption toggle failed: {fieldInfo.Name}");
+                }
+            };
+
+            CApp.UI.AddExtensionRulesMenuItem(tsmi);
+            htMenuScripts[tsmi] = null;
+        }
+
+
+        private void doBindUIButtonToField(FieldInfo fieldInfo, BindUIButton b)
+        {
+            ToolStripButton tsb = new ToolStripButton
+            {
+                Text = b._sText,
+                ToolTipText = b._sTooltip ?? $"Toggle {b._sText}",
+                CheckOnClick = true,
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Checked = (bool)fieldInfo.GetValue(null),
+                Tag = fieldInfo
+            };
+
+            tsb.Click += (sender, args) =>
+            {
+                try
+                {
+                    fieldInfo.SetValue(null, tsb.Checked);
+                    if (fieldInfo.GetCustomAttribute<BindPref>(false) is BindPref bp)
+                    {
+                        CApp.Prefs.SetBoolPref(bp._sPref, tsb.Checked);
+                    }
+                }
+                catch (Exception eX)
+                {
+                    CApp.ReportException(eX, $"Toolbar toggle failed: {fieldInfo.Name}");
+                }
+            };
+            var tsToolbar = CApp.UI.tsToolbar;
+            tsToolbar.Items.Insert(tsToolbar.Items.IndexOf(CApp.UI.tssAfterExt), tsb);
+            htButtonFields[tsb] = fieldInfo;
+        }
+
         private void doBindUIButton(MethodInfo mi, BindUIButton b)
         {
             ToolStripButton tsb = new ToolStripButton
             {
                 Text = b._sText,
+                ToolTipText = b._sTooltip ?? $"Invoke {b._sText} script function",
                 DisplayStyle = ToolStripItemDisplayStyle.Text,
                 Tag = mi
             };
@@ -588,6 +714,13 @@ namespace Clearinet
                 item.Dispose();
             }
             htButtonScripts.Clear();
+
+            foreach (ToolStripItem item in htButtonFields.Keys)
+            {
+                item.GetCurrentParent()?.Items.Remove(item);
+                item.Dispose();
+            }
+            htButtonFields.Clear();
         }
 
         private void _clearPriorScriptMenus()

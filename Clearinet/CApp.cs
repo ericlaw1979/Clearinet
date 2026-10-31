@@ -402,7 +402,7 @@ namespace Clearinet
                 else if (arrParams[1].OICEquals("unload"))
                 {
                     scriptRules?.UnloadScript();
-                    CApp.UI.SetStatusText($"Script unloaded,");
+                    CApp.UI.SetStatusText($"Script unloaded.");
                 }
                 else
                 {
