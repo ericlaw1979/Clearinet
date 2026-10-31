@@ -1128,7 +1128,7 @@
             // 
             this.tstxtLookup.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.tstxtLookup.Name = "tstxtLookup";
-            this.tstxtLookup.Size = new System.Drawing.Size(100, 27);
+            this.tstxtLookup.Size = new System.Drawing.Size(140, 27);
             this.tstxtLookup.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyDown);
             this.tstxtLookup.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tstxtLookup_KeyUp);
             // 
