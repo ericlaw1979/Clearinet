@@ -20,13 +20,6 @@ namespace Clearinet
         {
             InitializeComponent();
 
-            var logContextMenu = new ContextMenuStrip(components);
-            ToolStripItem copyLogItem = logContextMenu.Items.Add("Copy", null, (s, e) => rtbLog.Copy());
-            logContextMenu.Items.Add("Save", null, (s, e) => SaveLog());
-            logContextMenu.Items.Add("Clear", null, (s, e) => ClearLog());
-            logContextMenu.Opening += (s, e) => copyLogItem.Enabled = rtbLog.SelectionLength > 0;
-            rtbLog.ContextMenuStrip = logContextMenu;
-
             // TODO: This is a hack. Eventually we will be smarter.
             lvExchanges.ConfigureColumn(colID.Index, ColumnSortType.Numeric);
             lvExchanges.ConfigureColumn(colResult.Index, ColumnSortType.Numeric);
@@ -790,6 +783,13 @@ namespace Clearinet
             {
                 miHelpAbout.PerformClick();
             };
+
+            var logContextMenu = new ContextMenuStrip(components);
+            ToolStripItem copyLogItem = logContextMenu.Items.Add("Copy", null, (s1, e1) => rtbLog.Copy());
+            logContextMenu.Items.Add("Save...", null, (s1, e1) => SaveLog());
+            logContextMenu.Items.Add("Clear Log", null, (s1, e1) => ClearLog());
+            logContextMenu.Opening += (s1, e1) => copyLogItem.Enabled = rtbLog.SelectionLength > 0;
+            rtbLog.ContextMenuStrip = logContextMenu;
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
@@ -2675,12 +2675,13 @@ namespace Clearinet
 
         private void SaveLog()
         {
-            var saveSelection = Utilities.ObtainSaveFilenameAndType("Save Log", "Rich Text Format (*.rtf)|*.rtf|Text files (*.txt)|*.txt|All files (*.*)|*.*");
+            var saveSelection = Utilities.ObtainSaveFilenameAndType("Save Log",
+                "Text files (*.txt)|*.txt|Rich Text Format (*.rtf)|*.rtf|All files (*.*)|*.*");
             if (!saveSelection.sFilename.HasText()) return;
 
             try
             {
-                if (saveSelection.iChosenType == 1)
+                if (saveSelection.iChosenType == 2)
                 {
                     rtbLog.SaveFile(saveSelection.sFilename, RichTextBoxStreamType.RichText);
                 }
