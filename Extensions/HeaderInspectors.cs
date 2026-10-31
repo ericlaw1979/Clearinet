@@ -18,7 +18,31 @@ namespace Extensions
             hvViewer = new HeaderView(this);
             tab.Controls.Add(hvViewer);
             hvViewer.Dock = DockStyle.Fill;
+            hvViewer.txtFirstLine.Validating += TxtFirstLine_Validating;
+            hvViewer.txtFirstLine.CausesValidation = true;
         }
+
+        private void TxtFirstLine_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!hvViewer.bReadOnly && hvViewer.HasChanges)
+            {
+                try
+                {
+                    var (method, path, version, origin) = Parser.ParseRequestLine(hvViewer.txtFirstLine.Text.Trim());
+                    this.headers.HTTPMethod = method;
+                    this.headers.RequestPath = path;
+                    this.headers.HTTPVersion = version;
+                    //this.headers.Origin = origin; todo?
+                    // it parsed, validation passed.
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Invalid request line. Please enter a valid HTTP request line.\n\n{ex.Message}", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    e.Cancel = true;
+                }
+            }
+        }
+
         public override void SetFontSize(float flSizeInPoints) => hvViewer?.SetFontSize(flSizeInPoints);
 
         public override int GetOrder()
@@ -58,6 +82,11 @@ namespace Extensions
             {
                 hvViewer.tvNVP.EndUpdate();
             }
+        }
+
+        public override bool bDirty
+        {
+            get => hvViewer.HasChanges;
         }
 
         public override void Clear()
@@ -124,7 +153,10 @@ namespace Extensions
                 hvViewer.tvNVP.EndUpdate();
             }
         }
-
+        public override bool bDirty
+        {
+            get => hvViewer.HasChanges;
+        }
         public override void Clear()
         {
             hvViewer?.Clear();
