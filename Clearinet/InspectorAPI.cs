@@ -30,7 +30,7 @@ namespace Clearinet
 
         public HTTPRequestHeaders headers { get; protected set; }
 
-        internal override bool CommitIsAllowed(Exchange oX)
+        protected override bool CommitIsAllowed(Exchange oX)
         {
             // If the Exchange isn't at a breakpoint or unlocked, bail on changes.
             if ((oX.state != ExchangeState.HandTamperRequest) &&
@@ -48,7 +48,7 @@ namespace Clearinet
     {
         public abstract void Assign(HTTPResponseHeaders headersResponse, byte[] arrBody, bool bReadOnly);
         public HTTPResponseHeaders headers { get; protected set; }
-        internal override bool CommitIsAllowed(Exchange oX)
+        protected override bool CommitIsAllowed(Exchange oX)
         {
             // If the Exchange isn't at a breakpoint or unlocked, bail on changes.
             if ((oX.state != ExchangeState.HandTamperResponse) &&
@@ -96,15 +96,19 @@ namespace Clearinet
         /// <summary>
         /// Is the Inspector in Edit mode?
         /// </summary>
-        bool bReadOnly { get; set; }
+        protected bool bReadOnly { get; set; }
 
         /// <summary>
         /// Set to false when an Exchange is assigned.
         /// Set it to true if the user makes any edits.
         /// </summary>
-        bool bDirty { get; set; }
+        protected bool bDirty { get; set; }
+        public void MarkDirty()
+        {
+            bDirty = true;
+        }
 
-        internal abstract bool CommitIsAllowed(Exchange oX);
+        protected abstract bool CommitIsAllowed(Exchange oX);
 
         /// <summary>
         /// Request or Response body.

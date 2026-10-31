@@ -57,6 +57,7 @@ namespace Extensions
             headers = hrh;
             body = arrBody;
             hvViewer.Assign(hrh?.ToByteArray(), arrBody);
+            // TODO: hvViewer.bReadOnly = bReadOnly;
         }
 
         public override void Clear()

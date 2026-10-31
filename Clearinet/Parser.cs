@@ -170,8 +170,14 @@ namespace Clearinet
                 {
                     headerList.Add(line);
                 }
-                // Strip the trailing one
-                if (headerList.Count > 0) headerList.RemoveAt(headerList.Count - 1);
+                // Strip the trailing one if empty. TODO: do we really need this?
+                if (headerList.Count > 0)
+                {
+                    if (!headerList[headerList.Count - 1].HasText())
+                    {
+                        headerList.RemoveAt(headerList.Count - 1);
+                    }
+                }
 
                 return (method, path, version, headerList.ToArray(), sorigin);
             }

@@ -1,4 +1,7 @@
-﻿namespace Extensions
+﻿using Clearinet;
+using System;
+
+namespace Extensions
 {
     partial class HeaderView
     {
@@ -143,18 +146,22 @@
             this.miEditHeader.Name = "miEditHeader";
             this.miEditHeader.Size = new System.Drawing.Size(236, 22);
             this.miEditHeader.Text = "&Edit Header...";
+            this.miEditHeader.ShortcutKeys = System.Windows.Forms.Keys.F2;
+            this.miEditHeader.Click += ViewOrEditHeader;
             // 
             // miAddHeader
             // 
             this.miAddHeader.Name = "miAddHeader";
             this.miAddHeader.Size = new System.Drawing.Size(236, 22);
             this.miAddHeader.Text = "&Add Header...";
+            this.miAddHeader.Click += AddNewHeader;
             // 
             // miRemoveHeader
             // 
             this.miRemoveHeader.Name = "miRemoveHeader";
             this.miRemoveHeader.Size = new System.Drawing.Size(236, 22);
             this.miRemoveHeader.Text = "&Remove Header";
+            this.miRemoveHeader.Click += RemoveHeader;
             // 
             // miPasteHeaders
             // 
@@ -192,6 +199,18 @@
             this.ResumeLayout(false);
             this.PerformLayout();
 
+        }
+
+        private void AddNewHeader(object sender, EventArgs e)
+        {
+            if (_readonly) return;
+            _owner.MarkDirty();
+            // TODO: Add a new header to the "Miscellaneous" group and select it for editing
+            var newHeader = _headers.Add("New-Header", "Value");
+            var newNode = tvNVP.Nodes[0].Nodes.Add(newHeader.ToString());
+            newNode.Tag = newHeader;
+            tvNVP.SelectedNode = newNode;
+            ViewOrEditHeader(sender, e);
         }
 
         #endregion
