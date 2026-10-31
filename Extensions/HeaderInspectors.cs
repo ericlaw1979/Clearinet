@@ -52,6 +52,7 @@ namespace Extensions
 
                 hvViewer._headers = hrh;
                 HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
+                hvViewer.bReadOnly = bReadOnly;
             }
             finally
             {
@@ -116,6 +117,7 @@ namespace Extensions
 
                 hvViewer._headers = hrh;
                 HeaderTreeBuilder.Populate(hvViewer.tvNVP, hrh);
+                hvViewer.bReadOnly = bReadOnly;
             }
             finally
             {
@@ -136,7 +138,7 @@ namespace Extensions
             "Cache", "Client", "Entity", "Miscellaneous", "Security", "Server", "Transport"
         };
 
-        private static HashSet<string> htHighlight = new HashSet<string>(
+        private static readonly HashSet<string> htHighlight = new HashSet<string>(
             CApp.Prefs.GetStringPref("inspectors.headers.highlighted_names",
                              "authorization,content-type,content-length,range,content-range,content-disposition,cookie,set-cookie,"
                             + "host,location,set-cookie").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
@@ -144,6 +146,9 @@ namespace Extensions
 
         internal static void Populate(BetterTreeView tree, IEnumerable<HTTPHeaderItem> headers)
         {
+            // TODO: Do we want to do any of the categorization stuff when
+            // we're in Edit mode? I think we probably just want to show the
+            // uncategorized headers in order of appearance?
             Dictionary<string, List<HTTPHeaderItem>> headersByCategory =
                 new Dictionary<string, List<HTTPHeaderItem>>(StringComparer.Ordinal);
             foreach (string categoryName in CategoryNames)

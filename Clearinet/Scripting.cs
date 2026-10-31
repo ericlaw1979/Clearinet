@@ -119,6 +119,21 @@ namespace Clearinet
             }
         }
 
+        public void UnloadScript()
+        {
+            lock (_syncLock)
+            {
+                _isReadyForCalls = false;
+                _clearCachedHandlerMethods();
+                _clearPriorScriptColumns();
+                _clearPriorScriptButtons();
+                _clearPriorScriptMenus();
+                _clearPriorScriptTabs();
+                listBoundTextCodecs.Clear();
+                // Anything else?
+            }
+        }
+
         public void ReloadScript()
         {
             tcLatestScriptLoad = Utilities.GetTickCount();
@@ -161,11 +176,11 @@ namespace Clearinet
                 // Clear any prior script state before compiling the new script.
                 if (_isReadyForCalls)
                 {
-                    _ClearCachedHandlerMethods();
-                    ClearPriorScriptColumns();
-                    ClearPriorScriptButtons();
-                    ClearPriorScriptMenus();
-                    ClearPriorScriptTabs();
+                    _clearCachedHandlerMethods();
+                    _clearPriorScriptColumns();
+                    _clearPriorScriptButtons();
+                    _clearPriorScriptMenus();
+                    _clearPriorScriptTabs();
 
                     // TODO: The old script engine is still alive and clearing here doesn't
                     // drop the reference to the old script. TODO: Notify any open textransform to refresh?
@@ -237,7 +252,7 @@ namespace Clearinet
             catch (Exception ex)
             {
                 _isReadyForCalls = false;
-                _ClearCachedHandlerMethods();
+                _clearCachedHandlerMethods();
                 CApp.ReportException(ex, "Script Failed to Compile",
                     $"There appears to be an error in your script file ({PlatformAPI.CompactPath(_scriptPath, 50)}).");
             }
@@ -310,8 +325,10 @@ namespace Clearinet
             ToolStripMenuItem tsmiItem;
             foreach (QuickLinkItem qli in arrQLI)
             {
-                tsmiItem = new ToolStripMenuItem(qli.ItemText);
-                tsmiItem.Tag = qli.ItemAction;
+                tsmiItem = new ToolStripMenuItem(qli.ItemText)
+                {
+                    Tag = qli.ItemAction
+                };
                 tsmi.DropDownItems.Add(tsmiItem);
                 htMenuScripts.Add(tsmiItem, mi);
                 tsmiItem.Click += new EventHandler(doQuickLinkClick);
@@ -454,6 +471,7 @@ namespace Clearinet
 
             ColumnHeader column = CApp.UI.lvExchanges.AddBoundColumn(
                 b._sTitle,
+                b._initialWidth,
                 b._sortNumerically ? ColumnSortType.Numeric : ColumnSortType.Text,
                 columnProvider
             );
@@ -461,7 +479,7 @@ namespace Clearinet
             listBoundColumns.Add(column);
         }
 
-        private void ClearPriorScriptColumns()
+        private void _clearPriorScriptColumns()
         {
             foreach (ColumnHeader column in listBoundColumns)
             {
@@ -509,9 +527,9 @@ namespace Clearinet
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 BackColor = CONFIG.colorDisabledEdit,
-                BorderStyle = BorderStyle.None
+                BorderStyle = BorderStyle.None,
+                WordWrap = !(b._sOptions?.OICContains("<nowrap>") == true)
             };
-            rtb.WordWrap = !(b._sOptions?.OICContains("<nowrap>") == true);
             if (b._sOptions?.OICContains("<fixedwidth>") == true) rtb.Font = new System.Drawing.Font("Consolas", 10f);
             if (b._sOptions?.OICContains("<nolink>") == true)
                 rtb.DetectUrls = false;
@@ -542,7 +560,7 @@ namespace Clearinet
             CApp.UI.tabsViews.TabPages.Add(page);
         }
 
-        private void ClearPriorScriptTabs()
+        private void _clearPriorScriptTabs()
         {
             foreach (BindUITab tab in listBoundTabs)
             {
@@ -561,7 +579,7 @@ namespace Clearinet
             listBoundTabs.Clear();
         }
 
-        private void ClearPriorScriptButtons()
+        private void _clearPriorScriptButtons()
         {
             // First, clear any existing buttons that were added by a previous script.
             foreach (ToolStripItem item in htButtonScripts.Keys)
@@ -572,7 +590,7 @@ namespace Clearinet
             htButtonScripts.Clear();
         }
 
-        private void ClearPriorScriptMenus()
+        private void _clearPriorScriptMenus()
         {
             foreach (ToolStripItem item in htMenuScripts.Keys)
             {
@@ -593,7 +611,7 @@ namespace Clearinet
             _methodExecAction = _typeHandlers.GetMethod("OnExecAction");
         }
 
-        private void _ClearCachedHandlerMethods()
+        private void _clearCachedHandlerMethods()
         {
             _methodExecAction = null;
             _methodOnBeforeRequest = _methodOnBeforeResponse = _methodOnPeekAtRequestHeaders

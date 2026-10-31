@@ -1,4 +1,8 @@
-﻿namespace Extensions
+﻿using Clearinet;
+using System;
+using System.Windows.Forms;
+
+namespace Extensions
 {
     partial class HeaderView
     {
@@ -143,18 +147,22 @@
             this.miEditHeader.Name = "miEditHeader";
             this.miEditHeader.Size = new System.Drawing.Size(236, 22);
             this.miEditHeader.Text = "&Edit Header...";
+            this.miEditHeader.ShortcutKeys = System.Windows.Forms.Keys.F2;
+            this.miEditHeader.Click += ViewOrEditHeader;
             // 
             // miAddHeader
             // 
             this.miAddHeader.Name = "miAddHeader";
             this.miAddHeader.Size = new System.Drawing.Size(236, 22);
             this.miAddHeader.Text = "&Add Header...";
+            this.miAddHeader.Click += AddNewHeader;
             // 
             // miRemoveHeader
             // 
             this.miRemoveHeader.Name = "miRemoveHeader";
             this.miRemoveHeader.Size = new System.Drawing.Size(236, 22);
             this.miRemoveHeader.Text = "&Remove Header";
+            this.miRemoveHeader.Click += RemoveHeader;
             // 
             // miPasteHeaders
             // 
@@ -175,6 +183,7 @@
             this.tvNVP.Size = new System.Drawing.Size(827, 484);
             this.tvNVP.TabIndex = 2;
             this.tvNVP.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tvNVP_KeyDown);
+            this.tvNVP.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tvNVP_KeyUp); 
             this.tvNVP.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tvNVP_MouseDown);
             // 
             // HeaderView

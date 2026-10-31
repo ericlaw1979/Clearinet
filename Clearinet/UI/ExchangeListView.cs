@@ -28,7 +28,7 @@ namespace Clearinet
         // public event EventHandler ItemShowProperties;
         // public EventHandler OnExchangesAdded;
 
-        private LVCSorter sorter;
+        private readonly LVCSorter sorter;
 
         public ExchangeListView()
         {
@@ -292,8 +292,10 @@ namespace Clearinet
 
             for (int i = 0; i < columnCount; i++)
             {
-                Win32ListViewAPI.HDITEM item = new Win32ListViewAPI.HDITEM();
-                item.mask = Win32ListViewAPI.HDI_FORMAT;
+                Win32ListViewAPI.HDITEM item = new Win32ListViewAPI.HDITEM
+                {
+                    mask = Win32ListViewAPI.HDI_FORMAT
+                };
 
                 // Fetch current format flags for the header item
                 Win32ListViewAPI.SendMessage(hHeader, Win32ListViewAPI.HDM_GETITEM, new IntPtr(i), ref item);
@@ -384,8 +386,7 @@ namespace Clearinet
         internal void ActivatePreviousItem()
         {
             if (null == wrPreviousActiveItem) return;
-            ListViewItem oLVI = wrPreviousActiveItem.Target as ListViewItem;
-            if (oLVI == null) return;
+            if (!(wrPreviousActiveItem.Target is ListViewItem oLVI)) return;
 
             SelectedItems.Clear();
             oLVI.Selected = oLVI.Focused = true;
@@ -424,8 +425,7 @@ namespace Clearinet
         {
             if (null == _wrDeletedItems) { CApp.UI.SetStatusText("No Exchanges could be restored."); return; }
 
-            ListViewItem[] arrRestoredLVIs = _wrDeletedItems.Target as ListViewItem[];
-            if (null == arrRestoredLVIs) { CApp.UI.SetStatusText("No Exchanges could be restored."); return; }
+            if (!(_wrDeletedItems.Target is ListViewItem[] arrRestoredLVIs)) { CApp.UI.SetStatusText("No Exchanges could be restored."); return; }
             _wrDeletedItems = null;  // Only undelete once.
 
             try
@@ -548,7 +548,7 @@ namespace Clearinet
             // Trace.WriteLine($"Configured column #{ix} ({Columns[ix].Text}) with sort mode {cst}");
         }
 
-        internal ColumnHeader AddBoundColumn(string sTitle, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
+        internal ColumnHeader AddBoundColumn(string sTitle, int iWidth, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
         {
             // Clearinet uses column titles as unique identifiers for layout serialization, so if we already have a column
             // of a given title, rename it.
@@ -558,7 +558,7 @@ namespace Clearinet
             }
 
             // By default, let's right-align numeric columns.
-            ColumnHeader newCol = this.Columns.Add(sTitle, 60,
+            ColumnHeader newCol = this.Columns.Add(sTitle, iWidth,
                 columnSortType == ColumnSortType.Numeric ? HorizontalAlignment.Right : HorizontalAlignment.Left);
 
             ColumnInfo ci = new ColumnInfo

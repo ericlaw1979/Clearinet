@@ -348,12 +348,76 @@ namespace Clearinet
                         CreateNoWindow = true,
                         RedirectStandardError = true
                     };
+                    if (!File.Exists(process.StartInfo.FileName))
+                    {
+                        throw new FileNotFoundException($"The required converter was not found at '{process.StartInfo.FileName}'.");
+                    }
                     process.Start();
                     string error = process.StandardError.ReadToEnd();
                     process.WaitForExit();
                     if (process.ExitCode != 0)
                     {
                         throw new IOException($"DWebP conversion failed (exit code {process.ExitCode}): {error.Trim()}");
+                    }
+                }
+
+                return File.ReadAllBytes(outputPath);
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
+        }
+
+        public static bool HasMagicBytes(byte[] data, int offset, string value)
+        {
+            if (offset < 0 || offset > data.Length - value.Length) return false;
+            for (int i = 0; i < value.Length; i++) if (data[offset + i] != value[i]) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Returns JPEG bytes for JXL input, or the original array otherwise.
+        /// The input array is not modified.
+        /// </summary>
+        public static byte[] ConvertJXLToJPEG(byte[] arrData)
+        {
+            if (arrData == null) throw new ArgumentNullException(nameof(arrData));
+
+            if (!((arrData.Length >= 12 && HasMagicBytes(arrData, 0, "\0\0\0\x0cJXL \x0d\x0a\x87\x0a"))
+                   || (arrData.Length >= 2 && arrData[0] == 0xff && arrData[1] == 0x0a)))
+            {
+                return arrData;
+            }
+
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "Clearinet-JXL-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDirectory);
+            try
+            {
+                string inputPath = Path.Combine(tempDirectory, "input.jxl");
+                string outputPath = Path.Combine(tempDirectory, "output.jpeg");
+                File.WriteAllBytes(inputPath, arrData);
+
+                using (var process = new Process())
+                {
+                    process.StartInfo = new ProcessStartInfo
+                    {
+                        FileName = Path.Combine(CONFIG.GetPath("Tools"), "djxl.exe"),
+                        Arguments = $"\"{inputPath}\" \"{outputPath}\" --quiet",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardError = true
+                    };
+                    if (!File.Exists(process.StartInfo.FileName))
+                    {
+                        throw new FileNotFoundException($"The required converter was not found at '{process.StartInfo.FileName}'.");
+                    }
+                    process.Start();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+                    if (process.ExitCode != 0)
+                    {
+                        throw new IOException($"DJXL conversion failed (exit code {process.ExitCode}): {error.Trim()}");
                     }
                 }
 

@@ -78,6 +78,13 @@ namespace Clearinet
         {
             storage.RemoveAll(h => Array.Exists(sHeaderNames, s => h.Name.OICEquals(s)));
         }
+
+        // This isn't /quite/ right, I don't think, because it doesn't handle multiple headers with the same name/value?
+        // But maybe it's a start.
+        public void RemoveHeader(HTTPHeaderItem headerItem)
+        {
+            storage.Remove(headerItem);
+        }
         public bool Exists(string sHeaderName)
         {
             return storage.Exists(h => h.Name.OICEquals(sHeaderName));

@@ -1449,7 +1449,7 @@
             // 
             this.txtQuickExec.BackColor = System.Drawing.Color.Black;
             this.txtQuickExec.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txtQuickExec.CueText = "[Alt+;] Type a command or HELP";
+            this.txtQuickExec.CueText = "[Ctrl+P] Type a command or HELP";
             this.txtQuickExec.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.txtQuickExec.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtQuickExec.ForeColor = System.Drawing.Color.Cyan;

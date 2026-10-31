@@ -92,10 +92,7 @@ namespace Clearinet
         internal static void OnCalculateReport(Exchange[] arrExchanges)
         {
             if (_bPauseReporting || isClosing) return;
-            if (null != CalculateReport)
-            {
-                CalculateReport(arrExchanges);
-            }
+            CalculateReport?.Invoke(arrExchanges);
         }
         public static event CalculateReportHandler CalculateReport;
         #endregion
@@ -356,14 +353,38 @@ namespace Clearinet
                 return true;
             }
 
-            if (sCommand.StartsWith("?")) // TODO: "Find as you type"
+            if (sCmd == "!script")
+            {
+                if (arrParams.Length < 2)
+                {
+                    CApp.DoNotifyUser(CApp.UI, "Usage:\n\t!script <reload|unload>", "Invalid Parameters", MessageBoxIcon.Error);
+                    return true;
+                }
+                if (arrParams[1].OICEquals("reload"))
+                {
+                    scriptRules?.ReloadScript();
+                    CApp.UI.SetStatusText($"Script reloaded.");
+                }
+                else if (arrParams[1].OICEquals("unload"))
+                {
+                    scriptRules?.UnloadScript();
+                    CApp.UI.SetStatusText($"Script unloaded,");
+                }
+                else
+                {
+                    CApp.DoNotifyUser(CApp.UI, "Usage:\n\t!script <reload|unload>", "Invalid Parameters", MessageBoxIcon.Error);
+                }
+                return true;
+            }
+
+            if (sCommand.StartsWith("?")) // Instant search (without hitting enter) lives in QuickSearchBox.cs
             {
                 var sFind = sCommand.Substring(1).Trim();
                 UI.actSelectExchangesMatchingCriteria((xc) =>
-                    xc.fullUrl.OICContains(sFind));
+                    xc.fullUrl.OICContains(sFind));   // Issue: Support EXACT: and REGEX: prefixes?
 
                 if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
-                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with URL containing '{sFind}'");
+                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} Exchanges with URL containing '{sFind}'");
 
                 return true;
             }

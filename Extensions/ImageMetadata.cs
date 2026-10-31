@@ -34,6 +34,11 @@ namespace Extensions
                 if (result.Match(0, "\x89PNG\r\n\x1a\n")) result.Png();
                 else if (result.Match(0, "GIF87a") || result.Match(0, "GIF89a")) result.Gif();
                 else if (bytes.Length >= 2 && bytes[0] == 0xff && bytes[1] == 0xd8) result.Jpeg();
+                else if ((bytes.Length >= 12 && result.Match(0, "\0\0\0\x0cJXL \x0d\x0a\x87\x0a"))
+                     || (bytes.Length >= 2 && bytes[0] == 0xff && bytes[1] == 0x0a))
+                {
+                    result.JpegXL();
+                }
                 else if (result.Match(0, "RIFF") && result.Match(8, "WEBP")) result.WebP();
                 else if (result.Match(0, "II\x2a\0") || result.Match(0, "MM\0\x2a"))
                 {
@@ -347,6 +352,7 @@ namespace Extensions
             }
         }
 
+
         private void Jpeg()
         {
             supported = true;
@@ -466,6 +472,95 @@ namespace Extensions
             }
         }
 
+        private void JpegXL()
+        {
+            supported = true;
+
+            // Raw codestream (no container boxes)
+            if (data.Length >= 2 && data[0] == 0xff && data[1] == 0x0a)
+            {
+                details.Add("JPEG XL: raw codestream");
+                return;
+            }
+
+            // ISO BMFF-style container signature
+            if (!Match(0, "\0\0\0\x0cJXL \x0d\x0a\x87\x0a"))
+                throw new InvalidDataException("Invalid JPEG XL signature.");
+
+            int p = 12;
+            while (p < data.Length)
+            {
+                Require(p, 8, data.Length);
+
+                long boxLength = U32(p, false, data.Length);
+                int header = 8;
+
+                if (boxLength == 1)
+                {
+                    Require(p + 8, 8, data.Length);
+                    ulong extended = ((ulong)U32(p + 8, false, data.Length) << 32) | U32(p + 12, false, data.Length);
+                    if (extended > int.MaxValue) throw new InvalidDataException("Oversized JPEG XL box.");
+                    boxLength = (long)extended;
+                    header = 16;
+                }
+                else if (boxLength == 0)
+                {
+                    boxLength = data.Length - p;
+                }
+
+                if (boxLength < header) throw new InvalidDataException("Invalid JPEG XL box length.");
+                Require(p, boxLength, data.Length);
+
+                int start = p + header;
+                int n = (int)boxLength - header;
+
+                if (Match(p + 4, "Exif"))
+                {
+                    bool orientation = false;
+                    bool parsed = false;
+
+                    if (n >= 6 && Match(start, "Exif\0\0"))
+                    {
+                        orientation = Exif(start + 6, n - 6, false);
+                        parsed = true;
+                    }
+                    else
+                    {
+                        int exifStart = start;
+                        int exifLength = n;
+
+                        // Some Exif payloads start with a 4-byte TIFF offset.
+                        if (n >= 8)
+                        {
+                            uint tiffOffset = U32(start, false, start + n);
+                            if (tiffOffset <= (uint)(n - 4))
+                            {
+                                int candidate = start + 4 + (int)tiffOffset;
+                                if (candidate <= start + n - 4 && (Match(candidate, "II") || Match(candidate, "MM")))
+                                {
+                                    exifStart = candidate;
+                                    exifLength = start + n - candidate;
+                                }
+                            }
+                        }
+
+                        if (exifLength >= 8 && (Match(exifStart, "II") || Match(exifStart, "MM")))
+                        {
+                            orientation = Exif(exifStart, exifLength, false);
+                            parsed = true;
+                        }
+                    }
+
+                    if (!parsed || !orientation) Mark(p, (int)boxLength);
+                }
+                else if (Match(p + 4, "xml "))
+                {
+                    if (!Xmp(start, n)) Mark(p, (int)boxLength);
+                }
+
+                p += (int)boxLength;
+            }
+        }
         private void WebP()
         {
             supported = true;

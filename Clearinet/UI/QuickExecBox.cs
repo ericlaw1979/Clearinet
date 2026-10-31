@@ -109,8 +109,21 @@ namespace Clearinet
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
             base.OnKeyPress(e);
-            if (e.Handled || char.IsControl(e.KeyChar) || ReadOnly) return;
+            if (Text.StartsWith("?"))
+            {
+                // Special case: If the user types a '?' at the start of the text, we don't 
+                // want autocomplete, we want instant search.
+                var sFind = Text.Substring(1).Trim();
+                if (sFind.HasText())
+                {
+                    CApp.UI.actSelectExchangesMatchingCriteria((xc) =>
+                        xc.fullUrl.OICContains(sFind));
+                    CApp.UI.SetStatusText($"Selected {CApp.UI.lvExchanges.SelectedCount} Exchanges with URL containing '{sFind}'");
+                }
+                return;
+            }
 
+            if (e.Handled || char.IsControl(e.KeyChar) || ReadOnly) return;
             SelectedText = e.KeyChar.ToString();
             e.Handled = true;
             if (SelectionStart != TextLength || TextLength == 0) return;

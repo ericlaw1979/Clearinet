@@ -4,8 +4,51 @@ import System;
 import System.Windows.Forms;
 import Clearinet;
 
-class Handlers {
+// Howdy! Please don't be scared by this script! :-)
+//
+// This is the Clearinet Rules file, which creates some of the menu commands and
+// other features of the tool. You can edit this file to modify or add new commands.
 
+// If you ever mess CustomRules.js up too badly to fix it, you can just delete the
+// CustomRules file and the tool will automatically copy over the default SampleRules.js 
+// file included with Clearinet.
+//
+// Eventually, we'll ship a custom editor for this file, but for now you can use Visual
+// Studio Code or any similar tool. Ensure your tool saves this file using UTF-8 Encoding.
+
+// Note that the default language used here is JScript.NET, which is SIMILAR to
+// JavaScript, but there are some differences to be aware of. The samples below should
+// help you understand them.
+
+// Check out this handy page of examples and instructions: 
+//     https://github.com/ericlaw1979/Clearinet/blob/main/Docs/SCRIPT_EXAMPLES.md
+
+// Further examples can be found within https://gist.github.com/ericlaw1979, but they will
+// require light customization to work in Clearinet; see the SCRIPT_EXAMPLES.md file
+// for help.
+
+// JScript.NET Reference:
+// https://learn.microsoft.com/en-us/dotnet/api/microsoft.jscript?view=netframework-4.8.1
+
+// =============================
+// The Handlers class here holds pretty much everything you 
+// will ever add to this file. Do not rename it, or the app
+// will not call your code.
+// =============================
+class Handlers 
+{
+//
+// ============ EXTEND THE APP UI ============
+// By annotating a method with a BindUIColumn attribute you can
+// add a new column to the Exchanges list view. By adding a BindUITab
+// attribute you can add a new top-level tab to the App UI. By adding a
+// BindUIButton, you can add a button to the toolbar. By adding a QuickLinks
+// menu, you can add a new item to the top-level menu.
+//
+    // =============
+    // Following are simple examples you can uncomment to try...
+    // =============
+    
     static function OnBeforeRequest(XC: Exchange) {
         // XC["x-replywithfile"] = "C:\\temp\\foo.html";
         XC["ui-backcolor"] = "LimeGreen";
@@ -208,10 +251,11 @@ class Handlers {
                 if (sAction.StartsWith("http")) {
                     Utilities.LaunchHyperlink(sArgs[0]);
                     return true;
-                }
-                CApp.UI.SetStatusText("Unknown execaction: " + sAction);
-                CApp.alert("OnExecAction '" + sAction + "' was called with " + (sArgs.Length - 1).toString() + " arguments.");
-                return false;
+    		}
+    	
         }
-    }
+        CApp.UI.SetStatusText("Unknown execaction: " + sAction);
+        CApp.alert("OnExecAction '" + sAction + "' was called with " + (sArgs.Length - 1).toString() + " arguments.");
+        return false;
+    } // end of OnExecAction
 }

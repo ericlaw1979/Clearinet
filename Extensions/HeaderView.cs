@@ -18,6 +18,8 @@ namespace Extensions
             {
                 _readonly = value;
                 txtFirstLine.ReadOnly = _readonly;
+                txtFirstLine.BackColor = _readonly ? CONFIG.colorDisabledEdit : SystemColors.Window;
+                tvNVP.BackColor = _readonly ? CONFIG.colorDisabledEdit : SystemColors.Window;
             }
         }
         public HeaderView(InspectorBase owner)
@@ -31,8 +33,10 @@ namespace Extensions
         /// Is a non-category node (representing a header item) selected?
         /// </summary>
         private bool HasHeaderNodeSelected() => tvNVP.SelectedNode?.Parent != null;
-        private string CurrentHeaderName() => tvNVP.SelectedNode?.Text?.TrimAfter(":");
-        private string CurrentHeaderValue() => tvNVP.SelectedNode?.Text?.TrimBefore(" ");
+
+        private HTTPHeaderItem CurrentHeader() => tvNVP.SelectedNode?.Tag as HTTPHeaderItem;
+        private string CurrentHeaderName() => CurrentHeader()?.Name ?? string.Empty;
+        private string CurrentHeaderValue() => CurrentHeader()?.Value ?? string.Empty;
 
         public void Clear()
         {
@@ -50,15 +54,67 @@ namespace Extensions
 
         private void mnuNodes_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            bool bHasSelNode = HasHeaderNodeSelected();
-            miHighlightHeader.Enabled = miCopyHeader.Enabled = miCopyHeaderValue.Enabled = miSendToTextWizard.Enabled
-                = miLookupHeader.Enabled = bHasSelNode;
             miCopyAll.Enabled = tvNVP.Nodes.Count > 0;
 
-            miAddHeader.Enabled = !_readonly;
-            miEditHeader.Enabled = !_readonly && bHasSelNode;    // TODO: We should have a "View Full Header" for readonly mode to handle the case where the node value is >256 characters
+            bool bHasSelNode = HasHeaderNodeSelected();
+            miHighlightHeader.Enabled = miCopyHeader.Enabled = miCopyHeaderValue.Enabled = miSendToTextWizard.Enabled
+                = miLookupHeader.Enabled = miEditHeader.Enabled = bHasSelNode;
+            if (bHasSelNode)
+            {
+                if (_readonly)
+                {
+                    miEditHeader.Text = "&View Header...";
+                }
+                else
+                {
+                    miEditHeader.Text = "&Edit Header...";
+                }
+            }
             miRemoveHeader.Enabled = !_readonly && bHasSelNode;
-            miPasteHeaders.Enabled = !_readonly && Clipboard.ContainsText(); // TODO: And that text is headers
+            miPasteHeaders.Enabled = !_readonly && Clipboard.ContainsText(); // TODO: And that text also has at least one header
+            miAddHeader.Enabled = !_readonly;
+        }
+
+        private void AddNewHeader(object sender, EventArgs e)
+        {
+            if (_readonly) return;
+            _owner.MarkDirty();
+            // TODO: Add a new header to the "Miscellaneous" group and select it for editing
+            var newHeader = _headers.Add("New-Header", "Value");
+            var newNode = tvNVP.Nodes[0].Nodes.Add(newHeader.ToString());
+            newNode.Tag = newHeader;
+            tvNVP.SelectedNode = newNode;
+            ViewOrEditHeader(sender, e);
+        }
+
+        private void RemoveHeader(object sender, EventArgs e)
+        {
+            if (!HasHeaderNodeSelected()) return;
+            _owner.MarkDirty();
+            _headers.RemoveHeader(CurrentHeader());
+            tvNVP.SelectedNode.Remove();
+        }
+
+        private void ViewOrEditHeader(object sender, EventArgs e)
+        {
+            if (!HasHeaderNodeSelected()) return;
+            using (var editor = new HeaderEditor
+            {
+                IsReadonly = _readonly,
+                Text = _readonly ? "View Header" : "Edit Header",
+                txtName = { Text = CurrentHeaderName() },
+                txtValue = { Text = CurrentHeaderValue() }
+            })
+            {
+                DialogResult oDR = editor.ShowDialog();
+
+                if (!_readonly && oDR == DialogResult.OK)
+                {
+                    CurrentHeader().Name = editor.txtName.Text;
+                    CurrentHeader().Value = editor.txtValue.Text;
+                    tvNVP.SelectedNode.Text = $"{CurrentHeaderName()}: {CurrentHeaderValue()}";
+                }
+            }
         }
 
         internal void SetFontSize(float flSizeInPoints)
@@ -87,6 +143,21 @@ namespace Extensions
             {
                 PlatformAPI.WriteToClipboard(tvNVP.SelectedNode?.Text);
                 e.Handled = e.SuppressKeyPress = true;
+                return;
+            }
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.Handled = e.SuppressKeyPress = true;
+                return;
+            }
+        }
+
+        public void tvNVP_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.Handled = e.SuppressKeyPress = true;
+                ViewOrEditHeader(sender, e);
                 return;
             }
         }

@@ -742,6 +742,11 @@ namespace Clearinet
                     actUpdateInspector(true, true);
                 }
             };
+            tslVersion.DoubleClickEnabled = true;
+            tslVersion.DoubleClick += (s, ea) =>
+            {
+                miHelpAbout.PerformClick();
+            };
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
@@ -2446,9 +2451,8 @@ namespace Clearinet
 
         private void frmViewer_KeyDown(object sender, KeyEventArgs e)
         {
-            // Focus QuickExec (Ctrl/Alt + Q or Semicolon)
-            if (((e.Modifiers == Keys.Alt) || (e.Modifiers == Keys.Control)) &&
-                ((e.KeyCode == Keys.Q) || e.KeyCode == Keys.OemSemicolon))
+            // Focus QuickExec (Ctrl+P)
+            if (e.Modifiers == Keys.Control && (e.KeyCode == Keys.P))
             {
                 txtQuickExec.Focus();
                 e.SuppressKeyPress = e.Handled = true;
