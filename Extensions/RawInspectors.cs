@@ -1,5 +1,6 @@
 ﻿using Clearinet;
 using System;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -10,6 +11,36 @@ namespace Extensions
         RawText rtViewer;
         Encoding encBody;
         public override string TabTitle => "Raw";
+
+        public override bool bDirty
+        {
+            get
+            {
+                return rtViewer?.HasChanges ?? false;
+            }
+            set
+            {
+                if (null != rtViewer) rtViewer.HasChanges = value;
+            }
+        }
+
+        public override bool CommitAnyChanges(Exchange xc)
+        {
+            if (!bDirty || !CommitIsAllowed(xc)) return false;
+
+            var (sHeaderBlock, body) = Parser.CrackHttpMessage(new MemoryStream(Encoding.UTF8.GetBytes(rtViewer.rtbRaw.Text)));
+            var (method, path, version, headerList, origin) = Parser.ParseRequestHeaders(sHeaderBlock);
+            HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
+            rqh.HTTPVersion = version;
+            rqh.HTTPMethod = method;
+            if ((origin != null) && origin.Contains(":"))
+            {
+                rqh.UriScheme = origin.TrimAfter(":");
+            }
+            xc.RequestHeaders = rqh;
+            xc.RequestBody = body;
+            return true;
+        }
 
         public override void AddToTab(TabPage tab)
         {
@@ -30,6 +61,7 @@ namespace Extensions
             body = arrBody;
             encBody = Encoding.UTF8; // TODO: Get encoding from headers.
             rtViewer.rtbRaw.Text = hrh.ToString() + encBody.GetString(arrBody);
+            rtViewer.rtbRaw.ReadOnly = bReadOnly;
         }
 
         public override void Clear()
@@ -67,6 +99,31 @@ namespace Extensions
             rtViewer.rtbRaw.Text = (hrh?.ToString() ?? string.Empty) + encBody.GetString(arrBody ?? Array.Empty<byte>());
             rtViewer.rtbRaw.ReadOnly = bReadOnly;
         }
+
+        public override bool bDirty
+        {
+            get
+            {
+                return rtViewer?.HasChanges ?? false;
+            }
+            set
+            {
+                if (null != rtViewer) rtViewer.HasChanges = value;
+            }
+        }
+        public override bool CommitAnyChanges(Exchange xc)
+        {
+            if (!bDirty || !CommitIsAllowed(xc)) return false;
+
+            var (sHeaderBlock, body) = Parser.CrackHttpMessage(new MemoryStream(Encoding.UTF8.GetBytes(rtViewer.rtbRaw.Text)));
+            var (version, statusCode, statusText, headerList) = Parser.ParseResponseHeaders(sHeaderBlock);
+            HTTPResponseHeaders resph = new HTTPResponseHeaders(statusCode, statusText, headerList);
+            resph.HTTPVersion = version;
+            xc.ResponseHeaders = resph;
+            xc.ResponseBody = body;
+            return true;
+        }
+
         public override void Clear()
         {
             rtViewer?.Clear();

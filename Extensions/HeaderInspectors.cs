@@ -18,13 +18,13 @@ namespace Extensions
             hvViewer = new HeaderView(this);
             tab.Controls.Add(hvViewer);
             hvViewer.Dock = DockStyle.Fill;
-            hvViewer.txtFirstLine.Validating += TxtFirstLine_Validating;
+            hvViewer.txtFirstLine.Validating += txtRequestLine_Validating;
             hvViewer.txtFirstLine.CausesValidation = true;
         }
 
-        private void TxtFirstLine_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        private void txtRequestLine_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (!hvViewer.bReadOnly && hvViewer.HasChanges)
+            if (!hvViewer.bReadOnly && hvViewer.HasChanges && !CApp.isClosing)
             {
                 try
                 {
@@ -105,8 +105,33 @@ namespace Extensions
             hvViewer = new HeaderView(this);
             tab.Controls.Add(hvViewer);
             hvViewer.Dock = DockStyle.Fill;
+            hvViewer.txtFirstLine.CausesValidation = true;
+            hvViewer.txtFirstLine.Validating += txtResponseLine_Validating;
+        }
+
+        private void txtResponseLine_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!hvViewer.bReadOnly && hvViewer.HasChanges && !CApp.isClosing)
+            {
+                try
+                {
+                    var (version, statusCode, statusText) = Parser.ParseResponseLine(hvViewer.txtFirstLine.Text.Trim());
+                    this.headers.HTTPVersion = version;
+                    this.headers.StatusCode = statusCode;
+                    this.headers.StatusText = statusText;
+                    // it parsed, validation passed.
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Malformed response line {hvViewer.txtFirstLine.Text}. Please enter a valid HTTP response line.\n\n{ex.Message}", "Validation Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    hvViewer.txtFirstLine.Undo();
+                    e.Cancel = true;
+                }
+            }
         }
         public override void SetFontSize(float flSizeInPoints) => hvViewer?.SetFontSize(flSizeInPoints);
+
 
         public override int GetOrder()
         {

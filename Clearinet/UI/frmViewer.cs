@@ -630,16 +630,18 @@ namespace Clearinet
 
         private void commitAnyRequestChanges(object sender, CancelEventArgs cea)
         {
+            if (CApp.isClosing) return;
             var ri = CurrentRequestInspector;
             var xc = GetFirstSelectedExchange();
             if (null != ri && null != xc && ri.CommitAnyChanges(xc))
             {
-                SetStatusText($"Committed request changes by '{ri.TabTitle}' at {DateTime.Now:T}");
+                SetStatusText($"Committed request changes from '{ri.TabTitle}' at {DateTime.Now:T}");
             }
         }
 
         private void commitAnyResponseChanges(object sender, CancelEventArgs cea)
         {
+            if (CApp.isClosing) return;
             var ri = CurrentResponseInspector;
             var xc = GetFirstSelectedExchange();
             if (null != ri && null != xc && ri.CommitAnyChanges(xc))

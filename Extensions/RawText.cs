@@ -20,6 +20,18 @@ namespace Extensions
             Win32UI.SetCueText(txtFind, " Find... (Ctrl+Enter to highlight all)");
         }
 
+        public bool HasChanges
+        {
+            get
+            {
+                return rtbRaw.Modified;
+            }
+            set
+            {
+                rtbRaw.Modified = value;
+            }
+        }
+
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (keyData == (Keys.Control | Keys.F) && rtbRaw.ContainsFocus)
@@ -84,7 +96,6 @@ namespace Extensions
                     e.Handled = e.SuppressKeyPress = true;
                     rtbRaw.ScrollUp();
                     break;
-
             }
         }
         private void txtFind_TextChanged(object sender, EventArgs e)

@@ -156,7 +156,7 @@ namespace Extensions
             this.miAddHeader.Size = new System.Drawing.Size(236, 22);
             this.miAddHeader.Text = "&Add Header...";
             this.miAddHeader.Click += AddNewHeader;
-            this.miAddHeader.ShortcutKeys = System.Windows.Forms.Keys.Insert;
+            this.miAddHeader.ShortcutKeyDisplayString = "INS";
             // 
             // miRemoveHeader
             // 
@@ -164,6 +164,7 @@ namespace Extensions
             this.miRemoveHeader.Size = new System.Drawing.Size(236, 22);
             this.miRemoveHeader.Text = "&Remove Header";
             this.miRemoveHeader.Click += RemoveHeader;
+            this.miRemoveHeader.ShortcutKeyDisplayString = "DEL";
             // 
             // miPasteHeaders
             // 
@@ -184,7 +185,6 @@ namespace Extensions
             this.tvNVP.Size = new System.Drawing.Size(827, 484);
             this.tvNVP.TabIndex = 2;
             this.tvNVP.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tvNVP_KeyDown);
-            this.tvNVP.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tvNVP_KeyUp); 
             this.tvNVP.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tvNVP_MouseDown);
             // 
             // HeaderView

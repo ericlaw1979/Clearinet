@@ -82,9 +82,17 @@ namespace Extensions
         {
             if (_readonly) return;
             HasChanges = true;
-            // TODO: Add a new header to the "Miscellaneous" group and select it for editing
+
+            // Add container node if it doesn't exist yet.
+            if ((tvNVP.Nodes.Count < 1) || (tvNVP.Nodes[0].Text != "Clearinet-Added"))
+            {
+                TreeNode tnContainer = new TreeNode("Clearinet-Added");
+                tnContainer.NodeFont = new Font(tvNVP.Font, FontStyle.Italic);
+                tvNVP.Nodes.Insert(0, tnContainer);
+            }
             var newHeader = _headers.Add("New-Header", "Value");
             var newNode = tvNVP.Nodes[0].Nodes.Add(newHeader.ToString());
+
             newNode.Tag = newHeader;
             tvNVP.SelectedNode = newNode;
             ViewOrEditHeader(sender, e);
@@ -92,7 +100,7 @@ namespace Extensions
 
         private void RemoveHeader(object sender, EventArgs e)
         {
-            if (!HasHeaderNodeSelected()) return;
+            if (!HasHeaderNodeSelected() || _readonly) return;
             HasChanges = true;
             _headers.RemoveHeader(CurrentHeader());
             tvNVP.SelectedNode.Remove();
@@ -153,16 +161,29 @@ namespace Extensions
                 e.Handled = e.SuppressKeyPress = true;
                 return;
             }
-        }
-
-        public void tvNVP_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
+            if (e.KeyCode == Keys.Delete)
             {
+                RemoveHeader(null, null);
                 e.Handled = e.SuppressKeyPress = true;
-                ViewOrEditHeader(sender, e);
                 return;
             }
+            if (e.KeyCode == Keys.Insert)
+            {
+                AddNewHeader(null, null);
+                e.Handled = e.SuppressKeyPress = true;
+                return;
+            }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Enter) && tvNVP.Focused)
+            {
+                ViewOrEditHeader(null, null);
+                return true; // indicate key was handled.
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         private void miCopyAll_Click(object sender, EventArgs e)
