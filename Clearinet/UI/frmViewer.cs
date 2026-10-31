@@ -20,6 +20,13 @@ namespace Clearinet
         {
             InitializeComponent();
 
+            var logContextMenu = new ContextMenuStrip(components);
+            ToolStripItem copyLogItem = logContextMenu.Items.Add("Copy", null, (s, e) => rtbLog.Copy());
+            logContextMenu.Items.Add("Save", null, (s, e) => SaveLog());
+            logContextMenu.Items.Add("Clear", null, (s, e) => ClearLog());
+            logContextMenu.Opening += (s, e) => copyLogItem.Enabled = rtbLog.SelectionLength > 0;
+            rtbLog.ContextMenuStrip = logContextMenu;
+
             // TODO: This is a hack. Eventually we will be smarter.
             lvExchanges.ConfigureColumn(colID.Index, ColumnSortType.Numeric);
             lvExchanges.ConfigureColumn(colResult.Index, ColumnSortType.Numeric);
@@ -2659,12 +2666,39 @@ namespace Clearinet
             }
             if (e.KeyCode == Keys.X && e.Modifiers == Keys.Control)
             {
-                queuedLogEntries.Clear();
-                rtbLog.Clear();
+                ClearLog();
                 e.SuppressKeyPress = e.Handled = true;
                 return;
             }
 
+        }
+
+        private void SaveLog()
+        {
+            var saveSelection = Utilities.ObtainSaveFilenameAndType("Save Log", "Rich Text Format (*.rtf)|*.rtf|Text files (*.txt)|*.txt|All files (*.*)|*.*");
+            if (!saveSelection.sFilename.HasText()) return;
+
+            try
+            {
+                if (saveSelection.iChosenType == 1)
+                {
+                    rtbLog.SaveFile(saveSelection.sFilename, RichTextBoxStreamType.RichText);
+                }
+                else
+                {
+                    File.WriteAllText(saveSelection.sFilename, rtbLog.Text);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Failed to save log");
+            }
+        }
+
+        private void ClearLog()
+        {
+            queuedLogEntries.Clear();
+            rtbLog.Clear();
         }
 
         private void miFileSaveRequestFull_Click(object sender, EventArgs e)
