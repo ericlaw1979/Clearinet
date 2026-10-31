@@ -101,8 +101,13 @@ namespace Clearinet
             {
                 foreach (ColumnHeader col in Columns) col.Width = Math.Max(60, col.Width);
             });
-            headerMenu.Items.Add("&Customize columns...", null, (sender, e) =>
-                CApp.DoNotifyUser(FindForm(), "Not yet implemented.", "Customize columns", MessageBoxIcon.Information));
+            headerMenu.Items.Add("&Add columns...", null, (sender, e) =>
+            {
+                using (var dlg = new frmELVAddColumn())
+                {
+                    dlg.ShowDialog(FindForm());
+                }
+            });
             headerMenu.Show(screenPoint);
         }
 

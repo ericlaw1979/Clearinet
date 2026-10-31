@@ -548,7 +548,7 @@ namespace Clearinet
                 tsmi = new ToolStripMenuItem
                 {
                     Text = b._sTitle,
-                    ToolTipText = b._sTooltip ?? $"Set {b._sTitle}",
+                    ToolTipText = b._sTooltip ?? $"Set {b._sTitle}...",
                     DisplayStyle = ToolStripItemDisplayStyle.Text,
                     Tag = fieldInfo
                 };

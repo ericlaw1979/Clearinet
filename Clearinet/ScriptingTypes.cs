@@ -22,7 +22,7 @@ namespace Clearinet
     public sealed class RulesOption : Attribute
     {
         internal string _sTitle;
-        internal string _sTooltip; // TODO: Hook this up if we can do so without breaking the attribute's signature.
+        internal string _sTooltip;
 
         public RulesOption(string sTitle)
         {
