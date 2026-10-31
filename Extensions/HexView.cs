@@ -104,7 +104,10 @@ namespace Extensions
             {
                 hexBox.HeaderEndOffset = -1;
             }
+
+            // TODO: Do I need to explicitly dispose of the old one?
             hexBox.ByteProvider = new DynamicByteProvider(bytes);
+            hexBox.ByteProvider.ApplyChanges();  // Ensure dirty flag is clear
             UpdateOffsetAndSelection();
         }
 
