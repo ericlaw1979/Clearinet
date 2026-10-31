@@ -205,6 +205,7 @@ namespace Clearinet
                     "about:config - Open the Preferences editor\n" +
                     "prefs <set|show|remove|dump> <prefname> <prefval>\n" +
                     "lm - Lists loaded modules\n" +
+                    "cols add <optional_title> <fieldname> - Add a column to the Exchanges list\n" +
                     "cls - Clear the Exchanges list\n" +
                     "select <mime>\n" +
                     "tail <#> - Keep only the most recent # of Exchanges\n" +
@@ -217,6 +218,7 @@ namespace Clearinet
             if ("demo" == sCmd)
             {
                 UI.TODOAddSampleData();
+                return true;
             }
 
             if ("prefs" == sCmd)
@@ -313,7 +315,7 @@ namespace Clearinet
                 return true;
             }
 
-            if (sCmd == "select") // TODO: Fiddler offered more selection options
+            if ("select" == sCmd) // TODO: Fiddler offered more selection options
             {
                 if (arrParams.Length < 2)
                 {
@@ -327,7 +329,7 @@ namespace Clearinet
                 return true;
             }
 
-            if (sCmd == "tail")
+            if ("tail" == sCmd)
             {
                 if ((arrParams.Length < 2) || !Int32.TryParse(arrParams[1], out int iVal))
                 {
@@ -340,7 +342,7 @@ namespace Clearinet
                 return true;
             }
 
-            if (sCmd == "!dns")
+            if ("!dns" == sCmd)
             {
                 if (arrParams.Length != 2 || string.IsNullOrWhiteSpace(arrParams[1]))
                 {
@@ -353,7 +355,39 @@ namespace Clearinet
                 return true;
             }
 
-            if (sCmd == "!script")
+            if ("cols" == sCmd)
+            {
+                if (arrParams.Length == 3 && arrParams[1].OICEquals("remove"))
+                {
+                    if (UI.lvExchanges.RemoveBoundColumn(arrParams[2]))
+                    {
+                        CApp.UI.SetStatusText($"Removed column '{arrParams[2]}'");
+                    }
+                    else
+                    {
+                        CApp.UI.SetStatusText($"Column '{arrParams[2]}' not found.");
+                    }
+                    return true;
+                }
+
+                if (arrParams.Length < 2 || !arrParams[1].OICEquals("add"))
+                {
+                    CApp.DoNotifyUser(CApp.UI, "Usage: cols add <optional_title> <fieldname>", "Invalid Parameters", MessageBoxIcon.Error);
+                    return true;
+                }
+                if (arrParams.Length == 3)
+                {
+                    CApp.UI.lvExchanges.AddBoundColumn(arrParams[2], 60, arrParams[2]);
+                    return true;
+                }
+                if (arrParams.Length == 4)
+                {
+                    CApp.UI.lvExchanges.AddBoundColumn(arrParams[2], 60, arrParams[3]);
+                    return true;
+                }
+            }
+
+            if ("!script" == sCmd)
             {
                 if (arrParams.Length < 2)
                 {

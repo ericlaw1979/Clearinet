@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("0.0.3.0")]
 
 // Selected Release Version History
-// v0.0.3.0 - Start of Header editing, JXL Plumbing, AuthView (Basic,Digest,Moar JWT)
+// v0.0.3.0 - AddBoundColumn for simple columns (use "cols" in QuickExec), BindPref hooked up for boolean fields, BindUIButton can target boolean fields; Editing for Raw, Hex, and Header inspectors, JXL Plumbing, AuthView (Basic,Digest,Moar JWT), about:config highlights changes
 // v0.0.2.9 - Oct-30-2026 - Per-MonitorV2 support via app.config; improve BindUIColumn
 // v0.0.2.8 - Oct-29-2026 - Improve QuickExec, Improve Copy for AI and add Copy Response DataURI
 // v0.0.2.7 - Oct-28-2026 - Enhance find (EXACT:, REGEX:, Search binaries, navigate between results with < and > keys); add QuickLinks; Enhance HexView with colors, add more settings to Options in preparation for a real proxy engine.

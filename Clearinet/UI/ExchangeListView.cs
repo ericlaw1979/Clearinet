@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace Clearinet
 {
-    internal enum ColumnSortType
+    public enum ColumnSortType
     {
         Text,           // case-insensitive string sort
         Numeric,        // numeric sort
@@ -46,6 +46,8 @@ namespace Clearinet
 
         private ContextMenuStrip headerMenu;
         private Font headerMenuFont;
+
+
 
         protected override void WndProc(ref Message m)
         {
@@ -548,7 +550,46 @@ namespace Clearinet
             // Trace.WriteLine($"Configured column #{ix} ({Columns[ix].Text}) with sort mode {cst}");
         }
 
-        internal ColumnHeader AddBoundColumn(string sTitle, int iWidth, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
+
+        #region PublicAPI
+
+        public bool SetColumnOrderAndWidth(string sTitle, int iDisplayIndex, int iWidth)
+        {
+            ColumnHeader col = GetColumnByTitle(sTitle);
+            if (col == null) return false;
+            if (iDisplayIndex > -1)
+            {
+                if (iDisplayIndex >= Columns.Count) iDisplayIndex = Columns.Count - 1;
+                col.DisplayIndex = iDisplayIndex;
+            }
+            if (iWidth > -1) col.Width = iWidth;
+            return true;
+        }
+
+        public ColumnHeader AddBoundColumn(string sTitle, int iWidth, string sBoundDataField)
+        {
+            // Clearinet uses column titles as unique identifiers for layout serialization, so if we already have a column
+            // of a given title, rename it.
+            if (sBoundDataField.OICStartsWith("@request."))
+            {
+                var sName = sBoundDataField.TrimBefore('.');
+                return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.RequestHeaders[sName]);
+            }
+            else if (sBoundDataField.OICStartsWith("@response."))
+            {
+                var sName = sBoundDataField.TrimBefore('.');
+                return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.ResponseHeaders[sName]);
+
+            }
+            //   else if (sBoundDataField.OICStartsWith("@calc."))
+            //   {
+            //              var sName = sBoundDataField.TrimBefore('.');
+            //            return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) =>  /* tokens */;
+            //   }
+            return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x[sBoundDataField]);
+        }
+
+        public ColumnHeader AddBoundColumn(string sTitle, int iWidth, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)
         {
             // Clearinet uses column titles as unique identifiers for layout serialization, so if we already have a column
             // of a given title, rename it.
@@ -567,6 +608,8 @@ namespace Clearinet
                 Provider = columnProvider
             };
             newCol.Tag = ci;
+
+            // Fill in the values for this column for all existing Exchanges.
             foreach (ListViewItem item in Items)
             {
                 while (item.SubItems.Count < Columns.Count) item.SubItems.Add(string.Empty);
@@ -576,10 +619,17 @@ namespace Clearinet
             return newCol;
         }
 
-        internal void RemoveBoundColumn(ColumnHeader column)
+        internal bool RemoveBoundColumn(string sTitle) // Todo:should this be public
+        {
+            ColumnHeader column = this.GetColumnByTitle(sTitle);
+            if (null == column) return false;
+            return RemoveBoundColumn(column);
+        }
+
+        public bool RemoveBoundColumn(ColumnHeader column)
         {
             int index = Columns.IndexOf(column);
-            if (index < 0) return;
+            if (index < 0) return false;
 
             BeginUpdate();
             try
@@ -611,7 +661,10 @@ namespace Clearinet
             {
                 EndUpdate();
             }
+            return true;
         }
+        #endregion
+
 
         internal string PopulateColumn(int i, Exchange x)
         {
