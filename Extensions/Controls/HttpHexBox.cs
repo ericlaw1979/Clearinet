@@ -69,7 +69,7 @@ namespace Be.Windows.Forms
         /// </summary>
         class EmptyKeyInterpreter : IKeyInterpreter
         {
-            HttpHexBox _hexBox;
+            private HttpHexBox _hexBox;
 
             public EmptyKeyInterpreter(HttpHexBox hexBox)
             {
@@ -233,7 +233,7 @@ namespace Be.Windows.Forms
 
                 MessageDelegate messageHandler = hasMessageHandler
                     ? this.MessageHandlers[keyData]
-                    : messageHandler = new MessageDelegate(PreProcessWmKeyDown_Default);
+                    : new MessageDelegate(PreProcessWmKeyDown_Default);
 
                 return messageHandler(ref m);
             }
@@ -406,7 +406,7 @@ namespace Be.Windows.Forms
 
                 if (_bpiStart.Index >= pos + sel)
                 {
-                    pos = pos - _hexBox._iHexMaxHBytes;
+                    pos -= _hexBox._iHexMaxHBytes;
                     sel += _hexBox._iHexMaxHBytes;
                     _hexBox.InternalSelect(pos, sel);
                     _hexBox.ScrollByteIntoView();
@@ -3616,8 +3616,7 @@ namespace Be.Windows.Forms
             {
                 var hexValue = hexArray[i];
 
-                byte b;
-                var isByte = ConvertHexToByte(hexValue, out b);
+                var isByte = ConvertHexToByte(hexValue, out byte b);
                 if (!isByte)
                     return null;
                 byteArray[i] = b;
@@ -4000,12 +3999,11 @@ namespace Be.Windows.Forms
 		public static T GetParent<T>(Control c) where T : Control
         {
             if (c == null)
-                return default(T);
+                return default;
 
             var parent = c.Parent;
 
-            var found = parent as T;
-            if (found != null)
+            if (parent is T found)
                 return found;
 
             return GetParent<T>(parent);

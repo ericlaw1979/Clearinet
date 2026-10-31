@@ -113,7 +113,7 @@ namespace Clearinet
         /// <summary>
         /// Request or Response body.
         /// </summary>
-        public byte[] body { get; protected set; }
+        public virtual byte[] body { get; set; }
 
         public abstract void Clear();
 
@@ -187,7 +187,7 @@ namespace Clearinet
             // Content-Type should be meaningless for tunnels
             if (oX.isTunnel) return 0;
 
-            string contentType = String.Empty;
+            string contentType;
             if (this is RequestInspectorBase)
             {
                 if (!oX.RequestBody.HasData()) return 0;

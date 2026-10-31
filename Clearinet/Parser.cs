@@ -231,9 +231,11 @@ namespace Clearinet
         public static HTTPRequestHeaders ParseRequest(string sRequest)
         {
             var (method, path, version, headerList, origin) = Parser.ParseRequestHeaders(sRequest);
-            HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
-            rqh.HTTPVersion = version;
-            rqh.HTTPMethod = method;
+            HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList)
+            {
+                HTTPVersion = version,
+                HTTPMethod = method
+            };
             if ((origin != null) && origin.Contains(":"))
             {
                 rqh.UriScheme = origin.TrimAfter(":");
@@ -243,8 +245,10 @@ namespace Clearinet
         public static HTTPResponseHeaders ParseResponse(string sResponse)
         {
             var (version, statusCode, statusText, headerList) = Parser.ParseResponseHeaders(sResponse);
-            HTTPResponseHeaders resph = new HTTPResponseHeaders(statusCode, statusText, headerList);
-            resph.HTTPVersion = version;
+            HTTPResponseHeaders resph = new HTTPResponseHeaders(statusCode, statusText, headerList)
+            {
+                HTTPVersion = version
+            };
             return resph;
         }
     }

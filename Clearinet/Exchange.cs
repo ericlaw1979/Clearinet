@@ -125,6 +125,7 @@ namespace Clearinet
         public bool uriContains(string s) => urlContains(s);
         public bool urlContains(string s) => fullUrl.OICContains(s);
 
+        // TODO: NYI. 
         public int utilFindInRequest(string sFind, bool bIgnoreCase) { return -1; }
         public int utilFindInResponse(string sFind, bool bIgnoreCase) { return -1; }
 
@@ -247,8 +248,7 @@ namespace Clearinet
                 if (null == RequestHeaders) RequestHeaders = new HTTPRequestHeaders();
 
                 // TODO: We probably don't want to use the actual .NET URL parser here.
-                Uri oUri;
-                if (!Uri.TryCreate(value, UriKind.Absolute, out oUri))
+                if (!Uri.TryCreate(value, UriKind.Absolute, out Uri oUri))
                 {
                     throw new ArgumentException($"Invalid URL: {value}");
                 }
@@ -809,11 +809,10 @@ namespace Clearinet
         public void UpdateFromCapture(HTTPRequestHeaders request, byte[] requestBody,
             HTTPResponseHeaders response, byte[] responseBody, ExchangeFlags flags, ExchangeState capturedState)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
             if (!Enum.IsDefined(typeof(ExchangeState), capturedState))
                 throw new ArgumentOutOfRangeException(nameof(capturedState));
             EnsureID();
-            RequestHeaders = request;
+            RequestHeaders = request ?? throw new ArgumentNullException(nameof(request));
             RequestBody = requestBody ?? Array.Empty<byte>();
             ResponseHeaders = response;
             ResponseBody = responseBody ?? Array.Empty<byte>();
