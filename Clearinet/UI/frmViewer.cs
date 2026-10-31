@@ -574,12 +574,17 @@ namespace Clearinet
                     }
                     // Create a Tab with the title, but don't tell the Inspector about
                     // its tab yet. We'll only do that if the user actively selects that tab.
-                    TabPage oPage = new TabPage
+                    TabPage pageNew = new TabPage
                     {
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
-                    AddInspectorPageInOrder(requestPages, oRI.GetOrder(), oPage);
+                    if (Context != "NewWindow")
+                    {
+                        pageNew.Validating += new CancelEventHandler(CApp.UI.commitAnyRequestChanges);
+                        pageNew.CausesValidation = true;
+                    }
+                    AddInspectorPageInOrder(requestPages, oRI.GetOrder(), pageNew);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
             }
@@ -603,12 +608,17 @@ namespace Clearinet
                     }
                     // Create a Tab with the title, but don't tell the Inspector about
                     // its tab yet. We'll only do that if the user actively selects that tab.
-                    TabPage oPage = new TabPage
+                    TabPage pageNew = new TabPage
                     {
                         Tag = oRI,
                         Text = oRI.TabTitle
                     };
-                    AddInspectorPageInOrder(responsePages, oRI.GetOrder(), oPage);
+                    if (Context != "NewWindow")
+                    {
+                        pageNew.Validating += new CancelEventHandler(CApp.UI.commitAnyResponseChanges);
+                        pageNew.CausesValidation = true;
+                    }
+                    AddInspectorPageInOrder(responsePages, oRI.GetOrder(), pageNew);
                 }
                 catch (Exception eX) { CApp.ReportException(eX, "Inspector failed"); }
             }
@@ -617,6 +627,30 @@ namespace Clearinet
                 tabsResponse.TabPages.Add(page.Value);
             }
         }
+
+        private void commitAnyRequestChanges(object sender, CancelEventArgs cea)
+        {
+            var ri = CurrentRequestInspector;
+            var xc = GetFirstSelectedExchange();
+            if (null != ri && null != xc && ri.CommitAnyChanges(xc))
+            {
+                SetStatusText($"Committed request changes by '{ri.TabTitle}' at {DateTime.Now:T}");
+            }
+        }
+
+        private void commitAnyResponseChanges(object sender, CancelEventArgs cea)
+        {
+            var ri = CurrentResponseInspector;
+            var xc = GetFirstSelectedExchange();
+            if (null != ri && null != xc && ri.CommitAnyChanges(xc))
+            {
+                SetStatusText($"Committed response changes from '{ri.TabTitle}' at {DateTime.Now:T}");
+            }
+        }
+
+        private RequestInspectorBase CurrentRequestInspector => tabsRequest.SelectedTab?.Tag as RequestInspectorBase;
+
+        private ResponseInspectorBase CurrentResponseInspector => tabsResponse.SelectedTab?.Tag as ResponseInspectorBase;
 
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
@@ -1539,6 +1573,7 @@ namespace Clearinet
                 this.Invoke((Action<string>)SetStatusText, sStatus);
                 return;
             }
+            Debug.WriteLine($"SetStatusText: {sStatus}");
             tslInfo.Text = sStatus;
         }
 

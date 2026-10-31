@@ -84,7 +84,7 @@ namespace Extensions
             {
                 Padding = new Padding(10, 0, 10, 0)
             };
-            hexBox.TextChanged += (sender, e) => { this._owner.MarkDirty(); };
+            // hexBox.TextChanged += (sender, e) => { this._owner.MarkDirty(); };
 
             var statusStrip = new StatusStrip { Dock = DockStyle.Bottom, SizingGrip = false };
             statusStrip.Items.Add(lblOffset);
@@ -121,10 +121,27 @@ namespace Extensions
                 hexBox.HeaderEndOffset = -1;
             }
 
-            // TODO: Do I need to explicitly dispose of the old one?
-            hexBox.ByteProvider = new DynamicByteProvider(bytes);
-            hexBox.ByteProvider.ApplyChanges();  // Ensure dirty flag is clear
+            AssignNewBytes(bytes);
             UpdateOffsetAndSelection();
+        }
+
+        private void AssignNewBytes(byte[] bytes)
+        {
+            FreeByteProvider();
+            hexBox.ByteProvider = new DynamicByteProvider(bytes);
+            hexBox.ByteProvider.ApplyChanges();  // Ensure dirty flag is clear.
+        }
+
+        private void FreeByteProvider()
+        {
+            // Free any previous byte provider, if it implements IDisposable.
+            if (hexBox.ByteProvider != null)
+            {
+                IDisposable byteProvider = hexBox.ByteProvider as IDisposable;
+                if (byteProvider != null)
+                    byteProvider.Dispose();
+                hexBox.ByteProvider = null;
+            }
         }
 
         private void UpdateOffsetAndSelection()
@@ -159,16 +176,22 @@ namespace Extensions
               return (hexBox.ByteProvider == null) ? Array.Empty<byte>() : hexBox.ByteProvider.GetBytes(0, hexBox.HeaderEndOffset + 1);
           }*/
 
-        public Byte[] getBody()
+        public byte[] getBody()
         {
-            return Array.Empty<byte>(); // TODO: nYi
-            //              return (hexBox.ByteProvider == null) ? Array.Empty<byte>() : hexBox.ByteProvider.GetBytes(hexBox.HeaderEndOffset + 1, hexBox.ByteProvider.Length - (hexBox.HeaderEndOffset + 1));
+            IByteProvider bp = hexBox.ByteProvider;
+            if (bp == null) return null;
+
+            if (!bp.HasChanges()) return null; // No changes, so no need to return anything.
+
+            // BUG BUG: Gotta strip headers.
+            return bp.GetAllBytes();
+            //   return (hexBox.ByteProvider == null) ? Array.Empty<byte>() : hexBox.ByteProvider.GetBytes(hexBox.HeaderEndOffset + 1, hexBox.ByteProvider.Length - (hexBox.HeaderEndOffset + 1));
         }
 
         public void Clear()
         {
             headerBytes = bodyBytes = Array.Empty<byte>();
-            hexBox.ByteProvider = null;
+            FreeByteProvider();
             UpdateOffsetAndSelection();
         }
 
@@ -188,6 +211,12 @@ namespace Extensions
                 contextMenu.Dispose();
                 hexFont.Dispose();
             }
+        }
+
+        internal bool HasChanges()
+        {
+            if (null == hexBox) return false;
+            return (hexBox.ByteProvider?.HasChanges()) ?? false;
         }
     }
 }

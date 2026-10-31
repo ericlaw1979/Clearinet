@@ -40,6 +40,14 @@ namespace Extensions
             get => hvViewer?.getBody();
             set => base.body = value;
         }
+
+        public override bool bDirty
+        {
+            get
+            {
+                return hvViewer?.HasChanges() ?? false;
+            }
+        }
     }
 
     public sealed class HexResponseInspector : ResponseInspectorBase
@@ -64,9 +72,16 @@ namespace Extensions
             headers = hrh;
             body = arrBody;
             hvViewer.Assign(hrh?.ToByteArray(), arrBody);
-            // TODO: hvViewer.bReadOnly = bReadOnly;
+            hvViewer.ReadOnly = bReadOnly;
         }
 
+        public override bool bDirty
+        {
+            get
+            {
+                return hvViewer?.HasChanges() ?? false;
+            }
+        }
         public override void Clear()
         {
             headers = null;

@@ -9,6 +9,8 @@ namespace Extensions
     {
         InspectorBase _owner;
         bool _readonly = true;
+        internal bool HasChanges { get; set; }
+
         internal HTTPHeaders _headers;
 
         internal bool bReadOnly
@@ -27,6 +29,7 @@ namespace Extensions
             _owner = owner;
             InitializeComponent();
             tvNVP.BackColor = txtFirstLine.BackColor = CONFIG.colorDisabledEdit;
+            txtFirstLine.TextChanged += (sender, e) => HasChanges = true;
         }
 
         /// <summary>
@@ -78,7 +81,7 @@ namespace Extensions
         private void AddNewHeader(object sender, EventArgs e)
         {
             if (_readonly) return;
-            _owner.MarkDirty();
+            HasChanges = true;
             // TODO: Add a new header to the "Miscellaneous" group and select it for editing
             var newHeader = _headers.Add("New-Header", "Value");
             var newNode = tvNVP.Nodes[0].Nodes.Add(newHeader.ToString());
@@ -90,7 +93,7 @@ namespace Extensions
         private void RemoveHeader(object sender, EventArgs e)
         {
             if (!HasHeaderNodeSelected()) return;
-            _owner.MarkDirty();
+            HasChanges = true;
             _headers.RemoveHeader(CurrentHeader());
             tvNVP.SelectedNode.Remove();
         }

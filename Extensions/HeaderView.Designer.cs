@@ -156,6 +156,7 @@ namespace Extensions
             this.miAddHeader.Size = new System.Drawing.Size(236, 22);
             this.miAddHeader.Text = "&Add Header...";
             this.miAddHeader.Click += AddNewHeader;
+            this.miAddHeader.ShortcutKeys = System.Windows.Forms.Keys.Insert;
             // 
             // miRemoveHeader
             // 
