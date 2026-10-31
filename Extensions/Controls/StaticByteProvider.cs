@@ -49,6 +49,11 @@ namespace Be.Windows.Forms
         {
             return _data[index];
         }
+        public byte[] GetAllBytes()
+        {
+            if (null == _data) return Array.Empty<byte>();
+            return _data;
+        }
 
         /// <inheritdoc />
         public void WriteByte(long index, byte value)
