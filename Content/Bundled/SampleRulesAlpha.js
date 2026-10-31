@@ -84,7 +84,9 @@ class Handlers
 
     BindUIButton("SingleBrowserMode \uD83D\uDC40", "Launches a browser pointed at the Clearinet proxy.")
     public static function LaunchSingleInstance() {
-        Utilities.LaunchNative('msedge.exe', '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:8888 about:blank');
+        Utilities.LaunchNative('msedge.exe', 
+            '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:' 
+            + CONFIG.ListenPort + ' about:blank');
     }
 
     public static BindTextCodec("to UPPERCASE")
