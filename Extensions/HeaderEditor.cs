@@ -10,6 +10,7 @@ namespace Extensions
         {
             InitializeComponent();
             txtValue.Focus();
+            // TODO: Set icon to something reasonable
         }
 
         public bool IsReadonly

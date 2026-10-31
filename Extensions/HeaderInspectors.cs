@@ -138,7 +138,7 @@ namespace Extensions
             "Cache", "Client", "Entity", "Miscellaneous", "Security", "Server", "Transport"
         };
 
-        private static HashSet<string> htHighlight = new HashSet<string>(
+        private static readonly HashSet<string> htHighlight = new HashSet<string>(
             CApp.Prefs.GetStringPref("inspectors.headers.highlighted_names",
                              "authorization,content-type,content-length,range,content-range,content-disposition,cookie,set-cookie,"
                             + "host,location,set-cookie").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries),

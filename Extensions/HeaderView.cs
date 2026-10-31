@@ -145,6 +145,21 @@ namespace Extensions
                 e.Handled = e.SuppressKeyPress = true;
                 return;
             }
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.Handled = e.SuppressKeyPress = true;
+                return;
+            }
+        }
+
+        public void tvNVP_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.Handled = e.SuppressKeyPress = true;
+                ViewOrEditHeader(sender, e);
+                return;
+            }
         }
 
         private void miCopyAll_Click(object sender, EventArgs e)
