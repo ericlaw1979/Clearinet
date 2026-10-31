@@ -1,5 +1,6 @@
 ﻿using Clearinet;
 using System;
+using System.Windows.Forms;
 
 namespace Extensions
 {
@@ -182,6 +183,7 @@ namespace Extensions
             this.tvNVP.Size = new System.Drawing.Size(827, 484);
             this.tvNVP.TabIndex = 2;
             this.tvNVP.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tvNVP_KeyDown);
+            this.tvNVP.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tvNVP_KeyUp); 
             this.tvNVP.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tvNVP_MouseDown);
             // 
             // HeaderView
@@ -199,18 +201,6 @@ namespace Extensions
             this.ResumeLayout(false);
             this.PerformLayout();
 
-        }
-
-        private void AddNewHeader(object sender, EventArgs e)
-        {
-            if (_readonly) return;
-            _owner.MarkDirty();
-            // TODO: Add a new header to the "Miscellaneous" group and select it for editing
-            var newHeader = _headers.Add("New-Header", "Value");
-            var newNode = tvNVP.Nodes[0].Nodes.Add(newHeader.ToString());
-            newNode.Tag = newHeader;
-            tvNVP.SelectedNode = newNode;
-            ViewOrEditHeader(sender, e);
         }
 
         #endregion
