@@ -66,15 +66,16 @@ namespace Clearinet
                 int b;
                 int state = 0;
 
-                // Read character by character until we match the \r\n\r\n (or \n\r\n) sequence
+                // Read character by character until we match a blank line ending.
                 while ((b = stream.ReadByte()) != -1)
                 {
                     ms.WriteByte((byte)b);
 
-                    // State machine to detect header end: \r \n \r \n (or \n \r \n)
+                    // Recognize CRLFCRLF, LFCRLF, and LF LF header terminators.  (TODO: Track HTTP Parse Warning/Error for non-standard terminators.)
                     if (state == 0 && b == '\r') state = 1;
                     else if ((state == 0 || state == 1) && b == '\n') state = 2;
                     else if (state == 2 && b == '\r') state = 3;
+                    else if (state == 2 && b == '\n') state = 4;
                     else if (state == 3 && b == '\n') state = 4; // Header terminator matched
                     else state = (b == '\r') ? 1 : 0;
 
@@ -194,28 +195,7 @@ namespace Clearinet
             using (var reader = new StringReader(headerString))
             {
                 string statusLine = reader.ReadLine();
-                if (string.IsNullOrWhiteSpace(statusLine))
-                {
-                    throw new FormatException("Invalid HTTP response: missing status line.\n" + headerString);
-                }
-
-                // Parse Status Line (e.g., "HTTP/1.1 200 OK" or "HTTP/1.1 404 Not Found")
-                // Split into maximum 3 parts: Version, StatusCode, ReasonPhrase
-                string[] statusParts = statusLine.Split(new[] { ' ' }, 3, StringSplitOptions.None);
-                if (statusParts.Length < 2)
-                {
-                    throw new FormatException($"Malformed HTTP status line: '{statusLine}'");
-                }
-
-                string version = statusParts[0];
-
-                if (!int.TryParse(statusParts[1], out int statusCode))
-                {
-                    throw new FormatException($"Invalid HTTP status code: '{statusParts[1]}'");
-                }
-
-                // Reason phrase can be empty in HTTP/2 / HTTP/3 or custom responses
-                string statusText = statusParts.Length > 2 ? statusParts[2] : string.Empty;
+                var (version, statusCode, statusText) = ParseResponseLine(statusLine);
 
                 // Parse remaining header lines
                 var headerList = new List<string>();
@@ -229,6 +209,34 @@ namespace Clearinet
 
                 return (version, statusCode, statusText, headerList.ToArray());
             }
+        }
+
+        public static (string version, int statusCode, string statusText) ParseResponseLine(string statusLine)
+        {
+            if (string.IsNullOrWhiteSpace(statusLine))
+            {
+                throw new FormatException("Invalid HTTP response: missing status line.\n" + statusLine);
+            }
+
+            // Parse Status Line (e.g., "HTTP/1.1 200 OK" or "HTTP/1.1 404 Not Found")
+            // Split into maximum 3 parts: Version, StatusCode, ReasonPhrase
+            string[] statusParts = statusLine.Split(new[] { ' ' }, 3, StringSplitOptions.None);
+            if (statusParts.Length < 2)
+            {
+                throw new FormatException($"Malformed HTTP status line: '{statusLine}'");
+            }
+
+            string version = statusParts[0];
+
+            if (!int.TryParse(statusParts[1], out int statusCode))
+            {
+                throw new FormatException($"Invalid HTTP status code: '{statusParts[1]}'");
+            }
+
+            // Reason phrase can be empty in HTTP/2 or H3 or custom responses
+            string statusText = statusParts.Length > 2 ? statusParts[2] : string.Empty;
+
+            return (version, statusCode, statusText);
         }
     }
 
