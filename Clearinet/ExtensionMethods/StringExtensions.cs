@@ -123,6 +123,7 @@ namespace Clearinet
         }
 
         // Returns string after first delimiter; empty if null.
+        // e.g. "abc:def:ghi".TrimBefore(":") returns "def:ghi"
         public static string TrimBefore(this string s, char delim)
         {
             if (s == null) return string.Empty;

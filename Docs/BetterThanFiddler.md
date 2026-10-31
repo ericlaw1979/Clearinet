@@ -12,3 +12,6 @@ This document aims to collect areas in which Clearinet is improved over Telerik'
 
 # Images
 - JXL support
+
+# API
+- BindUIButton accepts a tooltip (e.g. BindUIButton('ButtonText', 'ButtonTooltip') )

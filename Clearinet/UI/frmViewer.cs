@@ -3155,6 +3155,12 @@ namespace Clearinet
             // TODO: put this in the right place rather than just shoving it at the bottom.
             miTools.DropDownItems.Add(tsmi);
         }
+        public void AddExtensionRulesMenuItem(ToolStripMenuItem tsmi)
+        {
+            // TODO: put this in the right place rather than just shoving it at the bottom.
+            miRules.DropDownItems.Add(tsmi);
+        }
+
         public void AddViewExtraTabsMenuItem(ToolStripMenuItem tsmi)
         {
             miViewTabs.DropDownItems.Add(tsmi);
