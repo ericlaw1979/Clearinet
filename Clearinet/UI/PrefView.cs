@@ -10,6 +10,8 @@ namespace Clearinet.UI
         static TabPage _myTabPage = null;
         static TabControl _myParent = null;
 
+        // We will highlight preferences whose values have changed. Hitting F5 will refresh the grid and remove the highlight.
+        static readonly System.Drawing.Color colorChangeHighlight = System.Drawing.Color.FromArgb(255, 255, 192);
         public static void CreatePrefsTab(TabControl tabControl)
         {
             if (_myTabPage == null)
@@ -35,7 +37,7 @@ namespace Clearinet.UI
                         foreach (DataGridViewRow dgvr in prefView.dgvPrefs.Rows)
                         {
                             string sRowName = dgvr.Cells[0].Value?.ToString() ?? String.Empty;
-                            if (sRowName == ea.PrefName)
+                            if (sRowName.OICEquals(ea.PrefName))
                             {
                                 if (null == ea.ValueString)
                                 {
@@ -44,6 +46,7 @@ namespace Clearinet.UI
                                 }
 
                                 dgvr.Cells[1].Value = ea.ValueString;
+                                dgvr.Cells[1].Style.BackColor = colorChangeHighlight;
                                 return;
                             }
                         }
@@ -51,7 +54,8 @@ namespace Clearinet.UI
                         // if we got here, the pref wasn't found in the grid, so add it if it's not null
                         if (null != ea.ValueString)
                         {
-                            prefView.dgvPrefs.Rows.Add(ea.PrefName, ea.ValueString);
+                            int iNewRow = prefView.dgvPrefs.Rows.Add(ea.PrefName, ea.ValueString);
+                            prefView.dgvPrefs.Rows[iNewRow].Cells[1].Style.BackColor = colorChangeHighlight;
                             prefView.dgvPrefs.Sort(prefView.dgvPrefs.Columns[0], ListSortDirection.Ascending);
                         }
                     });
