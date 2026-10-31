@@ -82,6 +82,8 @@ namespace Clearinet
                 if (!sArg.OICStartsWithAny("/", "-")) continue;
 
                 var sSwitch = sArg.Substring(1);
+                if (sSwitch.StartsWith("-")) sSwitch = sSwitch.Substring(1);
+
                 if (!sSwitch.HasText()) continue;
 
                 if (sArg.OICEquals("AutomatedTest"))
@@ -98,7 +100,7 @@ namespace Clearinet
                     return;
                 }
 
-                if (sSwitch.IndexOf("port:", StringComparison.OrdinalIgnoreCase) == 1)
+                if (sSwitch.OICStartsWith("port:"))
                 {
                     if (int.TryParse(sArg.Substring(sArg.IndexOf("port:", StringComparison.OrdinalIgnoreCase) + 5),
                         NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out int iPort))
@@ -113,7 +115,6 @@ namespace Clearinet
                     isQuietMode = true;
                     continue;
                 }
-
 
                 if (sSwitch.OICEquals("viewer"))
                 {
@@ -205,7 +206,7 @@ namespace Clearinet
                                                 $"{GetPath("UserFolder")}ImportExport{Path.DirectorySeparatorChar}");
                 case "RulesScript":          // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.script",
-                                                $"{GetPath("UserFolder")}CustomRules_0_0_2_9.js");
+                                                $"{GetPath("UserFolder")}CustomRules_0_0_3_0.js");
                 case "SampleRulesScript":    // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.sample_script",
                                                 $"{Application.StartupPath}{Path.DirectorySeparatorChar}SampleRulesALPHA.js");
