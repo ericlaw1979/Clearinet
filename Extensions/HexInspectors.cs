@@ -11,7 +11,7 @@ namespace Extensions
 
         public override void AddToTab(TabPage tab)
         {
-            hvViewer = new HexView(true);
+            hvViewer = new HexView(this);
             tab.Controls.Add(hvViewer);
             hvViewer.Dock = DockStyle.Fill;
         }
@@ -25,6 +25,7 @@ namespace Extensions
             headers = hrh;
             body = arrBody;
             hvViewer.Assign(hrh?.ToByteArray(), arrBody);
+            hvViewer.ReadOnly = bReadOnly;
         }
 
         public override void Clear()
@@ -32,6 +33,12 @@ namespace Extensions
             headers = null;
             body = null;
             hvViewer?.Clear();
+        }
+
+        public override byte[] body
+        {
+            get => hvViewer?.getBody();
+            set => base.body = value;
         }
     }
 
@@ -43,7 +50,7 @@ namespace Extensions
 
         public override void AddToTab(TabPage tab)
         {
-            hvViewer = new HexView(false);
+            hvViewer = new HexView(this);
             tab.Controls.Add(hvViewer);
             hvViewer.Dock = DockStyle.Fill;
         }

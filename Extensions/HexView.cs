@@ -8,6 +8,7 @@ namespace Extensions
 {
     public sealed class HexView : UserControl
     {
+        readonly InspectorBase _owner;
         readonly HttpHexBox hexBox;
         readonly ContextMenuStrip contextMenu;
         readonly ToolStripMenuItem miShowHeaders;
@@ -18,10 +19,23 @@ namespace Extensions
 
         private string _sHeaderPref;
 
-        internal HexView(bool isForRequest)
+        public bool ReadOnly
         {
-            _sHeaderPref = isForRequest ? "inspectors.hex.show_request_headers" :
-                                          "inspectors.hex.show_response_headers";
+            get => hexBox.ReadOnly;
+            internal set
+            {
+                hexBox.ReadOnly = value;
+                hexBox.BackColor = value ? CONFIG.colorDisabledEdit : SystemColors.Window;
+            }
+        }
+
+        internal HexView(InspectorBase owner)
+        {
+            this.SuspendLayout();
+
+            _owner = owner;
+            _sHeaderPref = owner is HexRequestInspector ? "inspectors.hex.show_request_headers" :
+                                                          "inspectors.hex.show_response_headers";
             contextMenu = new ContextMenuStrip();
             var miCopy = new ToolStripMenuItem("&Copy");
             miCopy.Click += (sender, e) => hexBox.Copy();
@@ -70,6 +84,7 @@ namespace Extensions
             {
                 Padding = new Padding(10, 0, 10, 0)
             };
+            hexBox.TextChanged += (sender, e) => { this._owner.MarkDirty(); };
 
             var statusStrip = new StatusStrip { Dock = DockStyle.Bottom, SizingGrip = false };
             statusStrip.Items.Add(lblOffset);
@@ -80,6 +95,7 @@ namespace Extensions
 
             hexBox.GroupSize = 128;
             UpdateOffsetAndSelection();
+            this.ResumeLayout(false);
         }
 
         internal void Assign(byte[] arrHeaders, byte[] arrBody)
@@ -135,6 +151,17 @@ namespace Extensions
             }
         }
 
+        /*  public byte[] getHeaderBytes()
+          {
+              return (hexBox.ByteProvider == null) ? Array.Empty<byte>() : hexBox.ByteProvider.GetBytes(0, hexBox.HeaderEndOffset + 1);
+          }*/
+
+        public Byte[] getBody()
+        {
+            return Array.Empty<byte>(); // TODO: nYi
+            //              return (hexBox.ByteProvider == null) ? Array.Empty<byte>() : hexBox.ByteProvider.GetBytes(hexBox.HeaderEndOffset + 1, hexBox.ByteProvider.Length - (hexBox.HeaderEndOffset + 1));
+        }
+
         public void Clear()
         {
             headerBytes = bodyBytes = Array.Empty<byte>();
@@ -158,19 +185,6 @@ namespace Extensions
                 contextMenu.Dispose();
                 hexFont.Dispose();
             }
-        }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            // 
-            // HexView
-            // 
-            this.Font = new System.Drawing.Font("Cascadia Mono", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ForeColor = System.Drawing.Color.Blue;
-            this.Name = "HexView";
-            this.ResumeLayout(false);
-
         }
     }
 }
