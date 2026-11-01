@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("0.0.3.0")]
 
 // Selected Release Version History
-// v0.0.3.0 - Oct-31-2026 - Add "Add Column..." to ListView header. AddBoundColumn for simple columns (use "cols" in QuickExec), BindPref hooked up for boolean/string fields, BindUIButton can create toolbar toggles for boolean fields; Editing for Raw, Hex, and Header inspectors, Add JXL plumbing, AuthView (Basic,Digest,Moar JWT), about:config highlights changes
+// v0.0.3.0 - Nov-01-2026 - Add "Add Column..." to Exchange List header context menu. AddBoundColumn for simple columns (use "cols" in QuickExec), BindPref hooked up for boolean/string fields, BindUIButton can create toolbar toggles for boolean fields; Editing for Raw, Hex, and Header inspectors, Add JXL plumbing, AuthView (Basic,Digest,Moar JWT), about:config highlights changes.
 // v0.0.2.9 - Oct-30-2026 - Per-MonitorV2 support via app.config; improve BindUIColumn
 // v0.0.2.8 - Oct-29-2026 - Improve QuickExec, Improve Copy for AI and add Copy Response DataURI
 // v0.0.2.7 - Oct-28-2026 - Enhance find (EXACT:, REGEX:, Search binaries, navigate between results with < and > keys); add QuickLinks; Enhance HexView with colors, add more settings to Options in preparation for a real proxy engine.
