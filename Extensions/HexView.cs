@@ -1,6 +1,7 @@
 using Be.Windows.Forms;
 using Clearinet;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -13,8 +14,8 @@ namespace Extensions
         readonly ContextMenuStrip contextMenu;
         readonly ToolStripMenuItem miShowHeaders;
         readonly ToolStripStatusLabel lblOffset;
-        byte[] headerBytes = Array.Empty<byte>();
-        byte[] bodyBytes = Array.Empty<byte>();
+        internal byte[] headerBytes = Array.Empty<byte>();
+        internal byte[] bodyBytes = Array.Empty<byte>();
         Font hexFont;
 
         private string _sHeaderPref;
@@ -171,21 +172,26 @@ namespace Extensions
             }
         }
 
-        /*  public byte[] getHeaderBytes()
-          {
-              return (hexBox.ByteProvider == null) ? Array.Empty<byte>() : hexBox.ByteProvider.GetBytes(0, hexBox.HeaderEndOffset + 1);
-          }*/
-
-        public byte[] getBody()
+        internal void SplitContentToByteArrays()
         {
-            IByteProvider bp = hexBox.ByteProvider;
-            if (bp == null) return null;
+            if (hexBox.ByteProvider == null) return;
+            if (!hexBox.ByteProvider.HasChanges()) return; // No changes, so no need to split.
+            byte[] arrAll = hexBox.ByteProvider.GetAllBytes();
+            if (!miShowHeaders.Checked)
+            {
+                bodyBytes = arrAll;
+                return;
+            }
 
-            if (!bp.HasChanges()) return null; // No changes, so no need to return anything.
+            var (ixBody, hew) = Parser.FindHTTPBodyStart(arrAll);
+            Debug.Assert(ixBody >= 0 && ixBody <= arrAll.Length, "ixBody is out of range");
+            // TODO: If hew == Oversized, then we should probably show a warning
+            // or something.
 
-            // BUG BUG: Gotta strip headers.
-            return bp.GetAllBytes();
-            //   return (hexBox.ByteProvider == null) ? Array.Empty<byte>() : hexBox.ByteProvider.GetBytes(hexBox.HeaderEndOffset + 1, hexBox.ByteProvider.Length - (hexBox.HeaderEndOffset + 1));
+            headerBytes = new byte[ixBody];
+            Buffer.BlockCopy(arrAll, 0, headerBytes, 0, headerBytes.Length);
+            bodyBytes = new byte[arrAll.Length - ixBody];
+            Buffer.BlockCopy(arrAll, ixBody, bodyBytes, 0, bodyBytes.Length);
         }
 
         public void Clear()

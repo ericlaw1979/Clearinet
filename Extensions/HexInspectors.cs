@@ -1,4 +1,6 @@
 using Clearinet;
+using System.Diagnostics;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Extensions
@@ -37,8 +39,43 @@ namespace Extensions
 
         public override byte[] body
         {
-            get => hvViewer?.getBody();
-            set => base.body = value;
+            get
+            {
+
+                if (bDirty)
+                {
+                    hvViewer.SplitContentToByteArrays();
+                    return hvViewer.bodyBytes;
+                }
+                return null;
+            }
+            set
+            {
+                // TODO: Who is using this Setter and why?
+                Debug.Assert(false);
+                base.body = value; // Should we be setting hvViewer.bodyBytes here too?
+            }
+        }
+
+        public override HTTPRequestHeaders headers
+        {
+            get
+            {
+                if (bDirty)
+                {
+                    hvViewer.SplitContentToByteArrays();
+                    HTTPRequestHeaders hrh = HTTPParser.ParseRequest(Encoding.UTF8.GetString(hvViewer.headerBytes));
+                    // TODO: Update Content-Length header if present and if bodyBytes.Length != hrh.ContentLength
+                    return hrh;
+                }
+                return null;
+            }
+            protected set
+            {
+                // TODO: Who is using this Setter and why?
+                Debug.Assert(false);
+                base.headers = value; // Should we be setting hvViewer.headerBytes here too?
+            }
         }
 
         public override bool bDirty
@@ -87,6 +124,47 @@ namespace Extensions
             headers = null;
             body = null;
             hvViewer?.Clear();
+        }
+
+        public override byte[] body
+        {
+            get
+            {
+
+                if (bDirty)
+                {
+                    hvViewer.SplitContentToByteArrays();
+                    return hvViewer.bodyBytes;
+                }
+                return null;
+            }
+            set
+            {
+                // TODO: Who is using this Setter and why?
+                Debug.Assert(false);
+                base.body = value; // Should we be setting hvViewer.bodyBytes here too?
+            }
+        }
+
+        public override HTTPResponseHeaders headers
+        {
+            get
+            {
+                if (bDirty)
+                {
+                    hvViewer.SplitContentToByteArrays();
+                    HTTPResponseHeaders hrh = HTTPParser.ParseResponse(Encoding.UTF8.GetString(hvViewer.headerBytes));
+                    // TODO: Update Content-Length header if present and if bodyBytes.Length != hrh.ContentLength
+                    return hrh;
+                }
+                return null;
+            }
+            protected set
+            {
+                // TODO: Who is using this Setter and why?
+                Debug.Assert(false);
+                base.headers = value; // Should we be setting hvViewer.headerBytes here too?
+            }
         }
     }
 }

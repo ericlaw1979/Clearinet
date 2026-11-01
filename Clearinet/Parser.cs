@@ -57,6 +57,83 @@ namespace Clearinet
             return bResult;
         }
 
+        public enum HeadersEndedWith
+        {
+            Unknown,
+            /// <summary>
+            /// Headers ended with \r\n\r\n (Standards-Compliant).
+            /// </summary>
+            CRLFCRLF,
+            /// <summary>
+            /// Headers ended with \n\r\n (Compat).
+            /// </summary>
+            LFCRLF,
+            /// <summary>
+            /// Headers ended with \n\n (Compat).
+            /// </summary>
+            LFLF,
+            /// <summary>
+            /// The end of the array was reached without finding the headers' end.
+            /// </summary>
+            EOF,
+            /// <summary>
+            /// The failsafe threshold was reached without finding the headers' end.
+            /// </summary>
+            Oversized
+        }
+
+        public static (int ixBody, HeadersEndedWith hew) FindHTTPBodyStart(byte[] byteEntireMessage, int ixStopLookingAfter = 64 * 1024)
+        {
+            // Scan byteEntireMessage to find where the HTTP Headers end and the body begins, returning the index
+            // of thefirst byte of the body, and an enum that describes how the headers ended,
+            // choices being CRLFCRLF, LFCRLF or LFLF.
+            int ixBody = -1;
+            HeadersEndedWith hew = HeadersEndedWith.Unknown;
+            for (int i = 0; i < byteEntireMessage.Length && i < ixStopLookingAfter; ++i)
+            {
+                if (byteEntireMessage[i] == '\n')
+                {
+                    if (i > 0 && byteEntireMessage[i - 1] == '\r')
+                    {
+                        // Found CRLF
+                        if (i > 1 && byteEntireMessage[i - 2] == '\n')
+                        {
+                            // Found CRLFCRLF
+                            ixBody = i + 1;
+                            hew = HeadersEndedWith.CRLFCRLF;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // Found LF
+                        if (i > 0 && byteEntireMessage[i - 1] == '\n')
+                        {
+                            // Found LFLF
+                            ixBody = i + 1;
+                            hew = HeadersEndedWith.LFLF;
+                            break;
+                        }
+                        else if (i > 0 && byteEntireMessage[i - 1] == '\r')
+                        {
+                            // Found LFCRLF
+                            ixBody = i + 1;
+                            hew = HeadersEndedWith.LFCRLF;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (ixBody == -1)
+            {
+                hew = (byteEntireMessage.Length > ixStopLookingAfter) ? HeadersEndedWith.Oversized : HeadersEndedWith.EOF;
+                ixBody = byteEntireMessage.Length; // Treat everything as headers if we didn't find the end of headers.
+            }
+
+            return (ixBody, hew);
+        }
+
         public static (string headers, byte[] body) CrackHttpMessage(Stream stream)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));

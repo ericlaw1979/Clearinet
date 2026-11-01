@@ -28,7 +28,7 @@ namespace Clearinet
     {
         public abstract void Assign(HTTPRequestHeaders headersRequest, byte[] arrBody, bool bReadOnly);
 
-        public HTTPRequestHeaders headers { get; protected set; }
+        public virtual HTTPRequestHeaders headers { get; protected set; }
 
         protected override bool CommitIsAllowed(Exchange oX)
         {
@@ -47,7 +47,7 @@ namespace Clearinet
     public abstract class ResponseInspectorBase : InspectorBase
     {
         public abstract void Assign(HTTPResponseHeaders headersResponse, byte[] arrBody, bool bReadOnly);
-        public HTTPResponseHeaders headers { get; protected set; }
+        public virtual HTTPResponseHeaders headers { get; protected set; }
         protected override bool CommitIsAllowed(Exchange oX)
         {
             // If the Exchange isn't at a breakpoint or unlocked, bail on changes.
@@ -105,7 +105,6 @@ namespace Clearinet
         public virtual bool bDirty { get; set; }
 
         // Legacy had a method public virtual bool UnsetDirtyFlag() but I don't know if we need it
-
 
         protected abstract bool CommitIsAllowed(Exchange oX);
 
