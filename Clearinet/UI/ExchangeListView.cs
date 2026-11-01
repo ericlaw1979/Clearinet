@@ -578,12 +578,12 @@ namespace Clearinet
             if (sBoundDataField.OICStartsWith("@request."))
             {
                 var sName = sBoundDataField.TrimBefore('.');
-                return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.RequestHeaders[sName]);
+                return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.RequestHeaders?[sName]);
             }
             else if (sBoundDataField.OICStartsWith("@response."))
             {
                 var sName = sBoundDataField.TrimBefore('.');
-                return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.ResponseHeaders[sName]);
+                return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.ResponseHeaders?[sName]);
 
             }
             //   else if (sBoundDataField.OICStartsWith("@calc."))
