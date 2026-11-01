@@ -1,4 +1,6 @@
-﻿namespace Clearinet
+﻿using System;
+
+namespace Clearinet
 {
     partial class frmViewer
     {
@@ -657,6 +659,7 @@
             this.miEditUnlock.ShortcutKeys = System.Windows.Forms.Keys.F2;
             this.miEditUnlock.Size = new System.Drawing.Size(208, 22);
             this.miEditUnlock.Text = "Unlock for &Editing";
+            this.miEditUnlock.Click += miEditUnlock_Click;
             // 
             // miEditMark
             // 
@@ -1771,6 +1774,25 @@
             this.ResumeLayout(false);
             this.PerformLayout();
 
+        }
+
+        private void miEditUnlock_Click(object sender, EventArgs e)
+        {
+            Exchange xc = GetFirstSelectedExchange();
+            // Toggle the state.
+            var bWasUnlocked = xc.oFlags.ContainsKey("x-Unlocked");
+
+            if (bWasUnlocked) {
+                commitAnyRequestChanges(null, null);
+                commitAnyResponseChanges(null, null);
+
+                // Remove the flag AFTER asking to commit.
+                xc.oFlags.TryRemove("x-Unlocked", out _);
+            }
+            else {
+                xc["x-Unlocked"] = "menu";
+            }
+            actUpdateInspector(true, true);
         }
 
         #endregion

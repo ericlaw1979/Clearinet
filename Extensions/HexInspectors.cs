@@ -82,6 +82,13 @@ namespace Extensions
                 return hvViewer?.HasChanges() ?? false;
             }
         }
+
+        public override byte[] body
+        {
+            get => hvViewer?.getBody();
+            set => base.body = value;
+        }
+
         public override void Clear()
         {
             headers = null;

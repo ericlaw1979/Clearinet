@@ -1728,10 +1728,13 @@ namespace Clearinet
             miEditSelectAll.Enabled = miEditCopy.Enabled = miEditMark.Enabled = miEditRemoveSelected.Enabled =
                 miEditCopyResponseDataURI.Enabled = (lvExchanges.SelectedCount > 0);
             // Requires 1+ *selected* Exchange in the list
-            miEditUnlock.Enabled = miEditRemove.Enabled = miEditFind.Enabled =
+            miEditRemove.Enabled = miEditFind.Enabled =
                 miEditCopyForAI.Enabled = miEditCopyExchange.Enabled = miEditCopyHeaders.Enabled =
                 miEditCopySummary.Enabled = miEditCopyTerseSummary.Enabled = miEditCopyURL.Enabled =
                 (lvExchanges.Items.Count > 0);
+
+            miEditUnlock.Enabled = (lvExchanges.SelectedCount == 1);
+            miEditUnlock.Checked = (GetFirstSelectedExchange()?.oFlags?.ContainsKey("X-Unlocked") == true);
 
             miEditPasteAsExchanges.Enabled = Clipboard.ContainsImage() | Clipboard.ContainsText() | Clipboard.ContainsFileDropList();
 
