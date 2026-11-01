@@ -63,6 +63,11 @@ namespace Be.Windows.Forms
             return _hasChanges;
         }
 
+        public void SetChanged()
+        {
+            _hasChanges = true;
+        }
+
         /// <summary>
         /// Applies changes.
         /// </summary>

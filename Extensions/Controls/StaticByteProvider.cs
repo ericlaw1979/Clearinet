@@ -69,6 +69,8 @@ namespace Be.Windows.Forms
         /// <inheritdoc />
         public bool HasChanges() { return _hasChanges; }
 
+        public void SetChanged() { _hasChanges = true; }
+
         /// <summary>
         /// Clears change tracking. Writes already modify the caller's array; no data is persisted.
         /// </summary>

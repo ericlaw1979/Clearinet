@@ -12,7 +12,7 @@ namespace Extensions
         readonly InspectorBase _owner;
         readonly HttpHexBox hexBox;
         readonly ContextMenuStrip contextMenu;
-        readonly ToolStripMenuItem miShowHeaders;
+        internal readonly ToolStripMenuItem miShowHeaders;
         readonly ToolStripStatusLabel lblOffset;
         internal byte[] headerBytes = Array.Empty<byte>();
         internal byte[] bodyBytes = Array.Empty<byte>();
@@ -49,8 +49,15 @@ namespace Extensions
             };
             miShowHeaders.CheckedChanged += (sender, e) =>
             {
+                bool bReapplyDirtyFlag = false;
+                if (!hexBox.ReadOnly && HasChanges())
+                {
+                    SplitContentToByteArrays(!miShowHeaders.Checked);
+                    bReapplyDirtyFlag = true;
+                }
                 CApp.Prefs.SetBoolPref(_sHeaderPref, miShowHeaders.Checked);
                 RefreshBytes();
+                if (bReapplyDirtyFlag) hexBox.ByteProvider.SetChanged();
             };
             contextMenu.Items.AddRange(new ToolStripItem[]
             {
@@ -122,11 +129,11 @@ namespace Extensions
                 hexBox.HeaderEndOffset = -1;
             }
 
-            AssignNewBytes(bytes);
+            AssignNewBytesToHexBox(bytes);
             UpdateOffsetAndSelection();
         }
 
-        private void AssignNewBytes(byte[] bytes)
+        private void AssignNewBytesToHexBox(byte[] bytes)
         {
             FreeByteProvider();
             hexBox.ByteProvider = new DynamicByteProvider(bytes);
@@ -174,10 +181,15 @@ namespace Extensions
 
         internal void SplitContentToByteArrays()
         {
+            SplitContentToByteArrays(miShowHeaders.Checked);
+        }
+
+        internal void SplitContentToByteArrays(bool ContentIncludesHeaders)
+        {
             if (hexBox.ByteProvider == null) return;
             if (!hexBox.ByteProvider.HasChanges()) return; // No changes, so no need to split.
             byte[] arrAll = hexBox.ByteProvider.GetAllBytes();
-            if (!miShowHeaders.Checked)
+            if (!ContentIncludesHeaders)
             {
                 bodyBytes = arrAll;
                 return;
@@ -221,6 +233,7 @@ namespace Extensions
 
         internal bool HasChanges()
         {
+            // TODO: Should we check readonly state?
             if (null == hexBox) return false;
             return (hexBox.ByteProvider?.HasChanges()) ?? false;
         }

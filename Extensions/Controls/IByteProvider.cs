@@ -48,6 +48,12 @@ namespace Be.Windows.Forms
         /// True, when changes are done.
         /// </summary>
         bool HasChanges();
+
+        /// <summary>
+        /// Pretend like there was a change
+        /// </summary>
+        void SetChanged();
+
         /// <summary>
         /// Applies changes.
         /// </summary>

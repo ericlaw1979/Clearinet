@@ -24,16 +24,12 @@ namespace Extensions
 
         public override void Assign(HTTPRequestHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
-            headers = hrh;
-            body = arrBody;
             hvViewer.Assign(hrh?.ToByteArray(), arrBody);
             hvViewer.ReadOnly = bReadOnly;
         }
 
         public override void Clear()
         {
-            headers = null;
-            body = null;
             hvViewer?.Clear();
         }
 
@@ -65,7 +61,7 @@ namespace Extensions
                 {
                     hvViewer.SplitContentToByteArrays();
                     HTTPRequestHeaders hrh = HTTPParser.ParseRequest(Encoding.UTF8.GetString(hvViewer.headerBytes));
-                    // TODO: Update Content-Length header if present and if bodyBytes.Length != hrh.ContentLength
+                    // Note: caller will update Content-Length header if present and if bodyBytes.Length != hrh.ContentLength
                     return hrh;
                 }
                 return null;
@@ -100,14 +96,10 @@ namespace Extensions
             hvViewer.Dock = DockStyle.Fill;
         }
 
-        public override void SetFontSize(float flSizeInPoints) => hvViewer?.SetFontSize(flSizeInPoints);
-
         public override int GetOrder() => 100;
 
         public override void Assign(HTTPResponseHeaders hrh, byte[] arrBody, bool bReadOnly)
         {
-            headers = hrh;
-            body = arrBody;
             hvViewer.Assign(hrh?.ToByteArray(), arrBody);
             hvViewer.ReadOnly = bReadOnly;
         }
@@ -119,17 +111,8 @@ namespace Extensions
                 return hvViewer?.HasChanges() ?? false;
             }
         }
-
-        public override byte[] body
-        {
-            get => hvViewer?.getBody();
-            set => base.body = value;
-        }
-
         public override void Clear()
         {
-            headers = null;
-            body = null;
             hvViewer?.Clear();
         }
 
@@ -161,7 +144,7 @@ namespace Extensions
                 {
                     hvViewer.SplitContentToByteArrays();
                     HTTPResponseHeaders hrh = HTTPParser.ParseResponse(Encoding.UTF8.GetString(hvViewer.headerBytes));
-                    // TODO: Update Content-Length header if present and if bodyBytes.Length != hrh.ContentLength
+                    // Note: caller will update Content-Length header if present and if bodyBytes.Length != hrh.ContentLength
                     return hrh;
                 }
                 return null;

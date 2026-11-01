@@ -586,7 +586,7 @@ namespace Clearinet
                 return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.ResponseHeaders?[sName]);
 
             }
-            //   else if (sBoundDataField.OICStartsWith("@calc."))
+            //   else if (sBoundDataField.OICStartsWith("@calc."))  // TODO: also @timers.
             //   {
             //              var sName = sBoundDataField.TrimBefore('.');
             //            return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) =>  /* tokens */;
