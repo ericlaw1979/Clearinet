@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
 
-[assembly: AssemblyVersion("0.0.3.0")]
+[assembly: AssemblyVersion("0.0.3.1")]
 
 // Selected Release Version History
 // v0.0.3.0 - Nov-01-2026 - Add "Add Column..." to Exchange List header context menu. AddBoundColumn for simple columns (use "cols" in QuickExec), BindPref hooked up for boolean/string fields, BindUIButton can create toolbar toggles for boolean fields; Editing for Raw, Hex, and Header inspectors, Add JXL plumbing, AuthView (Basic,Digest,Moar JWT), about:config highlights changes.
