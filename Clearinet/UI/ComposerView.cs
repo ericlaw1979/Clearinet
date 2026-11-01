@@ -105,9 +105,9 @@ namespace Clearinet
                     BitFlags = ExchangeFlags.RequestGeneratedByClearinet
                 };
                 XC.EnsureID();
-                XC.state = ExchangeState.AutoTamperRequestBefore;
+
                 if ((Control.ModifierKeys & Keys.Shift) != 0) XC["x-breakrequest"] = "Shift+Click";
-                XC.state = ExchangeState.HandTamperRequest;
+                XC.state = ExchangeState.AutoTamperRequestBefore;
             }
             catch (Exception eX)
             {

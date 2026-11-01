@@ -329,6 +329,8 @@ namespace Clearinet
         // LEGACY API: SyntacticSugar
         public bool bHasResponse { get => null != ResponseHeaders; }
 
+        // This looks like a simple property but it's actually a state machine. Setting the state will trigger
+        // the appropriate callbacks and advance the state machine.
         public ExchangeState state
         {
             get => _state;
@@ -337,8 +339,10 @@ namespace Clearinet
                 ExchangeState statePrior = _state;
                 _state = value;
 
-                // TODO: Remove this. It'll be super-noisy!
-                Trace.WriteLine($"Exchange #{_id} state changed from {statePrior} to {_state}");
+                if (CApp.isTracing)
+                {
+                    Trace.WriteLine($"Exchange #{_id} state changed from {statePrior} to {_state}");
+                }
                 OnStateChanged?.Invoke(this, new StateChangeEventArgs(statePrior, _state));
 
                 /* TODO: Full state machine goes in here!!! We need to rewrite this to ASYNC */
@@ -355,10 +359,17 @@ namespace Clearinet
 
                     case ExchangeState.HandTamperRequest:
                         if (!oFlags.ContainsKey("x-breakrequest")) ++state;
-                        CApp.UIInvokeAsync(() =>
+                        else
                         {
-                            CApp.UI.UpdateViewItem(this);
-                        });
+                            CApp.UI.actFlashWindow(); // TODO: We should also pop a tooltip if the app is minimized to the tray.
+                            CApp.UIInvokeAsync(() =>
+                            {
+                                CApp.UI.UpdateViewItem(this);
+                            });
+
+                            // We do not advance the state ourselves, the user will do it
+                            // when they choose to "Continue" the request. This is a blocking state.
+                        }
                         break;
 
                     case ExchangeState.AutoTamperRequestAfter:
@@ -367,7 +378,7 @@ namespace Clearinet
                             doReplaceResponseWithFile();
                         }
 
-                        ++state;
+                        ++state;        // BUGBUG: The event handler may've advanced the state machine itself. We should only advance if that hasn't happened.
                         break;
 
                     case ExchangeState.SendingRequest:
@@ -388,10 +399,23 @@ namespace Clearinet
                         {
                             CApp.UI.UpdateViewItem(this);
                         });
+                        ++state;        // BUGBUG: The event handler may've advanced the state machine itself. We should only advance if that hasn't happened.
                         break;
                     case ExchangeState.HandTamperResponse:
                         if (!oFlags.ContainsKey("x-breakresponse"))
+                        {
                             ++state;
+                        }
+                        else
+                        {
+                            CApp.UI.actFlashWindow(); // TODO: We should also pop a tooltip if the app is minimized to the tray.
+                            CApp.UIInvokeAsync(() =>
+                            {
+                                CApp.UI.UpdateViewItem(this);
+                            });
+                            // We do not advance the state ourselves, the user will do it
+                            // when they choose to "Continue" the response. This is a blocking state.
+                        }
                         break;
 
                     case ExchangeState.Done:
