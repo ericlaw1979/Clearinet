@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0. LAST UPDATED for v0.0.3.0
+// This file will be updated before v1.0. LAST UPDATED for v0.0.3.1
 import System;
 import System.Windows.Forms;
 import Clearinet;
@@ -37,6 +37,12 @@ import Clearinet;
 // =============================
 class Handlers 
 {
+    
+    // Here, we bind a string variable to a per-Process ("ephemeral") string variable
+    // so that its value will survive if the script is changed and recompiled.
+    BindPref("cinscript.ephemeral.bpRequestURL")
+    public static var bpRequestURL:String = null;
+    
 //
 // ============ EXTEND THE APP UI ============
 // By annotating a method with a BindUIColumn attribute you can
@@ -182,6 +188,11 @@ class Handlers
     static function OnBeforeRequest(XC: Exchange) {
         // XC["x-replywithfile"] = "C:\\temp\\foo.html";
         XC["ui-backcolor"] = "LimeGreen";
+        
+        if ((null!=bpRequestURL) && XC.urlContains(bpRequestURL)) {
+            XC["x-breakrequest"]="rules>bpu";
+        }
+        
     }
 
     static function OnBeforeResponse(XC: Exchange) {
@@ -197,6 +208,12 @@ class Handlers
                 CApp.UI.actRemoveAllExchanges();
                 return true;
 
+            case "bpu":
+            if (2>sArgs.Length) {bpRequestURL=null; CApp.UI.SetStatusText("RequestURL breakpoint cleared"); return false;}
+            bpRequestURL = sArgs[1]; 
+            CApp.UI.SetStatusText("RequestURL breakpoint for "+sArgs[1]);
+            return true;
+            
             case "start":
                 CApp.actAttachProxy();
                 return true;
