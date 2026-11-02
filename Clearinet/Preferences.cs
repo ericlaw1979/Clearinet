@@ -97,7 +97,7 @@ namespace Clearinet
         /// <param name="sPrefName">The Preference Name</param>
         /// <param name="bDefault">The default value for missing or invalid preferences</param>
         /// <returns>A Boolean</returns>
-        bool GetBoolPref(string sPrefName, bool bDefault);
+        bool GetBoolPref(string sPrefName, bool bDefault = false);
 
         /// <summary>
         /// Gets a preference's value as a string
@@ -106,7 +106,7 @@ namespace Clearinet
         /// <param name="sPrefName">The Preference Name</param>
         /// <param name="sDefault">The default value for missing preferences</param>
         /// <returns>A string</returns>
-        string GetStringPref(string sPrefName, string sDefault);
+        string GetStringPref(string sPrefName, string sDefault = "");
 
         /// <summary>
         /// Gets a preference's value as a 32-bit integer
@@ -115,7 +115,7 @@ namespace Clearinet
         /// <param name="sPrefName">The Preference Name</param>
         /// <param name="iDefault">The default value for missing or invalid preferences</param>
         /// <returns>An integer</returns>
-        Int32 GetInt32Pref(string sPrefName, Int32 iDefault);
+        Int32 GetInt32Pref(string sPrefName, Int32 iDefault = 0);
 
         /// <summary>
         /// Removes a named preference from storage
@@ -398,7 +398,7 @@ namespace Clearinet
         /// <param name="sPrefName"></param>
         /// <param name="sDefault"></param>
         /// <returns></returns>
-        public string GetStringPref(string sPrefName, string sDefault)
+        public string GetStringPref(string sPrefName, string sDefault = "")
         {
             string sRet = this[sPrefName];
             Debug.WriteLineIf(null == sRet, "[ClearinetPref] Lookup for non-existent preference " + sPrefName);
@@ -411,7 +411,7 @@ namespace Clearinet
         /// <param name="sPrefName"></param>
         /// <param name="bDefault"></param>
         /// <returns></returns>
-        public bool GetBoolPref(string sPrefName, bool bDefault)
+        public bool GetBoolPref(string sPrefName, bool bDefault = false)
         {
             string sRet = this[sPrefName];
             if (null == sRet)
@@ -433,7 +433,7 @@ namespace Clearinet
         /// <param name="sPrefName"></param>
         /// <param name="iDefault"></param>
         /// <returns></returns>
-        public Int32 GetInt32Pref(string sPrefName, Int32 iDefault)
+        public Int32 GetInt32Pref(string sPrefName, Int32 iDefault = 0)
         {
             string sRet = this[sPrefName];
             if (null == sRet)
