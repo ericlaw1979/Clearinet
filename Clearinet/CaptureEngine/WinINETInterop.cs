@@ -21,7 +21,24 @@ namespace Clearinet.CaptureEngine
         private const int INTERNET_PER_CONN_AUTODISCOVERY_FLAGS = 5;
         private const int INTERNET_PER_CONN_FLAGS_UI = 10;
 
-        private const int PROXY_TYPE_PROXY = 0x00000002;
+        //
+        // PER_CONN_FLAGS
+        //
+        private const int PROXY_TYPE_DIRECT = 0x00000001; // direct to net
+        private const int PROXY_TYPE_PROXY = 0x00000002; // via named proxy
+        private const int PROXY_TYPE_AUTO_PROXY_URL = 0x00000004; // autoproxy URL
+        private const int PROXY_TYPE_AUTO_DETECT = 0x00000008; // use autoproxy detection
+
+        //
+        // PER_CONN_AUTODISCOVERY_FLAGS
+        //
+        private const int AUTO_PROXY_FLAG_USER_SET = 0x00000001;        // user changed this setting
+        private const int AUTO_PROXY_FLAG_ALWAYS_DETECT = 0x00000002;   // force detection even when its not needed
+        private const int AUTO_PROXY_FLAG_DETECTION_RUN = 0x00000004;   // detection has been run
+        private const int AUTO_PROXY_FLAG_MIGRATED = 0x00000008;        // migration has just been done
+        private const int AUTO_PROXY_FLAG_DONT_CACHE_PROXY_RESULT = 0x00000010; // don't cache result of host=proxy name
+        private const int AUTO_PROXY_FLAG_CACHE_INIT_RUN = 0x00000020;      // don't initalize and run unless URL expired
+        private const int AUTO_PROXY_FLAG_DETECTION_SUSPECT = 0x00000040;   // results of detection are suspect
 
         [DllImport("wininet.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool InternetQueryOption(
@@ -333,7 +350,14 @@ namespace Clearinet.CaptureEngine
         {
             if (string.IsNullOrWhiteSpace(serialized))
             {
-                throw new ArgumentException("Serialized settings cannot be null or empty.", nameof(serialized));
+                return new ProxySettingsSnapshot
+                {
+                    FlagsUi = PROXY_TYPE_AUTO_DETECT | PROXY_TYPE_DIRECT,
+                    AutoDiscoveryFlags = 0,
+                    ProxyServer = null,
+                    ProxyBypass = null,
+                    AutoConfigUrl = null
+                };
             }
 
             string[] parts = serialized.Split('|');

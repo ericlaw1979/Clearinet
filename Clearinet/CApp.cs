@@ -1,4 +1,5 @@
-﻿using Clearinet.UI;
+﻿using Clearinet.CaptureEngine;
+using Clearinet.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -122,17 +123,30 @@ namespace Clearinet
         public static void actAttachProxy()
         {
             if (CONFIG.isViewerMode) return;
+
+            if (isAttached) return;
+
             if (CApp.Prefs.GetBoolPref("proxy.ephemeral.show_nyi_dialog", true))
             {
                 CApp.alert("Sorry!\n\nTraffic capture is not actually implemented yet.\n\nStay tuned!"); // TODO:
             }
+
+            // TODO: Move this into the CaptureEngine
+            CApp.Prefs.SetStringPref("proxy.prior_proxy", WinINETInterop.CaptureCurrentProxySettings());
+            WinINETInterop.SetProxyForClearinet($"127.0.0.1:{CONFIG.ListenPort}", "<-loopback>;debugtheweb.com");
+            // --------------------------------------
+
             isAttached = true;
             OnProxyAttach();
         }
         public static void actDetachProxy()
         {
             isAttached = false;
+
+            // TODO: Move this into the CaptureEngine
+            WinINETInterop.RestoreProxySettings(CApp.Prefs.GetStringPref("proxy.prior_proxy", string.Empty));
             OnProxyDetach();
+            // --------------------------------------
         }
 
         private static void _QuickExecAdjustPrefs(string[] sParams)
