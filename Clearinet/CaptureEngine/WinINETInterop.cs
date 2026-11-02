@@ -145,6 +145,14 @@ namespace Clearinet.CaptureEngine
         {
             ProxySettingsSnapshot snapshot = DeserializeSnapshot(serializedSettings);
 
+            CApp.Log.LogFormat(
+                "[WinINETInterop] Restoring proxy settings to: FlagsUi={0}, AutoDiscoveryFlags={1}, ProxyServer='{2}'\n\tProxyBypass='{3}', AutoConfigUrl='{4}'",
+                snapshot.FlagsUi,
+                snapshot.AutoDiscoveryFlags,
+                FormatForLog(snapshot.ProxyServer),
+                FormatForLog(snapshot.ProxyBypass),
+                FormatForLog(snapshot.AutoConfigUrl));
+
             SetPerConnectionOptions(
                 new INTERNET_PER_CONN_OPTION
                 {
@@ -175,25 +183,20 @@ namespace Clearinet.CaptureEngine
 
         private static ProxySettingsSnapshot QueryCurrentSettings()
         {
-            INTERNET_PER_CONN_OPTION[] options = QueryPerConnectionOptions(
+            return QueryPerConnectionOptions();
+        }
+
+        private static ProxySettingsSnapshot QueryPerConnectionOptions()
+        {
+            int[] optionIds =
+            {
                 INTERNET_PER_CONN_FLAGS_UI,
                 INTERNET_PER_CONN_PROXY_SERVER,
                 INTERNET_PER_CONN_PROXY_BYPASS,
                 INTERNET_PER_CONN_AUTOCONFIG_URL,
-                INTERNET_PER_CONN_AUTODISCOVERY_FLAGS);
-
-            return new ProxySettingsSnapshot
-            {
-                FlagsUi = options[0].Value.dwValue,
-                ProxyServer = PtrToString(options[1].Value.pszValue),
-                ProxyBypass = PtrToString(options[2].Value.pszValue),
-                AutoConfigUrl = PtrToString(options[3].Value.pszValue),
-                AutoDiscoveryFlags = options[4].Value.dwValue
+                INTERNET_PER_CONN_AUTODISCOVERY_FLAGS
             };
-        }
 
-        private static INTERNET_PER_CONN_OPTION[] QueryPerConnectionOptions(params int[] optionIds)
-        {
             int optionSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION));
             IntPtr optionsPtr = IntPtr.Zero;
             IntPtr listPtr = IntPtr.Zero;
@@ -234,7 +237,14 @@ namespace Clearinet.CaptureEngine
                         typeof(INTERNET_PER_CONN_OPTION));
                 }
 
-                return result;
+                return new ProxySettingsSnapshot
+                {
+                    FlagsUi = result[0].Value.dwValue,
+                    ProxyServer = PtrToString(result[1].Value.pszValue),
+                    ProxyBypass = PtrToString(result[2].Value.pszValue),
+                    AutoConfigUrl = PtrToString(result[3].Value.pszValue),
+                    AutoDiscoveryFlags = result[4].Value.dwValue
+                };
             }
             finally
             {
@@ -262,64 +272,74 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static void SetPerConnectionOptions(params INTERNET_PER_CONN_OPTION[] options)
+        private static bool SetPerConnectionOptions(params INTERNET_PER_CONN_OPTION[] options)
         {
-            int optionSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION));
-            IntPtr optionsPtr = IntPtr.Zero;
-            IntPtr listPtr = IntPtr.Zero;
-
+            bool bResult = false;
             try
             {
-                optionsPtr = Marshal.AllocCoTaskMem(optionSize * options.Length);
+                int optionSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION));
+                IntPtr optionsPtr = IntPtr.Zero;
+                IntPtr listPtr = IntPtr.Zero;
 
-                for (int i = 0; i < options.Length; i++)
+                try
                 {
-                    Marshal.StructureToPtr(options[i], IntPtr.Add(optionsPtr, i * optionSize), false);
-                }
+                    optionsPtr = Marshal.AllocCoTaskMem(optionSize * options.Length);
 
-                var list = new INTERNET_PER_CONN_OPTION_LIST
-                {
-                    dwSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION_LIST)),
-                    pszConnection = IntPtr.Zero,
-                    dwOptionCount = options.Length,
-                    dwOptionError = 0,
-                    pOptions = optionsPtr
-                };
-
-                int listSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION_LIST));
-                listPtr = Marshal.AllocCoTaskMem(listSize);
-                Marshal.StructureToPtr(list, listPtr, false);
-
-                if (!InternetSetOption(IntPtr.Zero, INTERNET_OPTION_PER_CONNECTION_OPTION, listPtr, listSize))
-                {
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "InternetSetOption(INTERNET_OPTION_PER_CONNECTION_OPTION) failed.");
-                }
-
-                if (!InternetSetOption(IntPtr.Zero, INTERNET_OPTION_PROXY_SETTINGS_CHANGED, IntPtr.Zero, 0))
-                {
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "InternetSetOption(INTERNET_OPTION_PROXY_SETTINGS_CHANGED) failed.");
-                }
-            }
-            finally
-            {
-                for (int i = 0; i < options.Length; i++)
-                {
-                    if (IsStringOption(options[i].dwOption) && options[i].Value.pszValue != IntPtr.Zero)
+                    for (int i = 0; i < options.Length; i++)
                     {
-                        Marshal.FreeHGlobal(options[i].Value.pszValue);
+                        Marshal.StructureToPtr(options[i], IntPtr.Add(optionsPtr, i * optionSize), false);
+                    }
+
+                    var list = new INTERNET_PER_CONN_OPTION_LIST
+                    {
+                        dwSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION_LIST)),
+                        pszConnection = IntPtr.Zero,
+                        dwOptionCount = options.Length,
+                        dwOptionError = 0,
+                        pOptions = optionsPtr
+                    };
+
+                    int listSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION_LIST));
+                    listPtr = Marshal.AllocCoTaskMem(listSize);
+                    Marshal.StructureToPtr(list, listPtr, false);
+
+                    if (!InternetSetOption(IntPtr.Zero, INTERNET_OPTION_PER_CONNECTION_OPTION, listPtr, listSize))
+                    {
+                        throw new Win32Exception(Marshal.GetLastWin32Error(), "InternetSetOption(INTERNET_OPTION_PER_CONNECTION_OPTION) failed.");
+                    }
+
+                    if (!InternetSetOption(IntPtr.Zero, INTERNET_OPTION_PROXY_SETTINGS_CHANGED, IntPtr.Zero, 0))
+                    {
+                        throw new Win32Exception(Marshal.GetLastWin32Error(), "InternetSetOption(INTERNET_OPTION_PROXY_SETTINGS_CHANGED) failed.");
+                    }
+                    bResult = true;
+                }
+                finally
+                {
+                    for (int i = 0; i < options.Length; i++)
+                    {
+                        if (IsStringOption(options[i].dwOption) && options[i].Value.pszValue != IntPtr.Zero)
+                        {
+                            Marshal.FreeHGlobal(options[i].Value.pszValue);
+                        }
+                    }
+
+                    if (optionsPtr != IntPtr.Zero)
+                    {
+                        Marshal.FreeCoTaskMem(optionsPtr);
+                    }
+
+                    if (listPtr != IntPtr.Zero)
+                    {
+                        Marshal.FreeCoTaskMem(listPtr);
                     }
                 }
-
-                if (optionsPtr != IntPtr.Zero)
-                {
-                    Marshal.FreeCoTaskMem(optionsPtr);
-                }
-
-                if (listPtr != IntPtr.Zero)
-                {
-                    Marshal.FreeCoTaskMem(listPtr);
-                }
             }
+            catch
+            {
+                bResult = false;
+            }
+            return bResult;
         }
 
         private static bool IsStringOption(int option)
@@ -384,6 +404,35 @@ namespace Clearinet.CaptureEngine
         private static string FromBase64(string value)
         {
             return Encoding.UTF8.GetString(Convert.FromBase64String(value ?? string.Empty));
+        }
+
+        private static string FormatForLog(string value)
+        {
+            if (value == null)
+            {
+                return "<null>";
+            }
+
+            StringBuilder sb = new StringBuilder(value.Length);
+            foreach (char c in value)
+            {
+                if (char.IsControl(c))
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:X4}", (int)c);
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+
+            const int maxLength = 256;
+            if (sb.Length > maxLength)
+            {
+                return sb.ToString(0, maxLength) + "...";
+            }
+
+            return sb.ToString();
         }
     }
 }

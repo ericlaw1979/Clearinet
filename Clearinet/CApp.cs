@@ -766,9 +766,14 @@ namespace Clearinet
         internal static void OnAppShutdown()
         {
             isClosing = true;
+            // Ensure that we stop capture.
+            actDetachProxy();
+
+            // Stop the engine.
             StopCaptureEngine();
             _captureEngineRuntime?.Dispose();
             _captureEngineRuntime = null;
+
             scriptRules?.DoOnShutdown();
             oExtensions.CallAllOnBeforeUnloads();
             AppShutdown?.Invoke();
