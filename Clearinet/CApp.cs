@@ -27,6 +27,7 @@ namespace Clearinet
 
         internal static HiddenExecActionTargetWindow messagingWindow = null;
         internal static GigWorker gwHoneyDew = new GigWorker();
+        private static CaptureEngineRuntime _captureEngineRuntime;
 
         public static bool isTracing { get; internal set; } = false;
 
@@ -561,15 +562,52 @@ namespace Clearinet
 
         internal static void OnProxyAttach()
         {
+            EnsureCaptureEngineRunning();
             // TODO: update state of status bar capturing indicator
             ProxyAttach?.Invoke();
             scriptRules?.DoOnAttach();
         }
         internal static void OnProxyDetach()
         {
+            StopCaptureEngine();
             // TODO: update state of status bar capturing indicator
             ProxyDetach?.Invoke();
             scriptRules?.DoOnDetach();
+        }
+
+        private static void EnsureCaptureEngineRunning()
+        {
+            if (CONFIG.isViewerMode) return;
+            try
+            {
+                if (_captureEngineRuntime == null)
+                {
+                    IPAddress listenAddress = CaptureEnginePrefs.GetListenAddress();
+                    _captureEngineRuntime = new CaptureEngineRuntime(new CaptureEngineOptions(listenAddress, CONFIG.ListenPort));
+                }
+                _captureEngineRuntime.Start();
+                if (CaptureEnginePrefs.IsCaptureTracingEnabled())
+                {
+                    Log.Log($"Capture tracing enabled. DecryptHTTPS={CaptureEnginePrefs.ShouldDecryptHttps()}, CaptureCONNECT={CaptureEnginePrefs.ShouldCaptureConnect()}, SocketPoolIdleMs={CaptureEnginePrefs.GetSocketPoolIdleMs()}, SocketPoolMaxAgeMs={CaptureEnginePrefs.GetSocketPoolMaxAgeMs()}");
+                }
+            }
+            catch (Exception eX)
+            {
+                ReportException(eX, "Capture Engine Failed", "Failed to start the capture engine.");
+                isAttached = false;
+            }
+        }
+
+        private static void StopCaptureEngine()
+        {
+            try
+            {
+                _captureEngineRuntime?.Stop();
+            }
+            catch (Exception eX)
+            {
+                Log.Log($"! Capture engine stop failed: {eX.Message}");
+            }
         }
 
         #region LegacyCompatAPIs
@@ -728,7 +766,9 @@ namespace Clearinet
         internal static void OnAppShutdown()
         {
             isClosing = true;
-            // TODO: Detach proxy
+            StopCaptureEngine();
+            _captureEngineRuntime?.Dispose();
+            _captureEngineRuntime = null;
             scriptRules?.DoOnShutdown();
             oExtensions.CallAllOnBeforeUnloads();
             AppShutdown?.Invoke();
