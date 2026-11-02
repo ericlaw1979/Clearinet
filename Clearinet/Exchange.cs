@@ -479,7 +479,20 @@ namespace Clearinet
                         {
                             Task.Run(async () =>
                             {
-                                await new HTTPClientBridge().SendAndReceiveRawAsync(this);
+                                // Intentionally disabled by default.
+                                // HttpClientBridge remains available as an alternate transport for debugging/experimentation.
+                                // await new HTTPClientBridge().SendAndReceiveRawAsync(this);
+                                if (CApp.Prefs.GetBoolPref("proxy.ephemeral.use_httpclientbridge_transport", false))
+                                {
+                                    await new HTTPClientBridge().SendAndReceiveRawAsync(this);
+                                }
+                                else
+                                {
+                                    ResponseHeaders = new HTTPResponseHeaders(501, "Capture Engine Transport Required",
+                                        new[] { "Content-Type: text/plain; charset=utf-8" });
+                                    utilSetResponseBody("The legacy HttpClientBridge transport is disabled. Use the capture engine transport path.");
+                                    BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+                                }
                                 ++state;
                             });
                         }
