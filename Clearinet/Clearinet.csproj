@@ -181,6 +181,7 @@
     <Compile Include="PlatformAPI.cs" />
     <Compile Include="Preferences.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\LongRunningOperation.cs" />
     <Compile Include="UI\MRU.cs" />
     <Compile Include="UI\PrefView.cs">
       <SubType>UserControl</SubType>
@@ -294,4 +295,3 @@
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
-

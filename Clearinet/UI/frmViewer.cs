@@ -59,6 +59,7 @@ namespace Clearinet
         private FormWindowState trayRestoreState;
 
         private readonly static System.Windows.Forms.Timer timerReportUpdater = new System.Windows.Forms.Timer();
+        private bool _didHandleWindowsShutdown;
 
         private void miFileExit_Click(object sender, EventArgs e)
         {
@@ -1487,6 +1488,11 @@ namespace Clearinet
 
         private void frmViewer_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (e.CloseReason == CloseReason.WindowsShutDown)
+            {
+                HandleWindowsShutdown();
+            }
+
             if (!CApp.OnBeforeShutdown()) { e.Cancel = true; return; }
             timerReportUpdater.Stop();
             CApp.gwHoneyDew.Dispose();
@@ -1499,6 +1505,15 @@ namespace Clearinet
 
             txtQuickExec.SaveHistory();
             CApp.OnAppShutdown();
+        }
+
+        // Called if Form Closure was done due to Windows shutdown.
+        private void HandleWindowsShutdown()
+        {
+            if (_didHandleWindowsShutdown) return;
+            _didHandleWindowsShutdown = true;
+
+            CApp.Log.Log("Windows shutdown detected.");
         }
 
         private readonly Queue<Tuple<DateTime, string>> queuedLogEntries = new Queue<Tuple<DateTime, string>>();
@@ -3301,108 +3316,25 @@ namespace Clearinet
         }
 
 
-    }
+        internal CancelEventHandler OnWindowsQueryShutdown;
 
-    public class LongRunningOperation : IDisposable
-    {
-        DateTime dtFirstProgress = DateTime.MinValue;
-        private bool PreventSleepOrExit { get; set; }
-
-        public string OperationName { get; private set; }
-
-        public string StatusText { get; private set; }
-
-        private ToolStripProgressBar ProgressUI;
-
-        private readonly CancelEventHandler ceh;
-
-        public LongRunningOperation(string sOperationName, bool bPreventSleepOrExit)
+        protected override void WndProc(ref Message m)
         {
-            OperationName = sOperationName;
-            PreventSleepOrExit = bPreventSleepOrExit;
-            if (PreventSleepOrExit)
+            const int WM_QUERYENDSESSION = 0x0011;
+
+            if (m.Msg == WM_QUERYENDSESSION)
             {
-                ceh = (s, e) =>
+                CancelEventArgs cea = new CancelEventArgs();
+                OnWindowsQueryShutdown?.Invoke(this, cea);
+                if (cea.Cancel)
                 {
-                    CApp.UI.SetStatusText($"Please wait for the operation ('{OperationName}') to complete before exiting.");
-                    e.Cancel = true;
-                };
-                //                Stopwatch oSW = Stopwatch.StartNew();
-                PlatformAPI.PreventSleep(keepDisplayOn: false);
-                //                Trace.WriteLine($"LongRunningOperation calling PreventSleep took {oSW.ElapsedMilliseconds}ms.");
-                CApp.BeforeAppShutdown += ceh;
+                    m.Result = (IntPtr)0; // Prevent shutdown
+                    return;
+                }
             }
-            CreateUI();
-        }
 
-        private void CreateUI()
-        {
-            if (CApp.UI.InvokeRequired)
-            {
-                CApp.UI.Invoke((Action)(() => { CreateUI(); }));
-                return;
-            }
-            ProgressUI = new ToolStripProgressBar()
-            {
-                Maximum = 100,
-                ToolTipText = OperationName,
-                Style = ProgressBarStyle.Marquee
-            };
-
-            CApp.UI.tsToolbar.Items.Insert(0, ProgressUI);
-            Application.DoEvents();
-        }
-
-        public void UpdateProgress(int iPercent, string sStatusText = null)
-        {
-            if (dtFirstProgress == DateTime.MinValue) dtFirstProgress = DateTime.Now;
-            if (sStatusText.HasText()) StatusText = sStatusText;
-            if (iPercent >= 100)
-            {
-                iPercent = 100;
-                //Dispose();
-                return;
-            }
-            if (null != ProgressUI)
-            {
-                UpdateUIForProgress(iPercent);
-            }
-        }
-
-        private void UpdateUIForProgress(int iPercent)
-        {
-            if (CApp.UI.InvokeRequired)
-            {
-                CApp.UI.Invoke((Action)(() => { UpdateUIForProgress(iPercent); }));
-                return;
-            }
-            if (null == ProgressUI) return;
-
-            ProgressUI.Style = ProgressBarStyle.Blocks;
-            ProgressUI.Value = iPercent;
-            ProgressUI.ToolTipText = $"{OperationName}: {StatusText} ({iPercent:N0}%)";
-            Application.DoEvents();
-        }
-
-        public void Dispose()
-        {
-            if (CApp.UI.InvokeRequired)
-            {
-                CApp.UI.Invoke((Action)(() => { Dispose(); }));
-                return;
-            }
-            CApp.Log.Log($"Long-running operation '{OperationName}' completed.");
-            if (dtFirstProgress != DateTime.MinValue && DateTime.Now - dtFirstProgress > TimeSpan.FromSeconds(5))
-            {
-                CApp.UI.actFlashWindow();
-            }
-            CApp.UI.tsToolbar.Items.Remove(ProgressUI);
-            ProgressUI.Dispose(); ProgressUI = null;
-            if (PreventSleepOrExit)
-            {
-                PlatformAPI.RestoreSleep();
-                CApp.BeforeAppShutdown -= ceh;
-            }
+            base.WndProc(ref m);
         }
     }
+
 }

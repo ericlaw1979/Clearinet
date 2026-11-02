@@ -316,6 +316,25 @@ namespace Clearinet
             SetThreadExecutionState(ExecutionState.ES_CONTINUOUS);
         }
 
+        public class ShutdownBlocker
+        {
+            [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            private static extern bool ShutdownBlockReasonCreate(IntPtr hWnd, string pwszReason);
+
+            [DllImport("user32.dll", SetLastError = true)]
+            private static extern bool ShutdownBlockReasonDestroy(IntPtr hWnd);
+
+            public static void BlockShutdown(IntPtr hWnd, string reason)
+            {
+                ShutdownBlockReasonCreate(hWnd, reason);
+            }
+
+            public static void UnblockShutdown(IntPtr hWnd)
+            {
+                ShutdownBlockReasonDestroy(hWnd);
+            }
+        }
+
         internal static string GetProcessArchitecture()
         {
             switch (RuntimeInformation.ProcessArchitecture)
