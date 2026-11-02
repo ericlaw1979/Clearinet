@@ -212,13 +212,20 @@ namespace Clearinet
             StringBuilder sbOut = new StringBuilder();
             if (include_request_line)
             {
-                var sSchemeAndDelimiter = UriScheme + ":" + (UriScheme.OICEqualsAny("http", "https", "ftp") ? "//" : String.Empty);
-                string sOrigin = bWriteFullQualifiedURL ? $"{sSchemeAndDelimiter}{this["Host"]}" : String.Empty;
-                sbOut.Append($"{HTTPMethod} {sOrigin}{RequestPath} {HTTPVersion}\r\n");
+                if (HTTPMethod.OICEquals("CONNECT"))
+                {
+                    sbOut.Append($"{HTTPMethod} {RequestPath} {HTTPVersion}\r\n");
+                }
+                else
+                {
+                    var sSchemeAndDelimiter = UriScheme + ":" + (UriScheme.OICEqualsAny("http", "https", "ftp") ? "//" : String.Empty);
+                    string sOrigin = bWriteFullQualifiedURL ? $"{sSchemeAndDelimiter}{this["Host"]}" : String.Empty;
+                    sbOut.Append($"{HTTPMethod} {sOrigin}{RequestPath} {HTTPVersion}\r\n");
+                }
             }
             else
             {
-                if (bWriteFullQualifiedURL) { Debug.Assert(false); }
+                if (bWriteFullQualifiedURL) { Debug.Assert(false, "Can't write full URL without a request line"); }
             }
             try
             {
