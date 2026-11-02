@@ -1,3 +1,6 @@
+Please see the [Technical Overview](/docs/TECHNICAL_OVERVIEW.md] for information about
+the Clearinet project.
+
 Porting extensions from the legacy Fiddler extension API to the new Clearinet extension API is designed to be straightforward.
 
 ### Paths
