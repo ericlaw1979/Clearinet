@@ -2772,10 +2772,19 @@ namespace Clearinet
                 if (arrExchanges.Length < 1) { CApp.DoNotifyUser("No Exchanges were selected.", "Nothing to Export"); return; }
                 for (int iX = 0; iX < arrExchanges.Length; ++iX)
                 {
-                    Exchange exch = arrExchanges[iX];
-                    string sFilename = Utilities.ObtainSaveFilename($"Export Exchange {exch.id} Response Body", "Any file|*.*");
+                    Exchange xc = arrExchanges[iX];
+                    if (!xc.bHasResponse) continue;
+                    string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", "Any file|*.*", null, xc.SuggestedFilename).sFilename;
                     if (!sFilename.HasText()) return;
-                    File.WriteAllBytes(sFilename, exch.ResponseBody);
+                    byte[] arrBody = xc.ResponseBody;
+                    if (xc.ResponseHeaders?.ExistsAny("Content-Encoding", "Transfer-Encoding") ?? false)
+                    {
+                        if (DialogResult.Yes == MessageBox.Show(CApp.UI, "Do you want to decode the response body before saving?", "Decode first?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question))
+                        {
+                            arrBody = Exchange.DecodeBodyFromHeaders(xc.ResponseHeaders, arrBody);
+                        }
+                    }
+                    File.WriteAllBytes(sFilename, arrBody);
                 }
             }
             catch (Exception eX)

@@ -456,14 +456,14 @@ namespace Clearinet
             // 
             this.miFileSaveResponseFull.Name = "miFileSaveResponseFull";
             this.miFileSaveResponseFull.Size = new System.Drawing.Size(175, 22);
-            this.miFileSaveResponseFull.Text = "&Entire Response";
+            this.miFileSaveResponseFull.Text = "&Entire Response...";
             this.miFileSaveResponseFull.Click += new System.EventHandler(this.miFileSaveResponseFull_Click);
             // 
             // miFileSaveResponseBody
             // 
             this.miFileSaveResponseBody.Name = "miFileSaveResponseBody";
             this.miFileSaveResponseBody.Size = new System.Drawing.Size(175, 22);
-            this.miFileSaveResponseBody.Text = "R&esponse Body...";
+            this.miFileSaveResponseBody.Text = "Response &Body...";
             this.miFileSaveResponseBody.Click += new System.EventHandler(this.miFileSaveResponseBody_Click);
             // 
             // miFileImport

@@ -208,8 +208,8 @@ namespace Extensions
                             mime.OICEndsWith("+json") ||
                             (!xml && !text.TrimStart().StartsWith("<", StringComparison.Ordinal));
 
-                        // Google sends JSON as JavaScript with a preamble to prevent XSSI attacks. See https://docs.angularjs.org/api/ng/service/$http#cross-site-request-forgery-xsrf-protection
-                        if ((mime.OICEqualsAny("text/javascript", "application/javascript"))
+                        // Google and Microsoft send JSON as JavaScript with a preamble to prevent XSSI attacks. See https://docs.angularjs.org/api/ng/service/$http#cross-site-request-forgery-xsrf-protection
+                        if ((mime.OICEqualsAny("text/javascript", "application/javascript", "application/json"))
                             && text.StartsWith(")]}'"))
                         {
                             text = text.TrimStart().Substring(4);
