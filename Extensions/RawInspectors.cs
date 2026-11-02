@@ -37,6 +37,10 @@ namespace Extensions
             {
                 rqh.UriScheme = origin.TrimAfter(":");
             }
+            if (rqh.Exists("Content-Length"))  // TODO: Add an option to either always add a C-L, or fix it, or Leave it alone.
+            {
+                rqh["Content-Length"] = body.Length.ToString();
+            }
             xc.RequestHeaders = rqh;
             xc.RequestBody = body;
             return true;
@@ -119,6 +123,10 @@ namespace Extensions
             var (version, statusCode, statusText, headerList) = Parser.ParseResponseHeaders(sHeaderBlock);
             HTTPResponseHeaders resph = new HTTPResponseHeaders(statusCode, statusText, headerList);
             resph.HTTPVersion = version;
+            if (resph.Exists("Content-Length"))  // TODO: Add an option to either always add a C-L, or fix it, or Leave it alone.
+            {
+                resph["Content-Length"] = body.Length.ToString();
+            }
             xc.ResponseHeaders = resph;
             xc.ResponseBody = body;
             return true;
