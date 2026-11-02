@@ -2777,6 +2777,7 @@ namespace Clearinet
                     string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", "Any file|*.*", null, xc.SuggestedFilename).sFilename;
                     if (!sFilename.HasText()) return;
                     byte[] arrBody = xc.ResponseBody;
+                    // TODO: Should we warn if the response body is non-200 (specifically, a HTTP/206 partial response?)
                     if (xc.ResponseHeaders?.ExistsAny("Content-Encoding", "Transfer-Encoding") ?? false)
                     {
                         if (DialogResult.Yes == MessageBox.Show(CApp.UI, "Do you want to decode the response body before saving?", "Decode first?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question))

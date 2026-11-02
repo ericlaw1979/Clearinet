@@ -277,6 +277,56 @@ namespace Clearinet
             return false;
         }
 
+        /// <summary>
+        /// Returns a dotted extension for a media type; missing types use .txt and unknown types use .bin.
+        /// </summary>
+        public static string FileExtensionForMediaType(string sMediaType)
+        {
+            string sType = (sMediaType ?? string.Empty).TrimAfter(';').Trim().ToLowerInvariant();
+            switch (sType)
+            {
+                case "":
+                case "text/plain": return ".txt";
+                case "text/html": return ".html";
+                case "text/css": return ".css";
+                case "text/javascript":
+                case "application/javascript":
+                case "application/x-javascript": return ".js";
+                case "application/json": return ".json";
+                case "text/xml":
+                case "application/xml": return ".xml";
+                case "text/csv": return ".csv";
+                case "image/png": return ".png";
+                case "image/jpeg": return ".jpg";
+                case "image/gif": return ".gif";
+                case "image/bmp": return ".bmp";
+                case "image/webp": return ".webp";
+                case "image/avif": return ".avif";
+                case "image/jxl": return ".jxl";
+                case "image/svg+xml": return ".svg";
+                case "image/x-icon":
+                case "image/vnd.microsoft.icon": return ".ico";
+                case "image/tiff": return ".tiff";
+                case "application/pdf": return ".pdf";
+                case "application/zip": return ".zip";
+                case "application/x-zip-compressed+sessionarchive": return ".saz";
+                case "application/gzip": return ".gz";
+                case "application/bson": return ".bson";
+                case "application/wasm": return ".wasm";
+                case "audio/mpeg": return ".mp3";
+                case "audio/wav": return ".wav";
+                case "audio/ogg": return ".ogg";
+                case "video/mp4": return ".mp4";
+                case "video/webm": return ".webm";
+                case "font/woff": return ".woff";
+                case "font/woff2": return ".woff2";
+                default:
+                    if (sType.EndsWith("+json", StringComparison.Ordinal)) return ".json";
+                    if (sType.EndsWith("+xml", StringComparison.Ordinal)) return ".xml";
+                    return sType.StartsWith("text/", StringComparison.Ordinal) ? ".txt" : ".bin";
+            }
+        }
+
         public static string MediaTypeFromFilename(string filename)
         {
             if (!filename.HasText()) return "application/octet-stream";
@@ -563,7 +613,7 @@ namespace Clearinet
             return ObtainSaveFilenameAndType(sDialogTitle, sFilter, sInitialDirectory).sFilename;
         }
 
-        public static (string sFilename, int iChosenType) ObtainSaveFilenameAndType(string sDialogTitle, string sFilter, string sInitialDirectory = null)
+        public static (string sFilename, int iChosenType) ObtainSaveFilenameAndType(string sDialogTitle, string sFilter, string sInitialDirectory = null, string sSuggestedFilename = null)
         {
             string sFilename = null;
             int iChosenType = -1;
@@ -576,6 +626,10 @@ namespace Clearinet
                 {
                     oFileDialog.InitialDirectory = sInitialDirectory;
                     oFileDialog.RestoreDirectory = true;
+                }
+                if (!String.IsNullOrEmpty(sSuggestedFilename))
+                {
+                    oFileDialog.FileName = sSuggestedFilename;
                 }
 
                 if (DialogResult.OK == oFileDialog.ShowDialog(CApp.UI))

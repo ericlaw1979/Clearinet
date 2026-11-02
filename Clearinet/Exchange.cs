@@ -5,7 +5,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -27,6 +29,7 @@ namespace Clearinet
         private static Int64 __cTotalExchanges;
 
         private ExchangeState _state;
+        private bool _isCaptureFacade;
 
         // Having an "ID" is important to the user and simply indicate ordering, but they cause
         // lots of problems because they are basically unstable-- loading a SAZ file or importing
@@ -294,6 +297,86 @@ namespace Clearinet
             return false;
         }
 
+        /// <summary>
+        /// Suggests a Windows-safe response filename of at most 96 characters, using
+        /// Content-Disposition, the URL's final path segment, or the ID and media type.
+        /// </summary>
+        public string SuggestedFilename
+        {
+            get
+            {
+                string sFilename = null;
+                if (bHasResponse)
+                {
+                    if (ContentDispositionHeaderValue.TryParse(ResponseHeaders["Content-Disposition"], out var disposition))
+                    {
+                        sFilename = disposition.FileNameStar;
+                        if (string.IsNullOrEmpty(sFilename))
+                        {
+                            sFilename = disposition.FileName;
+                            if (sFilename != null && sFilename.StartsWith("\"", StringComparison.Ordinal))
+                            {
+                                sFilename = Regex.Replace(sFilename.Substring(1, sFilename.Length - 2), @"\\(.)", "$1");
+                            }
+                            if (sFilename != null && sFilename.Length >= 2 &&
+                                sFilename[0] == '\'' && sFilename[sFilename.Length - 1] == '\'')
+                            {
+                                sFilename = sFilename.Substring(1, sFilename.Length - 2);
+                            }
+                        }
+                    }
+                    if (string.IsNullOrEmpty(sFilename) &&
+                        Uri.TryCreate(fullUrl, UriKind.Absolute, out var uri) &&
+                        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                    {
+                        string sPath = uri.AbsolutePath;
+                        sFilename = Uri.UnescapeDataString(sPath.Substring(sPath.LastIndexOf('/') + 1));
+                    }
+                }
+                if (string.IsNullOrEmpty(sFilename))
+                {
+                    sFilename = $"{id}{(bHasResponse ? Utilities.FileExtensionForMediaType(MediaType) : ".txt")}";
+                }
+                return SanitizeSuggestedFilename(sFilename);
+            }
+        }
+
+        private static string SanitizeSuggestedFilename(string sFilename)
+        {
+            char[] invalid = Path.GetInvalidFileNameChars();
+            StringBuilder sb = new StringBuilder(sFilename.Length);
+            foreach (char c in sFilename)
+            {
+                sb.Append(Array.IndexOf(invalid, c) >= 0 ? '_' : c);
+            }
+            sFilename = sb.ToString();
+
+            string sBaseName = sFilename.TrimAfter('.').TrimEnd(' ');
+            bool bNumberedDevice = sBaseName.Length == 4 &&
+                (sBaseName.OICStartsWith("COM") || sBaseName.OICStartsWith("LPT")) &&
+                "123456789\u00b9\u00b2\u00b3".IndexOf(sBaseName[3]) >= 0;
+            if (bNumberedDevice || sBaseName.OICEqualsAny("CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"))
+            {
+                sFilename = "_" + sFilename;
+            }
+
+            if (sFilename.Length > 96)
+            {
+                int iDot = sFilename.LastIndexOf('.');
+                string sExtension = iDot > 0 && sFilename.Length - iDot < 96 ? sFilename.Substring(iDot) : string.Empty;
+                int cchStem = 96 - sExtension.Length;
+                if (char.IsHighSurrogate(sFilename[cchStem - 1])) --cchStem;
+                sFilename = sFilename.Substring(0, cchStem) + sExtension;
+            }
+
+            sb = new StringBuilder(sFilename);
+            for (int i = sb.Length - 1; i >= 0 && (sb[i] == '.' || sb[i] == ' '); --i)
+            {
+                sb[i] = '_';
+            }
+            return sb.ToString();
+        }
+
         public string hostname
         {
             get
@@ -344,6 +427,11 @@ namespace Clearinet
                     Trace.WriteLine($"Exchange #{_id} state changed from {statePrior} to {_state}");
                 }
                 OnStateChanged?.Invoke(this, new StateChangeEventArgs(statePrior, _state));
+                if (_isCaptureFacade && _state != value)
+                {
+                    CApp.UI?.UpdateViewItem(this);
+                    return;
+                }
 
                 /* TODO: Full state machine goes in here!!! We need to rewrite this to ASYNC */
                 switch (_state)
@@ -358,7 +446,7 @@ namespace Clearinet
                         break;
 
                     case ExchangeState.HandTamperRequest:
-                        if (!oFlags.ContainsKey("x-breakrequest")) ++state;
+                        if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakrequest")) ++state;
                         else
                         {
                             CApp.UI.actFlashWindow(); // TODO: We should also pop a tooltip if the app is minimized to the tray.
@@ -378,15 +466,18 @@ namespace Clearinet
                             doReplaceResponseWithFile();
                         }
 
-                        ++state;        // BUGBUG: The event handler may've advanced the state machine itself. We should only advance if that hasn't happened.
+                        if (!_isCaptureFacade || _state == value) ++state;
                         break;
 
                     case ExchangeState.SendingRequest:
-                        Task.Run(async () =>
+                        if (!_isCaptureFacade)
                         {
-                            await new HTTPClientBridge().SendAndReceiveRawAsync(this);
-                            ++state;
-                        });
+                            Task.Run(async () =>
+                            {
+                                await new HTTPClientBridge().SendAndReceiveRawAsync(this);
+                                ++state;
+                            });
+                        }
                         break;
                     case ExchangeState.AutoTamperResponseBefore:
                         if (null != this["X-ReplyWithFile"])
@@ -399,10 +490,10 @@ namespace Clearinet
                         {
                             CApp.UI.UpdateViewItem(this);
                         });
-                        ++state;        // BUGBUG: The event handler may've advanced the state machine itself. We should only advance if that hasn't happened.
+                        if (!_isCaptureFacade) ++state;
                         break;
                     case ExchangeState.HandTamperResponse:
-                        if (!oFlags.ContainsKey("x-breakresponse"))
+                        if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakresponse"))
                         {
                             ++state;
                         }
@@ -535,7 +626,9 @@ namespace Clearinet
             return DecodeBodyFromHeaders(ResponseHeaders, ResponseBody);
         }
 
-        public static byte[] DecodeBodyFromHeaders(HTTPHeaders headers, byte[] bodyBytes)
+        // TODO: Move this somewhere sane. But that'll entail moving GetEncodingTokens, etc.
+        // Return a decoded body given a set of headers.
+        public static byte[] DecodeBodyFromHeaders(in HTTPHeaders headers, in byte[] bodyBytes)
         {
             byte[] decoded = bodyBytes ?? Array.Empty<byte>();
             if (headers == null || !decoded.HasData()) return decoded;
@@ -833,15 +926,30 @@ namespace Clearinet
         public void UpdateFromCapture(HTTPRequestHeaders request, byte[] requestBody,
             HTTPResponseHeaders response, byte[] responseBody, ExchangeFlags flags, ExchangeState capturedState)
         {
+            UpdateFromCapture(request, requestBody, response, responseBody, flags, capturedState, false);
+        }
+
+        /// <summary>
+        /// Updates an externally driven exchange, optionally running state callbacks and tampering hooks.
+        /// The capture engine remains responsible for network I/O. Call on the UI thread.
+        /// </summary>
+        public void UpdateFromCapture(HTTPRequestHeaders request, byte[] requestBody,
+            HTTPResponseHeaders response, byte[] responseBody, ExchangeFlags flags, ExchangeState capturedState,
+            bool notifyStateChanged)
+        {
             if (!Enum.IsDefined(typeof(ExchangeState), capturedState))
                 throw new ArgumentOutOfRangeException(nameof(capturedState));
             EnsureID();
+            _isCaptureFacade = true;
             RequestHeaders = request ?? throw new ArgumentNullException(nameof(request));
             RequestBody = requestBody ?? Array.Empty<byte>();
             ResponseHeaders = response;
             ResponseBody = responseBody ?? Array.Empty<byte>();
             BitFlags = flags;
-            _state = capturedState;
+            if (notifyStateChanged)
+                state = capturedState;
+            else
+                _state = capturedState;
             CApp.UI?.UpdateViewItem(this);
         }
 
