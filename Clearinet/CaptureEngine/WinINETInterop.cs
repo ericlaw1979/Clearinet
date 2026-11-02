@@ -102,6 +102,13 @@ namespace Clearinet.CaptureEngine
         internal static string CaptureCurrentProxySettings()
         {
             ProxySettingsSnapshot snapshot = QueryCurrentSettings();
+            CApp.Log.LogFormat(
+                "Captured current proxy settings:\nFlagsUi={0}, AutoDiscoveryFlags={1}, ProxyServer='{2}'\n\tProxyBypass='{3}', AutoConfigUrl='{4}'",
+                snapshot.FlagsUi,
+                snapshot.AutoDiscoveryFlags,
+                FormatForLog(snapshot.ProxyServer),
+                FormatForLog(snapshot.ProxyBypass),
+                FormatForLog(snapshot.AutoConfigUrl));
             return SerializeSnapshot(snapshot);
         }
 
@@ -146,7 +153,7 @@ namespace Clearinet.CaptureEngine
             ProxySettingsSnapshot snapshot = DeserializeSnapshot(serializedSettings);
 
             CApp.Log.LogFormat(
-                "[WinINETInterop] Restoring proxy settings to: FlagsUi={0}, AutoDiscoveryFlags={1}, ProxyServer='{2}'\n\tProxyBypass='{3}', AutoConfigUrl='{4}'",
+                "Restoring proxy settings to:\nFlagsUi={0}, AutoDiscoveryFlags={1}, ProxyServer='{2}'\n\tProxyBypass='{3}', AutoConfigUrl='{4}'",
                 snapshot.FlagsUi,
                 snapshot.AutoDiscoveryFlags,
                 FormatForLog(snapshot.ProxyServer),
