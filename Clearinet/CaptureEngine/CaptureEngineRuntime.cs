@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -101,9 +102,14 @@ namespace Clearinet.CaptureEngine
                 if (IsRunning) return;
 
                 _cts = new CancellationTokenSource();
-                //_listener = new TcpListener(_options.ListenAddress, _options.ListenPort);
-                _listener = TcpListener.Create(_options.ListenPort);
-                //_listener.Server.DualMode = _options.ListenAddress.Equals(IPAddress.IPv6Any);
+
+                // ISSUE: we need to respect options for IPv6 and AllowRemote here.
+
+                _listener = new TcpListener(_options.ListenAddress, _options.ListenPort);
+                if (_listener.Server.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    _listener.Server.DualMode = _options.ListenAddress.Equals(IPAddress.IPv6Any);
+                }
                 _listener.Start();
 
                 IsRunning = true;
@@ -185,13 +191,14 @@ namespace Clearinet.CaptureEngine
                 {
                     try
                     {
-                        byte[] requestBytes = await ReadRequestHeaderBytesAsync(stream, token).ConfigureAwait(false);
-                        if (requestBytes == null || requestBytes.Length == 0)
+                        var requestData = await ReadHttpRequestAsync(stream, token).ConfigureAwait(false);
+                        if (requestData.requestHeaders == null)
                         {
+                            AbortWithRst(client);
                             return;
                         }
 
-                        Exchange exchange = BuildExchange(requestBytes, context);
+                        Exchange exchange = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
                         context.Exchange = exchange;
                         PublishExchange(exchange);
 
@@ -205,7 +212,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task<byte[]> ReadRequestHeaderBytesAsync(NetworkStream stream, CancellationToken token)
+        private static async Task<(HTTPRequestHeaders requestHeaders, byte[] requestBody)> ReadHttpRequestAsync(NetworkStream stream, CancellationToken token)
         {
             byte[] readBuffer = new byte[4096];
             using (MemoryStream ms = new MemoryStream())
@@ -224,7 +231,45 @@ namespace Clearinet.CaptureEngine
                     {
                         byte[] headersOnly = new byte[ixBody];
                         Buffer.BlockCopy(current, 0, headersOnly, 0, ixBody);
-                        return headersOnly;
+
+                        int initialBodyLength = current.Length - ixBody;
+                        byte[] bodySoFar = initialBodyLength > 0 ? new byte[initialBodyLength] : Array.Empty<byte>();
+                        if (initialBodyLength > 0)
+                        {
+                            Buffer.BlockCopy(current, ixBody, bodySoFar, 0, initialBodyLength);
+                        }
+
+                        string requestHeaderText = CONFIG.encodingOfHeaders.GetString(headersOnly);
+                        var (method, path, version, headerLines, origin) = Parser.ParseRequestHeaders(requestHeaderText);
+                        HTTPRequestHeaders parsedHeaders = new HTTPRequestHeaders(path, headerLines)
+                        {
+                            HTTPMethod = method,
+                            HTTPVersion = version
+                        };
+
+                        if (origin.HasText() && origin.Contains(":"))
+                        {
+                            parsedHeaders.UriScheme = origin.TrimAfter(":");
+                        }
+
+                        if (parsedHeaders.ExistsAndContains("Transfer-Encoding", "chunked"))
+                        {
+                            bodySoFar = await ReadChunkedBodyToEndAsync(stream, bodySoFar, parsedHeaders, token).ConfigureAwait(false);
+                        }
+                        else if (int.TryParse(parsedHeaders["Content-Length"], NumberStyles.Integer, CultureInfo.InvariantCulture, out int contentLength) &&
+                                 contentLength > bodySoFar.Length)
+                        {
+                            bodySoFar = await ReadRemainingBodyAsync(stream, bodySoFar, contentLength, token).ConfigureAwait(false);
+                        }
+                        else if (int.TryParse(parsedHeaders["Content-Length"], NumberStyles.Integer, CultureInfo.InvariantCulture, out contentLength) &&
+                                 contentLength >= 0 && bodySoFar.Length > contentLength)
+                        {
+                            byte[] trimmed = new byte[contentLength];
+                            Buffer.BlockCopy(bodySoFar, 0, trimmed, 0, contentLength);
+                            bodySoFar = trimmed;
+                        }
+
+                        return (parsedHeaders, bodySoFar);
                     }
 
                     if (endedWith == Parser.HeadersEndedWith.Oversized)
@@ -233,31 +278,171 @@ namespace Clearinet.CaptureEngine
                     }
                 }
 
-                return ms.ToArray();
+                return (null, Array.Empty<byte>());
             }
         }
 
-        private static Exchange BuildExchange(byte[] requestHeaderBytes, CaptureConnectionContext context)
+        private static async Task<byte[]> ReadRemainingBodyAsync(NetworkStream stream, byte[] bodySoFar, int expectedLength, CancellationToken token)
         {
-            string requestText = CONFIG.encodingOfHeaders.GetString(requestHeaderBytes);
-            var (method, path, version, headerLines, origin) = Parser.ParseRequestHeaders(requestText);
-
-            HTTPRequestHeaders headers = new HTTPRequestHeaders(path, headerLines)
+            using (MemoryStream body = new MemoryStream(expectedLength))
             {
-                HTTPMethod = method,
-                HTTPVersion = version
-            };
-
-            if (origin.HasText() && origin.Contains(":"))
-            {
-                headers.UriScheme = origin.TrimAfter(":");
-                if (!headers.Exists("Host"))
+                if (bodySoFar.Length > 0)
                 {
-                    headers["Host"] = origin.TrimBefore("://");
+                    body.Write(bodySoFar, 0, bodySoFar.Length);
                 }
+
+                byte[] buffer = new byte[4096];
+                while (body.Length < expectedLength)
+                {
+                    int toRead = (int)Math.Min(buffer.Length, expectedLength - body.Length);
+                    int read = await stream.ReadAsync(buffer, 0, toRead, token).ConfigureAwait(false);
+                    if (read <= 0) break;
+                    body.Write(buffer, 0, read);
+                }
+
+                return body.ToArray();
+            }
+        }
+
+        private static async Task<byte[]> ReadChunkedBodyToEndAsync(NetworkStream stream, byte[] bodySoFar, HTTPRequestHeaders headers, CancellationToken token)
+        {
+            using (MemoryStream buffered = new MemoryStream())
+            {
+                if (bodySoFar.Length > 0)
+                {
+                    buffered.Write(bodySoFar, 0, bodySoFar.Length);
+                }
+
+                OffsetCursor cursor = new OffsetCursor();
+                while (true)
+                {
+                    string sizeLine = await ReadAsciiLineAsync(stream, buffered, cursor, token).ConfigureAwait(false);
+                    if (sizeLine == null)
+                    {
+                        throw new InvalidDataException("Unexpected EOF reading chunk size.");
+                    }
+
+                    string sizeToken = sizeLine.Trim();
+                    int ixExt = sizeToken.IndexOf(';');
+                    if (ixExt >= 0)
+                    {
+                        sizeToken = sizeToken.Substring(0, ixExt);
+                    }
+
+                    if (!int.TryParse(sizeToken, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int chunkSize) || chunkSize < 0)
+                    {
+                        throw new InvalidDataException("Invalid chunk size line: " + sizeLine);
+                    }
+
+                    if (chunkSize == 0)
+                    {
+                        await ReadAndApplyTrailerHeadersAsync(stream, buffered, cursor, headers, token).ConfigureAwait(false);
+                        break;
+                    }
+
+                    await ReadExactlyAsync(stream, buffered, cursor, chunkSize, token).ConfigureAwait(false);
+                    await ConsumeChunkTerminatorAsync(stream, buffered, cursor, token).ConfigureAwait(false);
+                }
+
+                byte[] rawChunkedBody = new byte[cursor.Value];
+                Buffer.BlockCopy(buffered.GetBuffer(), 0, rawChunkedBody, 0, cursor.Value);
+                return rawChunkedBody;
+            }
+        }
+
+        private static async Task ReadAndApplyTrailerHeadersAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor,
+            HTTPRequestHeaders headers, CancellationToken token)
+        {
+            while (true)
+            {
+                string trailerLine = await ReadAsciiLineAsync(stream, buffered, cursor, token).ConfigureAwait(false);
+                if (trailerLine == null) throw new InvalidDataException("Unexpected EOF reading chunked trailer headers.");
+                if (trailerLine.Length == 0) return;
+
+                int ixColon = trailerLine.IndexOf(':');
+                if (ixColon <= 0) continue;
+                headers.Add(trailerLine.Substring(0, ixColon), trailerLine.Substring(ixColon + 1).TrimStart(' ', '\t'));
+            }
+        }
+
+        private static async Task ConsumeChunkTerminatorAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
+        {
+            int b1 = await ReadByteAsync(stream, buffered, cursor, token).ConfigureAwait(false);
+            if (b1 < 0) throw new InvalidDataException("Unexpected EOF after chunk payload.");
+
+            if (b1 == '\r')
+            {
+                int b2 = await ReadByteAsync(stream, buffered, cursor, token).ConfigureAwait(false);
+                if (b2 != '\n') throw new InvalidDataException("Invalid chunk payload terminator.");
+                return;
             }
 
-            Exchange xc = new Exchange(headers, Array.Empty<byte>());
+            if (b1 == '\n')
+            {
+                return;
+            }
+
+            throw new InvalidDataException("Invalid chunk payload terminator.");
+        }
+
+        private static async Task ReadExactlyAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor,
+            int byteCount, CancellationToken token)
+        {
+            for (int i = 0; i < byteCount; i++)
+            {
+                int b = await ReadByteAsync(stream, buffered, cursor, token).ConfigureAwait(false);
+                if (b < 0) throw new InvalidDataException("Unexpected EOF inside chunk payload.");
+            }
+        }
+
+        private static async Task<string> ReadAsciiLineAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
+        {
+            using (MemoryStream line = new MemoryStream())
+            {
+                while (true)
+                {
+                    int b = await ReadByteAsync(stream, buffered, cursor, token).ConfigureAwait(false);
+                    if (b < 0)
+                    {
+                        if (line.Length == 0) return null;
+                        break;
+                    }
+
+                    if (b == '\n') break;
+                    if (b != '\r') line.WriteByte((byte)b);
+                }
+
+                return Encoding.ASCII.GetString(line.ToArray());
+            }
+        }
+
+        private static async Task<int> ReadByteAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
+        {
+            if (cursor.Value >= buffered.Length)
+            {
+                byte[] temp = new byte[4096];
+                int read = await stream.ReadAsync(temp, 0, temp.Length, token).ConfigureAwait(false);
+                if (read <= 0) return -1;
+                buffered.Position = buffered.Length;
+                buffered.Write(temp, 0, read);
+            }
+
+            byte[] data = buffered.GetBuffer();
+            return data[cursor.Value++];
+        }
+
+        private sealed class OffsetCursor
+        {
+            internal int Value;
+        }
+
+        private static Exchange BuildExchange(HTTPRequestHeaders headers, byte[] requestBodyBytes, CaptureConnectionContext context)
+        {
+            if (headers == null) throw new ArgumentNullException(nameof(headers));
+
+            string method = headers.HTTPMethod ?? string.Empty;
+
+            Exchange xc = new Exchange(headers, requestBodyBytes ?? Array.Empty<byte>());
             xc.EnsureID();
             xc.state = ExchangeState.ReadingRequest;
             xc.Timers.ClientConnected = DateTime.Now;
@@ -305,6 +490,28 @@ namespace Clearinet.CaptureEngine
             byte[] bytes = Encoding.ASCII.GetBytes(responseText);
             await stream.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
             await stream.FlushAsync(token).ConfigureAwait(false);
+        }
+
+        private static void AbortWithRst(TcpClient client)
+        {
+            if (client == null) return;
+            try
+            {
+                client.Client.LingerState = new LingerOption(true, 0);
+                try
+                {
+                    client.Client.Shutdown(SocketShutdown.Both);
+                }
+                catch
+                {
+                    // Ignore shutdown failures; close still tears down the socket.
+                }
+                client.Close();
+            }
+            catch
+            {
+                // Ignore and fall back to normal close by caller disposal.
+            }
         }
     }
 }
