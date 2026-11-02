@@ -189,7 +189,9 @@ class Handlers
         // XC["x-replywithfile"] = "C:\\temp\\foo.html";
         XC["ui-backcolor"] = "LimeGreen";
         
-        if ((null!=bpRequestURL) && XC.urlContains(bpRequestURL)) {
+        // Break if the request's URL contains the string we said to break on...
+        if ((null != bpRequestURL) && !XC.HTTPMethodIs("CONNECT") 
+            && XC.urlContains(bpRequestURL)) {
             XC["x-breakrequest"]="rules>bpu";
         }
         

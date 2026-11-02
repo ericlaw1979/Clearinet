@@ -29,7 +29,7 @@ namespace Clearinet
         private static Int64 __cTotalExchanges;
 
         private ExchangeState _state;
-        private bool _isCaptureFacade;
+        private bool _isCaptureFacade;  // Is this Exchange a "facade" for a FiddlerCore session running in a proxy extension?
 
         // Having an "ID" is important to the user and simply indicate ordering, but they cause
         // lots of problems because they are basically unstable-- loading a SAZ file or importing
@@ -443,15 +443,20 @@ namespace Clearinet
                         {
                             CApp.UI.UpdateViewItem(this);
                         });
+
+                        if (!_isCaptureFacade && _state == ExchangeState.AutoTamperRequestBefore) ++state;
                         break;
 
                     case ExchangeState.HandTamperRequest:
-                        if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakrequest")) ++state;
+                        if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakrequest"))
+                        {
+                            ++state;
+                        }
                         else
                         {
-                            CApp.UI.actFlashWindow(); // TODO: We should also pop a tooltip if the app is minimized to the tray.
                             CApp.UIInvokeAsync(() =>
                             {
+                                CApp.UI.actFlashWindow(); // TODO: We should also pop a tooltip if the app is minimized to the tray.
                                 CApp.UI.UpdateViewItem(this);
                             });
 
@@ -499,9 +504,9 @@ namespace Clearinet
                         }
                         else
                         {
-                            CApp.UI.actFlashWindow(); // TODO: We should also pop a tooltip if the app is minimized to the tray.
                             CApp.UIInvokeAsync(() =>
                             {
+                                CApp.UI.actFlashWindow(); // TODO: We should also pop a tooltip if the app is minimized to the tray.
                                 CApp.UI.UpdateViewItem(this);
                             });
                             // We do not advance the state ourselves, the user will do it
