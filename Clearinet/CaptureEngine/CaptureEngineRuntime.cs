@@ -2,7 +2,10 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,6 +85,7 @@ namespace Clearinet.CaptureEngine
 
         private readonly CaptureEngineOptions _options;
         private readonly MapSocketToProcess _mapper;
+        private readonly ICertificateProvider _certificateProvider;
         private readonly object _syncRoot = new object();
         private CancellationTokenSource _cts;
         private TcpListener _listener;
@@ -91,6 +95,7 @@ namespace Clearinet.CaptureEngine
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _certificateProvider = new CertEnrollCertificateProvider();
         }
 
         public bool IsRunning { get; private set; }
@@ -214,6 +219,8 @@ namespace Clearinet.CaptureEngine
                             if (shouldDecrypt)
                             {
                                 exchange["x-connect-decrypt-eligible"] = "true";
+                                await HandleMitmConnectTunnelAsync(exchange, client, stream, token).ConfigureAwait(false);
+                                return;
                             }
 
                             await HandleBlindConnectTunnelAsync(exchange, client, stream, token).ConfigureAwait(false);
@@ -230,7 +237,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task<(HTTPRequestHeaders requestHeaders, byte[] requestBody)> ReadHttpRequestAsync(NetworkStream stream, CancellationToken token)
+        private static async Task<(HTTPRequestHeaders requestHeaders, byte[] requestBody)> ReadHttpRequestAsync(Stream stream, CancellationToken token)
         {
             byte[] readBuffer = new byte[4096];
             using (MemoryStream ms = new MemoryStream())
@@ -300,7 +307,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task<byte[]> ReadRemainingBodyAsync(NetworkStream stream, byte[] bodySoFar, int expectedLength, CancellationToken token)
+        private static async Task<byte[]> ReadRemainingBodyAsync(Stream stream, byte[] bodySoFar, int expectedLength, CancellationToken token)
         {
             using (MemoryStream body = new MemoryStream(expectedLength))
             {
@@ -322,7 +329,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task<byte[]> ReadChunkedBodyToEndAsync(NetworkStream stream, byte[] bodySoFar, HTTPRequestHeaders headers, CancellationToken token)
+        private static async Task<byte[]> ReadChunkedBodyToEndAsync(Stream stream, byte[] bodySoFar, HTTPRequestHeaders headers, CancellationToken token)
         {
             using (MemoryStream buffered = new MemoryStream())
             {
@@ -368,7 +375,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task ReadAndApplyTrailerHeadersAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor,
+        private static async Task ReadAndApplyTrailerHeadersAsync(Stream stream, MemoryStream buffered, OffsetCursor cursor,
             HTTPRequestHeaders headers, CancellationToken token)
         {
             while (true)
@@ -383,7 +390,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task ConsumeChunkTerminatorAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
+        private static async Task ConsumeChunkTerminatorAsync(Stream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
         {
             int b1 = await ReadByteAsync(stream, buffered, cursor, token).ConfigureAwait(false);
             if (b1 < 0) throw new InvalidDataException("Unexpected EOF after chunk payload.");
@@ -403,7 +410,7 @@ namespace Clearinet.CaptureEngine
             throw new InvalidDataException("Invalid chunk payload terminator.");
         }
 
-        private static async Task ReadExactlyAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor,
+        private static async Task ReadExactlyAsync(Stream stream, MemoryStream buffered, OffsetCursor cursor,
             int byteCount, CancellationToken token)
         {
             for (int i = 0; i < byteCount; i++)
@@ -413,7 +420,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task<string> ReadAsciiLineAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
+        private static async Task<string> ReadAsciiLineAsync(Stream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
         {
             using (MemoryStream line = new MemoryStream())
             {
@@ -434,7 +441,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task<int> ReadByteAsync(NetworkStream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
+        private static async Task<int> ReadByteAsync(Stream stream, MemoryStream buffered, OffsetCursor cursor, CancellationToken token)
         {
             if (cursor.Value >= buffered.Length)
             {
@@ -543,6 +550,103 @@ namespace Clearinet.CaptureEngine
             PublishExchange(exchange);
         }
 
+        private async Task HandleMitmConnectTunnelAsync(Exchange exchange, TcpClient client, NetworkStream clientStream, CancellationToken token)
+        {
+            if (exchange == null) throw new ArgumentNullException(nameof(exchange));
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
+
+            if (!TryGetConnectTarget(exchange, out string host, out int port))
+            {
+                exchange.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
+                {
+                    "Content-Type: text/plain; charset=utf-8",
+                    "Connection: close"
+                });
+                exchange.utilSetResponseBody("CONNECT target must be in host:port form.");
+                exchange.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+                await WriteExchangeResponseToClientAsync(exchange, clientStream, token).ConfigureAwait(false);
+                exchange.state = ExchangeState.Done;
+                PublishExchange(exchange);
+                return;
+            }
+
+            _certificateProvider.EnsureRootTrust();
+            X509Certificate2 leaf = _certificateProvider.GetCertificateForHost(host);
+
+            using (TcpClient upstream = new TcpClient())
+            {
+                upstream.NoDelay = true;
+                await upstream.ConnectAsync(host, port).ConfigureAwait(false);
+                exchange.Timers.ServerConnected = DateTime.Now;
+
+                exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Connection Established", new[]
+                {
+                    "Connection: keep-alive"
+                });
+                exchange.Timers.ClientBeginResponse = DateTime.Now;
+                byte[] established = exchange.ResponseHeaders.ToByteArray();
+                await clientStream.WriteAsync(established, 0, established.Length, token).ConfigureAwait(false);
+                await clientStream.FlushAsync(token).ConfigureAwait(false);
+
+                using (NetworkStream upstreamTcp = upstream.GetStream())
+                using (SslStream clientTls = new SslStream(clientStream, false))
+                using (SslStream serverTls = new SslStream(upstreamTcp, false, (_, __, ___, ____) => true))
+                {
+                    clientTls.AuthenticateAsServer(leaf, false,
+                        SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
+                    serverTls.AuthenticateAsClient(host);
+
+                    while (!token.IsCancellationRequested)
+                    {
+                        var tunneledRequest = await ReadHttpRequestAsync(clientTls, token).ConfigureAwait(false);
+                        if (tunneledRequest.requestHeaders == null) break;
+
+                        tunneledRequest.requestHeaders.UriScheme = "https";
+                        if (!tunneledRequest.requestHeaders.Exists("Host"))
+                        {
+                            tunneledRequest.requestHeaders["Host"] = port == 443 ? host : host + ":" + port;
+                        }
+
+                        Exchange inner = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody,
+                            new CaptureConnectionContext(client.Client) { LocalProcessDescriptor = exchange["x-processinfo"] });
+                        inner.SetBitFlag(ExchangeFlags.IsDecryptingTunnel);
+                        inner.SetBitFlag(ExchangeFlags.IsHTTPS);
+
+                        inner.state = ExchangeState.AutoTamperRequestBefore;
+
+                        await WriteHttpRequestAsync(serverTls, inner.RequestHeaders, inner.RequestBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+
+                        var upstreamResponse = await ReadHttpResponseAsync(serverTls, token).ConfigureAwait(false);
+                        if (upstreamResponse.responseHeaders == null)
+                        {
+                            break;
+                        }
+
+                        inner.ResponseHeaders = upstreamResponse.responseHeaders;
+                        inner.ResponseBody = upstreamResponse.responseBody;
+                        inner.state = ExchangeState.AutoTamperResponseBefore;
+
+                        await WriteHttpResponseAsync(clientTls, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+
+                        inner.Timers.ClientDoneResponse = DateTime.Now;
+                        inner.state = ExchangeState.Done;
+                        PublishExchange(inner);
+
+                        if (inner.RequestHeaders.ExistsAndContains("Connection", "close") ||
+                            inner.ResponseHeaders.ExistsAndContains("Connection", "close"))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            exchange.Timers.ClientDoneResponse = DateTime.Now;
+            exchange.state = ExchangeState.Done;
+            PublishExchange(exchange);
+        }
+
         private static async Task HandleBlindConnectTunnelAsync(Exchange exchange, TcpClient client, NetworkStream clientStream, CancellationToken token)
         {
             if (exchange == null) throw new ArgumentNullException(nameof(exchange));
@@ -613,6 +717,98 @@ namespace Clearinet.CaptureEngine
 
             await clientStream.FlushAsync(token).ConfigureAwait(false);
             exchange.Timers.ClientDoneResponse = DateTime.Now;
+        }
+
+        private static async Task WriteHttpRequestAsync(Stream stream, HTTPRequestHeaders headers, byte[] body, CancellationToken token)
+        {
+            byte[] headerBytes = headers.ToByteArray(false);
+            await stream.WriteAsync(headerBytes, 0, headerBytes.Length, token).ConfigureAwait(false);
+            if (body != null && body.Length > 0)
+            {
+                await stream.WriteAsync(body, 0, body.Length, token).ConfigureAwait(false);
+            }
+            await stream.FlushAsync(token).ConfigureAwait(false);
+        }
+
+        private static async Task WriteHttpResponseAsync(Stream stream, HTTPResponseHeaders headers, byte[] body, CancellationToken token)
+        {
+            byte[] headerBytes = headers.ToByteArray();
+            await stream.WriteAsync(headerBytes, 0, headerBytes.Length, token).ConfigureAwait(false);
+            if (body != null && body.Length > 0)
+            {
+                await stream.WriteAsync(body, 0, body.Length, token).ConfigureAwait(false);
+            }
+            await stream.FlushAsync(token).ConfigureAwait(false);
+        }
+
+        private static async Task<(HTTPResponseHeaders responseHeaders, byte[] responseBody)> ReadHttpResponseAsync(Stream stream, CancellationToken token)
+        {
+            byte[] readBuffer = new byte[4096];
+            using (MemoryStream ms = new MemoryStream())
+            {
+                while (ms.Length < MaxHeaderBytes)
+                {
+                    int bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length, token).ConfigureAwait(false);
+                    if (bytesRead <= 0) break;
+
+                    ms.Write(readBuffer, 0, bytesRead);
+                    byte[] current = ms.ToArray();
+                    var (ixBody, endedWith) = Parser.FindHTTPBodyStart(current, MaxHeaderBytes);
+                    if (endedWith == Parser.HeadersEndedWith.CRLFCRLF ||
+                        endedWith == Parser.HeadersEndedWith.LFCRLF ||
+                        endedWith == Parser.HeadersEndedWith.LFLF)
+                    {
+                        byte[] headersOnly = new byte[ixBody];
+                        Buffer.BlockCopy(current, 0, headersOnly, 0, ixBody);
+
+                        int initialBodyLength = current.Length - ixBody;
+                        byte[] bodySoFar = initialBodyLength > 0 ? new byte[initialBodyLength] : Array.Empty<byte>();
+                        if (initialBodyLength > 0)
+                        {
+                            Buffer.BlockCopy(current, ixBody, bodySoFar, 0, initialBodyLength);
+                        }
+
+                        string responseHeaderText = CONFIG.encodingOfHeaders.GetString(headersOnly);
+                        var (version, statusCode, statusText, headerLines) = Parser.ParseResponseHeaders(responseHeaderText);
+                        HTTPResponseHeaders responseHeaders = new HTTPResponseHeaders(statusCode, statusText, headerLines)
+                        {
+                            HTTPVersion = version
+                        };
+
+                        if (responseHeaders.ExistsAndContains("Transfer-Encoding", "chunked"))
+                        {
+                            bodySoFar = await ReadChunkedBodyToEndAsync(stream, bodySoFar,
+                                BuildDummyRequestHeadersForTrailers(), token).ConfigureAwait(false);
+                        }
+                        else if (int.TryParse(responseHeaders["Content-Length"], NumberStyles.Integer,
+                                     CultureInfo.InvariantCulture, out int contentLength) && contentLength > bodySoFar.Length)
+                        {
+                            bodySoFar = await ReadRemainingBodyAsync(stream, bodySoFar, contentLength, token).ConfigureAwait(false);
+                        }
+                        else if (int.TryParse(responseHeaders["Content-Length"], NumberStyles.Integer,
+                                     CultureInfo.InvariantCulture, out contentLength) && contentLength >= 0 && bodySoFar.Length > contentLength)
+                        {
+                            byte[] trimmed = new byte[contentLength];
+                            Buffer.BlockCopy(bodySoFar, 0, trimmed, 0, contentLength);
+                            bodySoFar = trimmed;
+                        }
+
+                        return (responseHeaders, bodySoFar);
+                    }
+
+                    if (endedWith == Parser.HeadersEndedWith.Oversized)
+                    {
+                        throw new InvalidDataException("Response headers exceeded maximum allowed size.");
+                    }
+                }
+            }
+
+            return (null, Array.Empty<byte>());
+        }
+
+        private static HTTPRequestHeaders BuildDummyRequestHeadersForTrailers()
+        {
+            return new HTTPRequestHeaders("/", null) { HTTPMethod = "GET", HTTPVersion = "HTTP/1.1" };
         }
 
         private static bool TryGetConnectTarget(Exchange exchange, out string host, out int port)
