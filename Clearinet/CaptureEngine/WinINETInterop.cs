@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Clearinet
+namespace Clearinet.CaptureEngine
 {
     /// <summary>
     /// WinINET interop used to read and modify per-connection proxy settings.

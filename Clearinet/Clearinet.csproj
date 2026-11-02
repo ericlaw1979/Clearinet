@@ -104,7 +104,7 @@
     <Compile Include="ExtensionMethods\ByteArrayExtensions.cs" />
     <Compile Include="CApp.cs" />
     <Compile Include="CONFIG.cs" />
-    <Compile Include="WinINETInterop.cs" />
+    <Compile Include="CaptureEngine\WinINETInterop.cs" />
     <Compile Include="Exchange.cs" />
     <Compile Include="ExchangeEnums.cs" />
     <Compile Include="ExchangeTimers.cs" />
@@ -294,3 +294,4 @@
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
+

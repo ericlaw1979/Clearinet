@@ -25,7 +25,7 @@ namespace TestExtensions
 
         public static void Run()
         {
-            Type interopType = typeof(Clearinet.CONFIG).Assembly.GetType("Clearinet.WinINETInterop", true);
+            Type interopType = typeof(Clearinet.CONFIG).Assembly.GetType("Clearinet.CaptureEngine.WinINETInterop", true);
             Check(interopType != null, "WinINETInterop type exists");
 
             MethodInfo setProxy = interopType.GetMethod("SetProxyForClearinet", BindingFlags.Static | BindingFlags.NonPublic);
