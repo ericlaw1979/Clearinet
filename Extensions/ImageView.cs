@@ -13,7 +13,7 @@ namespace Extensions
             pbImage.MouseDoubleClick += pbImage_MouseDoubleClick;
             try
             {
-                cbxSizing.SelectedIndex = CApp.Prefs.GetInt32Pref("inspectors.ImageView.SizeMode", 0);
+                cbxSizing.SelectedIndex = CApp.Prefs.GetInt32Pref("inspectors.ImageView.SizeMode");
             }
             catch (Exception) { Debug.Assert(false, "Invalid scale"); }
         }
