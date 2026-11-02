@@ -29,9 +29,9 @@ namespace Clearinet
                     CApp.UI.SetStatusText($"Please wait for the operation ('{OperationName}') to complete before exiting.");
                     e.Cancel = true;
                 };
-                //                Stopwatch oSW = Stopwatch.StartNew();
+                //  Stopwatch oSW = Stopwatch.StartNew();
                 PlatformAPI.PreventSleep(keepDisplayOn: false);
-                //                Trace.WriteLine($"LongRunningOperation calling PreventSleep took {oSW.ElapsedMilliseconds}ms.");
+                //  Trace.WriteLine($"LongRunningOperation calling PreventSleep took {oSW.ElapsedMilliseconds}ms.");
 
                 CApp.UI.OnWindowsQueryShutdown += BlockWinShutdown;
                 CApp.BeforeAppShutdown += ceh;

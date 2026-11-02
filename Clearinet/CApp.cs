@@ -310,10 +310,12 @@ namespace Clearinet
                 var thread = new Thread(() =>
                 {
                     var sName = (arrParams.Length > 1) ? arrParams[1] : "Test LRO";
+                    int iStepCount = 10;
+                    if (arrParams.Length > 2) Int32.TryParse(arrParams[2], out iStepCount);
                     var lro = new LongRunningOperation(sName, true);
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < iStepCount; i++)
                     {
-                        lro.UpdateProgress((i + 1) * 10, $"Step {i + 1} of 10");
+                        lro.UpdateProgress((i + 1) * 100 / iStepCount, $"Step {i + 1} of {iStepCount}");
                         Thread.Sleep(1000);
                     }
                     lro.Dispose();
