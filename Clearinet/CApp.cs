@@ -679,7 +679,17 @@ namespace Clearinet
             {
                 CancelEventArgs e = new CancelEventArgs(false);
                 evtBeforeShutdown(null, e);
-                if (e.Cancel) return false;
+                if (e.Cancel)
+                {
+                    if (CApp.Prefs.GetBoolPref("app.ephemeral.force_shutdown"))
+                    {
+                        Trace.WriteLine("CApp.OnBeforeShutdown: app.ephemeral.force_shutdown overriding a cancel request.");
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
             }
 
             return true;

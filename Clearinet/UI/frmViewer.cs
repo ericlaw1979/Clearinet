@@ -693,7 +693,7 @@ namespace Clearinet
             if (miViewStayOnTop.Checked) TopMost = true;
 
             miViewAutoScroll.Checked = CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true);
-            int keepOnly = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only", 0);
+            int keepOnly = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only");
             tsddbKeepOnly.Text = "Keep: " + (keepOnly == 0 ? "All Exchanges" : $"{keepOnly} Exchanges");
 
             splitRequestResponse.SplitPosition =
@@ -1433,7 +1433,7 @@ namespace Clearinet
 
         private void ScheduleExchangeTrim()
         {
-            int iTrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only", 0);
+            int iTrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only");
             if (iTrimTo > 0 && lvExchanges.Items.Count > iTrimTo)
             {
                 LazyGigWorker.bookGig("TrimExchanges", 250, () =>
@@ -3330,6 +3330,18 @@ namespace Clearinet
                 {
                     m.Result = (IntPtr)0; // Prevent shutdown
                     return;
+                }
+            }
+
+            // Mask out the lower 4 bits of WParam as recommended by Win32 docs for WM_SYSCOMMAND
+            if (m.Msg == PlatformAPI.WM_SYSCOMMAND && (m.WParam.ToInt32() & 0xFFF0) == PlatformAPI.SC_CLOSE)
+            {
+                bool ctrlPressed = (PlatformAPI.GetAsyncKeyState(PlatformAPI.VK_CONTROL) & 0x8000) != 0;
+                bool shiftPressed = (PlatformAPI.GetAsyncKeyState(PlatformAPI.VK_SHIFT) & 0x8000) != 0;
+
+                if (ctrlPressed || shiftPressed)
+                {
+                    CApp.Prefs.SetBoolPref("app.ephemeral.force_shutdown", true);
                 }
             }
 

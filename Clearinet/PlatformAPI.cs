@@ -43,6 +43,16 @@ namespace Clearinet
             return false;
         }
 
+
+        internal const int WM_SYSCOMMAND = 0x0112;
+        internal const int SC_CLOSE = 0xF060;
+
+        internal const int VK_SHIFT = 0x10;
+        internal const int VK_CONTROL = 0x11;
+
+        [DllImport("user32.dll")]
+        internal static extern short GetAsyncKeyState(int vKey);
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetPhysicalCursorPos(out Point point);
 

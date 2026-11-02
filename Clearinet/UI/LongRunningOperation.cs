@@ -41,8 +41,8 @@ namespace Clearinet
 
         private void BlockWinShutdown(object sender, CancelEventArgs cea)
         {
-            // Indicate to the OS that the application is blocking shutdown
-            ShutdownBlocker.BlockShutdown(CApp.UI.Handle, $"Please wait for: {OperationName}");
+            // Indicate to the OS that the application is blocking shutdown.
+            ShutdownBlocker.BlockShutdown(CApp.UI.Handle, $"Please wait for: '{OperationName}' to complete.");
             cea.Cancel = true;
         }
 
