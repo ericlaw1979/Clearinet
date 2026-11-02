@@ -210,7 +210,13 @@ namespace Clearinet.CaptureEngine
 
                         if (exchange.HTTPMethodIs("CONNECT"))
                         {
-                            AbortWithRst(client);
+                            bool shouldDecrypt = ShouldDecryptConnectTunnel(exchange);
+                            if (shouldDecrypt)
+                            {
+                                exchange["x-connect-decrypt-eligible"] = "true";
+                            }
+
+                            await HandleBlindConnectTunnelAsync(exchange, client, stream, token).ConfigureAwait(false);
                             return;
                         }
 
@@ -496,6 +502,14 @@ namespace Clearinet.CaptureEngine
             return exchange.hostname.OICEquals("localhost.fiddler");
         }
 
+        private static bool ShouldDecryptConnectTunnel(Exchange exchange)
+        {
+            if (exchange == null || !exchange.HTTPMethodIs("CONNECT")) return false;
+            if (!CaptureEnginePrefs.ShouldDecryptHttps()) return false;
+            if (exchange["x-no-decrypt"] != null) return false;
+            return true;
+        }
+
         private static async Task ForwardToServerViaHttpClientBridgeAsync(Exchange exchange, NetworkStream clientStream, CancellationToken token)
         {
             if (exchange == null) throw new ArgumentNullException(nameof(exchange));
@@ -527,6 +541,134 @@ namespace Clearinet.CaptureEngine
             exchange.Timers.ClientDoneResponse = DateTime.Now;
             exchange.state = ExchangeState.Done;
             PublishExchange(exchange);
+        }
+
+        private static async Task HandleBlindConnectTunnelAsync(Exchange exchange, TcpClient client, NetworkStream clientStream, CancellationToken token)
+        {
+            if (exchange == null) throw new ArgumentNullException(nameof(exchange));
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
+
+            if (!TryGetConnectTarget(exchange, out string host, out int port))
+            {
+                exchange.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
+                {
+                    "Content-Type: text/plain; charset=utf-8",
+                    "Connection: close"
+                });
+                exchange.utilSetResponseBody("CONNECT target must be in host:port form.");
+                exchange.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+                await WriteExchangeResponseToClientAsync(exchange, clientStream, token).ConfigureAwait(false);
+                exchange.state = ExchangeState.Done;
+                PublishExchange(exchange);
+                return;
+            }
+
+            using (TcpClient upstream = new TcpClient())
+            {
+                upstream.NoDelay = true;
+
+                await upstream.ConnectAsync(host, port).ConfigureAwait(false);
+                exchange.Timers.ServerConnected = DateTime.Now;
+
+                exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Connection Established", new[]
+                {
+                    "Connection: keep-alive"
+                });
+
+                exchange.Timers.ClientBeginResponse = DateTime.Now;
+                await clientStream.WriteAsync(exchange.ResponseHeaders.ToByteArray(), 0, exchange.ResponseHeaders.ToByteArray().Length, token).ConfigureAwait(false);
+                await clientStream.FlushAsync(token).ConfigureAwait(false);
+
+                using (NetworkStream upstreamStream = upstream.GetStream())
+                {
+                    Task relayClientToServer = PumpStreamAsync(clientStream, upstreamStream, token);
+                    Task relayServerToClient = PumpStreamAsync(upstreamStream, clientStream, token);
+
+                    await Task.WhenAny(relayClientToServer, relayServerToClient).ConfigureAwait(false);
+                }
+            }
+
+            exchange.Timers.ServerDoneResponse = DateTime.Now;
+            exchange.Timers.ClientDoneResponse = DateTime.Now;
+            exchange.state = ExchangeState.Done;
+            PublishExchange(exchange);
+        }
+
+        private static async Task WriteExchangeResponseToClientAsync(Exchange exchange, NetworkStream clientStream, CancellationToken token)
+        {
+            exchange.Timers.ClientBeginResponse = DateTime.Now;
+
+            byte[] headers = exchange.ResponseHeaders?.ToByteArray() ?? Array.Empty<byte>();
+            if (headers.Length > 0)
+            {
+                await clientStream.WriteAsync(headers, 0, headers.Length, token).ConfigureAwait(false);
+            }
+
+            byte[] body = exchange.ResponseBody ?? Array.Empty<byte>();
+            if (body.Length > 0)
+            {
+                await clientStream.WriteAsync(body, 0, body.Length, token).ConfigureAwait(false);
+            }
+
+            await clientStream.FlushAsync(token).ConfigureAwait(false);
+            exchange.Timers.ClientDoneResponse = DateTime.Now;
+        }
+
+        private static bool TryGetConnectTarget(Exchange exchange, out string host, out int port)
+        {
+            host = null;
+            port = 443;
+
+            string target = exchange?.RequestHeaders?.RequestPath ?? string.Empty;
+            if (!target.HasText())
+            {
+                target = exchange?.RequestHeaders?["Host"] ?? string.Empty;
+            }
+
+            target = target.Trim();
+            if (!target.HasText()) return false;
+
+            if (target.StartsWith("[", StringComparison.Ordinal))
+            {
+                int end = target.IndexOf(']');
+                if (end <= 1) return false;
+
+                host = target.Substring(1, end - 1);
+                if (end + 1 < target.Length)
+                {
+                    if (target[end + 1] != ':') return false;
+                    if (!int.TryParse(target.Substring(end + 2), NumberStyles.Integer, CultureInfo.InvariantCulture, out port)) return false;
+                }
+                return true;
+            }
+
+            int ixColon = target.LastIndexOf(':');
+            if (ixColon < 0)
+            {
+                host = target;
+                return true;
+            }
+
+            host = target.Substring(0, ixColon);
+            if (!int.TryParse(target.Substring(ixColon + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out port))
+            {
+                return false;
+            }
+
+            return host.HasText();
+        }
+
+        private static async Task PumpStreamAsync(NetworkStream source, NetworkStream destination, CancellationToken token)
+        {
+            byte[] buffer = new byte[8192];
+            while (!token.IsCancellationRequested)
+            {
+                int read = await source.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+                if (read <= 0) return;
+                await destination.WriteAsync(buffer, 0, read, token).ConfigureAwait(false);
+                await destination.FlushAsync(token).ConfigureAwait(false);
+            }
         }
 
         private static async Task SendNotYetImplementedAsync(NetworkStream stream, CancellationToken token)
