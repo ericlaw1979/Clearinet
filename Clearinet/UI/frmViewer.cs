@@ -2280,9 +2280,8 @@ namespace Clearinet
                     Exchange XC = new Exchange(rhNew, arrXC[ix].RequestBody.FastClone());
                     XC.BitFlags = ExchangeFlags.RequestGeneratedByClearinet;
                     XC.EnsureID();
-                    XC.state = ExchangeState.AutoTamperRequestBefore;
                     if (bBreakOnRequest) XC["x-breakrequest"] = "Shift+R replay";
-                    XC.state = ExchangeState.HandTamperRequest;
+                    XC.state = ExchangeState.AutoTamperRequestBefore;
                 }
             });
         }
