@@ -479,10 +479,8 @@ namespace Clearinet
                         {
                             Task.Run(async () =>
                             {
-                                // Intentionally disabled by default.
-                                // HttpClientBridge remains available as an alternate transport for debugging/experimentation.
-                                // await new HTTPClientBridge().SendAndReceiveRawAsync(this);
-                                if (CApp.Prefs.GetBoolPref("proxy.ephemeral.use_httpclientbridge_transport", false))
+                                // HttpClientBridge is only available as an alternate transport for debugging/experimentation.
+                                if (CApp.Prefs.GetBoolPref("proxy.ephemeral.use_httpclientbridge_transport"))
                                 {
                                     await new HTTPClientBridge().SendAndReceiveRawAsync(this);
                                 }

@@ -228,7 +228,7 @@ namespace Clearinet.CaptureEngine
                         context.Exchange = exchange;
                         PublishExchange(exchange);
 
-                        if (ShouldUseNotYetImplemented(exchange))
+                        if (ShouldReturnYetImplemented(exchange))
                         {
                             await SendNotYetImplementedAsync(stream, token).ConfigureAwait(false);
                             return;
@@ -576,7 +576,7 @@ namespace Clearinet.CaptureEngine
             });
         }
 
-        private static bool ShouldUseNotYetImplemented(Exchange exchange)
+        private static bool ShouldReturnYetImplemented(Exchange exchange)
         {
             if (exchange == null) return false;
             return exchange.hostname.OICEquals("localhost.fiddler");
@@ -680,11 +680,12 @@ namespace Clearinet.CaptureEngine
 
                 using (NetworkStream upstreamTcp = new NetworkStream(upstreamSocket, false))
                 using (SslStream clientTls = new SslStream(clientStream, false))
-                using (SslStream serverTls = new SslStream(upstreamTcp, true, (_, __, ___, ____) => true))
+                using (SslStream serverTls = new SslStream(upstreamTcp, true,
+                    (sender, cert, chain, errors) => callbackValidateServerCertificate(host, sender, cert, chain, errors)) /* TODO: Can attach client cert here */)
                 {
                     clientTls.AuthenticateAsServer(leaf, false,
-                        SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
-                    serverTls.AuthenticateAsClient(host);
+                        /*SslProtocols.Tls | SslProtocols.Tls11 |*/ SslProtocols.Tls12 | SslProtocols.Tls13, false); // TODO: Needs a Pref
+                    serverTls.AuthenticateAsClient(host /* TODO: Allow override */, null, SslProtocols.Tls12 | SslProtocols.Tls13, false);
 
                     while (!token.IsCancellationRequested)
                     {
@@ -741,15 +742,33 @@ namespace Clearinet.CaptureEngine
                 }
                 else
                 {
-                    try { upstreamSocket?.Close(); } catch { }
+                    try
+                    { /*TODO: Should this call .Shutdown()? */
+                        upstreamSocket?.Close();
+                    }
+                    catch { }
                 }
 
-            exchange["x-tunnel-mode"] = "blind";
+                exchange["x-tunnel-mode"] = "blind"; // Huh? Why?
             }
 
             exchange.Timers.ClientDoneResponse = DateTime.Now;
             exchange.state = ExchangeState.Done;
             PublishExchange(exchange);
+        }
+
+        private bool callbackValidateServerCertificate(string targetHost, object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            // https://github.com/microsoft/referencesource/blob/main/System/net/System/Net/SecureProtocols/_SslState.cs
+
+            if (sslPolicyErrors == SslPolicyErrors.None) return true;
+            if (CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors"))
+            {
+                CApp.Log.Log($"! Ignoring SSL validation error for connection to {targetHost}: {sslPolicyErrors}");
+                return true;
+            }
+            CApp.Log.Log($"Blocking connection to {targetHost} due to SSL validation error: {sslPolicyErrors}");
+            return false;
         }
 
         private static async Task HandleBlindConnectTunnelAsync(Exchange exchange, TcpClient client, NetworkStream clientStream, CancellationToken token)

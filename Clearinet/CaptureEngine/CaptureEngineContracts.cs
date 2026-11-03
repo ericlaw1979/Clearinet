@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
-using System.Globalization;
 
 namespace Clearinet.CaptureEngine
 {
@@ -143,7 +142,7 @@ namespace Clearinet.CaptureEngine
             bool allowRemote = CApp.Prefs.GetBoolPref(PrefAllowRemoteConnections, false);
             bool enableIPv6 = CApp.Prefs.GetBoolPref(PrefEnableIPv6, true);
             if (!allowRemote) return IPAddress.Loopback;
-            return enableIPv6 ? IPAddress.IPv6Any : IPAddress.Any;
+            return enableIPv6 ? IPAddress.IPv6Any : IPAddress.Any;      // This will trigger a firewall prompt if an exclusion wasn't set.
         }
 
         private static int NormalizeDuration(int durationMs)
