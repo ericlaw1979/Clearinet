@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 
@@ -75,6 +76,9 @@ namespace Clearinet
         }
         private static void ApplyCommandLine()
         {
+            // Test scenarios.
+            if (Assembly.GetEntryAssembly() != typeof(CONFIG).Assembly) return;
+
             string[] arguments = Environment.GetCommandLineArgs();
             bool automatedTest = false;
             foreach (string sArg in arguments)
@@ -86,7 +90,7 @@ namespace Clearinet
 
                 if (!sSwitch.HasText()) continue;
 
-                if (sArg.OICEquals("AutomatedTest"))
+                if (sSwitch.OICEquals("AutomatedTest"))
                 {
                     automatedTest = true;
                     continue;
