@@ -664,6 +664,7 @@ namespace Clearinet
             this.miEditUnlock.ShortcutKeys = System.Windows.Forms.Keys.F2;
             this.miEditUnlock.Size = new System.Drawing.Size(208, 22);
             this.miEditUnlock.Text = "Unlock for &Editing";
+            this.miEditUnlock.Click += miEditUnlock_Click;
             // 
             // miEditMark
             // 
