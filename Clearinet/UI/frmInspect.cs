@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Clearinet.UI
@@ -24,7 +25,7 @@ namespace Clearinet.UI
             sb.AppendLine();
             sb.AppendLine($"-- FLAGS -------------------");
             sb.AppendLine($"BitFlags: [{XC.BitFlags}]");
-            foreach (var flag in XC.oFlags)
+            foreach (var flag in XC.oFlags.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase))
             {
                 sb.AppendLine($"   {flag.Key}: {flag.Value}");
             }
