@@ -433,7 +433,7 @@ namespace Clearinet
         }
         internal void CallAutoTamperResponseBefore(Exchange XC)
         {
-            if (XC.isFlagSet(ExchangeFlags.Ignored)) return; // We're ignoring this!
+            if (XC.isFlagSet(ExchangeFlags.Ignored)) return;
 
             foreach (IAutoTamper iat in this.m_AutoTamperers.Values)
             {
@@ -447,7 +447,32 @@ namespace Clearinet
                 }
             }
 
-            CApp.scriptRules?.RunOnBeforeResponse(XC);
+            CApp.scriptRules?.RunOnBeforeResponse(XC);      // wrap?
+        }
+
+        internal void CallPeekAtResponseHeaders(Exchange XC)
+        {
+            if (XC.isFlagSet(ExchangeFlags.Ignored)) return;
+
+            CApp.scriptRules?.RunOnPeekAtResponseHeaders(XC);         // wrap?
+        }
+
+
+        internal void CallAutoTamperResponseAfter(Exchange XC)
+        {
+            if (XC.isFlagSet(ExchangeFlags.Ignored)) return;
+
+            foreach (IAutoTamper iat in this.m_AutoTamperers.Values)
+            {
+                try
+                {
+                    iat.AutoTamperResponseAfter(XC);
+                }
+                catch (Exception eX)
+                {
+                    CApp.Log.Log($"AutoTamperResponseAfter failed: {eX.Message}");
+                }
+            }
         }
     }
 }

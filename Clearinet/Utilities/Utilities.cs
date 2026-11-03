@@ -266,6 +266,7 @@ namespace Clearinet
 
         public static bool MediaTypeShouldStream(string sMediaType)
         {
+            // TODO: Make this a configurable preference
             return sMediaType.OICStartsWithAny("audio/", "video/", "text/event-stream");
         }
 

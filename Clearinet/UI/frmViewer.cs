@@ -765,7 +765,7 @@ namespace Clearinet
             {
                 if (GetFirstSelectedExchange() is Exchange x)
                 {
-                    x.oFlags.TryRemove("x-breakresponse", out _);
+                    //x.oFlags.TryRemove("x-breakresponse", out _);  // do we want that?
                     ++x.state;
                     actUpdateInspector(true, true);
                 }

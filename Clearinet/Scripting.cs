@@ -829,9 +829,25 @@ namespace Clearinet
         {
             _methodOnBeforeResponse?.Invoke(exchange);
         }
+
+        internal void RunOnPeekAtRequestHeaders(Exchange exchange)
+        {
+            _methodOnPeekAtRequestHeaders?.Invoke(exchange);
+        }
+
+        internal void RunOnPeekAtResponseHeaders(Exchange exchange)
+        {
+            _methodOnPeekAtResponseHeaders?.Invoke(exchange);
+        }
+
         internal void RunOnExchangeCompleted(Exchange exchange)
         {
             _methodOnExchangeCompleted?.Invoke(exchange);
+        }
+
+        internal void RunOnReturningError(Exchange exchange)
+        {
+            _methodOnReturningError?.Invoke(exchange);
         }
 
         private void _RunMainMethod()
