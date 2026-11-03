@@ -93,6 +93,7 @@ listed build directory with the single-test command above.
 |---|---|---|
 | `BatchExchangeInsertion` | `Clearinet\bin\Release` | Bulk insertion, ascending/descending sorting, comparison-count threshold, duplicate insertion, partial enumeration failure, file insertion. |
 | `CurlExport` | `Clearinet\bin\Release` | CMD/PowerShell quoting, body boundaries, chunk decoding, clipboard export. Invokes CMD for quoting checks but does not execute cURL or send HTTP requests. |
+| `CopyAsCode` | `Clearinet\bin\Release` | Copy as PowerShell and Copy as JavaScript fetch(): quoting, repeated and connection-level headers, Base64 and chunked bodies, GET body omission, clipboard export, and PowerShell parameter binding via a stand-in `Invoke-WebRequest`. Sends no HTTP requests. |
 | `ExchangeHeaderMenu` | `Clearinet\bin\Release` | Native header right-clicks, reordered/scrolled columns, full bold title, search prompt and cancellation, duplicate marking, hide/show widths, customization notification, unchanged row menu, disposal. |
 | `SuggestedFilename` | `Clearinet\bin\Release` | Content-Disposition precedence/decoding, URL and media-type fallbacks, Windows filename validity and exact length boundaries. No UI or network access. |
 | `HiddenExecActionTargetWindow` | `Clearinet\bin\Release` | Hidden IPC receiver, malformed messages, Unicode commands, cross-process senders and bundled `CallExecAction.ps1`. Close other Clearinet instances. `-WindowHandle` is an internal child-runner parameter; omit it for the full suite. |
@@ -160,7 +161,7 @@ first failure; it is not a parallel runner.
 ```powershell
 $groups = [ordered]@{
     Clearinet = @(
-        'BatchExchangeInsertion', 'CurlExport', 'ExchangeHeaderMenu',
+        'BatchExchangeInsertion', 'CopyAsCode', 'CurlExport', 'ExchangeHeaderMenu',
         'HiddenExecActionTargetWindow', 'MapSocketToProcess',
         'MinimizeToTray', 'QuickExecHistory', 'ScriptColumnReload', 'SuggestedFilename'
     )

@@ -266,6 +266,31 @@ namespace Clearinet
             catch (Exception eX) { CApp.ReportException(eX, "Copy as CURL failed"); }
         }
 
+        public void actCopyPowerShellCommands(Exchange[] arrExch)
+        {
+            CopyRequestsAsCode(arrExch, RequestCodeExport.FormatPowerShellCommand, "Copy as PowerShell failed");
+        }
+
+        public void actCopyFetchCalls(Exchange[] arrExch)
+        {
+            CopyRequestsAsCode(arrExch, RequestCodeExport.FormatFetchCall, "Copy as JavaScript fetch() failed");
+        }
+
+        private static void CopyRequestsAsCode(Exchange[] arrExch, Func<Exchange, string> formatter, string failureTitle)
+        {
+            if (arrExch.Length < 1) return;
+            try
+            {
+                StringBuilder lines = new StringBuilder();
+                foreach (Exchange exch in arrExch)
+                {
+                    lines.AppendLine(formatter(exch));
+                }
+                PlatformAPI.WriteToClipboard(lines.ToString());
+            }
+            catch (Exception eX) { CApp.ReportException(eX, failureTitle); }
+        }
+
         private static string FormatCURLCommand(Exchange exch, bool forCommandPrompt)
         {
             HTTPRequestHeaders headers = exch.RequestHeaders;
@@ -3065,6 +3090,16 @@ namespace Clearinet
         private void miEditCopyCurl_Click(object sender, EventArgs e)
         {
             actCopyCURLCommands(GetSelectedExchanges());
+        }
+
+        private void miEditCopyPowerShell_Click(object sender, EventArgs e)
+        {
+            actCopyPowerShellCommands(GetSelectedExchanges());
+        }
+
+        private void miEditCopyFetch_Click(object sender, EventArgs e)
+        {
+            actCopyFetchCalls(GetSelectedExchanges());
         }
 
         private void miEditMarkStrikeout_Click(object sender, EventArgs e)

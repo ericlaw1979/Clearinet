@@ -28,3 +28,24 @@ is preserved, so the file must contain the content-encoded bytes without transfe
 certificate validation remains enabled. Shell command-length limits still apply, particularly Command
 Prompt's 8191-character limit. Copied commands include credentials and cookies from the request,
 so treat them as sensitive.
+
+### Copy as PowerShell and Copy as JavaScript fetch()
+Edit > Copy > as PowerShell command and as JavaScript fetch() also only copy text, one line per selected
+Exchange. Bodies are embedded in full: printable ASCII as a string, anything else as Base64 that is decoded
+back to the exact bytes, so no placeholder file is needed. As with cURL, transfer framing is removed and
+content encoding is preserved. Connection-level headers (Host, Content-Length, Transfer-Encoding,
+Connection, Keep-Alive, Proxy-Connection, TE, Trailer, Upgrade, Expect) and HTTP/2 pseudo-headers are
+omitted because the client generates its own. Both clients follow redirects. Copied code includes
+credentials and cookies from the request, so treat it as sensitive.
+
+The PowerShell command uses `Invoke-WebRequest` and runs in Windows PowerShell 5.1 and PowerShell 7+.
+Values are single-quoted, so nothing in them is expanded. Methods other than GET, HEAD, POST, PUT,
+DELETE, TRACE, OPTIONS, MERGE and PATCH use `-CustomMethod`, which needs PowerShell 7. Repeated headers
+are combined into one (Cookie values with `; `, others with `, `) because `-Headers` takes a hashtable.
+`Invoke-WebRequest` adds its own User-Agent when the request had none, and a form Content-Type when a
+body has none. PowerShell 7 refuses header values containing non-ASCII characters.
+
+The fetch() call works in browser DevTools and in Node.js 18 and later. Headers are passed as a list,
+which keeps their order and any repeats, and header text is written so fetch() sends the original
+bytes. fetch() cannot send a body with GET or HEAD, so such a body is left out and a comment says so.
+Browsers silently drop headers that scripts may not set, such as Cookie, Referer and Accept-Encoding.
