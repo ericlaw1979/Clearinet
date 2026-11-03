@@ -19,6 +19,8 @@ namespace Clearinet
         public frmViewer()
         {
             InitializeComponent();
+            rtbLog.DpiChangedAfterParent += rtbLog_RefreshFontSize;
+            rtbLog.VisibleChanged += rtbLog_RefreshFontSize;
 
             // TODO: This is a hack. Eventually we will be smarter.
             lvExchanges.ConfigureColumn(colID.Index, ColumnSortType.Numeric);
@@ -34,6 +36,42 @@ namespace Clearinet
                 // TODO: Automatically name this viewer if another is already running.
                 tssbCapture.Enabled = miFileAttach.Enabled = false;
             }
+        }
+
+        private bool startupBoundsRestored;
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            if (!startupBoundsRestored)
+            {
+                // Establish the saved monitor DPI before Load assigns configured fonts. A second bounds restore
+                // in RetrieveLayout recovers physical size after font autoscaling; handle recreation must not reposition us.
+                CONFIG.RetrieveWindowBounds(this);
+                startupBoundsRestored = true;
+            }
+        }
+
+        protected override void OnDpiChanged(DpiChangedEventArgs e)
+        {
+            Size minimum = MinimumSize;
+            base.OnDpiChanged(e);
+            if (!e.Cancel && e.DeviceDpiNew != e.DeviceDpiOld)
+            {
+                // DPI handling scales the font without updating Font-mode autoscaling metadata.
+                AutoScaleDimensions = CurrentAutoScaleDimensions;
+                // Framework 4.8 replaces the minimum with the suggested window size on downscaling.
+                // Scale the original constraint, not the window size, after normal DPI handling.
+                float factor = (float)e.DeviceDpiNew / e.DeviceDpiOld;
+                MinimumSize = Size.Round(new SizeF(minimum.Width * factor, minimum.Height * factor));
+                // RichEdit character formatting stores logical points, not DPI-scaled HFONT sizes.
+                Win32UI.SetRichTextFontSize(rtbLog, CONFIG.flFontSize);
+            }
+        }
+
+        private void rtbLog_RefreshFontSize(object sender, EventArgs e)
+        {
+            Win32UI.SetRichTextFontSize(rtbLog, CONFIG.flFontSize);
         }
 
         /// <summary>
@@ -715,7 +753,8 @@ namespace Clearinet
                 InitializeUIFromPrefs();
 
                 // one-offs
-                rtbLog.Font = new Font("Consolas", CONFIG.flFontSize);
+                rtbLog.Font = new Font("Consolas", DpiFontUnits.LogicalFontPointsToManagedFontPoints(CONFIG.flFontSize, DeviceDpi));
+                Win32UI.SetRichTextFontSize(rtbLog, CONFIG.flFontSize);
             }
             finally
             {
@@ -1901,6 +1940,9 @@ namespace Clearinet
                     CApp.oComposer = new ComposerView();
                     pageComposer.Controls.Add(CApp.oComposer);
                     CApp.oComposer.Dock = DockStyle.Fill;
+                    // Assign the configured font after parenting establishes the lazy view's target DPI.
+                    CApp.oComposer.Font = new Font(CApp.oComposer.Font.FontFamily,
+                        DpiFontUnits.LogicalFontPointsToManagedFontPoints(CONFIG.flFontSize, CApp.oComposer.DeviceDpi));
                 }
                 return;
             }
@@ -2272,8 +2314,29 @@ namespace Clearinet
         internal void actSetFontSize(float v)
         {
             // TODO: Should this be resizing the window bounds? Probably not, but it does.
+            Size minimum = MinimumSize;
+            float fontFactor = v / CONFIG.flFontSize;
             CONFIG.flFontSize = v;
-            this.Font = new Font(this.Font.FontFamily, CONFIG.flFontSize, this.Font.Style);
+            float size = DpiFontUnits.LogicalFontPointsToManagedFontPoints(CONFIG.flFontSize, DeviceDpi);
+            this.Font = new Font(this.Font.FontFamily, size, this.Font.Style);
+            // Font metrics differ by DPI; use the logical ratio to keep minimum-size cycles reversible.
+            MinimumSize = Size.Round(new SizeF(minimum.Width * fontFactor, minimum.Height * fontFactor));
+            rtbLog.Font = new Font(rtbLog.Font.FontFamily, size, rtbLog.Font.Style);
+            Win32UI.SetRichTextFontSize(rtbLog, CONFIG.flFontSize);
+            if (CApp.oComposer != null)
+            {
+                CApp.oComposer.Font = new Font(CApp.oComposer.Font.FontFamily, size, CApp.oComposer.Font.Style);
+            }
+            foreach (TabControl tabs in new[] { tabsRequest, tabsResponse })
+            {
+                foreach (TabPage page in tabs.TabPages)
+                {
+                    if (page.Tag is InspectorBase inspector)
+                    {
+                        inspector.UpdateFontSize(page);
+                    }
+                }
+            }
         }
 
         private void actReplaySelected(bool bBreakOnRequest, bool bUnconditional = false)
