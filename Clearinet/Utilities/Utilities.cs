@@ -264,6 +264,11 @@ namespace Clearinet
         #endregion
 
 
+        public static bool MediaTypeShouldStream(string sMediaType)
+        {
+            return sMediaType.OICStartsWithAny("audio/", "video/", "text/event-stream");
+        }
+
         public static bool IsMediaTypeBinary(string sMediaType)
         {
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types

@@ -45,6 +45,15 @@ namespace Clearinet
         }
         #endregion 'id' property
 
+        /// <summary>
+        /// Should the bytes of the response body be streamed to the cleint as 
+        /// it is read from the server.
+        /// 
+        /// For this setting to have any effect, set it in or before 
+        /// PeekAtResponseHeaders.
+        /// </summary>
+        public bool bBufferResponse { get; set; }
+
         public override string ToString()
         {
             return $"Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]";
@@ -508,6 +517,18 @@ namespace Clearinet
                         });
                         if (!_isCaptureFacade) ++state;
                         break;
+
+                    case ExchangeState.ReadingResponseBody:
+                        Debug.Assert(this.bHasResponse, "ReadingResponseBody state should only be entered if we have response headers.");
+
+                        // Enable streaming for Media if Option is enabled.
+                        if (CApp.Prefs.GetBoolPref("proxy.auto_stream_media", true) &&
+                            Utilities.MediaTypeShouldStream(this.MediaType))
+                        {
+                            bBufferResponse = false;
+                        }
+                        break;
+
                     case ExchangeState.HandTamperResponse:
                         if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakresponse"))
                         {
