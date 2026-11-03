@@ -164,6 +164,85 @@ to the user via UI and extensions via APIs. For now, Clearinet will simply
 proxy the bytes on a WebSocket connection blindly from client to server without
 attempting to interpret them.
 
+## Sample Exchange Flow
+
+The following is a representative flow for an HTTP/1.x Web Exchange through
+the default capture engine. `ExchangeState` defines the lifecycle states used
+to describe this flow; see `Clearinet/ExchangeEnums.cs`.
+
+1. **Accept the client connection.** `TcpCaptureEngineListener.AcceptLoopAsync`
+   accepts a TCP connection and starts `HandleClientAsync` for it. The handler
+   also asks `MapSocketToProcess` for the originating process so that process
+   metadata can be attached to the Exchange
+   (`Clearinet/CaptureEngine/CaptureEngineRuntime.cs`).
+
+2. **Read and parse the request.** `ReadHttpRequestAsync` reads through the end
+   of the HTTP headers, parses the request line and headers, and then buffers a
+   body framed by either `Content-Length` or chunked transfer encoding. Invalid
+   or oversized input aborts the connection rather than allowing a
+   desynchronized request stream.
+
+3. **Create and publish the Exchange.** `BuildExchange` creates an `Exchange`
+   containing the request headers and body, assigns its ID, records client and
+   request timers, adds client/process flags, and sets its state to
+   `ReadingRequest`. `PublishExchange` then schedules a UI update so the Web
+   Exchange is visible while work continues.
+
+4. **Allow request alteration.** The state-machine sequence is
+   `AutoTamperRequestBefore`, `HandTamperRequest`, and
+   `AutoTamperRequestAfter` (`Exchange.state` in `Clearinet/Exchange.cs`). In
+   the automatic stage, `Extensions.CallAutoTamperRequestBefore` invokes each
+   `IAutoTamper` extension and the script rule's `OnBeforeRequest` handler.
+   Setting `x-breakrequest` holds the Exchange in `HandTamperRequest`; inspector
+   edits are copied back to `RequestHeaders` and `RequestBody` by
+   `InspectorBase.CommitAnyChanges` in `Clearinet/InspectorAPI.cs` when the user
+   continues it.
+
+5. **Choose the HTTP or CONNECT path.** A normal HTTP request is passed from
+   `ForwardToServerViaHttpClientBridgeAsync` to
+   `HTTPClientBridge.SendAndReceiveRawAsync`, which constructs the upstream
+   request from `Exchange.fullUrl`, `RequestHeaders`, and `RequestBody`. A
+   `CONNECT` request instead becomes either a blind byte tunnel or a decrypted
+   TLS tunnel in `HandleBlindConnectTunnelAsync` or
+   `HandleMitmConnectTunnelAsync`, respectively.
+
+6. **Send the request and read the response.** `HTTPClientBridge` sends the
+   request without following redirects or automatically decompressing content,
+   then records the status line, headers, body, and server-side timers on the
+   same Exchange (`Clearinet/HttpClientBridge.cs`). Decrypted HTTPS traffic uses
+   `WriteHttpRequestAsync` and `ReadHttpResponseAsync`; the latter applies the
+   same bounded, `Content-Length`/chunked buffering rules used for requests.
+
+7. **Allow response alteration.** Assigning
+   `AutoTamperResponseBefore` invokes every `IAutoTamper` extension and the
+   script rule's `OnBeforeResponse` handler. The subsequent
+   `HandTamperResponse` state can expose editable response inspectors when
+   `x-breakresponse` is set, after which inspector changes are committed to
+   `ResponseHeaders` and `ResponseBody`. These hooks can also generate a local
+   response, for example by setting `X-ReplyWithFile`, instead of preserving the
+   server's response.
+
+8. **Return the response to the client.** The capture engine serializes the
+   possibly altered `ResponseHeaders`, writes the `ResponseBody`, flushes the
+   client stream, and records the client response timers. Blind CONNECT and
+   WebSocket-style tunnels are different: `PumpStreamAsync` copies bytes in
+   both directions without interpreting individual HTTP Exchanges.
+
+9. **Complete or abort.** A successful Exchange enters `Done` and is published
+   once more so the UI shows its final status and timing. Parse, TLS, socket, or
+   other transport failures are converted to a generated error response where
+   possible by `HandleCaptureFailureAsync`, and the Exchange enters `Aborted`.
+   `Exchange.state` raises `OnStateChanged` and schedules UI refreshes as the
+   state changes.
+
+The state enum describes the complete alteration contract, but transport
+coverage is still being completed. At present, decrypted HTTPS inner Exchanges
+enter the request-tampering states explicitly, while the ordinary HTTP capture
+path forwards after `ReadingRequest`; transport writers also do not yet await a
+manual response-break continuation before writing. Extensions should therefore
+treat the `HandTamper*` states as the lifecycle contract while accounting for
+the current transport limitations.
+
 ## Threading and Asynchronous Behavior
 As a proxy, many Exchanges will be processing at the same time, but from
 a pure technical perspective, most of the time each Exchange will be waiting
