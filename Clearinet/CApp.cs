@@ -230,12 +230,6 @@ namespace Clearinet
                 return true;
             }
 
-            if ("demo" == sCmd)
-            {
-                UI.TODOAddSampleData();
-                return true;
-            }
-
             if ("prefs" == sCmd)
             {
                 _QuickExecAdjustPrefs(arrParams);
@@ -562,7 +556,6 @@ namespace Clearinet
 
         internal static void OnProxyAttach()
         {
-            EnsureCaptureEngineRunning();
             // TODO: update state of status bar capturing indicator
             ProxyAttach?.Invoke();
             scriptRules?.DoOnAttach();
@@ -575,9 +568,9 @@ namespace Clearinet
             scriptRules?.DoOnDetach();
         }
 
-        private static void EnsureCaptureEngineRunning()
+        internal static bool EnsureCaptureEngineRunning()
         {
-            if (CONFIG.isViewerMode) return;
+            if (CONFIG.isViewerMode) return false;
             try
             {
                 if (_captureEngineRuntime == null)
@@ -594,8 +587,10 @@ namespace Clearinet
             catch (Exception eX)
             {
                 ReportException(eX, "Capture Engine Failed", "Failed to start the capture engine.");
-                isAttached = false;
+                //isAttached = false;
+                return false;
             }
+            return true;
         }
 
         private static void StopCaptureEngine()
@@ -766,22 +761,30 @@ namespace Clearinet
         internal static void OnAppShutdown()
         {
             isClosing = true;
-            // Ensure that we stop capture.
-            actDetachProxy();
 
-            // Stop the engine.
-            StopCaptureEngine();
-            _captureEngineRuntime?.Dispose();
-            _captureEngineRuntime = null;
+            try
+            {
+                // Ensure that we stop capture.
+                actDetachProxy();
 
-            scriptRules?.DoOnShutdown();
-            oExtensions.CallAllOnBeforeUnloads();
-            AppShutdown?.Invoke();
-            Utilities.CleanupTempDirectories();
-            CONFIG.SaveAllSettings(UI);
+                // Stop the engine.
+                StopCaptureEngine();
+                _captureEngineRuntime?.Dispose();
+                _captureEngineRuntime = null;
+            }
+            catch (Exception eX)
+            {
+                CApp.Log.LogException(eX, "Failed to stop the capture engine.");
+            }
+
+            try { scriptRules?.DoOnShutdown(); } catch (Exception eX) { CApp.Log.LogException(eX, "Script OnShutdown failed"); }
+            try { oExtensions.CallAllOnBeforeUnloads(); } catch (Exception eX) { CApp.Log.LogException(eX, "Extensions OnBeforeUnload failed"); }
+            try { AppShutdown?.Invoke(); } catch (Exception eX) { CApp.Log.LogException(eX, "AppShutdown failed"); }
+            try { Utilities.CleanupTempDirectories(); } catch (Exception eX) { CApp.Log.LogException(eX, "CleanupTempDirectories failed"); }
+            try { CONFIG.SaveAllSettings(UI); } catch (Exception eX) { CApp.Log.LogException(eX, "SaveAllSettings failed"); }
 
             // ENSURE THIS STAYS LAST!
-            CONFIG.pbPrefs.Close();
+            try { CONFIG.pbPrefs.Close(); } catch (Exception eX) { CApp.Log.LogException(eX, "Prefs Close failed"); }
         }
     }
 }

@@ -9,8 +9,12 @@ namespace Clearinet
         public frmOptions()
         {
             InitializeComponent();
-            cbAttachOnStartup.Checked = CApp.Prefs.GetBoolPref("app.attach_on_startup", false); // TODO: Change after we have a proxy
-            cbCheckForUpdates.Checked = CApp.Prefs.GetBoolPref("app.updater.check_on_startup", true);
+            if (CONFIG.isViewerMode)
+            {
+                Text = Text += " (Readonly - Viewer Mode)";
+                btnOk.Enabled = false;
+                btnOk.Text = "View Only";
+            }
 
             switch (CApp.Prefs.GetStringPref("app.service_traffic", "allowed"))
             {
@@ -24,17 +28,11 @@ namespace Clearinet
                 case "forbidden":
                     cbxBigSwitch.SelectedIndex = 2;
                     CApp.Prefs.SetBoolPref("app.updater.check_on_startup", false);
-                    cbCheckForUpdates.Checked = false;
                     break;
             }
 
-            if (CONFIG.isViewerMode)
-            {
-                Text = Text += " (Readonly - Viewer Mode)";
-                btnOk.Enabled = false;
-                btnOk.Text = "View Only";
-            }
-
+            cbCheckForUpdates.Checked = CApp.Prefs.GetBoolPref("app.updater.check_on_startup", true);
+            cbAttachOnStartup.Checked = CApp.Prefs.GetBoolPref("app.attach_on_startup", false); // TODO: Change after we have a proxy
             cbEnableIPv6.Checked = CApp.Prefs.GetBoolPref("proxy.enable_ipv6", true);
             cbAutoStream.Checked = CApp.Prefs.GetBoolPref("proxy.auto_stream_media", true);
             cbAllowRemoteConnections.Checked = CApp.Prefs.GetBoolPref("proxy.allow_remote_connections", false);
@@ -74,6 +72,7 @@ namespace Clearinet
             else
             { // Blocked
                 CApp.Prefs.SetStringPref("app.service_traffic", "forbidden");
+                cbCheckForUpdates.Checked = false;
             }
 
             if (cbCheckForUpdates.Checked)
@@ -119,7 +118,8 @@ namespace Clearinet
                 {
                     btnSetColorReadonly.BackColor = dlg.Color;
 
-                    // BUG: This shouldn't take effect until the user pressed OK, but they can't in Viewer mode... hrmph.
+                    // BUG: This shouldn't take effect until the user pressed SAVE,
+                    // but they can't click SAVE in Viewer mode... hrmph.
                     CONFIG.colorDisabledEdit = dlg.Color;
                 }
             }

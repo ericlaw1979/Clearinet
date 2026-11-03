@@ -796,8 +796,12 @@ namespace Clearinet
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
             CApp.gwHoneyDew.createGig("UpdateMemoryCounter", () => UpdateMemoryCounter(), 5000);
 
+
+            CApp.EnsureCaptureEngineRunning();
+
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
 
+            // Notify the system that we're the proxy (exits immediately in Viewer mode).
             if (CApp.Prefs.GetBoolPref("app.attach_on_startup", false)  // TODO: Change after we have a proxy
                 && !CONFIG.Overrides.NoAttachOnStartup) { CApp.actAttachProxy(); }
 
@@ -831,6 +835,8 @@ namespace Clearinet
             Exchange x2 = lvExchanges.SelectedItems[1].Tag as Exchange;
             if (null == x1 || null == x2) return;
             CApp.UI.SetStatusText($"Diffing Exchange #{x1.id} and Exchange #{x2.id}...");
+            // TODO: Offer a "Smart Diff" that ignores expected value changes (e.g. Date) and orders 
+            // the headers first by whether they differ.
             Utilities.DiffExchanges(x1, x2);
         }
 
@@ -873,7 +879,7 @@ namespace Clearinet
 
         private void UpdateStatisticsTab(Exchange[] arrExchanges)
         {
-            // TODO: Put more interesting statistics here.
+            // TODO: Put more interesting statistics here, e.g. unique hosts, MIME types, etc.
             var cRequestHeaderBytes = 0;
             var cRequestBodyBytes = 0;
             var cResponseHeaderBytes = 0;
@@ -920,14 +926,6 @@ namespace Clearinet
         {
             timerReportUpdater.Stop();
             actUpdateReport();
-        }
-
-        /// <summary>
-        /// Add some data for development purposes. TODO:REMOVE THIS
-        /// </summary>
-        internal void TODOAddSampleData()
-        {
-            addExchangesToListView(CreateSampleExchanges());
         }
 
         private IEnumerable<Exchange> CreateSampleExchanges()

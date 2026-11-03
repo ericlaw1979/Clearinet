@@ -56,6 +56,17 @@ namespace Clearinet
         {
             Log(String.Format(sFormat, arrArgs));
         }
+
+        public void LogException(Exception eX, string sContext = null)
+        {
+            string sLog = $"{Utilities.DescribeException(eX)}";
+            if (sContext.HasText())
+            {
+                sLog = $"{sContext}: {sLog}";
+            }
+            Log(sLog);
+        }
+
         public void Log(string sLog)
         {
             if (!sLog.HasText()) return;
