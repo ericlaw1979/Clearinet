@@ -11,14 +11,19 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading.Tasks;
 
+/// <summary>
+/// The HTTPClientBridge is a fetch stack that allows Clearinet to fetch HTTP(S) resources
+/// using the .NET HTTPClient rather than its own HTTP/HTTPS engine. This was initially
+/// used before the engine was ready, but is here now only for testing/comparison purposes.
+///
+/// This class will likely be removed in the future.
+/// </summary>
 public class HTTPClientBridge
 {
     // Reuse HttpClient instances to avoid socket exhaustion in .NET Framework
     private static readonly HttpClient client = new HttpClient(new HttpClientHandler
     {
-        // Disable automatic decompression to avoid decoding response bytes
         AutomaticDecompression = System.Net.DecompressionMethods.None,
-        // Disable automatic redirect following if you want server-returned 3xx headers untouched
         AllowAutoRedirect = false
     });
 
@@ -38,27 +43,30 @@ public class HTTPClientBridge
                     HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 {
                     XC.Timers.ServerConnected = XC.Timers.ProxyDoneRequest = XC.Timers.ServerBeginResponse = XC.Timers.ProxyGotResponseHeaders = DateTime.Now;
+                    XC["X-FetchedBy"] = $"HttpClientBridge (used HTTP/{response.Version})";
+
                     AddAddressFlagsViaReflectionHackery(servicePoint, XC);
 
-                    XC.state = ExchangeState.ReadingResponse; // TODO: Should this be earlier?
-
+                    // ISSUE: Observer Effect. The HttpClient does not return headers
+                    // in a single collection ordered by their original order. Instead,
+                    // it splits them into two collections based on whether each is considered
+                    // a "transport" header or a "content" header.
                     HttpResponseHeaders responseHeaders = response.Headers;
                     HttpContentHeaders contentHeaders = response.Content.Headers;
 
                     List<string> allHeaders = new List<string>();
                     foreach (var header in responseHeaders)
-                    {
                         allHeaders.Add($"{header.Key}: {string.Join(", ", header.Value)}");
-                    }
 
                     foreach (var header in contentHeaders)
-                    {
                         allHeaders.Add($"{header.Key}: {string.Join(", ", header.Value)}");
-                    }
 
-                    XC.ResponseHeaders = new HTTPResponseHeaders((int)response.StatusCode, response.ReasonPhrase, allHeaders.ToArray());
-                    XC["X-FetchedBy"] = $"Clearinet HttpClientBridge (used HTTP/{response.Version})";
-                    XC.ResponseHeaders.HTTPVersion = $"HTTP/{response.Version}";
+                    XC.ResponseHeaders = new HTTPResponseHeaders((int)response.StatusCode, response.ReasonPhrase, allHeaders.ToArray())
+                    {
+                        HTTPVersion = $"HTTP/{response.Version}"
+                    };
+
+                    XC.state = ExchangeState.ReadingResponseBody;
 
                     using (Stream rawResponseBodyStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                     {
@@ -92,7 +100,9 @@ public class HTTPClientBridge
     }
 
     /// <summary>
-    /// The .NET Framework's HttpClient makes it very difficult to understand where the connection is connected.
+    /// The .NET Framework's HttpClient makes it very difficult to determine the IP address that
+    /// it used for a given connection. We have to poke inside the object using Reflection to
+    /// determine the address.
     /// </summary>
     private static void AddAddressFlagsViaReflectionHackery(ServicePoint sp, Exchange XC)
     {
@@ -156,6 +166,10 @@ public class HTTPClientBridge
     {
         foreach (var header in XH)
         {
+            // ISSUE: Observer Effect. The HttpClient does not set headers
+            // in a single collection ordered by their original order. Instead,
+            // it splits them into two collections based on whether each is considered
+            // a "transport" header or a "content" header.
             if (!request.Headers.TryAddWithoutValidation(header.Name, header.Value))
             {
                 request.Content?.Headers.TryAddWithoutValidation(header.Name, header.Value);
