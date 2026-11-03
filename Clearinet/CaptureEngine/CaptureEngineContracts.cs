@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
+using System.Globalization;
 
 namespace Clearinet.CaptureEngine
 {
@@ -79,6 +80,25 @@ namespace Clearinet.CaptureEngine
         public override string ToString()
         {
             return (IsTls ? "tls://" : "tcp://") + Host + ":" + Port;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is ServerConnectionKey other)) return false;
+            return IsTls == other.IsTls &&
+                   Port == other.Port &&
+                   string.Equals(Host ?? string.Empty, other.Host ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = IsTls ? 17 : 23;
+                hash = (hash * 31) + Port;
+                hash = (hash * 31) + StringComparer.OrdinalIgnoreCase.GetHashCode(Host ?? string.Empty);
+                return hash;
+            }
         }
     }
 

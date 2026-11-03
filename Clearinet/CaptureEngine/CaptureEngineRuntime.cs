@@ -86,7 +86,9 @@ namespace Clearinet.CaptureEngine
         private readonly CaptureEngineOptions _options;
         private readonly MapSocketToProcess _mapper;
         private readonly ICertificateProvider _certificateProvider;
+        private readonly ISocketPool _socketPool;
         private readonly object _syncRoot = new object();
+        private GigWorker.gig _socketPoolJanitorGig;
         private CancellationTokenSource _cts;
         private TcpListener _listener;
         private Task _acceptLoop;
@@ -96,6 +98,9 @@ namespace Clearinet.CaptureEngine
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _certificateProvider = new CertEnrollCertificateProvider();
+            _socketPool = new SocketPool(
+                TimeSpan.FromMilliseconds(CaptureEnginePrefs.GetSocketPoolIdleMs()),
+                TimeSpan.FromMilliseconds(CaptureEnginePrefs.GetSocketPoolMaxAgeMs()));
         }
 
         public bool IsRunning { get; private set; }
@@ -116,6 +121,7 @@ namespace Clearinet.CaptureEngine
                     _listener.Server.DualMode = _options.ListenAddress.Equals(IPAddress.IPv6Any);
                 }
                 _listener.Start();
+                EnsureSocketPoolJanitor();
 
                 IsRunning = true;
                 _acceptLoop = Task.Run(() => AcceptLoopAsync(_cts.Token));
@@ -134,6 +140,12 @@ namespace Clearinet.CaptureEngine
                     _cts.Cancel();
                     _listener.Stop();
                     _acceptLoop?.Wait(TimeSpan.FromSeconds(2));
+                    if (_socketPoolJanitorGig != null)
+                    {
+                        CApp.gwHoneyDew.cancelGig(_socketPoolJanitorGig);
+                        _socketPoolJanitorGig = null;
+                    }
+                    _socketPool?.Dispose();
                 }
                 catch (Exception eX)
                 {
@@ -149,6 +161,14 @@ namespace Clearinet.CaptureEngine
             }
         }
 
+        private void EnsureSocketPoolJanitor()
+        {
+            if (_socketPoolJanitorGig != null) return;
+            uint interval = (uint)Math.Max(5000,
+                Math.Min(CaptureEnginePrefs.GetSocketPoolIdleMs(), CaptureEnginePrefs.GetSocketPoolMaxAgeMs()) / 2);
+            _socketPoolJanitorGig = CApp.gwHoneyDew.createGig("CaptureEngine.SocketPoolJanitor",
+                () => _socketPool.PurgeExpired(DateTime.UtcNow), interval);
+        }
         public void Dispose()
         {
             Stop();
@@ -194,6 +214,7 @@ namespace Clearinet.CaptureEngine
 
                 using (NetworkStream stream = client.GetStream())
                 {
+                    Exchange exchange = null;
                     try
                     {
                         var requestData = await ReadHttpRequestAsync(stream, token).ConfigureAwait(false);
@@ -203,7 +224,7 @@ namespace Clearinet.CaptureEngine
                             return;
                         }
 
-                        Exchange exchange = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
+                        exchange = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
                         context.Exchange = exchange;
                         PublishExchange(exchange);
 
@@ -231,10 +252,62 @@ namespace Clearinet.CaptureEngine
                     }
                     catch (Exception eX)
                     {
-                        CApp.Log.Log($"! CaptureEngine client handling error: {eX.Message}");
+                        await HandleCaptureFailureAsync(exchange, stream, eX, token).ConfigureAwait(false);
                     }
                 }
             }
+        }
+
+        private static async Task HandleCaptureFailureAsync(Exchange exchange, Stream clientStream, Exception eX, CancellationToken token)
+        {
+            CApp.Log.Log($"! CaptureEngine client handling error: {eX.GetType().Name}: {eX.Message}");
+
+            if (exchange == null)
+            {
+                return;
+            }
+
+            int statusCode = 502;
+            string statusText = "Capture Engine Failure";
+            if (eX is AuthenticationException)
+            {
+                statusCode = 525;
+                statusText = "TLS Handshake Failed";
+            }
+            else if (eX is InvalidDataException || eX is FormatException)
+            {
+                statusCode = 400;
+                statusText = "Protocol Parse Failure";
+            }
+            else if (eX is SocketException)
+            {
+                statusCode = 504;
+                statusText = "Upstream Connection Failed";
+            }
+
+            exchange.ResponseHeaders = new HTTPResponseHeaders(statusCode, statusText, new[]
+            {
+                "Content-Type: text/plain; charset=utf-8",
+                "Connection: close",
+                "X-CaptureEngine-Error: " + eX.GetType().Name
+            });
+            exchange.utilSetResponseBody("Capture engine error: " + eX.Message);
+            exchange.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+
+            try
+            {
+                if (clientStream != null && clientStream.CanWrite)
+                {
+                    await WriteHttpResponseAsync(clientStream, exchange.ResponseHeaders, exchange.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+                }
+            }
+            catch
+            {
+                // Best effort response generation.
+            }
+
+            exchange.state = ExchangeState.Aborted;
+            PublishExchange(exchange);
         }
 
         private static async Task<(HTTPRequestHeaders requestHeaders, byte[] requestBody)> ReadHttpRequestAsync(Stream stream, CancellationToken token)
@@ -573,11 +646,27 @@ namespace Clearinet.CaptureEngine
 
             _certificateProvider.EnsureRootTrust();
             X509Certificate2 leaf = _certificateProvider.GetCertificateForHost(host);
+            exchange["x-tunnel-mode"] = "mitm";
 
-            using (TcpClient upstream = new TcpClient())
+            ServerConnectionKey upstreamKey = new ServerConnectionKey(host, port, true);
+            Socket upstreamSocket = null;
+            bool reuseUpstream = false;
+            bool keepAliveAllowed = true;
+
+            if (_socketPool.TryRent(upstreamKey, out Socket pooledSocket))
             {
-                upstream.NoDelay = true;
-                await upstream.ConnectAsync(host, port).ConfigureAwait(false);
+                upstreamSocket = pooledSocket;
+                exchange.BitFlags |= ExchangeFlags.ServerPipeReused;
+                exchange["x-serverpool-reused"] = "true";
+            }
+            else
+            {
+                upstreamSocket = await ConnectSocketAsync(host, port).ConfigureAwait(false);
+            }
+
+            try
+            {
+                upstreamSocket.NoDelay = true;
                 exchange.Timers.ServerConnected = DateTime.Now;
 
                 exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Connection Established", new[]
@@ -589,9 +678,9 @@ namespace Clearinet.CaptureEngine
                 await clientStream.WriteAsync(established, 0, established.Length, token).ConfigureAwait(false);
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
 
-                using (NetworkStream upstreamTcp = upstream.GetStream())
+                using (NetworkStream upstreamTcp = new NetworkStream(upstreamSocket, false))
                 using (SslStream clientTls = new SslStream(clientStream, false))
-                using (SslStream serverTls = new SslStream(upstreamTcp, false, (_, __, ___, ____) => true))
+                using (SslStream serverTls = new SslStream(upstreamTcp, true, (_, __, ___, ____) => true))
                 {
                     clientTls.AuthenticateAsServer(leaf, false,
                         SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
@@ -633,13 +722,29 @@ namespace Clearinet.CaptureEngine
                         inner.state = ExchangeState.Done;
                         PublishExchange(inner);
 
-                        if (inner.RequestHeaders.ExistsAndContains("Connection", "close") ||
-                            inner.ResponseHeaders.ExistsAndContains("Connection", "close"))
+                        keepAliveAllowed = ShouldKeepAlive(inner.RequestHeaders, inner.ResponseHeaders);
+                        if (!keepAliveAllowed)
                         {
                             break;
                         }
                     }
                 }
+
+                reuseUpstream = keepAliveAllowed && IsSocketReusable(upstreamSocket);
+            }
+            finally
+            {
+                if (reuseUpstream)
+                {
+                    _socketPool.Return(upstreamKey, upstreamSocket, DateTime.UtcNow);
+                    exchange["x-serverpool-returned"] = "true";
+                }
+                else
+                {
+                    try { upstreamSocket?.Close(); } catch { }
+                }
+
+            exchange["x-tunnel-mode"] = "blind";
             }
 
             exchange.Timers.ClientDoneResponse = DateTime.Now;
@@ -809,6 +914,68 @@ namespace Clearinet.CaptureEngine
         private static HTTPRequestHeaders BuildDummyRequestHeadersForTrailers()
         {
             return new HTTPRequestHeaders("/", null) { HTTPMethod = "GET", HTTPVersion = "HTTP/1.1" };
+        }
+
+        private static bool ShouldKeepAlive(HTTPRequestHeaders requestHeaders, HTTPResponseHeaders responseHeaders)
+        {
+            if (requestHeaders == null || responseHeaders == null) return false;
+
+            if (requestHeaders.ExistsAndContains("Connection", "close")) return false;
+            if (responseHeaders.ExistsAndContains("Connection", "close")) return false;
+
+            string reqVersion = requestHeaders.HTTPVersion ?? string.Empty;
+            string respVersion = responseHeaders.HTTPVersion ?? string.Empty;
+            bool reqHttp10 = reqVersion.OICContains("HTTP/1.0");
+            bool respHttp10 = respVersion.OICContains("HTTP/1.0");
+
+            if (reqHttp10 || respHttp10)
+            {
+                return requestHeaders.ExistsAndContains("Connection", "keep-alive") ||
+                       responseHeaders.ExistsAndContains("Connection", "keep-alive");
+            }
+
+            return true;
+        }
+
+        private static bool IsSocketReusable(Socket socket)
+        {
+            if (socket == null || !socket.Connected) return false;
+            try
+            {
+                bool readReady = socket.Poll(0, SelectMode.SelectRead);
+                bool noData = socket.Available == 0;
+                return !(readReady && noData);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static async Task<Socket> ConnectSocketAsync(string host, int port)
+        {
+            IPAddress[] addresses = Dns.GetHostAddresses(host);
+            Exception last = null;
+            for (int i = 0; i < addresses.Length; i++)
+            {
+                Socket socket = null;
+                try
+                {
+                    socket = new Socket(addresses[i].AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await Task.Factory.FromAsync(
+                        (callback, state) => socket.BeginConnect(addresses[i], port, callback, state),
+                        socket.EndConnect,
+                        null).ConfigureAwait(false);
+                    return socket;
+                }
+                catch (Exception eX)
+                {
+                    last = eX;
+                    try { socket?.Close(); } catch { }
+                }
+            }
+
+            throw new SocketException((int)SocketError.HostUnreachable);
         }
 
         private static bool TryGetConnectTarget(Exchange exchange, out string host, out int port)
