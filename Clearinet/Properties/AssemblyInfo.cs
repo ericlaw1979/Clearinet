@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Clearinet")]
@@ -14,6 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: CLSCompliant(false)]
 [assembly: ComVisible(false)]
 [assembly: AssemblyDelaySign(false)]
+[assembly: InternalsVisibleTo("CaptureEngine.Tests")]
 
 [assembly: AssemblyVersion("0.1.0.0")]
 
