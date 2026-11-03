@@ -789,7 +789,7 @@ namespace Clearinet
             this.miViewStayOnTop.CheckOnClick = true;
             this.miViewStayOnTop.Name = "miViewStayOnTop";
             this.miViewStayOnTop.Size = new System.Drawing.Size(224, 22);
-            this.miViewStayOnTop.Text = "&Stay on Top";
+            this.miViewStayOnTop.Text = "Stay on &Top";
             this.miViewStayOnTop.CheckedChanged += new System.EventHandler(this.miViewStayOnTop_CheckedChanged);
             // 
             // miViewMinimize
