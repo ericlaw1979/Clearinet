@@ -83,6 +83,17 @@ Traffic can also be sent directly to the listening proxy by manual configuration
 e.g. launching a Chromium-based browser with a command line argument of
 `--proxy-server=127.0.0.1:8888`.
 
+The capture engine listener is attach-gated: it starts only after Clearinet
+successfully attaches as the system proxy, and it stops when Clearinet detaches
+or shuts down. The listener address is loopback-only unless remote connections
+are explicitly enabled. Accepted sockets are associated with their originating
+process when Windows exposes a matching TCP owner record.
+
+HTTP/1.x request headers and bodies are read with bounded buffering. Both
+Content-Length and chunked request framing are supported; chunked bodies remain
+wire-framed when forwarded. Malformed requests are rejected by aborting the
+client connection rather than attempting to continue on a desynchronized stream.
+
 In the future, we will support a mode where traffic from a process can be
 transparently proxied by using a Windows Filtering Platform callout to
 retarget traffic that was targeted to a remote endpoint so that it is
@@ -102,6 +113,11 @@ A "Janitor" running on a periodic schedule will purge any sockets in the pool
 which have exceeded their idle time limit or whose connections were closed by
 the server.
 
+Pools are keyed by destination hostname, port, and whether the upstream
+connection uses TLS. The idle and maximum-age defaults are both five minutes and
+are configurable with `proxy.socketpool.idle_ms` and
+`proxy.socketpool.max_age_ms`.
+
 ### TLS Decryption
 TLS decryption is provided by a "man-in-the-middle" approach where Clearinet
 presents to the client a self-generated certificate that contains the target
@@ -118,10 +134,28 @@ socket connections using TLS, but in the future this will be replaced with
 another approach (likely either the BouncyCastle library or PInvoke calls to
 Windows SChannel).
 
+CONNECT requests use one of two modes. With HTTPS decryption disabled, or when
+an Exchange has the `x-no-decrypt` flag, Clearinet establishes a blind TCP tunnel
+and copies bytes in both directions. With decryption enabled, Clearinet sends the
+CONNECT success response, authenticates the client side with a generated leaf
+certificate, authenticates an upstream TLS connection, and then processes the
+decrypted HTTP/1.x traffic. The certificate provider caches generated leaf
+certificates and exposes cache cleanup through its abstraction.
+
+The initial MITM implementation does not negotiate HTTP/2 because .NET Framework
+SslStream does not expose the required ALPN support. Certificate generation and
+trust operate in the current user's Windows certificate stores; deployments that
+cannot modify those stores must supply another `ICertificateProvider`.
+
 ### Protocol Support
 In the initial implementation, Clearinet's proxy engine supports only HTTP/1.0
 and HTTP/1.1, because negotiating HTTP/2 requires configuration of the ALPN
 TLS extension and .NET's SslStream class does not support doing so.
+
+The capture engine is the default transport path. The earlier HttpClientBridge
+transport remains available for compatibility and diagnostics through the
+ephemeral `proxy.ephemeral.use_httpclientbridge_transport` preference, but is
+not selected by default by the Exchange state machine.
 
 In a future implementation, Clearinet will detect when a client is attempting
 to construct a connection to be used for WebSocket traffic and will handle

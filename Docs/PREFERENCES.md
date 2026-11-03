@@ -21,4 +21,22 @@ Below is a list of some preferences, their defaults, and what they control
 
 `user.paths.editors.code`, `notepad` => Default editor for editing your script. `code.exe` is a better choice if you install the free [Visual Studio Code](https://code.visualstudio.com/)
 
+`proxy.listen_port`, `8888` => Port used by the attach-gated capture engine listener.
+
+`proxy.allow_remote_connections`, `false` => Listen beyond the loopback interface. Enable only on trusted networks.
+
+`proxy.enable_ipv6`, `true` => Prefer an IPv6 any-address listener when remote connections are enabled.
+
+`proxy.capture_connect`, `true` => Capture HTTP CONNECT requests.
+
+`proxy.decrypt_https`, `false` => Decrypt CONNECT tunnels using generated certificates unless an Exchange has the `x-no-decrypt` flag.
+
+`proxy.socketpool.idle_ms`, `300000` => Maximum idle time for pooled upstream sockets.
+
+`proxy.socketpool.max_age_ms`, `300000` => Maximum lifetime for pooled upstream sockets.
+
+`proxy.capture.trace`, `false` => Write additional capture-engine diagnostics to the Log tab.
+
+`proxy.ephemeral.use_httpclientbridge_transport`, `false` => Temporarily use the legacy HttpClientBridge Exchange transport instead of the capture-engine-first path.
+
 You can find all of the Preferences checked by Clearinet by [Searching the code](https://github.com/search?q=repo%3Aericlaw1979%2Fclearinet+%2FGet.*Pref%5C%28%2F&type=code)
