@@ -267,7 +267,8 @@ namespace Clearinet
         public static bool MediaTypeShouldStream(string sMediaType)
         {
             // TODO: Make this a configurable preference
-            return sMediaType.OICStartsWithAny("audio/", "video/", "text/event-stream");
+            return sMediaType.OICStartsWithAny("audio/", "video/",  // Media
+                "text/event-stream", "application/x-ndjson");       // Data SSE/LLM
         }
 
         public static bool IsMediaTypeBinary(string sMediaType)
