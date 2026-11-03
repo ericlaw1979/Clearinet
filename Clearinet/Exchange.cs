@@ -505,6 +505,13 @@ namespace Clearinet
                         }
                         break;
                     case ExchangeState.AutoTamperResponseBefore:
+
+                        if (oFlags.ContainsKey("log-drop-request-body"))
+                        {
+                            this.BitFlags |= ExchangeFlags.RequestBodyDropped;
+                            this.RequestBody = Array.Empty<byte>();
+                        }
+
                         if (null != this["X-ReplyWithFile"])
                         {
                             doReplaceResponseWithFile();
@@ -553,6 +560,12 @@ namespace Clearinet
                         {
                             CApp.UI?.UpdateViewItem(this);
                         });
+
+                        if (oFlags.ContainsKey("log-drop-response-body"))
+                        {
+                            this.BitFlags |= ExchangeFlags.ResponseBodyDropped;
+                            this.ResponseBody = Array.Empty<byte>();
+                        }
                         break;
                 }
             }
