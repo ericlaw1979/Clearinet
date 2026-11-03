@@ -76,9 +76,14 @@ namespace Clearinet
         private static ulong tcLatestScriptLoad = 0;
         internal JScriptEngine(string scriptPath)
         {
-            if (CONFIG.Overrides.DisableScript)
+            if (CONFIG.OVERRIDES.DisableScript)
             {
                 CApp.Log.Log($"Script engine is disabled by command-line argument.");
+                return;
+            }
+            if (CONFIG.POLICIES.DisableScript)
+            {
+                CApp.Log.Log($"Script engine is disabled by system policy.");
                 return;
             }
             try

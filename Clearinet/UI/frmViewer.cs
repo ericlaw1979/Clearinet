@@ -798,11 +798,12 @@ namespace Clearinet
 
             CApp.EnsureCaptureEngineRunning();
 
+            CApp.Log.Log($"{CONFIG.POLICIES}\n{CONFIG.OVERRIDES}");
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
 
             // Notify the system that we're the proxy (exits immediately in Viewer mode).
             if (CApp.Prefs.GetBoolPref("app.attach_on_startup", false)  // TODO: Change after we have a proxy
-                && !CONFIG.Overrides.NoAttachOnStartup) { CApp.actAttachProxy(); }
+                && !CONFIG.OVERRIDES.NoAttachOnStartup) { CApp.actAttachProxy(); }
 
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
@@ -988,28 +989,21 @@ namespace Clearinet
         public bool actSaveExchanges(Exchange[] arrExchanges, string sFilename = null, string sPassword = null)
         {
             if (arrExchanges?.Length < 1) return false;
-
+            var bForceEncrypt = CONFIG.POLICIES.SAZRequiresEncryption;
             try
             {
-
                 if (!sFilename.HasText())
                 {
-                    (string sObtainedFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", "SAZ file|*.saz|Password Protected SAZ|*.saz");
+                    var sFiletypes = bForceEncrypt ?
+                        "Password Protected SAZ|*.saz" :
+                        "SAZ file|*.saz|Password Protected SAZ|*.saz";
+                    (string sObtainedFilename, int iType) = Utilities.ObtainSaveFilenameAndType("Save All Exchanges...", sFiletypes);
                     sFilename = sObtainedFilename;
                     if (!sFilename.HasText()) return false;
 
-                    if (2 == iType) // Password protected?
+                    if (2 == iType)
                     {
-                        sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
-                        {
-                            Kind = frmPrompt.PromptKind.Password,
-                            OwnerWindow = CApp.UI,
-                            ReturnNullOnCancel = true,
-                            Title = "Password-Protect Session Archive",
-                            PromptText = "Enter a password to encrypt this Session Archive:"
-                        });
-                        if (null == sPassword) return false; // Cancel Save
-                        if (!sPassword.HasText()) sPassword = null;
+                        bForceEncrypt = true;
                     }
                     else
                     {
@@ -1024,6 +1018,28 @@ namespace Clearinet
                     }
                 }
                 if (!sFilename.HasText()) return false;
+
+                if (bForceEncrypt && !sPassword.HasText())
+                {
+                    sPassword = frmPrompt.GetUserString(new frmPrompt.PromptOptions()
+                    {
+                        Kind = frmPrompt.PromptKind.Password,
+                        OwnerWindow = CApp.UI,
+                        ReturnNullOnCancel = true,
+                        Title = "Password-Protect Session Archive",
+                        PromptText = "Enter a password " + (bForceEncrypt ? "(policy required)" : string.Empty) + " to encrypt this Session Archive:"
+                    });
+                    if (null == sPassword) return false; // Cancel Save
+                    if (!sPassword.HasText())
+                    {
+                        if (CONFIG.POLICIES.SAZRequiresEncryption)
+                        {
+                            CApp.DoNotifyUser("SAZRequiresEncryption policy is enabled, but no password was supplied.", "Save Blocked");
+                            return false;
+                        }
+                        sPassword = null;
+                    }
+                }
 
                 using (LongRunningOperation lro = new LongRunningOperation("Saving Exchanges...", true))
                 {

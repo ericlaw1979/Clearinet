@@ -29,8 +29,25 @@ namespace Clearinet
             internal bool NoAttachOnStartup;
             internal bool DisableScript;
             internal int ListenPort;
+
+            public override string ToString()
+            {
+                return $"OVERRIDES: NoAttachOnStartup={NoAttachOnStartup}, DisableScript={DisableScript}, ListenPort={ListenPort}";
+            }
         }
-        internal static structOverrides Overrides;
+        internal static structOverrides OVERRIDES;
+
+
+        internal class classPolicies
+        {
+            internal bool DisableScript;
+            internal bool SAZRequiresEncryption;
+            public override string ToString()
+            {
+                return $"POLICIES: DisableScript={DisableScript}, SAZRequiresEncryption={SAZRequiresEncryption}";
+            }
+        }
+        internal static classPolicies POLICIES = new classPolicies();
 
         public static Color GetColor(string sPref, Color colorDefault)
         {
@@ -53,7 +70,7 @@ namespace Clearinet
         {
             get
             {
-                if (Overrides.ListenPort > 0) return Overrides.ListenPort;
+                if (OVERRIDES.ListenPort > 0) return OVERRIDES.ListenPort;
                 return pbPrefs.GetInt32Pref("proxy.listen_port", 8888);
             }
             internal set
@@ -109,7 +126,7 @@ namespace Clearinet
                     if (int.TryParse(sArg.Substring(sArg.IndexOf("port:", StringComparison.OrdinalIgnoreCase) + 5),
                         NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out int iPort))
                     {
-                        Overrides.ListenPort = iPort;
+                        OVERRIDES.ListenPort = iPort;
                     }
                     continue;
                 }
@@ -128,13 +145,13 @@ namespace Clearinet
 
                 if (sSwitch.OICEquals("noattach"))
                 {
-                    Overrides.NoAttachOnStartup = true;
+                    OVERRIDES.NoAttachOnStartup = true;
                     continue;
                 }
 
                 if (sSwitch.OICEquals("noscript"))
                 {
-                    Overrides.DisableScript = true;
+                    OVERRIDES.DisableScript = true;
                     continue;
                 }
 
@@ -156,6 +173,7 @@ namespace Clearinet
         {
             switch (sWhich)
             {
+                case "Policies": return @"SOFTWARE\Policies\Clearinet\";
                 case "Prefs": return sRootRegistryKey + @"Prefs\";
                 case "Root": return sRootRegistryKey;
                 case "UI": return sRootRegistryKey + @"UI\";
@@ -258,7 +276,21 @@ namespace Clearinet
         internal static void RetrieveUrgentSettings()
         {
             try
+            { // HKLM\SOFTWARE\Policies\Clearinet
+                RegistryKey oReg = Registry.LocalMachine.OpenSubKey(GetRegistryPath("Policies"), RegistryKeyPermissionCheck.ReadSubTree);
+                if (null != oReg)
+                {
+                    POLICIES.DisableScript = Utilities.GetRegistryBool(oReg, "DisableScript", false);
+                    POLICIES.SAZRequiresEncryption = Utilities.GetRegistryBool(oReg, "SAZRequiresEncryption", false);
+                }
+            }
+            catch (Exception eX)
             {
+                Debug.Assert(false, Utilities.DescribeException(eX));
+            }
+
+            try
+            { // SOFTWARE\Policies
                 RegistryKey oReg = Registry.CurrentUser.OpenSubKey(GetRegistryPath("UI"), RegistryKeyPermissionCheck.ReadSubTree);
                 if (null != oReg)
                 {

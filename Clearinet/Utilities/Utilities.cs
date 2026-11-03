@@ -601,6 +601,31 @@ namespace Clearinet
             return "TODO: don't call this!";
         }
 
+
+        public static bool GetRegistryBool(RegistryKey rk, string sName, bool bDefault)
+        {
+            object o = rk.GetValue(sName);
+            if (o is Int32) return ((int)o) != 0;
+
+            string strVal = (o as string);
+            if (!String.IsNullOrEmpty(strVal))
+            {
+                if (strVal.Equals("1") ||
+                    strVal.OICEquals("true"))
+                {
+                    return true;
+                }
+
+                if (strVal.Equals("0") ||
+                    strVal.OICEquals("false"))
+                {
+                    return false;
+                }
+            }
+
+            return bDefault;
+        }
+
         public static int GetRegistryInt(RegistryKey rk, string sName, int iDefault)
         {
             int retVal = iDefault;
