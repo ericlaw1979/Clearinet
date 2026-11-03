@@ -571,6 +571,11 @@ namespace Clearinet
         internal static bool EnsureCaptureEngineRunning()
         {
             if (CONFIG.isViewerMode) return false;
+            if (!Prefs.GetBoolPref("proxy.reed.enabled"))
+            {
+                Log.Log("Reed proxy is disabled, engine startup canceled.");
+                return false;
+            }
             try
             {
                 if (_captureEngineRuntime == null)
