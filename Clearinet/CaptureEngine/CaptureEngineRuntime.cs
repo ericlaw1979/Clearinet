@@ -542,7 +542,6 @@ namespace Clearinet.CaptureEngine
 
             Exchange xc = new Exchange(headers, requestBodyBytes ?? Array.Empty<byte>());
             xc.EnsureID();
-            xc.state = ExchangeState.ReadingRequest;
             xc.Timers.ClientConnected = DateTime.Now;
             xc.Timers.ClientBeginRequest = DateTime.Now;
             xc.Timers.ProxyGotRequestHeaders = DateTime.Now;
@@ -564,6 +563,7 @@ namespace Clearinet.CaptureEngine
                 xc.SetBitFlag(ExchangeFlags.IsBlindTunnel);
             }
 
+            xc.state = ExchangeState.ReadingRequestBody;
             return xc;
         }
 

@@ -77,12 +77,18 @@ namespace Clearinet
     }
 
     // TODO: Consider whether we should add more states.
+    // TODO: Clearly document whether the state change occurs when the operation starts, or
+    // when it has completed. For example, does ReadingRequestHeaders mean that the request
+    // headers have been read, or that we are in the process of reading them?
     public enum ExchangeState : byte
     {
         Created,
 
-        // Reading request from the client
-        ReadingRequest,
+        // Reading request headers from the client
+        ReadingRequestHeaders,
+
+        // Reading request body from the client
+        ReadingRequestBody,
 
         // Allowing extensions to tamper with the request
         AutoTamperRequestBefore,
@@ -96,8 +102,11 @@ namespace Clearinet
         // Sending request to the server
         SendingRequest,
 
-        // Reading response from the server
-        ReadingResponse,
+        // Reading response headers from the server
+        ReadingResponseHeaders,
+
+        // Reading response body from the server
+        ReadingResponseBody,
 
         // Pre-inspector tampering of the response
         AutoTamperResponseBefore,
