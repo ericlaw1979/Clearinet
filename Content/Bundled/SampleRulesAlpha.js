@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0. LAST UPDATED for v0.0.3.1
+// This file will be updated before v1.0. LAST UPDATED for v0.1.0.0
 import System;
 import System.Windows.Forms;
 import Clearinet;
@@ -42,6 +42,9 @@ class Handlers
     // so that its value will survive if the script is changed and recompiled.
     BindPref("cinscript.ephemeral.bpRequestURL")
     public static var bpRequestURL:String = null;
+
+    BindPref("cinscript.ephemeral.bpResponseURL")
+    public static var bpResponseURL:String = null;
     
 //
 // ============ EXTEND THE APP UI ============
@@ -193,8 +196,17 @@ class Handlers
         if ((null != bpRequestURL) && !XC.HTTPMethodIs("CONNECT") 
             && XC.urlContains(bpRequestURL)) {
             XC["x-breakrequest"]="rules>bpu";
+        }       
+    }
+
+    static function OnPeekAtResponseHeaders(XC: Exchange) {
+        // If the URL contains the string we said to break on...
+        if ((null != bpResponseURL) && !XC.HTTPMethodIs("CONNECT") 
+            && XC.urlContains(bpResponseURL)) {
+                // Ensure we don't stream the body until the user can modify it.
+                XC.bBufferResponse="rules>bpafter";
+                XC["x-breakresponse"] = "rules>bpafter";
         }
-        
     }
 
     static function OnBeforeResponse(XC: Exchange) {
@@ -208,24 +220,31 @@ class Handlers
             case "clear":
             case "cls":
                 CApp.UI.actRemoveAllExchanges();
-                return true;
+            return true;
+
+            case "bpafter":
+                if (2>sArgs.Length) {bpResponseURL=null; CApp.UI.SetStatusText("ResponseURL breakpoint cleared"); return false;}
+                bpResponseURL = sArgs[1]; 
+                CApp.UI.SetStatusText("ResponseURL breakpoint for "+sArgs[1]);
+            return true;
 
             case "bpu":
-            if (2>sArgs.Length) {bpRequestURL=null; CApp.UI.SetStatusText("RequestURL breakpoint cleared"); return false;}
-            bpRequestURL = sArgs[1]; 
-            CApp.UI.SetStatusText("RequestURL breakpoint for "+sArgs[1]);
+                if (2>sArgs.Length) {bpRequestURL=null; CApp.UI.SetStatusText("RequestURL breakpoint cleared"); return false;}
+                bpRequestURL = sArgs[1]; 
+                CApp.UI.SetStatusText("RequestURL breakpoint for "+sArgs[1]);
             return true;
             
             case "start":
                 CApp.actAttachProxy();
-                return true;
+            return true;
+
             case "stop":
                 CApp.actDetachProxy();
-                return true;
+            return true;
         
             case "find":
                 if (sArgs.length > 1) CApp.UI.actBeginFinding(sArgs[1]); else CApp.UI.actBeginFinding();
-                break;
+            return true;
 
             case "keeponly":
                 if (2 > sArgs.Length) { CApp.UI.SetStatusText("Error: Specify Content-Type to retain."); return false;}
@@ -249,16 +268,16 @@ class Handlers
             case "screenshot":
                 // Capture a screenshot and store it in the Exchange list.
                 CApp.UI.actCaptureScreenshot(false);
-                return true;
+            return true;
 
             case "show":
                 // Show the main window. (Useful from ExecAction.exe scripts)
                 CApp.UI.actRestoreWindow();
-                return true;
+            return true;
 
             case "quit":
                 CApp.UI.actExit();
-                return true;
+            return true;
 
             case "dump":
                 var sDumpFilename:String = CONFIG.GetPath("Captures") + "Clearinet_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".saz";
@@ -270,33 +289,34 @@ class Handlers
             case "stayalive":
                 CApp.UI.SetStatusText("disallow close");
                 bCanClose = false;
-                return;
+            return true;
 
             case "sesame":
                 CApp.UI.SetStatusText("Now allowing close");
                 bCanClose = true;
-                return;
+            return true;
 
             case "ver":
                 CApp.alert(CApp.VersionString);
-                return true;
+            return true;
 
             case "paste":
                 if (CApp.UI.actPasteFromClipboard()) {
                     CApp.UI.actFlashWindow();
                     CApp.PlaySound("C:\\Windows\\Media\\Windows Print complete.wav")
                 }
-                break;
+            return true;
 
             case "log":
                 CApp.Log.Log(Array(sArgs).slice(1).join(" "));
-                return true;
+            return true;
 
             default:
                 if (sAction.StartsWith("http")) {
                     Utilities.LaunchHyperlink(sArgs[0]);
                     return true;
     		    }
+                // fall through...
         }
         CApp.UI.SetStatusText("Unknown execaction: " + sAction);
         CApp.alert("OnExecAction '" + sAction + "' was called with " + (sArgs.Length - 1).toString() + " arguments.");
