@@ -72,14 +72,15 @@ namespace Clearinet
             this.miEdit = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyURL = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditCopyForAI = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyCurl = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
+            this.miEditCopyResponseDataURI = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.miEditCopyExchange = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyHeaders = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditCopyCurl = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.miEditCopyForAI = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyTerseSummary = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopySummary = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditCopyResponseDataURI = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditPasteAsExchanges = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemove = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRemoveSelected = new System.Windows.Forms.ToolStripMenuItem();
@@ -190,9 +191,9 @@ namespace Clearinet
             this.miInspectorScreenshot = new System.Windows.Forms.ToolStripMenuItem();
             this.miInspectorAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlTamper = new System.Windows.Forms.Panel();
+            this.btnBreakAtResponse = new System.Windows.Forms.Button();
             this.lblBreakpointed = new System.Windows.Forms.Label();
             this.btnRunToComplete = new System.Windows.Forms.Button();
-            this.btnBreakAtResponse = new System.Windows.Forms.Button();
             this.splitRequestResponse = new System.Windows.Forms.Splitter();
             this.tabsRequest = new System.Windows.Forms.TabControl();
             this.pageAutoResponder = new System.Windows.Forms.TabPage();
@@ -203,7 +204,6 @@ namespace Clearinet
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -455,14 +455,14 @@ namespace Clearinet
             // miFileSaveResponseFull
             // 
             this.miFileSaveResponseFull.Name = "miFileSaveResponseFull";
-            this.miFileSaveResponseFull.Size = new System.Drawing.Size(175, 22);
+            this.miFileSaveResponseFull.Size = new System.Drawing.Size(179, 22);
             this.miFileSaveResponseFull.Text = "&Entire Response...";
             this.miFileSaveResponseFull.Click += new System.EventHandler(this.miFileSaveResponseFull_Click);
             // 
             // miFileSaveResponseBody
             // 
             this.miFileSaveResponseBody.Name = "miFileSaveResponseBody";
-            this.miFileSaveResponseBody.Size = new System.Drawing.Size(175, 22);
+            this.miFileSaveResponseBody.Size = new System.Drawing.Size(179, 22);
             this.miFileSaveResponseBody.Text = "Response &Body...";
             this.miFileSaveResponseBody.Click += new System.EventHandler(this.miFileSaveResponseBody_Click);
             // 
@@ -546,12 +546,29 @@ namespace Clearinet
             this.miEditCopyURL.Text = "Just &Url";
             this.miEditCopyURL.Click += new System.EventHandler(this.miEditCopyURL_Click);
             // 
-            // miEditCopyForAI
+            // miEditCopyCurl
             // 
-            this.miEditCopyForAI.Name = "miEditCopyForAI";
-            this.miEditCopyForAI.Size = new System.Drawing.Size(188, 22);
-            this.miEditCopyForAI.Text = "For LLM/&AI";
-            this.miEditCopyForAI.Click += new System.EventHandler(this.miEditCopyForAI_Click);
+            this.miEditCopyCurl.Name = "miEditCopyCurl";
+            this.miEditCopyCurl.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyCurl.Text = "as &CURL command";
+            this.miEditCopyCurl.Click += new System.EventHandler(this.miEditCopyCurl_Click);
+            // 
+            // toolStripMenuItem8
+            // 
+            this.toolStripMenuItem8.Name = "toolStripMenuItem8";
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(185, 6);
+            // 
+            // miEditCopyResponseDataURI
+            // 
+            this.miEditCopyResponseDataURI.Name = "miEditCopyResponseDataURI";
+            this.miEditCopyResponseDataURI.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyResponseDataURI.Text = "Response &DataURI";
+            this.miEditCopyResponseDataURI.Click += new System.EventHandler(this.miEditCopyResponseDataURI_Click);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(185, 6);
             // 
             // miEditCopyExchange
             // 
@@ -566,17 +583,12 @@ namespace Clearinet
             this.miEditCopyHeaders.Size = new System.Drawing.Size(188, 22);
             this.miEditCopyHeaders.Text = "&Headers only";
             // 
-            // miEditCopyCurl
+            // miEditCopyForAI
             // 
-            this.miEditCopyCurl.Name = "miEditCopyCurl";
-            this.miEditCopyCurl.Size = new System.Drawing.Size(188, 22);
-            this.miEditCopyCurl.Text = "as &CURL command";
-            this.miEditCopyCurl.Click += new System.EventHandler(this.miEditCopyCurl_Click);
-            // 
-            // toolStripMenuItem2
-            // 
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(185, 6);
+            this.miEditCopyForAI.Name = "miEditCopyForAI";
+            this.miEditCopyForAI.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyForAI.Text = "For LLM/&AI";
+            this.miEditCopyForAI.Click += new System.EventHandler(this.miEditCopyForAI_Click);
             // 
             // miEditCopyTerseSummary
             // 
@@ -591,13 +603,6 @@ namespace Clearinet
             this.miEditCopySummary.Size = new System.Drawing.Size(188, 22);
             this.miEditCopySummary.Text = "&Full Summary Table";
             this.miEditCopySummary.Click += new System.EventHandler(this.miEditCopySummary_Click);
-            // 
-            // miEditCopyResponseDataURI
-            // 
-            this.miEditCopyResponseDataURI.Name = "miEditCopyResponseDataURI";
-            this.miEditCopyResponseDataURI.Size = new System.Drawing.Size(188, 22);
-            this.miEditCopyResponseDataURI.Text = "Response &DataURI";
-            this.miEditCopyResponseDataURI.Click += new System.EventHandler(this.miEditCopyResponseDataURI_Click);
             // 
             // miEditPasteAsExchanges
             // 
@@ -659,7 +664,6 @@ namespace Clearinet
             this.miEditUnlock.ShortcutKeys = System.Windows.Forms.Keys.F2;
             this.miEditUnlock.Size = new System.Drawing.Size(208, 22);
             this.miEditUnlock.Text = "Unlock for &Editing";
-            this.miEditUnlock.Click += miEditUnlock_Click;
             // 
             // miEditMark
             // 
@@ -1450,6 +1454,7 @@ namespace Clearinet
             // 
             // txtQuickExec
             // 
+            this.txtQuickExec.AllowDrop = true;
             this.txtQuickExec.BackColor = System.Drawing.Color.Black;
             this.txtQuickExec.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtQuickExec.CueText = "[Ctrl+P] Type a command or HELP";
@@ -1573,9 +1578,9 @@ namespace Clearinet
             // pnlTamper
             // 
             this.pnlTamper.BackColor = System.Drawing.Color.Red;
+            this.pnlTamper.Controls.Add(this.btnBreakAtResponse);
             this.pnlTamper.Controls.Add(this.lblBreakpointed);
             this.pnlTamper.Controls.Add(this.btnRunToComplete);
-            this.pnlTamper.Controls.Add(this.btnBreakAtResponse);
             this.pnlTamper.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlTamper.Location = new System.Drawing.Point(4, 201);
             this.pnlTamper.Name = "pnlTamper";
@@ -1583,34 +1588,34 @@ namespace Clearinet
             this.pnlTamper.TabIndex = 2;
             this.pnlTamper.Visible = false;
             // 
-            // lblBreakpointed
-            // 
-            this.lblBreakpointed.AutoSize = true;
-            this.lblBreakpointed.Location = new System.Drawing.Point(3, 6);
-            this.lblBreakpointed.Name = "lblBreakpointed";
-            this.lblBreakpointed.Size = new System.Drawing.Size(191, 16);
-            this.lblBreakpointed.TabIndex = 2;
-            this.lblBreakpointed.Text = "Breakpoint hit; editors unlocked.";
-            // 
-            // btnRunToComplete
-            // 
-            this.btnRunToComplete.BackColor = System.Drawing.Color.Chartreuse;
-            this.btnRunToComplete.Location = new System.Drawing.Point(357, 3);
-            this.btnRunToComplete.Name = "btnRunToComplete";
-            this.btnRunToComplete.Size = new System.Drawing.Size(125, 23);
-            this.btnRunToComplete.TabIndex = 1;
-            this.btnRunToComplete.Text = "Resume";
-            this.btnRunToComplete.UseVisualStyleBackColor = false;
-            // 
             // btnBreakAtResponse
             // 
             this.btnBreakAtResponse.BackColor = System.Drawing.Color.Yellow;
             this.btnBreakAtResponse.Location = new System.Drawing.Point(200, 3);
             this.btnBreakAtResponse.Name = "btnBreakAtResponse";
-            this.btnBreakAtResponse.Size = new System.Drawing.Size(139, 23);
+            this.btnBreakAtResponse.Size = new System.Drawing.Size(200, 23);
             this.btnBreakAtResponse.TabIndex = 0;
             this.btnBreakAtResponse.Text = "&Break at Response";
             this.btnBreakAtResponse.UseVisualStyleBackColor = false;
+            // 
+            // lblBreakpointed
+            // 
+            this.lblBreakpointed.Location = new System.Drawing.Point(3, 6);
+            this.lblBreakpointed.Name = "lblBreakpointed";
+            this.lblBreakpointed.Size = new System.Drawing.Size(191, 16);
+            this.lblBreakpointed.TabIndex = 2;
+            this.lblBreakpointed.Text = "Breakpoint hit; edit and...";
+            this.lblBreakpointed.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // btnRunToComplete
+            // 
+            this.btnRunToComplete.BackColor = System.Drawing.Color.Chartreuse;
+            this.btnRunToComplete.Location = new System.Drawing.Point(442, 3);
+            this.btnRunToComplete.Name = "btnRunToComplete";
+            this.btnRunToComplete.Size = new System.Drawing.Size(200, 23);
+            this.btnRunToComplete.TabIndex = 1;
+            this.btnRunToComplete.Text = "Resume";
+            this.btnRunToComplete.UseVisualStyleBackColor = false;
             // 
             // splitRequestResponse
             // 
@@ -1721,11 +1726,6 @@ namespace Clearinet
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             // 
-            // toolStripMenuItem8
-            // 
-            this.toolStripMenuItem8.Name = "toolStripMenuItem8";
-            this.toolStripMenuItem8.Size = new System.Drawing.Size(185, 6);
-            // 
             // frmViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1766,7 +1766,6 @@ namespace Clearinet
             this.pageInspectors.ResumeLayout(false);
             this.mnuInspectors.ResumeLayout(false);
             this.pnlTamper.ResumeLayout(false);
-            this.pnlTamper.PerformLayout();
             this.pageAutoResponder.ResumeLayout(false);
             this.pageAutoResponder.PerformLayout();
             this.pageLog.ResumeLayout(false);
