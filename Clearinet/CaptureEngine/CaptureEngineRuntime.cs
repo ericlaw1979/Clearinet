@@ -827,8 +827,8 @@ namespace Clearinet.CaptureEngine
                         try { clientToClearinetBytes = await relayClientToServer.ConfigureAwait(false); } catch { }
                         try { serverToClearinetBytes = await relayServerToClient.ConfigureAwait(false); } catch { }
 
-                        exchange["x-tunnel-bytes-from-client"] = clientToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
-                        exchange["x-tunnel-bytes-from-server"] = serverToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                        exchange["Tunnel-ByteCount-FromClient"] = clientToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                        exchange["Tunnel-ByteCount-FromServer"] = serverToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
                     }
                 }
             }
