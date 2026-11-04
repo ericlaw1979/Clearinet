@@ -487,16 +487,15 @@ namespace Clearinet
             if (CONFIG.isCleanupMode)
             {
                 frmSplashScreen.SetStatusText("Cleaning up...");
-                MessageBox.Show("Clearinet was still running when Windows exited.\n"
-                    + "Performing cleanup operations...", "Proxy Settings Cleanup");
 
                 if (WinINETInterop.CurrentProxyServer().OICStartsWithAny("127.0.0.1:", "localhost:"))
                 {
                     WinINETInterop.RestoreDefaultProxySettings();
+                    MessageBox.Show("Clearinet was still running when Windows exited.\n"
+                                  + "Stale proxy settings have been reverted.", "Proxy Settings Cleanup");
                 }
 
                 frmSplashScreen.CloseSplashScreen();
-                MessageBox.Show("Clearinet cleanup completed.", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -809,6 +808,8 @@ namespace Clearinet
             logContextMenu.Items.Add("Clear Log", null, (s1, e1) => ClearLog());
             logContextMenu.Opening += (s1, e1) => copyLogItem.Enabled = rtbLog.SelectionLength > 0;
             rtbLog.ContextMenuStrip = logContextMenu;
+
+            splitRequestResponse.DoubleClick += SplitRequestResponse_DoubleClick;
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
@@ -827,6 +828,23 @@ namespace Clearinet
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
+        }
+
+        private void SplitRequestResponse_DoubleClick(object sender, EventArgs e)
+        {
+            int tabHeaderHeightRequest = tabsRequest.Height - tabsRequest.DisplayRectangle.Height;
+            int tabHeaderHeightResponse = tabsResponse.Height - tabsResponse.DisplayRectangle.Height;
+
+            if (tabsRequest.Height > tabHeaderHeightRequest + 20)
+            {
+                // Minimize Request tab to just the header
+                tabsRequest.Height = tabHeaderHeightRequest + 15;
+            }
+            else
+            {
+                // Maximize Request tab
+                tabsRequest.Height = pageInspectors.DisplayRectangle.Height - (tabHeaderHeightResponse + 15);
+            }
         }
 
         // TODO: Maybe move to App?
