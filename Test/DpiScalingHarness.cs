@@ -335,8 +335,21 @@ public static class DpiScalingHarness
             ((TextBox)Find(composer, name)).Select(3, 4);
     }
 
+    private static void CheckComposerTabOrder(Control composer)
+    {
+        var names = new List<string>();
+        Control next = null;
+        while ((next = composer.GetNextControl(next, true)) != null)
+            if (next.TabStop && (next is TextBoxBase || next is ComboBox || next is Button))
+                names.Add(next.Name);
+        string actual = string.Join(" -> ", names);
+        Check(actual == "cbxMethod -> txtURL -> cbxHTTPVersion -> btnSend -> txtHeaders -> txtBody",
+            "Composer retains its logical tab order: " + actual);
+    }
+
     private static void CheckRequestLayout(Control composer, bool? expectedWrap)
     {
+        CheckComposerTabOrder(composer);
         var row = (TableLayoutPanel)Find(composer, "layoutRequest");
         Control url = Find(composer, "txtURL");
         bool wrapped = row.GetRow(url) == 1;
@@ -664,6 +677,90 @@ public static class DpiScalingHarness
         catch (ObjectDisposedException) { return false; }
     }
 
+    private static void CheckInspectorFontNotifications()
+    {
+        Assembly assembly = Assembly.LoadFrom(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CAE-Default.dll"));
+        foreach (string name in new[] { "RequestCookieInspector", "ResponseCookieInspector",
+            "RequestAuthInspector", "ResponseAuthInspector", "Transformer" })
+        {
+            context = "Inspector font notifications / " + name;
+            Font borrowed = null;
+            Font finalOwned = null;
+            try
+            {
+                using (var page = new TabPage(name))
+                {
+                    var inspector = (InspectorBase)Activator.CreateInstance(assembly.GetType("Extensions." + name, true));
+                    typeof(InspectorBase).GetMethod("EnsureTabReady", Hidden).Invoke(inspector, new object[] { page });
+                    Check(page.Controls.Count == 1, "Lazy initialization creates one view");
+                    Control view = page.Controls[0];
+                    Control editor = name == "Transformer" ? view
+                        : PrivateControl(view, name.Contains("Cookie") ? "txtCookies" : "txtAuth");
+                    Check(FontUsable(editor.Font), "Initial font notification leaves a usable active font");
+                    if (!FontUsable(editor.Font)) continue;
+                    float initial = editor.Font.SizeInPoints;
+                    var text = editor as TextBoxBase;
+                    if (text != null)
+                    {
+                        text.Text = "Preserve text and selection";
+                        text.Select(3, 4);
+                    }
+                    bool readOnly = text != null && text.ReadOnly;
+                    int textEvents = 0;
+                    if (text != null) text.TextChanged += (sender, e) => textEvents++;
+                    foreach (float points in new[] { initial, initial, initial + 2.5f, initial + 2.5f, initial })
+                    {
+                        Font active = editor.Font;
+                        Font owned = OwnedFont(view, "viewFont");
+                        bool sameSize = active.SizeInPoints == points;
+                        inspector.SetFontSize(points);
+                        Check(FontUsable(editor.Font) && Math.Abs(editor.Font.SizeInPoints - points) < 0.01f,
+                            "Font notification preserves a usable font at the requested size");
+                        if (sameSize)
+                            Check(object.ReferenceEquals(active, editor.Font)
+                                && object.ReferenceEquals(owned, OwnedFont(view, "viewFont")) && FontUsable(owned),
+                                "Equal notification retains active and owned font instances");
+                        else
+                            Check(!FontUsable(owned), "Replacement disposes the superseded owned font");
+                        if (text != null)
+                            Check(text.Text == "Preserve text and selection" && text.SelectionStart == 3
+                                && text.SelectionLength == 4 && text.ReadOnly == readOnly && textEvents == 0,
+                                "Font notification preserves content, selection, read-only state and text events");
+                    }
+                    borrowed = new Font(editor.Font.FontFamily, initial + 1f);
+                    editor.Font = borrowed;
+                    Font superseded = OwnedFont(view, "viewFont");
+                    inspector.SetFontSize(initial + 1f);
+                    Check(object.ReferenceEquals(editor.Font, borrowed) && FontUsable(borrowed)
+                        && object.ReferenceEquals(OwnedFont(view, "viewFont"), superseded) && FontUsable(superseded),
+                        "Equal notification does not adopt or dispose a borrowed active font");
+                    inspector.SetFontSize(initial);
+                    Check(FontUsable(borrowed) && !FontUsable(superseded),
+                        "Replacement disposes only its owned font, not a borrowed active font");
+                    finalOwned = OwnedFont(view, "viewFont");
+                    editor.Disposed += (sender, e) => Check(FontUsable(finalOwned), "Owned font outlives its consumer");
+                }
+                Check(!FontUsable(finalOwned), "Disposal releases the final owned font");
+                Check(FontUsable(borrowed), "View disposal leaves the borrowed font usable");
+            }
+            finally { if (borrowed != null) borrowed.Dispose(); }
+        }
+    }
+
+    private static void RunComponentChecks()
+    {
+        CheckInspectorFontNotifications();
+        using (var composer = new ComposerView())
+            foreach (int width in new[] { 1000, 500, 260, 1000 })
+            {
+                context = "Composer component width " + width;
+                composer.Size = new Size(width, 600);
+                composer.PerformLayout();
+                CheckRequestLayout(composer, null);
+            }
+        Console.WriteLine("DPI components: " + assertions + " assertions, " + failures + " failures.");
+    }
+
     private static void CheckRawOwnedFonts(ExtensionCase test, Control view, RichTextBox editor)
     {
         context = "Raw owned fonts";
@@ -932,6 +1029,7 @@ public static class DpiScalingHarness
     private static void Run(int screenIndex, string scenario, int fontSize, string registryPath, bool runtimeFonts, bool extensions)
     {
         CheckFontUnits();
+        RunComponentChecks();
         // Run normal frmViewer Load with isolated settings. No script engine, global hotkey,
         // proxy, or extension startup is run; the header inspector is instantiated explicitly.
         typeof(CONFIG).GetField("sRootRegistryKey", Static).SetValue(null, registryPath + "\\");
@@ -1086,6 +1184,12 @@ public static class DpiScalingHarness
                 foreach (int index in representatives) Console.WriteLine(index);
                 Console.WriteLine("Inventory: " + screens.Length + " physical monitors, " + representatives.Count + " unique configurations");
                 return 0;
+            }
+            if (Array.IndexOf(args, "-ComponentsOnly") >= 0)
+            {
+                CheckFontUnits();
+                RunComponentChecks();
+                return failures == 0 ? 0 : 1;
             }
             int screenIndex = int.Parse(args[Array.IndexOf(args, "-Screen") + 1], CultureInfo.InvariantCulture);
             string scenario = args[Array.IndexOf(args, "-Scenario") + 1];

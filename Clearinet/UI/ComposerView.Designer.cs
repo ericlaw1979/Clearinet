@@ -59,7 +59,7 @@
             this.cbxMethod.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxMethod.Name = "cbxMethod";
             this.cbxMethod.Size = new System.Drawing.Size(119, 24);
-            this.cbxMethod.TabIndex = 4;
+            this.cbxMethod.TabIndex = 0;
             this.cbxMethod.TextChanged += new System.EventHandler(this.cbxMethod_TextChanged);
             // 
             // cbxHTTPVersion
@@ -75,7 +75,7 @@
             this.cbxHTTPVersion.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxHTTPVersion.Name = "cbxHTTPVersion";
             this.cbxHTTPVersion.Size = new System.Drawing.Size(131, 24);
-            this.cbxHTTPVersion.TabIndex = 5;
+            this.cbxHTTPVersion.TabIndex = 2;
             // 
             // txtURL
             // 
@@ -85,7 +85,7 @@
             this.txtURL.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtURL.Name = "txtURL";
             this.txtURL.Size = new System.Drawing.Size(717, 24);
-            this.txtURL.TabIndex = 0;
+            this.txtURL.TabIndex = 1;
             this.txtURL.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtURL_KeyDown);
             // 
             // pnlMessage
@@ -141,7 +141,7 @@
             this.btnSend.Location = new System.Drawing.Point(998, 11);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(75, 30);
-            this.btnSend.TabIndex = 1;
+            this.btnSend.TabIndex = 3;
             this.btnSend.Text = "Send";
             this.btnSend.UseVisualStyleBackColor = true;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);

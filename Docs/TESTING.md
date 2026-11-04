@@ -101,7 +101,7 @@ listed build directory with the single-test command above.
 | `MinimizeToTray` | `Clearinet\bin\Release` | Tray minimize/restore, normal/maximized state, clicks, tooltip counts and capture state, disposal. Uses the desktop notification area. |
 | `QuickExecHistory` | `Clearinet\bin\Release` | History/autocomplete and navigation, file paste/drop/insertion, persistence, viewer mode, logged I/O failures. Uses clipboard and temporary history files. |
 | `ScriptColumnReload` | `Clearinet\bin\Release` | JScript.NET-bound columns across reloads, unique names, values, removal, sort indices, unrelated column preservation. Uses a temporary script. |
-| `DpiScaling` | `Clearinet\bin\Release` | Real-monitor cold startup, lazy activation, native fonts, repeated DPI moves, minimum sizing and responsive Composer. Optional runtime-font and extension modes cover editable Raw state/undo/events and owned-font lifetime. Requires matching Extensions outputs and an unlocked desktop; see the execution tiers below. |
+| `DpiScaling` | `Clearinet\bin\Release` | Real-monitor startup, native fonts, monitor transitions, responsive layout and optional runtime-font/editor-state checks. Requires matching Extensions outputs and an unlocked desktop; see the execution tiers below. |
 | `DataInspector` | `Extensions\bin\Release` | JSON/XML/BSON trees, malformed data, search/expand/collapse, query strings, form bodies, compression/chunk decoding and state clearing. |
 | `DataViewContextMenu` | `Extensions\bin\Release` | Copy, Copy Subtree, Ctrl+C, right-click targeting, disabled actions, Textransformer handoff and menu disposal. Uses clipboard and shows tool windows. |
 | `ImageInspector` | `Extensions\bin\Release` | Image metadata and exact accounting/preview limits, PNG/JPEG/GIF/WebP/TIFF, EXIF/XMP, malformed inputs, decoding and inspector integration. This is not a dedicated fullscreen-viewer test. |
@@ -155,49 +155,27 @@ Use a capture you are authorized to inspect; real captures can contain secrets.
 ## DPI execution tiers
 
 The DPI runner requires built `Clearinet.exe`, its `.config`, dependencies and
-the matching `CAE-Default.dll`. It compiles the harness once per invocation and
-runs each cold-start case in a fresh process with isolated temporary files and
-registry settings. It can relaunch itself under Windows PowerShell/STA when
-invoked from PowerShell 7, forwarding its options and the automation marker.
-Prefer the explicit Windows PowerShell commands below for reproducible runs.
+the matching `CAE-Default.dll`, plus an unlocked desktop for UI tests. Each
+cold-start case runs in a fresh process with isolated files and registry settings.
+Use monitors with different scaling to exercise cross-DPI behavior.
 
-Start with inventory; this still copies assemblies, compiles the harness and
-enumerates monitors, but launches no test scenarios:
+### Focused smoke
 
-```powershell
-powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory .\Clearinet\bin\Release -InventoryOnly
-if ($LASTEXITCODE -ne 0) { throw 'DPI inventory failed.' }
-```
-
-Defaults deduplicate monitors by DPI, size, work-area geometry and primary status
-(not desktop position). Each unique configuration gets two fonts (10/12) and
-three startup scenarios (`eager`, `moved`, `roundtrip`). With two configurations
-this is 12 cases, not all 18 physical-monitor cases on a three-monitor desktop.
-`-ScreenIndex` selects a physical startup monitor from the inventory, including
-an otherwise deduplicated monitor. Each case still moves through representative
-configurations twice; this switch does not limit its monitor transitions.
-
-### Bounded precommit smoke
-
-For relevant DPI/UI changes, use font 12 and roundtrip startup on each unique
-configuration. Include runtime-font/extension coverage when inspector behavior
-is affected; the run-all example below uses this extended smoke tier:
+For DPI/UI changes, start with roundtrip startup at font 12. Include
+`-RuntimeFonts -Extensions` when inspector or editor behavior is affected:
 
 ```powershell
 powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory .\Clearinet\bin\Release -Scenario roundtrip -FontSize 12 -RuntimeFonts -Extensions -TimeoutSeconds 120
 if ($LASTEXITCODE -ne 0) { throw 'DPI smoke failed.' }
 ```
 
-Omit both optional switches for standard smoke. Add `-ScreenIndex` for a focused
-diagnostic, but do not describe that as startup coverage of every configuration.
-Smoke scope is bounded by the available configuration count, not by a suite-wide
-wall-clock deadline. Unrelated commits need not rerun full DPI acceptance.
+Omit both optional switches for standard smoke. Documentation-only changes do
+not require UI test runs.
 
-### Full interactive acceptance
+### Full acceptance
 
-After production DPI changes, run both matrices sequentially on an unlocked
-desktop. Defaults omit runtime-font changes and extension cases, so a default
-run alone is not complete acceptance of inspector changes:
+Before merging production DPI changes, run the standard matrix and, for
+inspector/editor changes, the extended matrix sequentially:
 
 ```powershell
 powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory .\Clearinet\bin\Release
@@ -206,57 +184,37 @@ powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1
 if ($LASTEXITCODE -ne 0) { throw 'Extended DPI acceptance failed.' }
 ```
 
-`-TimeoutSeconds` is per subprocess, including enumeration, not a suite timeout.
-The default remains 60 seconds; extended acceptance uses 120 seconds for slower
-machines. Failed/timed-out cases are logged and the matrix continues before
-returning failure. More unique configurations increase both the startup case
-count and the per-case monitor/editor work, approximately quadratically.
-Do not shorten message-pump waits or remove lifecycle checks to fit a commit gate.
+Defaults test fonts 10/12 and startup scenarios `eager`, `moved` and `roundtrip`
+on representative monitor configurations. The extended suite adds runtime font
+changes and extension checks, including Raw response text, selection, dirty
+state, undo/redo and presentation events.
 
-For custom output layouts, pass the matching extension DLL explicitly:
+Useful options:
 
-```powershell
-powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory C:\build\core -ExtensionPath C:\build\extensions\CAE-Default.dll -InventoryOnly
-```
+- `-ComponentsOnly`: check inspector font lifetime and Composer layout/tab order
+  without starting the main viewer. This does not replace monitor tests.
+- `-InventoryOnly`: list physical monitors and representative configurations
+  without running scenarios; still requires built assemblies and compiles the harness.
+- `-ScreenIndex`: select a physical startup monitor from the inventory. Cases
+  still move through representative monitors.
+- `-Scenario` and `-FontSize`: narrow the startup matrix.
+- `-ExtensionPath`: select the matching `CAE-Default.dll` for custom output
+  layouts. Otherwise it is inferred from the repository's Debug/Release outputs.
+- `-TimeoutSeconds`: per subprocess, not a suite-wide timeout (default 60).
+- `-ResultsDirectory`: override the default
+  `Clearinet\bin\<configuration>\DpiTests\results-<id>` location.
 
-Without `-ExtensionPath`, the runner uses the repository's matching
-`Extensions\bin\Debug` or `Extensions\bin\Release`, inferred from the core
-directory's leaf name. Other output layouts require the explicit override.
+### Results and coverage limits
 
-### Timing and acceptance evidence
+Results include per-case logs, monitor inventory and `timings.csv`. Check the
+exit code: failed or timed-out cases make the run fail. Record commands, tested
+monitor configurations and results in the PR; do not commit generated logs.
+A focused or single-DPI run is not full cross-DPI acceptance.
 
-Console output and `timings.csv` in the results directory report setup (preflight
-and assembly copying), compilation, configuration copying, enumeration, each
-scenario, and total. Scenario durations include child startup, shutdown and
-output draining. Total starts inside the Windows PowerShell runner and includes
-cleanup; it excludes the solution build, initial hosting-process startup and any
-PowerShell 7 relaunch overhead. Phase logging/registry cleanup adds overhead, so
-phase sums need not equal total. A `completed` total timing row is not a pass flag.
-Use an external stopwatch if total caller-visible invocation cost is needed.
-
-Use `-ResultsDirectory` to retain separately named runs; defaults create
-`Clearinet\bin\<configuration>\DpiTests\results-<id>`. Do not commit generated logs
-or `DPI-AUDIT-TEMP.md`. Record commands, actual timings and failures in the PR;
-keep historical accepted matrices and extrapolations separate from new results.
-
-The retained UI coverage is 96/144 DPI and fonts 10/12, not every scale or desktop
-arrangement. List physical monitors and selected configurations separately.
-A single-DPI desktop cannot establish cross-DPI coverage. Pure numeric checks
-at other DPIs do not establish real-monitor UI coverage.
-
-The extended suite checks clean/already-dirty editable Raw text, selection,
-read-only state, text undo/redo, no presentation `TextChanged`/`ReadOnlyChanged`
-events, and owned-font equality/lifetime through font/visibility/DPI transitions.
-`ModifiedChanged` notifications may occur while the final flag is restored;
-their counts are logged rather than claimed silent. Handle-recreation acceptance,
-including its undo/redo contract, is deferred for separate discussion: Framework
-RichTextBox recreation resets native undo history. It is not covered by a passing
-DPI summary.
-
-Manual acceptance remains required for full application startup (the harness
-bypasses scripting/discovery), stable child first painting and actual mouse-drag
-growth/shrink after monitor moves. Form paint counts and programmatic sizing do
-not prove these. Keep these gates pending until a person verifies them.
+The harness bypasses full application startup/scripting/discovery and does not
+validate editor undo history across handle recreation. Manually check full
+startup, stable first painting and mouse-drag growth/shrink after monitor moves.
+Programmatic sizing and paint counts do not establish those behaviors.
 
 ## Run regression scripts, WebView modes and DPI smoke
 

@@ -82,9 +82,24 @@ namespace Extensions
 
         internal void SetFontSize(float size)
         {
+            Font newFont = new Font(Font.FontFamily, size);
+            // WinForms retains the existing instance when an equal font is assigned.
+            if (Font.Equals(newFont))
+            {
+                newFont.Dispose();
+                return;
+            }
+            try
+            {
+                Font = newFont;
+            }
+            catch
+            {
+                newFont.Dispose();
+                throw;
+            }
             Font oldFont = viewFont;
-            viewFont = new Font(Font.FontFamily, size);
-            Font = viewFont;
+            viewFont = newFont;
             oldFont?.Dispose();
         }
 

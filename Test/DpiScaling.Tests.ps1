@@ -9,6 +9,7 @@ param(
 	[switch]$RuntimeFonts,
 	[switch]$Extensions,
 	[switch]$InventoryOnly,
+	[switch]$ComponentsOnly,
 	[string]$ResultsDirectory = ''
 )
 $ErrorActionPreference = 'Stop'
@@ -20,6 +21,7 @@ if ($PSVersionTable.PSEdition -ne 'Desktop' -or [Threading.Thread]::CurrentThrea
 	if ($RuntimeFonts) { $parameters += '-RuntimeFonts' }
 	if ($Extensions) { $parameters += '-Extensions' }
 	if ($InventoryOnly) { $parameters += '-InventoryOnly' }
+	if ($ComponentsOnly) { $parameters += '-ComponentsOnly' }
 	& $windowsPowerShell @parameters
 	if ($LASTEXITCODE -ne 0) { throw "DPI tests failed with exit code $LASTEXITCODE" }
 	return
@@ -127,6 +129,15 @@ try {
 	Copy-Item -LiteralPath $coreConfig -Destination ($exe + '.config')
 	$setupTimer.Stop()
 	Write-DpiTiming 'configuration-copy' $setupTimer.Elapsed.TotalSeconds
+	if ($ComponentsOnly) {
+		$result = Invoke-DpiProcess @('-ComponentsOnly')
+		$outcome = if ($result.TimedOut) { 'timeout' } elseif ($result.ExitCode -ne 0) { 'failed' } else { 'passed' }
+		Write-DpiTiming 'components' $result.ElapsedSeconds $outcome
+		$result.Output + $result.Errors | Set-Content -LiteralPath (Join-Path $ResultsDirectory 'components.log') -Encoding UTF8
+		Write-Host $result.Output
+		if ($result.TimedOut -or $result.ExitCode -ne 0) { throw "DPI component checks $outcome`: $($result.Errors)" }
+		return
+	}
 	$screens = Invoke-DpiProcess @('-ListScreens')
 	$screenOutcome = if ($screens.TimedOut) { 'timeout' } elseif ($screens.ExitCode -ne 0) { 'failed' } else { 'passed' }
 	Write-DpiTiming 'enumeration' $screens.ElapsedSeconds $screenOutcome
