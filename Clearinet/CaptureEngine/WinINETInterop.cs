@@ -124,10 +124,12 @@ namespace Clearinet.CaptureEngine
         }
 
         // TODO: Restore from a serialized snapshot string instead of just clearing the proxy settings.
+        // e.g.  WinINETInterop.RestoreProxySettings(CApp.Prefs.GetStringPref("proxy.prior_proxy", string.Empty));
         internal static bool RestoreDefaultProxySettings()
         {
             try
             {
+                Trace.WriteLine("[CLEARINET] At the time of restore, proxy.prior_proxy was: " + CApp.Prefs.GetStringPref("proxy.prior_proxy", "(not present)"));
                 var pssDefault = new ProxySettingsSnapshot
                 {
                     FlagsUi = PROXY_TYPE_AUTO_DETECT | PROXY_TYPE_DIRECT,

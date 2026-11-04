@@ -205,6 +205,7 @@
     <Compile Include="Utilities\JSON.cs" />
     <EmbeddedResource Include="UI\ComposerView.resx">
       <DependentUpon>ComposerView.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\FindPanel.resx">
       <DependentUpon>FindPanel.cs</DependentUpon>

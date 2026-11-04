@@ -367,6 +367,7 @@ namespace Clearinet
             this.Items.Clear();
             Exchange.ResetExchangeCounter();
             EndUpdate();
+            base.OnSelectedIndexChanged(EventArgs.Empty);
         }
 
         internal void UpdateActiveItem()
@@ -479,6 +480,7 @@ namespace Clearinet
                 Exchange.ResetExchangeCounter();
             }
             EndUpdate();
+            base.OnSelectedIndexChanged(EventArgs.Empty);
         }
 
         internal void Tail(int iToKeep)
@@ -670,7 +672,6 @@ namespace Clearinet
         }
         #endregion
 
-
         internal string PopulateColumn(int i, Exchange x)
         {
             try
@@ -706,7 +707,7 @@ namespace Clearinet
             foreach (ListViewItem lvi in Items) lvi.Selected = !lvi.Selected;
             EndUpdate();
             CApp.PauseReporting = false;
-            CApp.UI.actUpdateInspector(true, true);
+            base.OnSelectedIndexChanged(EventArgs.Empty);
         }
 
         /// <summary>

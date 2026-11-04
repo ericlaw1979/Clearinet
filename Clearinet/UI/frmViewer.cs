@@ -832,6 +832,7 @@ namespace Clearinet
 
         private void SplitRequestResponse_DoubleClick(object sender, EventArgs e)
         {
+            // Toggle size of Inspector tabs to show either Request or Response.
             int tabHeaderHeightRequest = tabsRequest.Height - tabsRequest.DisplayRectangle.Height;
             int tabHeaderHeightResponse = tabsResponse.Height - tabsResponse.DisplayRectangle.Height;
 
@@ -1359,22 +1360,34 @@ namespace Clearinet
             }
 
             ListViewItem lvi = xc.ViewItem;
-            lvi.SubItems[1].Text = xc.bHasResponse ? xc.responseCode.ToString() : "-";
-            lvi.SubItems[2].Text = xc.RequestHeaders.HTTPMethod;
-            lvi.SubItems[3].Text = xc.RequestHeaders?.UriScheme;
-            lvi.SubItems[4].Text = xc.host;
-            lvi.SubItems[5].Text = xc.RequestHeaders.RequestPath;
-            lvi.SubItems[6].Text = xc.ResponseBody?.Length.ToString("N0") ?? "-";
-            lvi.SubItems[7].Text = xc.MediaType ?? "-";
-            lvi.SubItems[8].Text = xc["x-processinfo"] ?? String.Empty;
-            lvi.SubItems[9].Text = xc["ui-comments"] ?? String.Empty;
+            SetLviSubItemText(lvi, 1, xc.bHasResponse ? xc.responseCode.ToString() : "-");
+            SetLviSubItemText(lvi, 2, xc.RequestHeaders.HTTPMethod);
+            SetLviSubItemText(lvi, 3, xc.RequestHeaders?.UriScheme);
+            SetLviSubItemText(lvi, 4, xc.host);
+            SetLviSubItemText(lvi, 5, xc.RequestHeaders.RequestPath);
+            SetLviSubItemText(lvi, 6, xc.ResponseBody?.Length.ToString("N0") ?? "-");
+            SetLviSubItemText(lvi, 7, xc.MediaType ?? "-");
+            SetLviSubItemText(lvi, 8, xc["x-processinfo"] ?? String.Empty);
+            SetLviSubItemText(lvi, 9, xc["ui-comments"] ?? String.Empty);
 
+            // Populate the custom columns (if any)
             for (int i = 10; i < lvExchanges.Columns.Count; ++i)
             {
-                lvi.SubItems[i].Text = lvExchanges.PopulateColumn(i, xc);
+                SetLviSubItemText(lvi, i, lvExchanges.PopulateColumn(i, xc));
             }
 
             AddFormatting(lvi, xc);
+        }
+
+        // Speculative fix to try to reduce wndproc overhead when updating the ListView.
+        // Unclear if this is actually any better, but Copilot suggested it and it doesn't seem crazy.
+        private static void SetLviSubItemText(ListViewItem lvi, int subItemIndex, string value)
+        {
+            var subItem = lvi.SubItems[subItemIndex];
+            if (!String.Equals(subItem.Text, value, StringComparison.Ordinal))
+            {
+                subItem.Text = value;
+            }
         }
 
         private bool _updatingExchangeBatch;
@@ -1836,8 +1849,9 @@ namespace Clearinet
 
         private void lvExchanges_SelectedIndexChanged(object sender, EventArgs e)
         {
+            Trace.WriteLine($"lvExchanges_SelectedIndexChanged: {lvExchanges.SelectedCount} selected");
             if (CApp.isClosing) return;
-            lvExchanges.UpdateActiveItem();
+            lvExchanges.UpdateActiveItem(); // TODO: Wait, what? Why is this here vs. in the listview?
             actRefreshUI(true);
         }
 
