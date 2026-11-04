@@ -127,6 +127,7 @@
     <Compile Include="UI\ExchangeListView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="UI\ExchangeColumnSources.cs" />
     <Compile Include="UI\frmELVAddColumn.cs">
       <SubType>Form</SubType>
     </Compile>
