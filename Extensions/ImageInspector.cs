@@ -78,6 +78,13 @@ namespace Extensions
                     {
                         arrBody = Utilities.ConvertJXLToJPEG(arrBody);
                     }
+                    else if (sContentType.OICStartsWith("image/avif") || arrBody.Length > 12 &&
+                        arrBody[4] == 'f' && arrBody[5] == 't' && arrBody[6] == 'y' && arrBody[7] == 'p' &&
+                        (arrBody[8] == 'a' && arrBody[9] == 'v' && arrBody[10] == 'i' && arrBody[11] == 'f' ||
+                         arrBody[8] == 'a' && arrBody[9] == 'v' && arrBody[10] == 'i' && arrBody[11] == 's'))
+                    {
+                        arrBody = Utilities.ConvertAVIFToJPEG(arrBody);
+                    }
 
                 if (sContentType.OICStartsWith("image/svg+xml"))
                 {
@@ -121,9 +128,21 @@ namespace Extensions
             oView.pbImage.Cursor = Cursors.Default;
         }
 
-        public override int ScoreForContentType(string sMIME) => (
-            // I can't handle AVIF yet.
-            sMIME.OICStartsWith("image/avif") ? 0 : sMIME.OICStartsWith("image/") ? 90 : -1);
+        public override int ScoreForContentType(string sMIME)
+        {
+            int iScore = sMIME.OICStartsWith("image/") ? 90 : -1;
+
+            // If the image is in a format that requires an external tool to
+            // decode, and that tool is not available, set score to 0.
+            if (sMIME.OICStartsWith("image/webp")
+                && !CONFIG.isToolAvailable("dwebp.exe")) iScore = 0;
+            else if (sMIME.OICStartsWith("image/avif")
+             && !CONFIG.isToolAvailable("avifdec.exe")) iScore = 0;
+            else if (sMIME.OICStartsWith("image/jxl")
+                 && !CONFIG.isToolAvailable("djxl.exe")) iScore = 0;
+
+            return iScore;
+        }
 
         public override int GetOrder() => 200;
     }

@@ -117,7 +117,6 @@ namespace Clearinet
                 if (sSwitch.OICEquals("uncleanShutdown"))
                 {
                     isCleanupMode = true;
-
                     return;  // Don't bother with any other arguments.
                 }
 
@@ -279,6 +278,9 @@ namespace Clearinet
         /// Ideally, we'd only need to do this for the case where Windows crashes, but for at least some versions
         /// of Windows, if Clearinet tries to detach its proxy settings during Windows shutdown, the WinINET broker
         /// actually ignores the change, so we should do this even on a "normal" Windows shutdown.
+        /// 
+        /// ISSUE: RunOnce keys are not processed immediately on login, so there is a delay before the uncleanShutdown 
+        /// handler runs. https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys
         /// </summary>
         internal static void WriteCleanupRegistryKey()
         {
@@ -482,5 +484,51 @@ namespace Clearinet
 
             return Color.Blue;
         }
+
+        #region ToolDetection
+        static SynchronizedHashSet<string> sMissingTools = new SynchronizedHashSet<string>();
+        static SynchronizedHashSet<string> sAvailableTools = new SynchronizedHashSet<string>();
+
+        // TODO: We probably want to put a FileSystemWatcher on the Tools folder so that if a tool
+        // is added or removed, it calls this method. For now, we'll clear the cache if the user
+        // edits their script.
+        public static void ClearToolDetectionCache()
+        {
+            sMissingTools.Clear();
+            sAvailableTools.Clear();
+        }
+        public static bool isToolAvailable(string toolFilename)
+        {
+            if (sAvailableTools.Contains(toolFilename)) return true;
+            if (sMissingTools.Contains(toolFilename)) return false;
+
+            var toolPath = toolFilename;
+            try
+            {
+                // BUG: We actually want IsPathFullyQualified, but that's not supported in this Framework.
+                if (!Path.IsPathRooted(toolPath))
+                {
+                    toolPath = Path.Combine(CONFIG.GetPath("Tools"), toolFilename);
+                }
+                bool isAvailable = File.Exists(toolPath);
+                if (isAvailable)
+                {
+                    sAvailableTools.Add(toolFilename);
+                    return true;
+                }
+                else
+                {
+                    sMissingTools.Add(toolFilename);
+                    CApp.Log.Log($"/Tool '{toolPath}' is not available.");
+                    return false;
+                }
+            }
+            catch (Exception eX)
+            {
+                Debug.WriteLine($"Error checking tool availability for '{toolPath}': {eX.Message}");
+                return false;
+            }
+        }
+        #endregion ToolDetection
     }
 }

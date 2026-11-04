@@ -487,9 +487,7 @@ namespace Clearinet
             if (CONFIG.isCleanupMode)
             {
                 frmSplashScreen.SetStatusText("Cleaning up...");
-
-                // TODO: Implement cleanup operations for unclean shutdowns. This is a placeholder for future functionality.
-                MessageBox.Show("Clearinet was not running when Windows exited.\n"
+                MessageBox.Show("Clearinet was still running when Windows exited.\n"
                     + "Performing cleanup operations...", "Proxy Settings Cleanup");
 
                 if (WinINETInterop.CurrentProxyServer().OICStartsWithAny("127.0.0.1:", "localhost:"))

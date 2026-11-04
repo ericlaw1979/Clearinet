@@ -210,6 +210,9 @@ namespace Clearinet
             // Wait briefly for any editor write handles to release
             Thread.Sleep(50);
 
+            // TODO: Putting this here is a bit of a hack, but I don't wanna put a new Watcher for such a rare case.
+            CONFIG.ClearToolDetectionCache();
+
             // Debounce rapid successive events.
             if ((Utilities.GetTickCount() - tcLatestScriptLoad) <
                 (uint)CApp.Prefs.GetInt32Pref("scripting.msReloadDebounce", 2000))
