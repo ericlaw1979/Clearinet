@@ -22,10 +22,10 @@ namespace Extensions
                 txtValue.ReadOnly = value;
                 txtName.BackColor = value ? CONFIG.colorDisabledEdit : SystemColors.Window;
                 txtValue.BackColor = value ? CONFIG.colorDisabledEdit : SystemColors.Window;
-                if (!value)
-                {
-                    btnTemplates.Enabled = btnSave.Enabled = false;
-                }
+                btnTemplates.Enabled = !value;
+
+                // We adjust this dynamically on edit.
+                btnSave.Enabled = false;
             }
         }
 
@@ -57,6 +57,21 @@ namespace Extensions
         private void btnSave_Click(object sender, System.EventArgs e)
         {
             txtName.Text = txtName.Text.RemoveAllWhitespace();
+        }
+
+        private void btnTemplates_Click(object sender, System.EventArgs e)
+        {
+            Point pvOrigin = PointToScreen(btnTemplates.Location);
+            pvOrigin.Y += btnTemplates.Height;
+            mnuTemplates.Show(pvOrigin, ToolStripDropDownDirection.BelowRight);
+        }
+
+
+        private void tsmiTemplateSecurityCSP_Click(object sender, System.EventArgs e)
+        {
+            txtName.Text = "Content-Security-Policy";
+            txtValue.Text = "default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'self';base-uri 'self';form-action 'self'" +
+                                ";frame-ancestors 'self';manifest-src 'self';media-src 'self';object-src 'none';worker-src 'self'";
         }
     }
 }
