@@ -94,6 +94,7 @@ listed build directory with the single-test command above.
 | `BatchExchangeInsertion` | `Clearinet\bin\Release` | Bulk insertion, ascending/descending sorting, comparison-count threshold, duplicate insertion, partial enumeration failure, file insertion. |
 | `CurlExport` | `Clearinet\bin\Release` | CMD/PowerShell quoting, body boundaries, chunk decoding, clipboard export. Invokes CMD for quoting checks but does not execute cURL or send HTTP requests. |
 | `ExchangeHeaderMenu` | `Clearinet\bin\Release` | Native header right-clicks, reordered/scrolled columns, full bold title, search prompt and cancellation, duplicate marking, hide/show widths, customization notification, unchanged row menu, disposal. |
+| `ExchangeUIFlags` | `Clearinet\bin\Release` | Fiddler display and breakpoint flags: `ui-hide`/`Ignore()` on arrival and after display, unhiding, combined `ui-bold`/`ui-italic`/`ui-strikeout` with shared fonts and reset, Mark, `ui-breakrequest`/`ui-breakresponse` aliases, no breakpoints on hidden Exchanges. Creates a viewer window. |
 | `SuggestedFilename` | `Clearinet\bin\Release` | Content-Disposition precedence/decoding, URL and media-type fallbacks, Windows filename validity and exact length boundaries. No UI or network access. |
 | `HiddenExecActionTargetWindow` | `Clearinet\bin\Release` | Hidden IPC receiver, malformed messages, Unicode commands, cross-process senders and bundled `CallExecAction.ps1`. Close other Clearinet instances. `-WindowHandle` is an internal child-runner parameter; omit it for the full suite. |
 | `MapSocketToProcess` | `Clearinet\bin\Release` | Socket ownership, IPv4/IPv6 family isolation, cached hits, misses, expiration, ambiguous owners. Opens local TCP listeners; IPv6 is required, not skipped. |
@@ -160,7 +161,7 @@ first failure; it is not a parallel runner.
 ```powershell
 $groups = [ordered]@{
     Clearinet = @(
-        'BatchExchangeInsertion', 'CurlExport', 'ExchangeHeaderMenu',
+        'BatchExchangeInsertion', 'CurlExport', 'ExchangeHeaderMenu', 'ExchangeUIFlags',
         'HiddenExecActionTargetWindow', 'MapSocketToProcess',
         'MinimizeToTray', 'QuickExecHistory', 'ScriptColumnReload', 'SuggestedFilename'
     )

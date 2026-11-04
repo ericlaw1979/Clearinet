@@ -459,7 +459,7 @@ namespace Clearinet
                         break;
 
                     case ExchangeState.HandTamperRequest:
-                        if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakrequest"))
+                        if (!_isCaptureFacade && !ShouldBreakOnRequest())
                         {
                             ++state;
                         }
@@ -554,7 +554,7 @@ namespace Clearinet
                         break;
 
                     case ExchangeState.HandTamperResponse:
-                        if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakresponse"))
+                        if (!_isCaptureFacade && !ShouldBreakOnResponse())
                         {
                             ++state;
                         }
@@ -927,6 +927,14 @@ namespace Clearinet
             if (oFlags.ContainsKey("ui-hide")) return true;
             return false;
         }
+
+        // x-breakrequest/x-breakresponse create breakpoints; ui-breakrequest/ui-breakresponse are their Fiddler names.
+        // As in Fiddler, hidden Exchanges never break, since there is no row from which to resume them.
+        internal bool ShouldBreakOnRequest() =>
+            !ShouldHide() && (oFlags.ContainsKey("x-breakrequest") || oFlags.ContainsKey("ui-breakrequest"));
+
+        internal bool ShouldBreakOnResponse() =>
+            !ShouldHide() && (oFlags.ContainsKey("x-breakresponse") || oFlags.ContainsKey("ui-breakresponse"));
 
         /// <summary>
         /// Builds an Exchange object from the given data. 

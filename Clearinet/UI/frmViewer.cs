@@ -1342,6 +1342,15 @@ namespace Clearinet
                 return;
             }
 
+            // ui-hide (or Ignore()) may be set after the row was added, e.g. in OnBeforeResponse.
+            // Drop the row; if the flag is later removed, the next update adds it back.
+            if (xc.ShouldHide())
+            {
+                xc.ViewItem.Remove();
+                xc.ViewItem = null;
+                return;
+            }
+
             ListViewItem lvi = xc.ViewItem;
             lvi.SubItems[1].Text = xc.bHasResponse ? xc.responseCode.ToString() : "-";
             lvi.SubItems[2].Text = xc.RequestHeaders.HTTPMethod;
@@ -1433,6 +1442,7 @@ namespace Clearinet
                 lvExchanges.Invoke((Action<Exchange>)addExchangeToListView, xc);
                 return;
             }
+            if (xc.ShouldHide()) return;
             bool bAtBottom = !_updatingExchangeBatch && lvExchanges.IsScrolledToBottom();
 
             ListViewItem lvi = new ListViewItem(xc.id.ToString())
@@ -1505,8 +1515,42 @@ namespace Clearinet
                     lvi.ForeColor = CONFIG.GetExchangeColor(xc);
                 }
             }
-            if (xc["ui-strikeout"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
-            if (xc["ui-bold"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Bold);
+            FontStyle style = FontStyle.Regular;
+            if (xc["ui-bold"] != null) style |= FontStyle.Bold;
+            if (xc["ui-italic"] != null) style |= FontStyle.Italic;
+            if (xc["ui-strikeout"] != null) style |= FontStyle.Strikeout;
+            if (style == FontStyle.Regular)
+            {
+                // Clearing the flags (e.g. unmarking) returns the row to the list's own font.
+                if (lvi.Font.Style != FontStyle.Regular) lvi.Font = null;
+            }
+            else
+            {
+                Font font = GetExchangeRowFont(style);
+                if (!ReferenceEquals(lvi.Font, font)) lvi.Font = font;
+            }
+        }
+
+        private Font _rowFontBase;
+        private readonly Dictionary<FontStyle, Font> _rowFonts = new Dictionary<FontStyle, Font>();
+
+        /// <summary>
+        /// Returns a shared Font for list rows in the given style, so row updates don't allocate a new Font each time.
+        /// The cache restarts if the list's font changes (e.g. the font size preference).
+        /// </summary>
+        private Font GetExchangeRowFont(FontStyle style)
+        {
+            if (!ReferenceEquals(_rowFontBase, lvExchanges.Font))
+            {
+                _rowFonts.Clear(); // Not disposed: rows not yet updated may still use the old fonts.
+                _rowFontBase = lvExchanges.Font;
+            }
+            if (!_rowFonts.TryGetValue(style, out Font font))
+            {
+                font = new Font(lvExchanges.Font, style);
+                _rowFonts[style] = font;
+            }
+            return font;
         }
 
         private void HandleProxyAttached()

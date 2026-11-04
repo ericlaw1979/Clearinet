@@ -193,7 +193,8 @@ to describe this flow; see `Clearinet/ExchangeEnums.cs`.
    `AutoTamperRequestAfter` (`Exchange.state` in `Clearinet/Exchange.cs`). In
    the automatic stage, `Extensions.CallAutoTamperRequestBefore` invokes each
    `IAutoTamper` extension and the script rule's `OnBeforeRequest` handler.
-   Setting `x-breakrequest` holds the Exchange in `HandTamperRequest`; inspector
+   Setting `x-breakrequest` (or Fiddler's `ui-breakrequest`) holds the Exchange
+   in `HandTamperRequest` unless it is hidden by `ui-hide` or `Ignore()`; inspector
    edits are copied back to `RequestHeaders` and `RequestBody` by
    `InspectorBase.CommitAnyChanges` in `Clearinet/InspectorAPI.cs` when the user
    continues it.

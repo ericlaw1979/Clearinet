@@ -37,6 +37,12 @@ Porting extensions from the legacy Fiddler extension API to the new Clearinet ex
 ### Preference names
 - Preference names that started with `fiddler.ui` should be changed to start with `app.ui`
 
+### Exchange flags
+Fiddler's display flags work unchanged: `ui-hide`, `ui-color`, `ui-backcolor`, `ui-bold`, `ui-italic`, `ui-strikeout` and `ui-comments`.
+`ui-bold`, `ui-italic` and `ui-strikeout` can be combined. `ui-hide` can be set at any point, including in `OnBeforeResponse`; it
+removes the Exchange from the list, and removing the flag adds it back on the next update. Breakpoints are created by
+`x-breakrequest`/`x-breakresponse` or Fiddler's `ui-breakrequest`/`ui-breakresponse`, and are ignored on hidden Exchanges.
+
 ### Threading implications
 Fiddler's UI would set `CheckForIllegalCrossThreadCalls=false` which would allow any thread to manipulate UI elements, potentially causing corruption. Clearinet's UI does not set this, meaning that any cross-thread call will result in an immediate exception. 
 To fix this, code should call the UI's `UIInvokeAsync` method if Winforms UI interaction is needed.
