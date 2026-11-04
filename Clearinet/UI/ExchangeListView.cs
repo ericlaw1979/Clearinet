@@ -18,6 +18,8 @@ namespace Clearinet
     {
         public ColumnSortType SortType;
         public Func<Exchange, string> Provider;
+        /// <summary>Data field of a column the user added (dialog or QuickExec), which is saved across restarts. Null for built-in and script columns.</summary>
+        public string UserDataField;
     }
 
     /// <summary>
@@ -594,6 +596,60 @@ namespace Clearinet
             //            return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) =>  /* tokens */;
             //   }
             return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x[sBoundDataField]);
+        }
+
+        /// <summary>
+        /// Adds a column the user asked for (the "Add columns..." dialog or QuickExec "cols add"). Unlike columns added by
+        /// scripts, which recreate theirs on every start, these are saved by GetUserColumns and restored by ApplyUserColumns.
+        /// </summary>
+        internal ColumnHeader AddUserColumn(string sTitle, int iWidth, string sBoundDataField)
+        {
+            ColumnHeader column = AddBoundColumn(sTitle, iWidth, sBoundDataField);
+            ColumnInfo ci = (ColumnInfo)column.Tag;
+            ci.UserDataField = sBoundDataField;
+            column.Tag = ci;
+            return column;
+        }
+
+        /// <summary>
+        /// Serializes user-added columns as "title,width,field" entries separated by ";", with each part escaped
+        /// (Uri.EscapeDataString escapes both delimiters). Column order is kept separately by GetColumnLayout.
+        /// </summary>
+        internal string GetUserColumns()
+        {
+            var entries = new List<string>();
+            foreach (ColumnHeader column in Columns)
+            {
+                if (column.Tag is ColumnInfo ci && ci.UserDataField != null)
+                {
+                    entries.Add($"{Uri.EscapeDataString(column.Text)},{column.Width},{Uri.EscapeDataString(ci.UserDataField)}");
+                }
+            }
+            return string.Join(";", entries);
+        }
+
+        /// <summary>
+        /// Recreates columns saved by GetUserColumns. Call before ApplyColumnLayout so their positions are restored too.
+        /// </summary>
+        internal void ApplyUserColumns(string sColumns)
+        {
+            if (!sColumns.HasText()) return;
+            foreach (string entry in sColumns.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    string[] parts = entry.Split(',');
+                    if (parts.Length != 3 || !int.TryParse(parts[1], out int iWidth)) continue;
+                    string sTitle = Uri.UnescapeDataString(parts[0]);
+                    string sField = Uri.UnescapeDataString(parts[2]);
+                    if (!sTitle.HasText() || !sField.HasText()) continue;
+                    AddUserColumn(sTitle, iWidth, sField);
+                }
+                catch (Exception eX)
+                {
+                    CApp.Log.Log($"!Skipped saved column '{entry}': {eX.Message}");
+                }
+            }
         }
 
         public ColumnHeader AddBoundColumn(string sTitle, int iWidth, ColumnSortType columnSortType, Func<Exchange, string> columnProvider)

@@ -770,6 +770,7 @@ namespace Clearinet
             CApp.ProxyAttach += HandleProxyAttached;
             CApp.ProxyDetach += HandleProxyDetached;
 
+            lvExchanges.ApplyUserColumns(CApp.Prefs.GetStringPref("app.ui.exchangelist.user_columns", string.Empty));
             lvExchanges.ApplyColumnLayout(CApp.Prefs.GetStringPref("app.ui.exchangelist.column_layout", string.Empty));
 
             CApp.OnAppBoot();       // ISSUE: We need to figure out whether to wait for the form to SHOW before calling this.
@@ -1602,6 +1603,7 @@ namespace Clearinet
             CApp.Prefs.SetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
             CApp.Prefs.SetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
 
+            CApp.Prefs.SetStringPref("app.ui.exchangelist.user_columns", lvExchanges.GetUserColumns());
             CApp.Prefs.SetStringPref("app.ui.exchangelist.column_layout", lvExchanges.GetColumnLayout());
 
             txtQuickExec.SaveHistory();
