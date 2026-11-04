@@ -134,7 +134,7 @@ namespace Clearinet
 
             // TODO: Move this into the CaptureEngine
             CApp.Prefs.SetStringPref("proxy.prior_proxy", WinINETInterop.CaptureCurrentProxySettings());
-            WinINETInterop.SetProxyForClearinet($"127.0.0.1:{CONFIG.ListenPort}", "<-loopback>;debugtheweb.com");
+            WinINETInterop.SetProxyForClearinet($"127.0.0.1:{CONFIG.ListenPort}", "<-loopback>");  /* TODO: use Localhost, ProxyBypass list */
             // --------------------------------------
 
             isAttached = true;
@@ -571,6 +571,11 @@ namespace Clearinet
         internal static bool EnsureCaptureEngineRunning()
         {
             if (CONFIG.isViewerMode) return false;
+            if (!Prefs.GetBoolPref("proxy.reed.enabled"))
+            {
+                Log.Log("Reed proxy is disabled, engine startup canceled.");
+                return false;
+            }
             try
             {
                 if (_captureEngineRuntime == null)

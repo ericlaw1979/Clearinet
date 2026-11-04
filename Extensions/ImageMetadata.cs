@@ -39,6 +39,7 @@ namespace Extensions
                 {
                     result.JpegXL();
                 }
+                else if (result.IsAvif()) result.Avif();
                 else if (result.Match(0, "RIFF") && result.Match(8, "WEBP")) result.WebP();
                 else if (result.Match(0, "II\x2a\0") || result.Match(0, "MM\0\x2a"))
                 {
@@ -111,6 +112,73 @@ namespace Extensions
         {
             Require(offset, 2, end);
             return little ? data[offset] | data[offset + 1] << 8 : data[offset] << 8 | data[offset + 1];
+        }
+
+        private long ReadSizedInt(int offset, int size, int end)
+        {
+            if (size < 0 || size > 8) throw new InvalidDataException("Invalid BMFF integer size.");
+            if (size == 0) return 0;
+            Require(offset, size, end);
+            long value = 0;
+            for (int i = 0; i < size; i++)
+            {
+                value = (value << 8) | data[offset + i];
+            }
+            return value;
+        }
+
+        private int ReadBmffBoxLength(int offset, int end, out int headerLength)
+        {
+            Require(offset, 8, end);
+            long boxLength = U32(offset, false, end);
+            headerLength = 8;
+
+            if (boxLength == 1)
+            {
+                Require(offset + 8, 8, end);
+                ulong extended = ((ulong)U32(offset + 8, false, end) << 32) | U32(offset + 12, false, end);
+                if (extended > int.MaxValue) throw new InvalidDataException("Oversized BMFF box.");
+                boxLength = (long)extended;
+                headerLength = 16;
+            }
+            else if (boxLength == 0)
+            {
+                boxLength = end - offset;
+            }
+
+            if (boxLength < headerLength || boxLength > end - offset)
+                throw new InvalidDataException("Invalid BMFF box length.");
+
+            return (int)boxLength;
+        }
+
+        private bool HasAvifBrand(int ftypPayloadStart, int ftypPayloadLength)
+        {
+            if (ftypPayloadLength < 8) return false;
+            if (Match(ftypPayloadStart, "avif") || Match(ftypPayloadStart, "avis")) return true;
+
+            for (int p = ftypPayloadStart + 8; p <= ftypPayloadStart + ftypPayloadLength - 4; p += 4)
+            {
+                if (Match(p, "avif") || Match(p, "avis")) return true;
+            }
+
+            return false;
+        }
+
+        private bool IsAvif()
+        {
+            if (data.Length < 16 || !Match(4, "ftyp")) return false;
+            try
+            {
+                int headerLength;
+                int boxLength = ReadBmffBoxLength(0, data.Length, out headerLength);
+                if (!Match(4, "ftyp")) return false;
+                return HasAvifBrand(headerLength, boxLength - headerLength);
+            }
+            catch (InvalidDataException)
+            {
+                return false;
+            }
         }
 
         private void Mark(int offset, int length)
@@ -561,6 +629,390 @@ namespace Extensions
                 p += (int)boxLength;
             }
         }
+
+        private sealed class AvifItemLocation
+        {
+            internal int ConstructionMethod;
+            internal long BaseOffset;
+            internal readonly List<Tuple<long, long>> Extents = new List<Tuple<long, long>>();
+        }
+
+        private void Avif()
+        {
+            supported = true;
+
+            if (data.Length < 16 || !Match(4, "ftyp"))
+                throw new InvalidDataException("Invalid AVIF signature.");
+
+            int ftypHeaderLength;
+            int ftypLength = ReadBmffBoxLength(0, data.Length, out ftypHeaderLength);
+            if (!HasAvifBrand(ftypHeaderLength, ftypLength - ftypHeaderLength))
+                throw new InvalidDataException("BMFF file is not AVIF-compatible.");
+
+            int p = ftypLength;
+            while (p < data.Length)
+            {
+                int headerLength;
+                int boxLength = ReadBmffBoxLength(p, data.Length, out headerLength);
+                int start = p + headerLength;
+                int n = boxLength - headerLength;
+
+                if (Match(p + 4, "meta"))
+                {
+                    AvifMeta(start, n);
+                }
+                else if (Match(p + 4, "Exif"))
+                {
+                    bool orientation = false;
+                    bool parsed = false;
+                    if (n >= 6 && Match(start, "Exif\0\0"))
+                    {
+                        orientation = Exif(start + 6, n - 6, false);
+                        parsed = true;
+                    }
+                    else if (n >= 8 && (Match(start, "II") || Match(start, "MM")))
+                    {
+                        orientation = Exif(start, n, false);
+                        parsed = true;
+                    }
+
+                    if (!parsed || !orientation) Mark(p, boxLength);
+                }
+                else if (Match(p + 4, "xml "))
+                {
+                    if (!Xmp(start, n)) Mark(p, boxLength);
+                }
+
+                p += boxLength;
+            }
+        }
+
+        private void AvifMeta(int start, int length)
+        {
+            int end = start + length;
+            Require(start, 4, end); // FullBox version + flags
+
+            Dictionary<int, string> itemTypes = null;
+            Dictionary<int, AvifItemLocation> itemLocations = null;
+            int idatStart = -1;
+            int idatLength = 0;
+
+            int p = start + 4;
+            while (p < end)
+            {
+                int headerLength;
+                int boxLength = ReadBmffBoxLength(p, end, out headerLength);
+                int payload = p + headerLength;
+                int n = boxLength - headerLength;
+
+                if (Match(p + 4, "iinf"))
+                {
+                    itemTypes = AvifParseItemTypes(payload, n);
+                }
+                else if (Match(p + 4, "iloc"))
+                {
+                    itemLocations = AvifParseItemLocations(payload, n);
+                }
+                else if (Match(p + 4, "idat"))
+                {
+                    idatStart = payload;
+                    idatLength = n;
+                }
+                else if (Match(p + 4, "iprp"))
+                {
+                    AvifIprp(payload, n);
+                }
+                else if (Match(p + 4, "Exif"))
+                {
+                    bool orientation = false;
+                    bool parsed = false;
+                    if (n >= 6 && Match(payload, "Exif\0\0"))
+                    {
+                        orientation = Exif(payload + 6, n - 6, false);
+                        parsed = true;
+                    }
+                    else if (n >= 8 && (Match(payload, "II") || Match(payload, "MM")))
+                    {
+                        orientation = Exif(payload, n, false);
+                        parsed = true;
+                    }
+
+                    if (!parsed || !orientation) Mark(p, boxLength);
+                }
+
+                p += boxLength;
+            }
+
+            if (itemTypes == null || itemLocations == null) return;
+
+            foreach (var item in itemTypes)
+            {
+                if (!string.Equals(item.Value, "Exif", StringComparison.Ordinal)) continue;
+
+                AvifItemLocation location;
+                if (!itemLocations.TryGetValue(item.Key, out location)) continue;
+                if (location.Extents.Count == 0) continue;
+
+                long extentOffset = location.Extents[0].Item1;
+                long extentLength = location.Extents[0].Item2;
+                if (extentLength <= 0 || extentLength > int.MaxValue) continue;
+
+                long absolute = location.BaseOffset + extentOffset;
+                if (location.ConstructionMethod == 1)
+                {
+                    if (idatStart < 0) continue;
+                    absolute = idatStart + absolute;
+                    if (absolute < idatStart || absolute + extentLength > idatStart + idatLength) continue;
+                }
+
+                if (absolute < 0 || absolute > data.Length - extentLength) continue;
+
+                int exifOffset = (int)absolute;
+                int exifLength = (int)extentLength;
+                bool orientation = false;
+                bool parsed = false;
+
+                if (exifLength >= 6 && Match(exifOffset, "Exif\0\0"))
+                {
+                    orientation = Exif(exifOffset + 6, exifLength - 6, false);
+                    parsed = true;
+                }
+                else if (exifLength >= 8)
+                {
+                    uint tiffOffset = U32(exifOffset, false, exifOffset + exifLength);
+                    if (tiffOffset <= (uint)(exifLength - 4))
+                    {
+                        int candidate = exifOffset + 4 + (int)tiffOffset;
+                        if (candidate <= exifOffset + exifLength - 4 && (Match(candidate, "II") || Match(candidate, "MM")))
+                        {
+                            orientation = Exif(candidate, exifOffset + exifLength - candidate, false);
+                            parsed = true;
+                        }
+                    }
+                }
+
+                if (!parsed && exifLength >= 8 && (Match(exifOffset, "II") || Match(exifOffset, "MM")))
+                {
+                    orientation = Exif(exifOffset, exifLength, false);
+                    parsed = true;
+                }
+
+                if (!parsed || !orientation) Mark(exifOffset, exifLength);
+            }
+        }
+
+        private Dictionary<int, string> AvifParseItemTypes(int start, int length)
+        {
+            int end = start + length;
+            Require(start, 4, end); // FullBox
+
+            int version = data[start];
+            int p = start + 4;
+            int entryCount;
+            if (version == 0)
+            {
+                entryCount = U16(p, false, end);
+                p += 2;
+            }
+            else
+            {
+                entryCount = (int)U32(p, false, end);
+                p += 4;
+            }
+
+            var items = new Dictionary<int, string>();
+            for (int i = 0; i < entryCount && p < end; i++)
+            {
+                int headerLength;
+                int boxLength = ReadBmffBoxLength(p, end, out headerLength);
+                int payload = p + headerLength;
+                int n = boxLength - headerLength;
+
+                if (Match(p + 4, "infe"))
+                {
+                    int infeEnd = payload + n;
+                    Require(payload, 4, infeEnd);
+                    int infeVersion = data[payload];
+                    int q = payload + 4;
+
+                    int itemId;
+                    if (infeVersion >= 3)
+                    {
+                        itemId = (int)U32(q, false, infeEnd);
+                        q += 4;
+                    }
+                    else
+                    {
+                        itemId = U16(q, false, infeEnd);
+                        q += 2;
+                    }
+
+                    q += 2; // item_protection_index
+                    if (q + 4 <= infeEnd)
+                    {
+                        string itemType = Encoding.ASCII.GetString(data, q, 4);
+                        if (!items.ContainsKey(itemId)) items.Add(itemId, itemType);
+                    }
+                }
+
+                p += boxLength;
+            }
+
+            return items;
+        }
+
+        private Dictionary<int, AvifItemLocation> AvifParseItemLocations(int start, int length)
+        {
+            int end = start + length;
+            Require(start, 4, end); // FullBox
+
+            int version = data[start];
+            int p = start + 4;
+            Require(p, 2, end);
+
+            int offsetSize = data[p] >> 4;
+            int lengthSize = data[p] & 0x0f;
+            int baseOffsetSize = data[p + 1] >> 4;
+            int indexSize = (version == 1 || version == 2) ? (data[p + 1] & 0x0f) : 0;
+            p += 2;
+
+            int itemCount;
+            if (version < 2)
+            {
+                itemCount = U16(p, false, end);
+                p += 2;
+            }
+            else
+            {
+                itemCount = (int)U32(p, false, end);
+                p += 4;
+            }
+
+            var locations = new Dictionary<int, AvifItemLocation>();
+            for (int i = 0; i < itemCount && p < end; i++)
+            {
+                int itemId;
+                if (version < 2)
+                {
+                    itemId = U16(p, false, end);
+                    p += 2;
+                }
+                else
+                {
+                    itemId = (int)U32(p, false, end);
+                    p += 4;
+                }
+
+                int constructionMethod = 0;
+                if (version == 1 || version == 2)
+                {
+                    constructionMethod = U16(p, false, end) & 0x000f;
+                    p += 2;
+                }
+
+                p += 2; // data_reference_index
+                long baseOffset = ReadSizedInt(p, baseOffsetSize, end);
+                p += baseOffsetSize;
+
+                int extentCount = U16(p, false, end);
+                p += 2;
+
+                var location = new AvifItemLocation { ConstructionMethod = constructionMethod, BaseOffset = baseOffset };
+                for (int extent = 0; extent < extentCount; extent++)
+                {
+                    if ((version == 1 || version == 2) && indexSize > 0) p += indexSize;
+                    long extentOffset = ReadSizedInt(p, offsetSize, end);
+                    p += offsetSize;
+                    long extentLength = ReadSizedInt(p, lengthSize, end);
+                    p += lengthSize;
+                    location.Extents.Add(Tuple.Create(extentOffset, extentLength));
+                }
+
+                if (!locations.ContainsKey(itemId)) locations.Add(itemId, location);
+            }
+
+            return locations;
+        }
+
+        private void AvifIprp(int start, int length)
+        {
+            int end = start + length;
+            int p = start;
+            while (p < end)
+            {
+                int headerLength;
+                int boxLength = ReadBmffBoxLength(p, end, out headerLength);
+                int payload = p + headerLength;
+                int n = boxLength - headerLength;
+
+                if (Match(p + 4, "ipco"))
+                {
+                    AvifIpco(payload, n);
+                }
+
+                p += boxLength;
+            }
+        }
+
+        private void AvifIpco(int start, int length)
+        {
+            int end = start + length;
+            int p = start;
+            while (p < end)
+            {
+                int headerLength;
+                int boxLength = ReadBmffBoxLength(p, end, out headerLength);
+                int payload = p + headerLength;
+                int n = boxLength - headerLength;
+
+                if (Match(p + 4, "ispe"))
+                {
+                    AvifIspe(payload, n);
+                }
+                else if (Match(p + 4, "pixi"))
+                {
+                    AvifPixi(payload, n);
+                }
+
+                p += boxLength;
+            }
+        }
+
+        private void AvifIspe(int start, int length)
+        {
+            int end = start + length;
+            Require(start, 12, end);
+
+            long w = U32(start + 4, false, end);
+            long h = U32(start + 8, false, end);
+            if (w > 0 && h > 0)
+            {
+                width = w;
+                height = h;
+            }
+        }
+
+        private void AvifPixi(int start, int length)
+        {
+            int end = start + length;
+            Require(start, 5, end);
+
+            int channels = data[start + 4];
+            if (channels <= 0) throw new InvalidDataException("Invalid AVIF pixi channel count.");
+            Require(start + 5, channels, end);
+
+            int bits = 0;
+            for (int i = 0; i < channels; i++)
+            {
+                int channelBits = data[start + 5 + i];
+                if (channelBits <= 0) throw new InvalidDataException("Invalid AVIF pixi bit depth.");
+                bits += channelBits;
+            }
+
+            depth = bits;
+            depthDescription = " (coded channels)";
+        }
+
         private void WebP()
         {
             supported = true;

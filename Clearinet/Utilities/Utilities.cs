@@ -11,6 +11,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Windows.Forms;
 
@@ -266,7 +267,9 @@ namespace Clearinet
 
         public static bool MediaTypeShouldStream(string sMediaType)
         {
-            return sMediaType.OICStartsWithAny("audio/", "video/", "text/event-stream");
+            // TODO: Make this a configurable preference
+            return sMediaType.OICStartsWithAny("audio/", "video/",  // Media
+                "text/event-stream", "application/x-ndjson");       // Data SSE/LLM
         }
 
         public static bool IsMediaTypeBinary(string sMediaType)
@@ -484,6 +487,60 @@ namespace Clearinet
             }
         }
 
+        /// <summary>
+        /// Returns JPEG bytes for AVIF input, or the original array otherwise.
+        /// The input array is not modified.
+        /// </summary>
+        public static byte[] ConvertAVIFToJPEG(byte[] arrData)
+        {
+            if (arrData == null) throw new ArgumentNullException(nameof(arrData));
+
+            // Check for AVIF magic bytes (ftyp box with 'avif' brand):
+            if (!((arrData.Length >= 12 && HasMagicBytes(arrData, 4, "ftyp")) &&
+                  (HasMagicBytes(arrData, 8, "avif") || HasMagicBytes(arrData, 8, "avis"))))
+            {
+                return arrData;
+            }
+
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "Clearinet-AVIF-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDirectory);
+            try
+            {
+                string inputPath = Path.Combine(tempDirectory, "input.avif");
+                string outputPath = Path.Combine(tempDirectory, "output.jpeg");
+                File.WriteAllBytes(inputPath, arrData);
+
+                using (var process = new Process())
+                {
+                    process.StartInfo = new ProcessStartInfo
+                    {
+                        FileName = Path.Combine(CONFIG.GetPath("Tools"), "avifdec.exe"),
+                        Arguments = $"\"{inputPath}\" \"{outputPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardError = true
+                    };
+                    if (!File.Exists(process.StartInfo.FileName))
+                    {
+                        throw new FileNotFoundException($"The required converter was not found at '{process.StartInfo.FileName}'.");
+                    }
+                    process.Start();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+                    if (process.ExitCode != 0)
+                    {
+                        throw new IOException($"AVIFDEC.exe conversion failed (exit code {process.ExitCode}): {error.Trim()}");
+                    }
+                }
+
+                return File.ReadAllBytes(outputPath);
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
+        }
+
         public static bool EnsurePathExists(string filename)
         {
             try
@@ -597,6 +654,31 @@ namespace Clearinet
         public static string UNSTABLE_DescribeServerHello(MemoryStream _)
         {
             return "TODO: don't call this!";
+        }
+
+
+        public static bool GetRegistryBool(RegistryKey rk, string sName, bool bDefault)
+        {
+            object o = rk.GetValue(sName);
+            if (o is Int32) return ((int)o) != 0;
+
+            string strVal = (o as string);
+            if (!String.IsNullOrEmpty(strVal))
+            {
+                if (strVal.Equals("1") ||
+                    strVal.OICEquals("true"))
+                {
+                    return true;
+                }
+
+                if (strVal.Equals("0") ||
+                    strVal.OICEquals("false"))
+                {
+                    return false;
+                }
+            }
+
+            return bDefault;
         }
 
         public static int GetRegistryInt(RegistryKey rk, string sName, int iDefault)
@@ -1050,6 +1132,33 @@ namespace Clearinet
         public static string DescribeException(Exception eX)
         {
             return $"{eX.GetType().Name}: {eX.Message}\n{eX.StackTrace}\n";
+        }
+    }
+
+    public class SynchronizedHashSet<T>
+    {
+        private readonly HashSet<T> _innerSet = new HashSet<T>();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+
+        public bool Add(T item)
+        {
+            _lock.EnterWriteLock();
+            try { return _innerSet.Add(item); }
+            finally { _lock.ExitWriteLock(); }
+        }
+
+        public bool Contains(T item)
+        {
+            _lock.EnterReadLock();
+            try { return _innerSet.Contains(item); }
+            finally { _lock.ExitReadLock(); }
+        }
+
+        public void Clear()
+        {
+            _lock.EnterWriteLock();
+            try { _innerSet.Clear(); }
+            finally { _lock.ExitWriteLock(); }
         }
     }
 }

@@ -29,8 +29,25 @@ namespace Clearinet
             internal bool NoAttachOnStartup;
             internal bool DisableScript;
             internal int ListenPort;
+
+            public override string ToString()
+            {
+                return $"OVERRIDES: NoAttachOnStartup={NoAttachOnStartup}, DisableScript={DisableScript}, ListenPort={ListenPort}";
+            }
         }
-        internal static structOverrides Overrides;
+        internal static structOverrides OVERRIDES;
+
+
+        internal class classPolicies
+        {
+            internal bool DisableScript;
+            internal bool SAZRequiresEncryption;
+            public override string ToString()
+            {
+                return $"POLICIES: DisableScript={DisableScript}, SAZRequiresEncryption={SAZRequiresEncryption}";
+            }
+        }
+        internal static classPolicies POLICIES = new classPolicies();
 
         public static Color GetColor(string sPref, Color colorDefault)
         {
@@ -48,12 +65,13 @@ namespace Clearinet
         public static float flFontSize = 10.0F;
         public static bool isQuietMode { get; set; } = false;
         public static bool isViewerMode { get; internal set; } = false;
+        public static bool isCleanupMode { get; internal set; } = false;
 
         public static int ListenPort
         {
             get
             {
-                if (Overrides.ListenPort > 0) return Overrides.ListenPort;
+                if (OVERRIDES.ListenPort > 0) return OVERRIDES.ListenPort;
                 return pbPrefs.GetInt32Pref("proxy.listen_port", 8888);
             }
             internal set
@@ -98,10 +116,8 @@ namespace Clearinet
 
                 if (sSwitch.OICEquals("uncleanShutdown"))
                 {
-                    // TODO: Implement cleanup operations for unclean shutdowns. This is a placeholder for future functionality.
-                    MessageBox.Show("Clearinet was not properly exited when Windows restarted.\n"
-                        + "Performing cleanup operations...", "TODO:NYI");
-                    return;
+                    isCleanupMode = true;
+                    return;  // Don't bother with any other arguments.
                 }
 
                 if (sSwitch.OICStartsWith("port:"))
@@ -109,7 +125,7 @@ namespace Clearinet
                     if (int.TryParse(sArg.Substring(sArg.IndexOf("port:", StringComparison.OrdinalIgnoreCase) + 5),
                         NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out int iPort))
                     {
-                        Overrides.ListenPort = iPort;
+                        OVERRIDES.ListenPort = iPort;
                     }
                     continue;
                 }
@@ -128,13 +144,13 @@ namespace Clearinet
 
                 if (sSwitch.OICEquals("noattach"))
                 {
-                    Overrides.NoAttachOnStartup = true;
+                    OVERRIDES.NoAttachOnStartup = true;
                     continue;
                 }
 
                 if (sSwitch.OICEquals("noscript"))
                 {
-                    Overrides.DisableScript = true;
+                    OVERRIDES.DisableScript = true;
                     continue;
                 }
 
@@ -156,13 +172,14 @@ namespace Clearinet
         {
             switch (sWhich)
             {
+                case "Policies": return @"SOFTWARE\Policies\Clearinet\";
                 case "Prefs": return sRootRegistryKey + @"Prefs\";
                 case "Root": return sRootRegistryKey;
                 case "UI": return sRootRegistryKey + @"UI\";
                 case "MRU": return sRootRegistryKey + @"UI\MRU\";
                 default:
                     Debug.Assert(false, "Asked for an undefined path: " + sWhich);
-                    return sRootRegistryKey;
+                    return sRootRegistryKey;            // NOTE: Returning the root key would be dangerous if we have a DELETE op.
             }
         }
 
@@ -252,13 +269,76 @@ namespace Clearinet
             _InitPreferences();
         }
 
+
+        /// <summary>
+        /// If Windows or Clearinet crashes while it's running, the user's proxy settings might be left
+        /// in an unclean state. When Windows next boots, we should start up, quickly check to see if the settings
+        /// were pointed at Clearinet, and if so, clean them up and exit again.
+        /// 
+        /// Ideally, we'd only need to do this for the case where Windows crashes, but for at least some versions
+        /// of Windows, if Clearinet tries to detach its proxy settings during Windows shutdown, the WinINET broker
+        /// actually ignores the change, so we should do this even on a "normal" Windows shutdown.
+        /// 
+        /// ISSUE: RunOnce keys are not processed immediately on login, so there is a delay before the uncleanShutdown 
+        /// handler runs. https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys
+        /// </summary>
+        internal static void WriteCleanupRegistryKey()
+        {
+            if (isViewerMode) return; // Don't write cleanup key if we're in Viewer mode, since we don't want to overwrite the user's normal settings.
+            try
+            {
+                RegistryKey oReg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce\", true);
+                if (null != oReg)
+                {
+                    oReg.SetValue("Cleanup after Clearinet",
+                    // Write the quoted path to the executable, followed by the --uncleanShutdown switch.
+                    $"\"{Application.ExecutablePath}\" --uncleanShutdown");
+                }
+            }
+            catch (Exception eX)
+            {
+                Debug.Assert(false, Utilities.DescribeException(eX));
+            }
+        }
+        internal static void RemoveCleanupRegistryKey()
+        {
+            if (isViewerMode) return;
+            try
+            {
+                RegistryKey oReg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce\", true);
+                if (null != oReg)
+                {
+                    oReg.DeleteValue("Cleanup after Clearinet", false);
+                }
+            }
+            catch (Exception eX)
+            {
+                Debug.Assert(false, Utilities.DescribeException(eX));
+            }
+        }
+
+
         /// <summary>
         /// Settings that must be loaded before we create any forms.
         /// </summary>
         internal static void RetrieveUrgentSettings()
         {
             try
+            { // HKLM\SOFTWARE\Policies\Clearinet
+                RegistryKey oReg = Registry.LocalMachine.OpenSubKey(GetRegistryPath("Policies"), RegistryKeyPermissionCheck.ReadSubTree);
+                if (null != oReg)
+                {
+                    POLICIES.DisableScript = Utilities.GetRegistryBool(oReg, "DisableScript", false);
+                    POLICIES.SAZRequiresEncryption = Utilities.GetRegistryBool(oReg, "SAZRequiresEncryption", false);
+                }
+            }
+            catch (Exception eX)
             {
+                Debug.Assert(false, Utilities.DescribeException(eX));
+            }
+
+            try
+            { // SOFTWARE\Policies
                 RegistryKey oReg = Registry.CurrentUser.OpenSubKey(GetRegistryPath("UI"), RegistryKeyPermissionCheck.ReadSubTree);
                 if (null != oReg)
                 {
@@ -411,5 +491,51 @@ namespace Clearinet
 
             return Color.Blue;
         }
+
+        #region ToolDetection
+        static SynchronizedHashSet<string> sMissingTools = new SynchronizedHashSet<string>();
+        static SynchronizedHashSet<string> sAvailableTools = new SynchronizedHashSet<string>();
+
+        // TODO: We probably want to put a FileSystemWatcher on the Tools folder so that if a tool
+        // is added or removed, it calls this method. For now, we'll clear the cache if the user
+        // edits their script.
+        public static void ClearToolDetectionCache()
+        {
+            sMissingTools.Clear();
+            sAvailableTools.Clear();
+        }
+        public static bool isToolAvailable(string toolFilename)
+        {
+            if (sAvailableTools.Contains(toolFilename)) return true;
+            if (sMissingTools.Contains(toolFilename)) return false;
+
+            var toolPath = toolFilename;
+            try
+            {
+                // BUG: We actually want IsPathFullyQualified, but that's not supported in this Framework.
+                if (!Path.IsPathRooted(toolPath))
+                {
+                    toolPath = Path.Combine(CONFIG.GetPath("Tools"), toolFilename);
+                }
+                bool isAvailable = File.Exists(toolPath);
+                if (isAvailable)
+                {
+                    sAvailableTools.Add(toolFilename);
+                    return true;
+                }
+                else
+                {
+                    sMissingTools.Add(toolFilename);
+                    CApp.Log.Log($"/Tool '{toolPath}' is not available.");
+                    return false;
+                }
+            }
+            catch (Exception eX)
+            {
+                Debug.WriteLine($"Error checking tool availability for '{toolPath}': {eX.Message}");
+                return false;
+            }
+        }
+        #endregion ToolDetection
     }
 }

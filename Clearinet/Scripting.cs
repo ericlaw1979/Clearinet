@@ -76,9 +76,14 @@ namespace Clearinet
         private static ulong tcLatestScriptLoad = 0;
         internal JScriptEngine(string scriptPath)
         {
-            if (CONFIG.Overrides.DisableScript)
+            if (CONFIG.OVERRIDES.DisableScript)
             {
                 CApp.Log.Log($"Script engine is disabled by command-line argument.");
+                return;
+            }
+            if (CONFIG.POLICIES.DisableScript)
+            {
+                CApp.Log.Log($"Script engine is disabled by system policy.");
                 return;
             }
             try
@@ -204,6 +209,9 @@ namespace Clearinet
         {
             // Wait briefly for any editor write handles to release
             Thread.Sleep(50);
+
+            // TODO: Putting this here is a bit of a hack, but I don't wanna put a new Watcher for such a rare case.
+            CONFIG.ClearToolDetectionCache();
 
             // Debounce rapid successive events.
             if ((Utilities.GetTickCount() - tcLatestScriptLoad) <
@@ -829,9 +837,25 @@ namespace Clearinet
         {
             _methodOnBeforeResponse?.Invoke(exchange);
         }
+
+        internal void RunOnPeekAtRequestHeaders(Exchange exchange)
+        {
+            _methodOnPeekAtRequestHeaders?.Invoke(exchange);
+        }
+
+        internal void RunOnPeekAtResponseHeaders(Exchange exchange)
+        {
+            _methodOnPeekAtResponseHeaders?.Invoke(exchange);
+        }
+
         internal void RunOnExchangeCompleted(Exchange exchange)
         {
             _methodOnExchangeCompleted?.Invoke(exchange);
+        }
+
+        internal void RunOnReturningError(Exchange exchange)
+        {
+            _methodOnReturningError?.Invoke(exchange);
         }
 
         private void _RunMainMethod()

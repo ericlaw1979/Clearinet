@@ -447,6 +447,8 @@ namespace Clearinet
                 {
 
                     case ExchangeState.AutoTamperRequestBefore:
+                        Timers.ClientDoneRequest = DateTime.Now;
+
                         CApp.oExtensions.CallAutoTamperRequestBefore(this);
                         CApp.UIInvokeAsync(() =>
                         {
@@ -504,7 +506,33 @@ namespace Clearinet
                             });
                         }
                         break;
+
+                    case ExchangeState.ReadingResponseHeaders:
+
+                        // If we already have the response, keep going.
+                        if (this.bHasResponse) ++state;
+
+                        break;
+
+                    case ExchangeState.ReadingResponseBody:
+                        Debug.Assert(this.bHasResponse, "ReadingResponseBody state should only be entered if we have response headers.");
+
+                        // Enable streaming for Media if Option is enabled.
+                        if (CApp.Prefs.GetBoolPref("proxy.auto_stream_media", true) &&
+                            Utilities.MediaTypeShouldStream(this.MediaType))
+                        {
+                            bBufferResponse = false;
+                        }
+                        CApp.oExtensions.CallPeekAtResponseHeaders(this);
+
+
+
+                        // If we already have the response, keep going.
+                        if (this.bHasResponse) ++state;
+                        break;
+
                     case ExchangeState.AutoTamperResponseBefore:
+                        Timers.ServerDoneResponse = DateTime.Now;
 
                         if (oFlags.ContainsKey("log-drop-request-body"))
                         {
@@ -525,17 +553,6 @@ namespace Clearinet
                         if (!_isCaptureFacade) ++state;
                         break;
 
-                    case ExchangeState.ReadingResponseBody:
-                        Debug.Assert(this.bHasResponse, "ReadingResponseBody state should only be entered if we have response headers.");
-
-                        // Enable streaming for Media if Option is enabled.
-                        if (CApp.Prefs.GetBoolPref("proxy.auto_stream_media", true) &&
-                            Utilities.MediaTypeShouldStream(this.MediaType))
-                        {
-                            bBufferResponse = false;
-                        }
-                        break;
-
                     case ExchangeState.HandTamperResponse:
                         if (!_isCaptureFacade && !oFlags.ContainsKey("x-breakresponse"))
                         {
@@ -553,8 +570,27 @@ namespace Clearinet
                         }
                         break;
 
+                    case ExchangeState.AutoTamperResponseAfter:
+
+                        CApp.oExtensions.CallAutoTamperResponseAfter(this);
+
+                        CApp.UIInvokeAsync(() =>
+                        {
+                            CApp.UI.UpdateViewItem(this);
+                        });
+                        if (!_isCaptureFacade) ++state;
+                        break;
+
+                    case ExchangeState.SendingResponse:
+                        if (!_isCaptureFacade) ++state;
+                        Timers.ClientBeginResponse = DateTime.Now;
+
+                        break;
+
                     case ExchangeState.Done:
                     case ExchangeState.Aborted:
+                        Timers.ClientDoneResponse = DateTime.Now;
+
                         OnStateChanged = null;
                         CApp.UIInvokeAsync(() =>
                         {

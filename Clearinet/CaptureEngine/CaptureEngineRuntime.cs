@@ -248,6 +248,7 @@ namespace Clearinet.CaptureEngine
                             return;
                         }
 
+                        // ********************************************************
                         await ForwardToServerViaHttpClientBridgeAsync(exchange, stream, token).ConfigureAwait(false);
                     }
                     catch (Exception eX)
@@ -584,10 +585,12 @@ namespace Clearinet.CaptureEngine
 
         private static bool ShouldDecryptConnectTunnel(Exchange exchange)
         {
+            return false;
+            /* NYI
             if (exchange == null || !exchange.HTTPMethodIs("CONNECT")) return false;
             if (!CaptureEnginePrefs.ShouldDecryptHttps()) return false;
             if (exchange["x-no-decrypt"] != null) return false;
-            return true;
+            return true;*/
         }
 
         private static async Task ForwardToServerViaHttpClientBridgeAsync(Exchange exchange, NetworkStream clientStream, CancellationToken token)
@@ -810,10 +813,23 @@ namespace Clearinet.CaptureEngine
 
                 using (NetworkStream upstreamStream = upstream.GetStream())
                 {
-                    Task relayClientToServer = PumpStreamAsync(clientStream, upstreamStream, token);
-                    Task relayServerToClient = PumpStreamAsync(upstreamStream, clientStream, token);
+                    using (CancellationTokenSource relayCts = CancellationTokenSource.CreateLinkedTokenSource(token))
+                    {
+                        Task<long> relayClientToServer = PumpStreamAsync(clientStream, upstreamStream, relayCts.Token);
+                        Task<long> relayServerToClient = PumpStreamAsync(upstreamStream, clientStream, relayCts.Token);
 
-                    await Task.WhenAny(relayClientToServer, relayServerToClient).ConfigureAwait(false);
+                        await Task.WhenAny(relayClientToServer, relayServerToClient).ConfigureAwait(false);
+                        relayCts.Cancel();
+
+                        long clientToClearinetBytes = 0;
+                        long serverToClearinetBytes = 0;
+
+                        try { clientToClearinetBytes = await relayClientToServer.ConfigureAwait(false); } catch { }
+                        try { serverToClearinetBytes = await relayServerToClient.ConfigureAwait(false); } catch { }
+
+                        exchange["Tunnel-ByteCount-FromClient"] = clientToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                        exchange["Tunnel-ByteCount-FromServer"] = serverToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                    }
                 }
             }
 
@@ -1041,16 +1057,54 @@ namespace Clearinet.CaptureEngine
             return host.HasText();
         }
 
-        private static async Task PumpStreamAsync(NetworkStream source, NetworkStream destination, CancellationToken token)
+        private static async Task<long> PumpStreamAsync(NetworkStream source, NetworkStream destination, CancellationToken token)
         {
             byte[] buffer = new byte[8192];
+            long bytesRead = 0;
             while (!token.IsCancellationRequested)
             {
-                int read = await source.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
-                if (read <= 0) return;
-                await destination.WriteAsync(buffer, 0, read, token).ConfigureAwait(false);
-                await destination.FlushAsync(token).ConfigureAwait(false);
+                int read;
+                try
+                {
+                    read = await source.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return bytesRead;
+                }
+                catch (IOException)
+                {
+                    return bytesRead;
+                }
+                catch (ObjectDisposedException)
+                {
+                    return bytesRead;
+                }
+
+                if (read <= 0) return bytesRead;
+
+                bytesRead += read;
+
+                try
+                {
+                    await destination.WriteAsync(buffer, 0, read, token).ConfigureAwait(false);
+                    await destination.FlushAsync(token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return bytesRead;
+                }
+                catch (IOException)
+                {
+                    return bytesRead;
+                }
+                catch (ObjectDisposedException)
+                {
+                    return bytesRead;
+                }
             }
+
+            return bytesRead;
         }
 
         private static async Task SendNotYetImplementedAsync(NetworkStream stream, CancellationToken token)

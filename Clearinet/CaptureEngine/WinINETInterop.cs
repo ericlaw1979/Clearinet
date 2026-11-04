@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -112,6 +113,41 @@ namespace Clearinet.CaptureEngine
             return SerializeSnapshot(snapshot);
         }
 
+        internal static string CurrentProxyServer()
+        {
+            ProxySettingsSnapshot snapshot = QueryCurrentSettings();
+            if ((snapshot.FlagsUi & PROXY_TYPE_DIRECT) == PROXY_TYPE_DIRECT)
+            {
+                return snapshot.ProxyServer;
+            }
+            return string.Empty;
+        }
+
+        // TODO: Restore from a serialized snapshot string instead of just clearing the proxy settings.
+        internal static bool RestoreDefaultProxySettings()
+        {
+            try
+            {
+                var pssDefault = new ProxySettingsSnapshot
+                {
+                    FlagsUi = PROXY_TYPE_AUTO_DETECT | PROXY_TYPE_DIRECT,
+                    AutoDiscoveryFlags = 0,
+                    ProxyServer = null,
+                    ProxyBypass = null,
+                    AutoConfigUrl = null
+                };
+                AssignProxySettings(pssDefault);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.Assert(false);
+                CApp.Log.LogFormat("Failed to restore default Windows proxy settings: {0}", ex);
+                return false;
+            }
+        }
+
+
         /// <summary>
         /// Configures WinINET to use an explicit proxy server and bypass list.
         /// </summary>
@@ -127,6 +163,7 @@ namespace Clearinet.CaptureEngine
                 throw new ArgumentException("Proxy bypass list must be provided.", nameof(proxyBypassList));
             }
 
+            // TODO: Do we need to set the AutoConfigUrl and AutoDiscoveryFlags to null/0 here?
             SetPerConnectionOptions(
                 new INTERNET_PER_CONN_OPTION
                 {
@@ -145,47 +182,63 @@ namespace Clearinet.CaptureEngine
                 });
         }
 
+        private static bool AssignProxySettings(ProxySettingsSnapshot snapshot)
+        {
+            bool bResult;
+            try
+            {
+                CApp.Log.LogFormat(
+                                "Restoring proxy settings to:\nFlagsUi={0}, AutoDiscoveryFlags={1}, ProxyServer='{2}'\n\tProxyBypass='{3}', AutoConfigUrl='{4}'",
+                                snapshot.FlagsUi,
+                                snapshot.AutoDiscoveryFlags,
+                                FormatForLog(snapshot.ProxyServer),
+                                FormatForLog(snapshot.ProxyBypass),
+                                FormatForLog(snapshot.AutoConfigUrl));
+
+                SetPerConnectionOptions(
+                    new INTERNET_PER_CONN_OPTION
+                    {
+                        dwOption = INTERNET_PER_CONN_FLAGS,
+                        Value = new INTERNET_PER_CONN_OPTION_VALUE { dwValue = snapshot.FlagsUi }
+                    },
+                    new INTERNET_PER_CONN_OPTION
+                    {
+                        dwOption = INTERNET_PER_CONN_PROXY_SERVER,
+                        Value = new INTERNET_PER_CONN_OPTION_VALUE { pszValue = Marshal.StringToHGlobalUni(snapshot.ProxyServer ?? string.Empty) }
+                    },
+                    new INTERNET_PER_CONN_OPTION
+                    {
+                        dwOption = INTERNET_PER_CONN_PROXY_BYPASS,
+                        Value = new INTERNET_PER_CONN_OPTION_VALUE { pszValue = Marshal.StringToHGlobalUni(snapshot.ProxyBypass ?? string.Empty) }
+                    },
+                    new INTERNET_PER_CONN_OPTION
+                    {
+                        dwOption = INTERNET_PER_CONN_AUTOCONFIG_URL,
+                        Value = new INTERNET_PER_CONN_OPTION_VALUE { pszValue = Marshal.StringToHGlobalUni(snapshot.AutoConfigUrl ?? string.Empty) }
+                    },
+                    new INTERNET_PER_CONN_OPTION
+                    {
+                        dwOption = INTERNET_PER_CONN_AUTODISCOVERY_FLAGS,
+                        Value = new INTERNET_PER_CONN_OPTION_VALUE { dwValue = snapshot.AutoDiscoveryFlags }
+                    });
+                bResult = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.Assert(false);
+                CApp.Log.LogFormat("Failed to assign Windows proxy settings: {0}", ex);
+                bResult = false;
+            }
+            return bResult;
+        }
+
         /// <summary>
         /// Restores system proxy settings from a prior CaptureCurrentProxySettings snapshot.
         /// </summary>
         internal static void RestoreProxySettings(string serializedSettings)
         {
             ProxySettingsSnapshot snapshot = DeserializeSnapshot(serializedSettings);
-
-            CApp.Log.LogFormat(
-                "Restoring proxy settings to:\nFlagsUi={0}, AutoDiscoveryFlags={1}, ProxyServer='{2}'\n\tProxyBypass='{3}', AutoConfigUrl='{4}'",
-                snapshot.FlagsUi,
-                snapshot.AutoDiscoveryFlags,
-                FormatForLog(snapshot.ProxyServer),
-                FormatForLog(snapshot.ProxyBypass),
-                FormatForLog(snapshot.AutoConfigUrl));
-
-            SetPerConnectionOptions(
-                new INTERNET_PER_CONN_OPTION
-                {
-                    dwOption = INTERNET_PER_CONN_FLAGS,
-                    Value = new INTERNET_PER_CONN_OPTION_VALUE { dwValue = snapshot.FlagsUi }
-                },
-                new INTERNET_PER_CONN_OPTION
-                {
-                    dwOption = INTERNET_PER_CONN_PROXY_SERVER,
-                    Value = new INTERNET_PER_CONN_OPTION_VALUE { pszValue = Marshal.StringToHGlobalUni(snapshot.ProxyServer ?? string.Empty) }
-                },
-                new INTERNET_PER_CONN_OPTION
-                {
-                    dwOption = INTERNET_PER_CONN_PROXY_BYPASS,
-                    Value = new INTERNET_PER_CONN_OPTION_VALUE { pszValue = Marshal.StringToHGlobalUni(snapshot.ProxyBypass ?? string.Empty) }
-                },
-                new INTERNET_PER_CONN_OPTION
-                {
-                    dwOption = INTERNET_PER_CONN_AUTOCONFIG_URL,
-                    Value = new INTERNET_PER_CONN_OPTION_VALUE { pszValue = Marshal.StringToHGlobalUni(snapshot.AutoConfigUrl ?? string.Empty) }
-                },
-                new INTERNET_PER_CONN_OPTION
-                {
-                    dwOption = INTERNET_PER_CONN_AUTODISCOVERY_FLAGS,
-                    Value = new INTERNET_PER_CONN_OPTION_VALUE { dwValue = snapshot.AutoDiscoveryFlags }
-                });
+            AssignProxySettings(snapshot);
         }
 
         private static ProxySettingsSnapshot QueryCurrentSettings()
