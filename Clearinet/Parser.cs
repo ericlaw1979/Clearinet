@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Clearinet
@@ -34,6 +35,11 @@ namespace Clearinet
                     }
                     else
                     {
+                        if (!arrHeaderLines[ixHeader].HasText())
+                        {
+                            Debug.Assert(false, "The caller gave us a blank line.");
+                            break; // Blank line is end of headers
+                        }
                         bResult = false;
                         oNewHeader = headers.Add(arrHeaderLines[ixHeader], string.Empty);
                         sErrors += String.Format("Header missing colon #{0}, {1}\n", 1 + ixHeader - iStartFrom, arrHeaderLines[ixHeader]);
