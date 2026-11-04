@@ -33,7 +33,7 @@ namespace Clearinet
 
             sSource += txtName.Text.Trim();
 
-            CApp.UI.lvExchanges.AddBoundColumn(txtTitle.Text, (int)udWidth.Value, sSource);
+            CApp.UI.lvExchanges.AddUserColumn(txtTitle.Text, (int)udWidth.Value, sSource);
             txtName.Text = txtTitle.Text = string.Empty;
             txtName.Focus();
             udWidth.Value = 60;

@@ -5,6 +5,8 @@ also type `prefs show nameofpref`  or `prefs set nameofpref newvalue`
 
 Below is a list of some preferences, their defaults, and what they control
 
+`app.ui.exchangelist.user_columns`, (empty) => Columns added with **Add columns...** or QuickExec `cols add`, saved at exit and recreated at startup, as `title,width,field` entries separated by `;` (each part URL-escaped). Column order and width are restored from `app.ui.exchangelist.column_layout`.
+
 `app.ui.toolbar.lookupcuetext`, `Search MDN...` => The "Search MDN..." cuetext in the toolbar.
 
 `app.ui.toolbar.lookupurl`, `https://developer.mozilla.org/en-US/search?q=$W$` => The target of the lookup tool in the toolbar.

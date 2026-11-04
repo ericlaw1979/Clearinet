@@ -388,12 +388,12 @@ namespace Clearinet
                 }
                 if (arrParams.Length == 3)
                 {
-                    CApp.UI.lvExchanges.AddBoundColumn(arrParams[2], 60, arrParams[2]);
+                    CApp.UI.lvExchanges.AddUserColumn(arrParams[2], 60, arrParams[2]);
                     return true;
                 }
                 if (arrParams.Length == 4)
                 {
-                    CApp.UI.lvExchanges.AddBoundColumn(arrParams[2], 60, arrParams[3]);
+                    CApp.UI.lvExchanges.AddUserColumn(arrParams[2], 60, arrParams[3]);
                     return true;
                 }
             }

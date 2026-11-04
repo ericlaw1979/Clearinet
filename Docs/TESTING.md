@@ -95,6 +95,7 @@ listed build directory with the single-test command above.
 | `CurlExport` | `Clearinet\bin\Release` | CMD/PowerShell quoting, body boundaries, chunk decoding, clipboard export. Invokes CMD for quoting checks but does not execute cURL or send HTTP requests. |
 | `ExchangeHeaderMenu` | `Clearinet\bin\Release` | Native header right-clicks, reordered/scrolled columns, full bold title, search prompt and cancellation, duplicate marking, hide/show widths, customization notification, unchanged row menu, disposal. |
 | `SuggestedFilename` | `Clearinet\bin\Release` | Content-Disposition precedence/decoding, URL and media-type fallbacks, Windows filename validity and exact length boundaries. No UI or network access. |
+| `UserColumnPersistence` | `Clearinet\bin\Release` | Saving and restoring user-added Exchange list columns: QuickExec `cols add`/`cols remove`, escaping of awkward titles and fields, width and position, script columns not saved or duplicated, malformed saved values. Creates viewer windows. |
 | `HiddenExecActionTargetWindow` | `Clearinet\bin\Release` | Hidden IPC receiver, malformed messages, Unicode commands, cross-process senders and bundled `CallExecAction.ps1`. Close other Clearinet instances. `-WindowHandle` is an internal child-runner parameter; omit it for the full suite. |
 | `MapSocketToProcess` | `Clearinet\bin\Release` | Socket ownership, IPv4/IPv6 family isolation, cached hits, misses, expiration, ambiguous owners. Opens local TCP listeners; IPv6 is required, not skipped. |
 | `MinimizeToTray` | `Clearinet\bin\Release` | Tray minimize/restore, normal/maximized state, clicks, tooltip counts and capture state, disposal. Uses the desktop notification area. |
@@ -162,7 +163,8 @@ $groups = [ordered]@{
     Clearinet = @(
         'BatchExchangeInsertion', 'CurlExport', 'ExchangeHeaderMenu',
         'HiddenExecActionTargetWindow', 'MapSocketToProcess',
-        'MinimizeToTray', 'QuickExecHistory', 'ScriptColumnReload', 'SuggestedFilename'
+        'MinimizeToTray', 'QuickExecHistory', 'ScriptColumnReload', 'SuggestedFilename',
+        'UserColumnPersistence'
     )
     Extensions = @(
         'DataInspector', 'DataViewContextMenu', 'ImageInspector', 'WebViewPreview'
