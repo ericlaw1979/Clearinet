@@ -73,6 +73,8 @@ namespace Clearinet
             this.miEditCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyURL = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditCopyCurl = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyPowerShell = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditCopyFetch = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
             this.miEditCopyResponseDataURI = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
@@ -526,6 +528,8 @@ namespace Clearinet
             this.miEditCopy.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miEditCopyURL,
             this.miEditCopyCurl,
+            this.miEditCopyPowerShell,
+            this.miEditCopyFetch,
             this.toolStripMenuItem8,
             this.miEditCopyResponseDataURI,
             this.toolStripMenuItem2,
@@ -552,6 +556,20 @@ namespace Clearinet
             this.miEditCopyCurl.Size = new System.Drawing.Size(188, 22);
             this.miEditCopyCurl.Text = "as &CURL command";
             this.miEditCopyCurl.Click += new System.EventHandler(this.miEditCopyCurl_Click);
+            // 
+            // miEditCopyPowerShell
+            // 
+            this.miEditCopyPowerShell.Name = "miEditCopyPowerShell";
+            this.miEditCopyPowerShell.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyPowerShell.Text = "as &PowerShell command";
+            this.miEditCopyPowerShell.Click += new System.EventHandler(this.miEditCopyPowerShell_Click);
+            // 
+            // miEditCopyFetch
+            // 
+            this.miEditCopyFetch.Name = "miEditCopyFetch";
+            this.miEditCopyFetch.Size = new System.Drawing.Size(188, 22);
+            this.miEditCopyFetch.Text = "as &JavaScript fetch()";
+            this.miEditCopyFetch.Click += new System.EventHandler(this.miEditCopyFetch_Click);
             // 
             // toolStripMenuItem8
             // 
@@ -1921,6 +1939,8 @@ namespace Clearinet
         private System.Windows.Forms.ToolStripMenuItem tsmiNon200Response;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem miEditCopyCurl;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyPowerShell;
+        private System.Windows.Forms.ToolStripMenuItem miEditCopyFetch;
         private System.Windows.Forms.ToolStripMenuItem miHelpViewHelp;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem miExchangeReplay;
