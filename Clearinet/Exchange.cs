@@ -491,7 +491,7 @@ namespace Clearinet
                             Task.Run(async () =>
                             {
                                 // HttpClientBridge is only available as an alternate transport for debugging/experimentation.
-                                if (CApp.Prefs.GetBoolPref("proxy.ephemeral.use_httpclientbridge_transport"))
+                                if (this.isFlagSet(ExchangeFlags.RequestGeneratedByClearinet) || CApp.Prefs.GetBoolPref("proxy.ephemeral.use_httpclientbridge_transport"))
                                 {
                                     await new HTTPClientBridge().SendAndReceiveRawAsync(this);
                                 }
