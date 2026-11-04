@@ -430,7 +430,14 @@ namespace Extensions
         internal void SetFontSize(float size)
         {
             Font oldFont = viewFont;
-            viewFont = new Font("Lucida Console", size);
+            Font newFont = new Font("Lucida Console", size);
+            // WinForms retains the existing instance when an equal font is assigned.
+            if (tree.Font.Equals(newFont))
+            {
+                newFont.Dispose();
+                return;
+            }
+            viewFont = newFont;
             tree.Font = viewFont;
             oldFont?.Dispose();
         }

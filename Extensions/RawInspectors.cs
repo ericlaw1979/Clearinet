@@ -66,6 +66,8 @@ namespace Extensions
             encBody = Encoding.UTF8; // TODO: Get encoding from headers.
             rtViewer.rtbRaw.Text = hrh.ToString() + encBody.GetString(arrBody);
             rtViewer.rtbRaw.ReadOnly = bReadOnly;
+            // Replacing text can reset native character formatting; restore the uniform logical point size afterward.
+            rtViewer.RefreshNativeFontSize();
         }
 
         public override void Clear()
@@ -102,6 +104,8 @@ namespace Extensions
             encBody = Encoding.UTF8; // TODO: Get encoding from headers.
             rtViewer.rtbRaw.Text = (hrh?.ToString() ?? string.Empty) + encBody.GetString(arrBody ?? Array.Empty<byte>());
             rtViewer.rtbRaw.ReadOnly = bReadOnly;
+            // Replacing text can reset native character formatting; restore the uniform logical point size afterward.
+            rtViewer.RefreshNativeFontSize();
         }
 
         public override bool bDirty

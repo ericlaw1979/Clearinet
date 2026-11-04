@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmInspect));
-            this.tabsInspect = new System.Windows.Forms.TabControl();
+            this.tabsInspect = new Clearinet.BetterTabControl();
             this.pageProperties = new System.Windows.Forms.TabPage();
             this.rtbProperties = new System.Windows.Forms.RichTextBox();
             this.pageRequest = new System.Windows.Forms.TabPage();
-            this.tabsInspectRequest = new System.Windows.Forms.TabControl();
+            this.tabsInspectRequest = new Clearinet.BetterTabControl();
             this.pageResponse = new System.Windows.Forms.TabPage();
-            this.tabsInspectResponse = new System.Windows.Forms.TabControl();
+            this.tabsInspectResponse = new Clearinet.BetterTabControl();
             this.tabsInspect.SuspendLayout();
             this.pageProperties.SuspendLayout();
             this.pageRequest.SuspendLayout();

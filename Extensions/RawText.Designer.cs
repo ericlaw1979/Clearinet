@@ -13,11 +13,19 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            try
             {
-                components.Dispose();
+                if (disposing && (components != null))
+                {
+                    components.Dispose();
+                }
+                base.Dispose(disposing);
             }
-            base.Dispose(disposing);
+            finally
+            {
+                // Explicit fonts outlive their child consumers, including Framework-scaled active fonts.
+                if (disposing) DisposeOwnedFonts();
+            }
         }
 
         #region Component Designer generated code
@@ -38,27 +46,30 @@
             this.miCut = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.miWordwrap = new System.Windows.Forms.ToolStripMenuItem();
-            this.rtbRaw = new Clearinet.RichTextBoxV5();
+            this.rtbRaw = new Extensions.RawRichTextBox();
             this.pnlBottom.SuspendLayout();
             this.mnuContext.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlBottom
             // 
+            this.pnlBottom.AutoSize = true;
+            this.pnlBottom.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.pnlBottom.Controls.Add(this.txtFind);
             this.pnlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.pnlBottom.Location = new System.Drawing.Point(0, 461);
             this.pnlBottom.Margin = new System.Windows.Forms.Padding(2);
             this.pnlBottom.Name = "pnlBottom";
+            this.pnlBottom.Padding = new System.Windows.Forms.Padding(2, 5, 2, 2);
             this.pnlBottom.Size = new System.Drawing.Size(581, 32);
             this.pnlBottom.TabIndex = 0;
             // 
             // txtFind
             // 
-            this.txtFind.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtFind.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtFind.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtFind.Dock = System.Windows.Forms.DockStyle.Top;
+            this.searchFont = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtFind.Font = this.searchFont;
             this.txtFind.Location = new System.Drawing.Point(2, 5);
             this.txtFind.Margin = new System.Windows.Forms.Padding(2);
             this.txtFind.Name = "txtFind";

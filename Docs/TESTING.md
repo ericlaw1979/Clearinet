@@ -3,7 +3,8 @@
 The regression tests live in `Test`. They are standalone PowerShell scripts,
 not Test Explorer projects: run the scripts rather than `dotnet test`. The
 `.Tests.cs` files are compiled by their matching `.Tests.ps1` wrappers; do not
-run them separately.
+run them separately. `DpiScaling.Tests.ps1` similarly compiles
+`DpiScalingHarness.cs` into an isolated executable.
 
 All commands below assume the repository root is the current directory.
 
@@ -79,7 +80,7 @@ Organization Group Policy can still prevent script execution.
 
 Most tests accept `-BuildDirectory`. Supply it explicitly to select the output
 you just built: `MapSocketToProcess` and `DataViewContextMenu` default to Debug,
-while the other assembly-based scripts currently default to Release. For a
+as does `DpiScaling`; the other assembly-based scripts default to Release. For a
 Debug build, replace `Release` with `Debug` consistently in the build and test
 commands. The directory must contain the matching `Clearinet.exe`, any required
 extension/transcoder DLL, and its dependencies; the test does not build them.
@@ -100,6 +101,7 @@ listed build directory with the single-test command above.
 | `MinimizeToTray` | `Clearinet\bin\Release` | Tray minimize/restore, normal/maximized state, clicks, tooltip counts and capture state, disposal. Uses the desktop notification area. |
 | `QuickExecHistory` | `Clearinet\bin\Release` | History/autocomplete and navigation, file paste/drop/insertion, persistence, viewer mode, logged I/O failures. Uses clipboard and temporary history files. |
 | `ScriptColumnReload` | `Clearinet\bin\Release` | JScript.NET-bound columns across reloads, unique names, values, removal, sort indices, unrelated column preservation. Uses a temporary script. |
+| `DpiScaling` | `Clearinet\bin\Release` | Real-monitor startup, native fonts, monitor transitions, responsive layout and optional runtime-font/editor-state checks. Requires matching Extensions outputs and an unlocked desktop; see the execution tiers below. |
 | `DataInspector` | `Extensions\bin\Release` | JSON/XML/BSON trees, malformed data, search/expand/collapse, query strings, form bodies, compression/chunk decoding and state clearing. |
 | `DataViewContextMenu` | `Extensions\bin\Release` | Copy, Copy Subtree, Ctrl+C, right-click targeting, disabled actions, Textransformer handoff and menu disposal. Uses clipboard and shows tool windows. |
 | `ImageInspector` | `Extensions\bin\Release` | Image metadata and exact accounting/preview limits, PNG/JPEG/GIF/WebP/TIFF, EXIF/XMP, malformed inputs, decoding and inspector integration. This is not a dedicated fullscreen-viewer test. |
@@ -150,12 +152,77 @@ powershell.exe -NoProfile -NonInteractive -STA -File .\Test\NetLogImport.Tests.p
 
 Use a capture you are authorized to inspect; real captures can contain secrets.
 
-## Run every script and WebView mode
+## DPI execution tiers
+
+The DPI runner requires built `Clearinet.exe`, its `.config`, dependencies and
+the matching `CAE-Default.dll`, plus an unlocked desktop for UI tests. Each
+cold-start case runs in a fresh process with isolated files and registry settings.
+Use monitors with different scaling to exercise cross-DPI behavior.
+
+### Focused smoke
+
+For DPI/UI changes, start with roundtrip startup at font 12. Include
+`-RuntimeFonts -Extensions` when inspector or editor behavior is affected:
+
+```powershell
+powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory .\Clearinet\bin\Release -Scenario roundtrip -FontSize 12 -RuntimeFonts -Extensions -TimeoutSeconds 120
+if ($LASTEXITCODE -ne 0) { throw 'DPI smoke failed.' }
+```
+
+Omit both optional switches for standard smoke. Documentation-only changes do
+not require UI test runs.
+
+### Full acceptance
+
+Before merging production DPI changes, run the standard matrix and, for
+inspector/editor changes, the extended matrix sequentially:
+
+```powershell
+powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory .\Clearinet\bin\Release
+if ($LASTEXITCODE -ne 0) { throw 'Standard DPI acceptance failed.' }
+powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory .\Clearinet\bin\Release -RuntimeFonts -Extensions -TimeoutSeconds 120
+if ($LASTEXITCODE -ne 0) { throw 'Extended DPI acceptance failed.' }
+```
+
+Defaults test fonts 10/12 and startup scenarios `eager`, `moved` and `roundtrip`
+on representative monitor configurations. The extended suite adds runtime font
+changes and extension checks, including Raw response text, selection, dirty
+state, undo/redo and presentation events.
+
+Useful options:
+
+- `-ComponentsOnly`: check inspector font lifetime and Composer layout/tab order
+  without starting the main viewer. This does not replace monitor tests.
+- `-InventoryOnly`: list physical monitors and representative configurations
+  without running scenarios; still requires built assemblies and compiles the harness.
+- `-ScreenIndex`: select a physical startup monitor from the inventory. Cases
+  still move through representative monitors.
+- `-Scenario` and `-FontSize`: narrow the startup matrix.
+- `-ExtensionPath`: select the matching `CAE-Default.dll` for custom output
+  layouts. Otherwise it is inferred from the repository's Debug/Release outputs.
+- `-TimeoutSeconds`: per subprocess, not a suite-wide timeout (default 60).
+- `-ResultsDirectory`: override the default
+  `Clearinet\bin\<configuration>\DpiTests\results-<id>` location.
+
+### Results and coverage limits
+
+Results include per-case logs, monitor inventory and `timings.csv`. Check the
+exit code: failed or timed-out cases make the run fail. Record commands, tested
+monitor configurations and results in the PR; do not commit generated logs.
+A focused or single-DPI run is not full cross-DPI acceptance.
+
+The harness bypasses full application startup/scripting/discovery and does not
+validate editor undo history across handle recreation. Manually check full
+startup, stable first painting and mouse-drag growth/shrink after monitor moves.
+Programmatic sizing and paint counts do not establish those behaviors.
+
+## Run regression scripts, WebView modes and DPI smoke
 
 After building Release and preparing the desktop/runtime prerequisites, paste
 this into a PowerShell terminal at the repository root. Each test gets a fresh
 process, explicit output directory, and an exit-code check. It stops at the
 first failure; it is not a parallel runner.
+The DPI stage is extended smoke, not both full acceptance matrices above.
 
 ```powershell
 $groups = [ordered]@{
@@ -183,7 +250,10 @@ foreach ($mode in @('Browser', 'MissingRuntime', 'MissingSdk')) {
 }
 & pwsh.exe -NoProfile -NonInteractive -File .\Test\AuthTokenDecoder.Tests.ps1
 if ($LASTEXITCODE -ne 0) { throw "AuthTokenDecoder failed (exit $LASTEXITCODE)." }
-Write-Host 'All regression scripts and WebView modes passed.'
+Write-Host 'Running extended DPI smoke (full acceptance is separate)'
+& powershell.exe -NoProfile -NonInteractive -STA -File .\Test\DpiScaling.Tests.ps1 -AutomatedTest -BuildDirectory .\Clearinet\bin\Release -Scenario roundtrip -FontSize 12 -RuntimeFonts -Extensions -TimeoutSeconds 120
+if ($LASTEXITCODE -ne 0) { throw "DPI smoke failed (exit $LASTEXITCODE)." }
+Write-Host 'Regression scripts, WebView modes and DPI smoke passed; full DPI/manual acceptance is separate.'
 ```
 
 ## Results and troubleshooting

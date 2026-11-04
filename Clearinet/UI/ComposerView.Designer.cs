@@ -36,11 +36,14 @@
             this.txtBody = new System.Windows.Forms.TextBox();
             this.txtHeaders = new System.Windows.Forms.TextBox();
             this.btnSend = new System.Windows.Forms.Button();
+            this.layoutRequest = new System.Windows.Forms.TableLayoutPanel();
             this.pnlMessage.SuspendLayout();
+            this.layoutRequest.SuspendLayout();
             this.SuspendLayout();
             // 
             // cbxMethod
             // 
+            this.cbxMethod.Dock = System.Windows.Forms.DockStyle.Fill;
             this.cbxMethod.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cbxMethod.FormattingEnabled = true;
             this.cbxMethod.Items.AddRange(new object[] {
@@ -56,12 +59,12 @@
             this.cbxMethod.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxMethod.Name = "cbxMethod";
             this.cbxMethod.Size = new System.Drawing.Size(119, 24);
-            this.cbxMethod.TabIndex = 4;
+            this.cbxMethod.TabIndex = 0;
             this.cbxMethod.TextChanged += new System.EventHandler(this.cbxMethod_TextChanged);
             // 
             // cbxHTTPVersion
             // 
-            this.cbxHTTPVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbxHTTPVersion.Dock = System.Windows.Forms.DockStyle.Fill;
             this.cbxHTTPVersion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbxHTTPVersion.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cbxHTTPVersion.FormattingEnabled = true;
@@ -72,25 +75,22 @@
             this.cbxHTTPVersion.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxHTTPVersion.Name = "cbxHTTPVersion";
             this.cbxHTTPVersion.Size = new System.Drawing.Size(131, 24);
-            this.cbxHTTPVersion.TabIndex = 5;
+            this.cbxHTTPVersion.TabIndex = 2;
             // 
             // txtURL
             // 
-            this.txtURL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtURL.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtURL.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtURL.Location = new System.Drawing.Point(138, 14);
             this.txtURL.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtURL.Name = "txtURL";
             this.txtURL.Size = new System.Drawing.Size(717, 24);
-            this.txtURL.TabIndex = 0;
+            this.txtURL.TabIndex = 1;
             this.txtURL.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtURL_KeyDown);
             // 
             // pnlMessage
             // 
-            this.pnlMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlMessage.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMessage.Controls.Add(this.txtBody);
             this.pnlMessage.Controls.Add(this.splitCompose);
             this.pnlMessage.Controls.Add(this.txtHeaders);
@@ -135,25 +135,45 @@
             // 
             // btnSend
             // 
-            this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSend.AutoSize = true;
+            this.btnSend.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnSend.Dock = System.Windows.Forms.DockStyle.Fill;
             this.btnSend.Location = new System.Drawing.Point(998, 11);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(75, 30);
-            this.btnSend.TabIndex = 1;
+            this.btnSend.TabIndex = 3;
             this.btnSend.Text = "Send";
             this.btnSend.UseVisualStyleBackColor = true;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
+            // layoutRequest
+            //
+            this.layoutRequest.AutoSize = true;
+            this.layoutRequest.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.layoutRequest.ColumnCount = 4;
+            this.layoutRequest.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 119F));
+            this.layoutRequest.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.layoutRequest.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 131F));
+            this.layoutRequest.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.layoutRequest.Controls.Add(this.cbxMethod, 0, 0);
+            this.layoutRequest.Controls.Add(this.txtURL, 1, 0);
+            this.layoutRequest.Controls.Add(this.cbxHTTPVersion, 2, 0);
+            this.layoutRequest.Controls.Add(this.btnSend, 3, 0);
+            this.layoutRequest.Dock = System.Windows.Forms.DockStyle.Top;
+            this.layoutRequest.Name = "layoutRequest";
+            this.layoutRequest.Padding = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            this.layoutRequest.RowCount = 2;
+            this.layoutRequest.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.layoutRequest.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.layoutRequest.TabIndex = 0;
+            //
             // ComposerView
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.btnSend);
             this.Controls.Add(this.pnlMessage);
-            this.Controls.Add(this.txtURL);
-            this.Controls.Add(this.cbxHTTPVersion);
-            this.Controls.Add(this.cbxMethod);
+            this.Controls.Add(this.layoutRequest);
             this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Tahoma", 10F);
             this.Margin = new System.Windows.Forms.Padding(10);
@@ -164,6 +184,8 @@
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.ComposerView_DragEnter);
             this.pnlMessage.ResumeLayout(false);
             this.pnlMessage.PerformLayout();
+            this.layoutRequest.ResumeLayout(false);
+            this.layoutRequest.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -179,5 +201,6 @@
         internal System.Windows.Forms.TextBox txtBody;
         internal System.Windows.Forms.TextBox txtHeaders;
         internal System.Windows.Forms.Button btnSend;
+        private System.Windows.Forms.TableLayoutPanel layoutRequest;
     }
 }

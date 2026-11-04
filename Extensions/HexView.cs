@@ -216,7 +216,14 @@ namespace Extensions
         internal void SetFontSize(float flSizeInPoints)
         {
             Font oldFont = hexFont;
-            hexFont = new Font(oldFont.FontFamily, flSizeInPoints);
+            Font newFont = new Font(oldFont.FontFamily, flSizeInPoints);
+            // WinForms retains the existing instance when an equal font is assigned.
+            if (hexBox.Font.Equals(newFont))
+            {
+                newFont.Dispose();
+                return;
+            }
+            hexFont = newFont;
             hexBox.Font = hexFont;
             oldFont.Dispose();
         }
