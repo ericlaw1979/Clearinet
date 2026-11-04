@@ -66,7 +66,7 @@ namespace Extensions
             mnuTemplates.Show(pvOrigin, ToolStripDropDownDirection.BelowRight);
         }
 
-
+        // TODO: We should have examples for all of the common things, and select based on whether this is the request or the response
         private void tsmiTemplateSecurityCSP_Click(object sender, System.EventArgs e)
         {
             txtName.Text = "Content-Security-Policy";
