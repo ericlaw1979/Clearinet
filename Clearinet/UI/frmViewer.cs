@@ -1,3 +1,4 @@
+using Clearinet.CaptureEngine;
 using Clearinet.UI;
 using System;
 using System.Collections.Generic;
@@ -483,6 +484,24 @@ namespace Clearinet
                 #endregion SafeMode
             }
 
+            if (CONFIG.isCleanupMode)
+            {
+                frmSplashScreen.SetStatusText("Cleaning up...");
+
+                // TODO: Implement cleanup operations for unclean shutdowns. This is a placeholder for future functionality.
+                MessageBox.Show("Clearinet was not running when Windows exited.\n"
+                    + "Performing cleanup operations...", "Proxy Settings Cleanup");
+
+                if (WinINETInterop.CurrentProxyServer().OICStartsWithAny("127.0.0.1:", "localhost:"))
+                {
+                    WinINETInterop.RestoreDefaultProxySettings();
+                }
+
+                frmSplashScreen.CloseSplashScreen();
+                MessageBox.Show("Clearinet cleanup completed.", "Clearinet", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             bool bMutexAcquired;
             Mutex oMutex;
 
@@ -533,6 +552,7 @@ namespace Clearinet
                 CApp.UI.createHotkeyIPCWindow(); // NB: This must happen *before* the Script Engine is created.
                 frmSplashScreen.SetStatusText("Loading script engine...");
                 CApp.CreateScriptEngine();
+                frmSplashScreen.SetStatusText("Loading user interface...");
 
                 Application.Run(CApp._frmMain);
                 if (bMutexAcquired) oMutex.ReleaseMutex();
@@ -797,6 +817,7 @@ namespace Clearinet
             CApp.gwHoneyDew.createGig("UpdateMemoryCounter", () => UpdateMemoryCounter(), 5000);
 
             CApp.EnsureCaptureEngineRunning();
+            CONFIG.WriteCleanupRegistryKey();
 
             CApp.Log.Log($"{CONFIG.POLICIES}\n{CONFIG.OVERRIDES}");
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
@@ -1501,12 +1522,25 @@ namespace Clearinet
 
         private void frmViewer_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason == CloseReason.WindowsShutDown)
+            bool bWindowsIsShuttingDown = (e.CloseReason == CloseReason.WindowsShutDown);
+            if (bWindowsIsShuttingDown)
             {
                 HandleWindowsShutdown();
             }
 
-            if (!CApp.OnBeforeShutdown()) { e.Cancel = true; return; }
+            if (!CApp.OnBeforeShutdown())
+            {
+                e.Cancel = true;    // TODO: Is this gonna work if bWindowsIsShuttingDown?
+                return;
+            }
+
+            if (!bWindowsIsShuttingDown)
+            {
+                // Read the comment on the function to see why we skip this
+                // during Windows shutdown.
+                CONFIG.RemoveCleanupRegistryKey();
+            }
+
             timerReportUpdater.Stop();
             CApp.gwHoneyDew.Dispose();
             // TODO: Freeze anything else we can.

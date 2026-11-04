@@ -65,6 +65,7 @@ namespace Clearinet
         public static float flFontSize = 10.0F;
         public static bool isQuietMode { get; set; } = false;
         public static bool isViewerMode { get; internal set; } = false;
+        public static bool isCleanupMode { get; internal set; } = false;
 
         public static int ListenPort
         {
@@ -115,10 +116,9 @@ namespace Clearinet
 
                 if (sSwitch.OICEquals("uncleanShutdown"))
                 {
-                    // TODO: Implement cleanup operations for unclean shutdowns. This is a placeholder for future functionality.
-                    MessageBox.Show("Clearinet was not properly exited when Windows restarted.\n"
-                        + "Performing cleanup operations...", "TODO:NYI");
-                    return;
+                    isCleanupMode = true;
+
+                    return;  // Don't bother with any other arguments.
                 }
 
                 if (sSwitch.OICStartsWith("port:"))
@@ -180,7 +180,7 @@ namespace Clearinet
                 case "MRU": return sRootRegistryKey + @"UI\MRU\";
                 default:
                     Debug.Assert(false, "Asked for an undefined path: " + sWhich);
-                    return sRootRegistryKey;
+                    return sRootRegistryKey;            // NOTE: Returning the root key would be dangerous if we have a DELETE op.
             }
         }
 
@@ -269,6 +269,52 @@ namespace Clearinet
             ApplyCommandLine();
             _InitPreferences();
         }
+
+
+        /// <summary>
+        /// If Windows or Clearinet crashes while it's running, the user's proxy settings might be left
+        /// in an unclean state. When Windows next boots, we should start up, quickly check to see if the settings
+        /// were pointed at Clearinet, and if so, clean them up and exit again.
+        /// 
+        /// Ideally, we'd only need to do this for the case where Windows crashes, but for at least some versions
+        /// of Windows, if Clearinet tries to detach its proxy settings during Windows shutdown, the WinINET broker
+        /// actually ignores the change, so we should do this even on a "normal" Windows shutdown.
+        /// </summary>
+        internal static void WriteCleanupRegistryKey()
+        {
+            if (isViewerMode) return; // Don't write cleanup key if we're in Viewer mode, since we don't want to overwrite the user's normal settings.
+            try
+            {
+                RegistryKey oReg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce\", true);
+                if (null != oReg)
+                {
+                    oReg.SetValue("Cleanup after Clearinet",
+                    // Write the quoted path to the executable, followed by the --uncleanShutdown switch.
+                    $"\"{Application.ExecutablePath}\" --uncleanShutdown");
+                }
+            }
+            catch (Exception eX)
+            {
+                Debug.Assert(false, Utilities.DescribeException(eX));
+            }
+        }
+        internal static void RemoveCleanupRegistryKey()
+        {
+            if (isViewerMode) return;
+            try
+            {
+                RegistryKey oReg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce\", true);
+                if (null != oReg)
+                {
+                    oReg.DeleteValue("Cleanup after Clearinet", false);
+                }
+            }
+            catch (Exception eX)
+            {
+                Debug.Assert(false, Utilities.DescribeException(eX));
+            }
+        }
+
 
         /// <summary>
         /// Settings that must be loaded before we create any forms.

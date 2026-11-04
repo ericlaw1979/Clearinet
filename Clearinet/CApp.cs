@@ -134,7 +134,7 @@ namespace Clearinet
 
             // TODO: Move this into the CaptureEngine
             CApp.Prefs.SetStringPref("proxy.prior_proxy", WinINETInterop.CaptureCurrentProxySettings());
-            WinINETInterop.SetProxyForClearinet($"127.0.0.1:{CONFIG.ListenPort}", "<-loopback>;debugtheweb.com");
+            WinINETInterop.SetProxyForClearinet($"127.0.0.1:{CONFIG.ListenPort}", "<-loopback>");  /* TODO: use Localhost, ProxyBypass list */
             // --------------------------------------
 
             isAttached = true;
