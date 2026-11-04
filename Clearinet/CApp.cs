@@ -180,6 +180,11 @@ namespace Clearinet
                 case "show":
                     if (sParams.Length != 3)
                     {
+                        if (sParams.Length == 2)
+                        {
+                            RunExecAction("about:config");
+                            return;
+                        }
                         MessageBox.Show("Correct Syntax is:\n\n\tprefs SHOW prefName", "Invalid 'prefs show' parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
