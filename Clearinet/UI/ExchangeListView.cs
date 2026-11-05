@@ -97,7 +97,7 @@ namespace Clearinet
                 if (text != null) SearchColumn(column, text);
             }).Enabled = column != null;
             headerMenu.Items.Add("&Flag duplicates", null, (sender, e) => FlagColumnDuplicates(column)).Enabled = column != null;
-            headerMenu.Items.Add("&Hide this column", null, (sender, e) => column.Width = 0).Enabled = column != null;
+            headerMenu.Items.Add("&Hide this column", null, (sender, e) => HideOrRemoveColumn(column)).Enabled = column != null;
             headerMenu.Items.Add(new ToolStripSeparator());
             headerMenu.Items.Add("Ensure all columns are &visible", null, (sender, e) =>
             {
@@ -111,6 +111,19 @@ namespace Clearinet
                 }
             });
             headerMenu.Show(screenPoint);
+        }
+
+        private void HideOrRemoveColumn(ColumnHeader column)
+        {
+            // For custom columns added by the user, remove them entirely
+            if (column.Tag as ColumnInfo? is ColumnInfo ci && ci.UserDataField != null)
+            {
+                CApp.UI.lvExchanges.Columns.Remove(column);
+            }
+            else // otherwise, the best we can do is shrink it entirely.
+            {
+                column.Width = 0;
+            }
         }
 
         private void SearchColumn(ColumnHeader column, string text)
@@ -622,10 +635,10 @@ namespace Clearinet
             {
                 if (column.Tag is ColumnInfo ci && ci.UserDataField != null)
                 {
-                    entries.Add($"{Uri.EscapeDataString(column.Text)},{column.Width},{Uri.EscapeDataString(ci.UserDataField)}");
+                    entries.Add($"{column.Text}~{ci.UserDataField}");
                 }
             }
-            return string.Join(";", entries);
+            return string.Join("§", entries);
         }
 
         /// <summary>
@@ -634,20 +647,20 @@ namespace Clearinet
         internal void ApplyUserColumns(string sColumns)
         {
             if (!sColumns.HasText()) return;
-            foreach (string entry in sColumns.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string entry in sColumns.Split(new[] { '§' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 try
                 {
-                    string[] parts = entry.Split(',');
-                    if (parts.Length != 3 || !int.TryParse(parts[1], out int iWidth)) continue;
-                    string sTitle = Uri.UnescapeDataString(parts[0]);
-                    string sField = Uri.UnescapeDataString(parts[2]);
+                    string[] parts = entry.Split('~');
+                    if (parts.Length != 2) continue;
+                    string sTitle = parts[0];
+                    string sField = parts[1];
                     if (!sTitle.HasText() || !sField.HasText()) continue;
-                    AddUserColumn(sTitle, iWidth, sField);
+                    AddUserColumn(sTitle, 60 /* Width, likely to be overwritten in a moment*/, sField);
                 }
                 catch (Exception eX)
                 {
-                    CApp.Log.Log($"!Skipped saved column '{entry}': {eX.Message}");
+                    CApp.Log.Log($"!Couldn't recreate saved column '{entry}': {eX.Message}");
                 }
             }
         }

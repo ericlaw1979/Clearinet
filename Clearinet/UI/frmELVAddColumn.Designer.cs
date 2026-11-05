@@ -46,7 +46,7 @@
             this.lblCollection.AutoSize = true;
             this.lblCollection.Location = new System.Drawing.Point(8, 9);
             this.lblCollection.Name = "lblCollection";
-            this.lblCollection.Size = new System.Drawing.Size(60, 21);
+            this.lblCollection.Size = new System.Drawing.Size(51, 17);
             this.lblCollection.TabIndex = 0;
             this.lblCollection.Text = "Sour&ce";
             // 
@@ -55,7 +55,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(247, 9);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(53, 21);
+            this.label2.Size = new System.Drawing.Size(43, 17);
             this.label2.TabIndex = 2;
             this.label2.Text = "&Name";
             // 
@@ -64,7 +64,7 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(60, 96);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(92, 21);
+            this.label3.Size = new System.Drawing.Size(76, 17);
             this.label3.TabIndex = 4;
             this.label3.Text = "Pixel &Width";
             // 
@@ -73,7 +73,7 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(247, 96);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(103, 21);
+            this.label4.Size = new System.Drawing.Size(83, 17);
             this.label4.TabIndex = 6;
             this.label4.Text = "Column &Title";
             // 
@@ -84,7 +84,7 @@
             this.lnkHelp.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.lnkHelp.Location = new System.Drawing.Point(12, 197);
             this.lnkHelp.Name = "lnkHelp";
-            this.lnkHelp.Size = new System.Drawing.Size(240, 26);
+            this.lnkHelp.Size = new System.Drawing.Size(192, 21);
             this.lnkHelp.TabIndex = 9;
             this.lnkHelp.TabStop = true;
             this.lnkHelp.Text = "&Learn about custom columns...";
@@ -101,15 +101,17 @@
             "Exchange Flags"});
             this.cbxSource.Location = new System.Drawing.Point(12, 36);
             this.cbxSource.Name = "cbxSource";
-            this.cbxSource.Size = new System.Drawing.Size(209, 29);
+            this.cbxSource.Size = new System.Drawing.Size(209, 24);
             this.cbxSource.TabIndex = 1;
+            this.cbxSource.SelectedIndexChanged += new System.EventHandler(this.cbxSource_SelectedIndexChanged);
             // 
             // txtName
             // 
+            this.txtName.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Append;
             this.txtName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtName.Location = new System.Drawing.Point(251, 37);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(213, 28);
+            this.txtName.Size = new System.Drawing.Size(213, 24);
             this.txtName.TabIndex = 3;
             this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
             this.txtName.Validating += new System.ComponentModel.CancelEventHandler(this.txtName_Validating);
@@ -119,7 +121,7 @@
             this.txtTitle.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtTitle.Location = new System.Drawing.Point(251, 129);
             this.txtTitle.Name = "txtTitle";
-            this.txtTitle.Size = new System.Drawing.Size(213, 28);
+            this.txtTitle.Size = new System.Drawing.Size(213, 24);
             this.txtTitle.TabIndex = 7;
             this.txtTitle.TextChanged += new System.EventHandler(this.txtTitle_TextChanged);
             // 
@@ -137,7 +139,7 @@
             0,
             0});
             this.udWidth.Name = "udWidth";
-            this.udWidth.Size = new System.Drawing.Size(94, 28);
+            this.udWidth.Size = new System.Drawing.Size(94, 24);
             this.udWidth.TabIndex = 5;
             this.udWidth.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udWidth.Value = new decimal(new int[] {
@@ -159,7 +161,7 @@
             // 
             // frmELVAddColumn
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;

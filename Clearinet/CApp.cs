@@ -212,282 +212,294 @@ namespace Clearinet
 
         public static bool RunExecAction(string sCommand)
         {
-            string[] arrParams = Utilities.Parameterize(sCommand);
-
-            if (arrParams.Length < 1) return false;
-            string sCmd = arrParams[0].ToLower();
-
-            if ("help" == sCmd)
+            try
             {
-                MessageBox.Show("Built-in commands:\n" +
-                    "? <findtext> - Select Exchanges where URL has <findtext>\n" +
-                    "= <responsecode|method> - Select Exchanges w/ response code or method\n" +
-                    "about:config - Open the Preferences editor\n" +
-                    "prefs <set|show|remove|dump> <prefname> <prefval>\n" +
-                    "lm - Lists loaded modules\n" +
-                    "cols add <optional_title> <fieldname> - Add a column to the Exchanges list\n" +
-                    "cls - Clear the Exchanges list\n" +
-                    "select <mime>\n" +
-                    "tail <#> - Keep only the most recent # of Exchanges\n" +
-                    "!dns <hostname> - Log a DNS lookup\n" +
-                    "lro <TestLongRunningOperation name>",
-                    "QuickExec QuickHelp", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return true;
-            }
+                string[] arrParams = Utilities.Parameterize(sCommand);
 
-            if ("prefs" == sCmd)
-            {
-                _QuickExecAdjustPrefs(arrParams);
-                return true;
-            }
+                if (arrParams.Length < 1) return false;
+                string sCmd = arrParams[0].ToLower();
 
-            if ("about:config" == sCmd)
-            {
-                PrefView.CreatePrefsTab(UI.tabsViews);
-                return true;
-            }
-
-            if ("lm" == sCmd)
-            {
-                _DumpModulesToLog();
-                UI.actActivateTab("Log");
-                return true;
-            }
-
-            if ("gigs" == sCmd)
-            {
-                CApp.Log.Log(CApp.gwHoneyDew.ToString());
-                UI.actActivateTab("Log");
-                return true;
-            }
-
-            if ("spam" == sCmd)
-            {
-                uint uiInterval = 1000;
-                if (arrParams.Length > 1) UInt32.TryParse(arrParams[1], out uiInterval);
-                CApp.gwHoneyDew.createGig("SpamExchanges", () =>
+                if ("help" == sCmd)
                 {
-                    DateTime dt = DateTime.Now;
-                    Exchange XC = frmViewer.CreateFauxExchange($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes("Spam Exchange"));
-                    XC.oFlags["ui-backcolor"] = "WhiteSmoke";
-                    CApp.UI.addExchangeToListView(XC);
+                    MessageBox.Show("Built-in commands:\n" +
+                        "? <findtext> - Select Exchanges where URL has <findtext>\n" +
+                        "= <responsecode|method> - Select Exchanges w/ response code or method\n" +
+                        "about:config - Open the Preferences editor\n" +
+                        "prefs <set|show|remove|dump> <prefname> <prefval>\n" +
+                        "lm - Lists loaded modules\n" +
+                        "cols add <optional_title> <fieldname> - Add a column to the Exchanges list\n" +
+                        "cls - Clear the Exchanges list\n" +
+                        "select <mime>\n" +
+                        "tail <#> - Keep only the most recent # of Exchanges\n" +
+                        "!dns <hostname> - Log a DNS lookup\n" +
+                        "lro <TestLongRunningOperation name>",
+                        "QuickExec QuickHelp", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return true;
+                }
 
-                }, uiInterval);
-                return true;
-            }
-            if ("spamlog" == sCmd)
-            {
-                uint uiInterval = 1000;
-                if (arrParams.Length > 1) UInt32.TryParse(arrParams[1], out uiInterval);
-                CApp.gwHoneyDew.createGig("SpamLog", () =>
+                if ("prefs" == sCmd)
                 {
-                    DateTime dt = DateTime.Now;
-                    CApp.Log.LogFormat($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain");
-                }, uiInterval);
-                return true;
-            }
+                    _QuickExecAdjustPrefs(arrParams);
+                    return true;
+                }
 
-            if ("unspam" == sCmd)
-            {
-                CApp.gwHoneyDew.cancelGigsNamed("SpamExchanges");
-                CApp.gwHoneyDew.cancelGigsNamed("SpamLog");
-                return true;
-            }
-
-            /*if ("!spew" == sCmd)
-            {
-                Prefs.SetBoolPref("app.debug.ephemeral.spew". true);
-            }*/
-
-            if ("cls" == sCmd)
-            {
-                UI.lvExchanges.ClearExchanges();
-                return true;
-            }
-
-            if ("lro" == sCmd) /* TODO: For Testing Purposes Only */
-            {
-                var thread = new Thread(() =>
+                if ("about:config" == sCmd)
                 {
-                    var sName = (arrParams.Length > 1) ? arrParams[1] : "Test LRO";
-                    int iStepCount = 10;
-                    if (arrParams.Length > 2) Int32.TryParse(arrParams[2], out iStepCount);
-                    var lro = new LongRunningOperation(sName, true);
-                    for (int i = 0; i < iStepCount; i++)
+                    PrefView.CreatePrefsTab(UI.tabsViews);
+                    return true;
+                }
+
+                if ("lm" == sCmd)
+                {
+                    _DumpModulesToLog();
+                    UI.actActivateTab("Log");
+                    return true;
+                }
+
+                if ("gigs" == sCmd)
+                {
+                    CApp.Log.Log(CApp.gwHoneyDew.ToString());
+                    UI.actActivateTab("Log");
+                    return true;
+                }
+
+                if ("spam" == sCmd)
+                {
+                    uint uiInterval = 1000;
+                    if (arrParams.Length > 1) UInt32.TryParse(arrParams[1], out uiInterval);
+                    CApp.gwHoneyDew.createGig("SpamExchanges", () =>
                     {
-                        lro.UpdateProgress((i + 1) * 100 / iStepCount, $"Step {i + 1} of {iStepCount}");
-                        Thread.Sleep(1000);
+                        DateTime dt = DateTime.Now;
+                        Exchange XC = frmViewer.CreateFauxExchange($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes("Spam Exchange"));
+                        XC.oFlags["ui-backcolor"] = "WhiteSmoke";
+                        CApp.UI.addExchangeToListView(XC);
+
+                    }, uiInterval);
+                    return true;
+                }
+                if ("spamlog" == sCmd)
+                {
+                    uint uiInterval = 1000;
+                    if (arrParams.Length > 1) UInt32.TryParse(arrParams[1], out uiInterval);
+                    CApp.gwHoneyDew.createGig("SpamLog", () =>
+                    {
+                        DateTime dt = DateTime.Now;
+                        CApp.Log.LogFormat($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain");
+                    }, uiInterval);
+                    return true;
+                }
+
+                if ("unspam" == sCmd)
+                {
+                    CApp.gwHoneyDew.cancelGigsNamed("SpamExchanges");
+                    CApp.gwHoneyDew.cancelGigsNamed("SpamLog");
+                    return true;
+                }
+
+                /*if ("!spew" == sCmd)
+                {
+                    Prefs.SetBoolPref("app.debug.ephemeral.spew". true);
+                }*/
+
+                if ("cls" == sCmd)
+                {
+                    UI.lvExchanges.ClearExchanges();
+                    return true;
+                }
+
+                if ("lro" == sCmd) /* TODO: For Testing Purposes Only */
+                {
+                    var thread = new Thread(() =>
+                    {
+                        var sName = (arrParams.Length > 1) ? arrParams[1] : "Test LRO";
+                        int iStepCount = 10;
+                        if (arrParams.Length > 2) Int32.TryParse(arrParams[2], out iStepCount);
+                        var lro = new LongRunningOperation(sName, true);
+                        for (int i = 0; i < iStepCount; i++)
+                        {
+                            lro.UpdateProgress((i + 1) * 100 / iStepCount, $"Step {i + 1} of {iStepCount}");
+                            Thread.Sleep(1000);
+                        }
+                        lro.Dispose();
+                    })
+                    {
+                        IsBackground = true,
+                        Name = "LongRunningOperation Test Thread",
+                        Priority = ThreadPriority.BelowNormal
+                    };
+
+                    thread.Start();
+
+                    return true;
+                }
+
+                if ("select" == sCmd) // TODO: Fiddler offered more selection options
+                {
+                    if (arrParams.Length < 2)
+                    {
+                        CApp.DoNotifyUser(CApp.UI, "Usage: select <Content-Type>", "Invalid Parameters", MessageBoxIcon.Error);
+                        return true;
                     }
-                    lro.Dispose();
-                })
-                {
-                    IsBackground = true,
-                    Name = "LongRunningOperation Test Thread",
-                    Priority = ThreadPriority.BelowNormal
-                };
-
-                thread.Start();
-
-                return true;
-            }
-
-            if ("select" == sCmd) // TODO: Fiddler offered more selection options
-            {
-                if (arrParams.Length < 2)
-                {
-                    CApp.DoNotifyUser(CApp.UI, "Usage: select <Content-Type>", "Invalid Parameters", MessageBoxIcon.Error);
-                    return true;
-                }
-                string sMIME = arrParams[1];
-                UI.actSelectExchangesMatchingCriteria((xc) => xc.MediaType.OICContains(sMIME));
-                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
-                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with Content-Type containing '{sMIME}'");
-                return true;
-            }
-
-            if ("tail" == sCmd)
-            {
-                if ((arrParams.Length < 2) || !Int32.TryParse(arrParams[1], out int iVal))
-                {
-                    CApp.DoNotifyUser(CApp.UI, "Usage: tail <#ExchangesToKeep>", "Invalid Parameters", MessageBoxIcon.Error);
+                    string sMIME = arrParams[1];
+                    UI.actSelectExchangesMatchingCriteria((xc) => xc.MediaType.OICContains(sMIME));
+                    if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with Content-Type containing '{sMIME}'");
                     return true;
                 }
 
-                CApp.UI.lvExchanges.Tail(iVal);
-                CApp.UI.SetStatusText($"Kept only the most recent {iVal} exchanges");
-                return true;
-            }
-
-            if ("!dns" == sCmd)
-            {
-                if (arrParams.Length != 2 || string.IsNullOrWhiteSpace(arrParams[1]))
+                if ("tail" == sCmd)
                 {
-                    CApp.DoNotifyUser(CApp.UI, "Usage: !dns <hostname>", "Invalid Parameters", MessageBoxIcon.Error);
-                    return true;
-                }
-
-                UI.actActivateTab("Log");
-                _ = LookupDnsAsync(arrParams[1]);
-                return true;
-            }
-
-            if ("cols" == sCmd)
-            {
-                if (arrParams.Length == 3 && arrParams[1].OICEquals("remove"))
-                {
-                    if (UI.lvExchanges.RemoveBoundColumn(arrParams[2]))
+                    if ((arrParams.Length < 2) || !Int32.TryParse(arrParams[1], out int iVal))
                     {
-                        CApp.UI.SetStatusText($"Removed column '{arrParams[2]}'");
+                        CApp.DoNotifyUser(CApp.UI, "Usage: tail <#ExchangesToKeep>", "Invalid Parameters", MessageBoxIcon.Error);
+                        return true;
+                    }
+
+                    CApp.UI.lvExchanges.Tail(iVal);
+                    CApp.UI.SetStatusText($"Kept only the most recent {iVal} exchanges");
+                    return true;
+                }
+
+                if ("!dns" == sCmd)
+                {
+                    if (arrParams.Length != 2 || string.IsNullOrWhiteSpace(arrParams[1]))
+                    {
+                        CApp.DoNotifyUser(CApp.UI, "Usage: !dns <hostname>", "Invalid Parameters", MessageBoxIcon.Error);
+                        return true;
+                    }
+
+                    UI.actActivateTab("Log");
+                    _ = LookupDnsAsync(arrParams[1]);
+                    return true;
+                }
+
+                if ("cols" == sCmd)
+                {
+                    if (arrParams.Length == 3 && arrParams[1].OICEquals("remove"))
+                    {
+                        if (UI.lvExchanges.RemoveBoundColumn(arrParams[2]))
+                        {
+                            CApp.UI.SetStatusText($"Removed column '{arrParams[2]}'");
+                        }
+                        else
+                        {
+                            CApp.UI.SetStatusText($"Column '{arrParams[2]}' not found.");
+                        }
+                        return true;
+                    }
+
+                    if (arrParams.Length < 2 || (!arrParams[1].OICEquals("add") && !arrParams[1].OICEquals("save")))
+                    {
+                        CApp.DoNotifyUser(CApp.UI, "Usage: cols <add|save> <optional_title> <fieldname>", "Invalid Parameters", MessageBoxIcon.Error);
+                        return true;
+                    }
+                    if (arrParams.Length == 3 || arrParams.Length == 4)
+                    {
+                        var sTitle = (arrParams.Length == 3) ? arrParams[2] : arrParams[2];
+                        var sField = (arrParams.Length == 4) ? arrParams[3] : arrParams[2];
+                        if (arrParams[1].OICEquals("add"))
+                        {
+                            CApp.UI.lvExchanges.AddBoundColumn(sTitle, 60, sField);
+                        }
+                        else if (arrParams[1].OICEquals("save"))
+                        {
+                            CApp.UI.lvExchanges.AddUserColumn(sTitle, 60, sField);
+                        }
+                        return true;
+                    }
+                }
+
+                if ("!script" == sCmd)
+                {
+                    if (arrParams.Length < 2)
+                    {
+                        CApp.DoNotifyUser(CApp.UI, "Usage:\n\t!script <reload|unload>", "Invalid Parameters", MessageBoxIcon.Error);
+                        return true;
+                    }
+                    if (arrParams[1].OICEquals("reload"))
+                    {
+                        scriptRules?.ReloadScript();
+                        CApp.UI.SetStatusText($"Script reloaded.");
+                    }
+                    else if (arrParams[1].OICEquals("unload"))
+                    {
+                        scriptRules?.UnloadScript();
+                        CApp.UI.SetStatusText($"Script unloaded.");
                     }
                     else
                     {
-                        CApp.UI.SetStatusText($"Column '{arrParams[2]}' not found.");
+                        CApp.DoNotifyUser(CApp.UI, "Usage:\n\t!script <reload|unload>", "Invalid Parameters", MessageBoxIcon.Error);
                     }
                     return true;
                 }
 
-                if (arrParams.Length < 2 || !arrParams[1].OICEquals("add"))
+                if (sCommand.StartsWith("?")) // Instant search (without hitting enter) lives in QuickSearchBox.cs
                 {
-                    CApp.DoNotifyUser(CApp.UI, "Usage: cols add <optional_title> <fieldname>", "Invalid Parameters", MessageBoxIcon.Error);
+                    var sFind = sCommand.Substring(1).Trim();
+                    UI.actSelectExchangesMatchingCriteria((xc) =>
+                        xc.fullUrl.OICContains(sFind));   // Issue: Support EXACT: and REGEX: prefixes?
+
+                    if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} Exchanges with URL containing '{sFind}'");
+
                     return true;
                 }
-                if (arrParams.Length == 3)
+
+                if (sCommand.StartsWith("="))
                 {
-                    CApp.UI.lvExchanges.AddUserColumn(arrParams[2], 60, arrParams[2]);
+                    if (Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal))
+                    {
+                        UI.actSelectExchangesMatchingCriteria((xc) => (xc.responseCode == iVal));
+                        CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response code '{iVal}'");
+                    }
+                    else
+                    {
+                        var sMethod = sCommand.Substring(1).Trim();
+                        UI.actSelectExchangesMatchingCriteria((xc) => xc.RequestMethod.OICEquals(sMethod));
+                        CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with Method '{sMethod}'");
+
+                    }
+                    if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
                     return true;
                 }
-                if (arrParams.Length == 4)
+
+                if (sCommand.StartsWith(">"))
                 {
-                    CApp.UI.lvExchanges.AddUserColumn(arrParams[2], 60, arrParams[3]);
+                    Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
+                    UI.actSelectExchangesMatchingCriteria((xc) =>
+                    { return xc.ResponseBody?.Length > iVal; });
+                    if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response size > '{iVal}'");
+
                     return true;
                 }
-            }
 
-            if ("!script" == sCmd)
-            {
-                if (arrParams.Length < 2)
+                if (sCommand.StartsWith("<"))
                 {
-                    CApp.DoNotifyUser(CApp.UI, "Usage:\n\t!script <reload|unload>", "Invalid Parameters", MessageBoxIcon.Error);
+                    Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
+                    UI.actSelectExchangesMatchingCriteria((xc) => { return xc.ResponseBody?.Length < iVal; });
+                    if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response size < '{iVal}'");
+
                     return true;
                 }
-                if (arrParams[1].OICEquals("reload"))
+                if (sCommand.StartsWith("@"))
                 {
-                    scriptRules?.ReloadScript();
-                    CApp.UI.SetStatusText($"Script reloaded.");
+                    string sHost = sCommand.Substring(1).Trim();
+                    UI.actSelectExchangesMatchingCriteria((xc) => { return xc.hostname.OICEquals(sHost); });
+                    if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
+                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges to host '{sHost}'");
+                    return true;
                 }
-                else if (arrParams[1].OICEquals("unload"))
-                {
-                    scriptRules?.UnloadScript();
-                    CApp.UI.SetStatusText($"Script unloaded.");
-                }
-                else
-                {
-                    CApp.DoNotifyUser(CApp.UI, "Usage:\n\t!script <reload|unload>", "Invalid Parameters", MessageBoxIcon.Error);
-                }
-                return true;
-            }
 
-            if (sCommand.StartsWith("?")) // Instant search (without hitting enter) lives in QuickSearchBox.cs
+                if (null == scriptRules) return false;
+                return scriptRules.RunExecAction(arrParams);
+            }
+            catch (Exception eX)
             {
-                var sFind = sCommand.Substring(1).Trim();
-                UI.actSelectExchangesMatchingCriteria((xc) =>
-                    xc.fullUrl.OICContains(sFind));   // Issue: Support EXACT: and REGEX: prefixes?
-
-                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
-                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} Exchanges with URL containing '{sFind}'");
-
-                return true;
+                CApp.ReportException(eX, "QuickExec Error");
+                return false;
             }
-
-            if (sCommand.StartsWith("="))
-            {
-                if (Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal))
-                {
-                    UI.actSelectExchangesMatchingCriteria((xc) => (xc.responseCode == iVal));
-                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response code '{iVal}'");
-                }
-                else
-                {
-                    var sMethod = sCommand.Substring(1).Trim();
-                    UI.actSelectExchangesMatchingCriteria((xc) => xc.RequestMethod.OICEquals(sMethod));
-                    CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with Method '{sMethod}'");
-
-                }
-                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
-                return true;
-            }
-
-            if (sCommand.StartsWith(">"))
-            {
-                Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
-                UI.actSelectExchangesMatchingCriteria((xc) =>
-                { return xc.ResponseBody?.Length > iVal; });
-                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
-                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response size > '{iVal}'");
-
-                return true;
-            }
-
-            if (sCommand.StartsWith("<"))
-            {
-                Int32.TryParse(sCommand.Substring(1).Trim(), out int iVal);
-                UI.actSelectExchangesMatchingCriteria((xc) => { return xc.ResponseBody?.Length < iVal; });
-                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
-                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges with response size < '{iVal}'");
-
-                return true;
-            }
-            if (sCommand.StartsWith("@"))
-            {
-                string sHost = sCommand.Substring(1).Trim();
-                UI.actSelectExchangesMatchingCriteria((xc) => { return xc.hostname.OICEquals(sHost); });
-                if (UI.lvExchanges.SelectedCount > 0) UI.lvExchanges.Focus();
-                CApp.UI.SetStatusText($"Selected {UI.lvExchanges.SelectedCount} exchanges to host '{sHost}'");
-                return true;
-            }
-
-            if (null == scriptRules) return false;
-            return scriptRules.RunExecAction(arrParams);
         }
 
         private static async Task LookupDnsAsync(string hostname)

@@ -4,11 +4,15 @@ namespace Clearinet
 {
     public partial class frmELVAddColumn : Form
     {
+        AutoCompleteStringCollection acscRequestHeaderNames = new AutoCompleteStringCollection();
+
         public frmELVAddColumn()
         {
             InitializeComponent();
             Win32UI.SetCueText(txtName, "title of the column");
             Win32UI.SetCueText(txtTitle, "title of the column");
+            var sPopularRequestHeaders = CApp.Prefs.GetStringPref("lists.common_request_headers", "X-Forwarded-For,User-Agent,Referer,Accept-Encoding,Accept-Language,Content-Type,Content-Length,Authorization");
+            acscRequestHeaderNames.AddRange(sPopularRequestHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
         }
         private void frmELVAddColumn_Shown(object sender, System.EventArgs e)
         {
@@ -79,6 +83,22 @@ namespace Clearinet
         {
             if (!txtTitle.Text.HasText()) txtTitle.Text = txtName.Text.Trim();
             txtName.Text = txtName.Text.RemoveAllWhitespace();
+        }
+
+        private void cbxSource_SelectedIndexChanged(object sender, System.EventArgs e)
+        {
+            if (cbxSource.SelectedIndex == 0)
+            {
+                txtName.AutoCompleteCustomSource = acscRequestHeaderNames;
+                txtName.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtName.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            }
+            else
+            {
+                txtName.AutoCompleteCustomSource = null;
+                txtName.AutoCompleteMode = AutoCompleteMode.None;
+                txtName.AutoCompleteSource = AutoCompleteSource.None;
+            }
         }
     }
 }
