@@ -12,6 +12,7 @@ namespace Clearinet
             if (CONFIG.isViewerMode)
             {
                 Text = Text += " (Readonly - Viewer Mode)";
+                lblUsageNote.Text = "Options cannot be changed in Viewer mode."; // TODO: this is a problem if the user is *forced* into viewer mode.
                 btnOk.Enabled = false;
                 btnOk.Text = "View Only";
             }
@@ -40,6 +41,9 @@ namespace Clearinet
             cbDecryptHTTPS.Checked = CApp.Prefs.GetBoolPref("proxy.decrypt_https", false);
             cbIgnoreUpstreamCertErrors.Checked = CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors", false);
             cbChainToGateway.Checked = CApp.Prefs.GetBoolPref("proxy.chain_to_upstream_gateway", true);
+            cbDarkMode.Checked = CApp.Prefs.GetBoolPref("app.ui.dark_mode", false);
+
+            if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
         }
 
         private void lnkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -60,6 +64,7 @@ namespace Clearinet
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.decrypt_https", cbDecryptHTTPS.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.unsafe.ignore_cert_errors", cbIgnoreUpstreamCertErrors.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.chain_to_upstream_gateway", cbChainToGateway.Checked, true);
+            CApp.Prefs.AssignOrRemoveIfDefault("app.ui.dark_mode", cbDarkMode.Checked, false);
 
             if (cbxBigSwitch.SelectedIndex == 0)
             { // Allow all Web Service calls

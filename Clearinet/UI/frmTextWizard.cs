@@ -408,6 +408,8 @@ namespace Clearinet
         internal frmTextWizard(string sInput)
         {
             InitializeComponent();
+            if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
+
             cbxOutputTo.SelectedIndex = 0;
 
             txtInput.Font = new Font(txtInput.Font.FontFamily, CONFIG.flFontSize);

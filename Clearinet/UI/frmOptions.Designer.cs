@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmOptions));
             this.tcOptions = new System.Windows.Forms.TabControl();
             this.pageGeneral = new System.Windows.Forms.TabPage();
+            this.cbChainToGateway = new System.Windows.Forms.CheckBox();
             this.cbAllowRemoteConnections = new System.Windows.Forms.CheckBox();
             this.gbWebServices = new System.Windows.Forms.GroupBox();
             this.cbxBigSwitch = new System.Windows.Forms.ComboBox();
@@ -59,7 +60,8 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
-            this.cbChainToGateway = new System.Windows.Forms.CheckBox();
+            this.cbDarkMode = new System.Windows.Forms.CheckBox();
+            this.lblUsageNote = new System.Windows.Forms.Label();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -104,6 +106,16 @@
             this.pageGeneral.TabIndex = 0;
             this.pageGeneral.Text = "General";
             this.pageGeneral.UseVisualStyleBackColor = true;
+            // 
+            // cbChainToGateway
+            // 
+            this.cbChainToGateway.AutoSize = true;
+            this.cbChainToGateway.Location = new System.Drawing.Point(23, 77);
+            this.cbChainToGateway.Name = "cbChainToGateway";
+            this.cbChainToGateway.Size = new System.Drawing.Size(198, 21);
+            this.cbChainToGateway.TabIndex = 9;
+            this.cbChainToGateway.Text = "Chain to Upstream Gateway";
+            this.cbChainToGateway.UseVisualStyleBackColor = true;
             // 
             // cbAllowRemoteConnections
             // 
@@ -274,6 +286,7 @@
             // 
             // pageAppearance
             // 
+            this.pageAppearance.Controls.Add(this.cbDarkMode);
             this.pageAppearance.Controls.Add(this.btnSetColorMark);
             this.pageAppearance.Controls.Add(this.btnSetColorReadonly);
             this.pageAppearance.Controls.Add(this.lblFontSize);
@@ -383,6 +396,7 @@
             // 
             this.pnlFooter.Controls.Add(this.btnCancel);
             this.pnlFooter.Controls.Add(this.btnOk);
+            this.pnlFooter.Controls.Add(this.lblUsageNote);
             this.pnlFooter.Controls.Add(this.lnkHelp);
             this.pnlFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.pnlFooter.Location = new System.Drawing.Point(0, 346);
@@ -426,15 +440,29 @@
             this.lnkHelp.Text = "Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
-            // cbChainToGateway
+            // cbDarkMode
             // 
-            this.cbChainToGateway.AutoSize = true;
-            this.cbChainToGateway.Location = new System.Drawing.Point(23, 77);
-            this.cbChainToGateway.Name = "cbChainToGateway";
-            this.cbChainToGateway.Size = new System.Drawing.Size(198, 21);
-            this.cbChainToGateway.TabIndex = 9;
-            this.cbChainToGateway.Text = "Chain to Upstream Gateway";
-            this.cbChainToGateway.UseVisualStyleBackColor = true;
+            this.cbDarkMode.AutoSize = true;
+            this.cbDarkMode.Location = new System.Drawing.Point(11, 141);
+            this.cbDarkMode.Name = "cbDarkMode";
+            this.cbDarkMode.Size = new System.Drawing.Size(177, 21);
+            this.cbDarkMode.TabIndex = 6;
+            this.cbDarkMode.Text = "Dark Mode (rough draft)";
+            this.cbDarkMode.UseVisualStyleBackColor = true;
+            // 
+            // lblUsageNote
+            // 
+            this.lblUsageNote.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblUsageNote.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblUsageNote.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lblUsageNote.Location = new System.Drawing.Point(64, 9);
+            this.lblUsageNote.Name = "lblUsageNote";
+            this.lblUsageNote.Size = new System.Drawing.Size(405, 46);
+            this.lblUsageNote.TabIndex = 3;
+            this.lblUsageNote.Text = "Note: Many options require restart to take effect.";
+            this.lblUsageNote.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // frmOptions
             // 
@@ -504,5 +532,7 @@
         private System.Windows.Forms.Label lblFontSize;
         private System.Windows.Forms.CheckBox cbAllowRemoteConnections;
         private System.Windows.Forms.CheckBox cbChainToGateway;
+        private System.Windows.Forms.CheckBox cbDarkMode;
+        private System.Windows.Forms.Label lblUsageNote;
     }
 }

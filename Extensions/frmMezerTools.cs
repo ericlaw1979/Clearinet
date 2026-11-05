@@ -26,6 +26,8 @@ namespace Extensions
         public frmMezerTools()
         {
             InitializeComponent();
+            if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
+
             if (components == null) components = new Container();
             colorInputErrors = new ErrorProvider(components) { ContainerControl = this, BlinkStyle = ErrorBlinkStyle.NeverBlink };
             txtColorHex.TextChanged += txtColorHex_TextChanged;

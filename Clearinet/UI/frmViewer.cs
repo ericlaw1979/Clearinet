@@ -745,7 +745,6 @@ namespace Clearinet
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
             if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
-
         }
 
         private void frmViewer_Load(object sender, EventArgs e)
