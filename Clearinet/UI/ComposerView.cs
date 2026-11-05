@@ -13,6 +13,8 @@ namespace Clearinet
             InitializeComponent();
             cbxHTTPVersion.SelectedIndex = 0;
             cbxMethod.SelectedIndex = 0;
+            cbxMethod.AutoCompleteMode = AutoCompleteMode.Append;
+            cbxMethod.AutoCompleteSource = AutoCompleteSource.ListItems;
 
             Win32UI.SetCueText(txtURL, "Request URL");
             txtURL.Text = "https://debugtheweb.com/echo2.aspx";

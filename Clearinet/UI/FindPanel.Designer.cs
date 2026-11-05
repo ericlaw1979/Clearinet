@@ -53,6 +53,8 @@
             this.txtToFind.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtToFind.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtToFind.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Append;
+            this.txtToFind.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
             this.txtToFind.Location = new System.Drawing.Point(6, 4);
             this.txtToFind.Margin = new System.Windows.Forms.Padding(4);
             this.txtToFind.Name = "txtToFind";

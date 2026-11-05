@@ -37,6 +37,7 @@ namespace Clearinet.UI
             try
             {
                 string sSearchFor = txtToFind.Text; // trim?
+                txtToFind.AutoCompleteCustomSource.Add(sSearchFor);
                 CApp.Prefs.SetStringPref("app.find.lastfind.text.ephemeral", sSearchFor);
                 CApp.Prefs.SetStringPref("app.find.lastfind.findin", string.Join(";", ccbxWhere.GetCheckedItems()));
 
@@ -140,7 +141,7 @@ namespace Clearinet.UI
                     CApp.UI.lvExchanges.EnsureVisible(CApp.UI.lvExchanges.SelectedIndices[0]);
                     CApp.UI.lvExchanges.Focus();
                 }
-                CApp.UI.SetStatusText($"Found {iMatchCount} Exchanges matching search criteria.");
+                CApp.UI.SetStatusText($"Found {iMatchCount} Exchanges containing '{sSearchFor}'");
             }
             catch (Exception ex)
             {
