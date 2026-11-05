@@ -11,6 +11,14 @@ namespace Extensions
         bool _readonly = true;
         internal bool HasChanges { get; set; }
 
+        internal enum HeaderViewMode
+        {
+            Request,
+            Response
+        }
+
+        internal HeaderViewMode Mode { get; set; }
+
         internal HTTPHeaders _headers;
 
         internal bool bReadOnly
@@ -27,6 +35,7 @@ namespace Extensions
         public HeaderView(InspectorBase owner)
         {
             _owner = owner;
+            Mode = (owner is RequestInspectorBase) ? HeaderViewMode.Request : HeaderViewMode.Response;
             InitializeComponent();
             tvNVP.BackColor = txtFirstLine.BackColor = CONFIG.colorDisabledEdit;
             txtFirstLine.TextChanged += (sender, e) => HasChanges = true;
@@ -109,7 +118,7 @@ namespace Extensions
         private void ViewOrEditHeader(object sender, EventArgs e)
         {
             if (!HasHeaderNodeSelected()) return;
-            using (var editor = new HeaderEditor
+            using (var editor = new HeaderEditor(this.Mode)
             {
                 IsReadonly = _readonly,
                 Text = _readonly ? "View Header" : "Edit Header",

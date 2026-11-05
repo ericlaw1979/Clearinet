@@ -1,17 +1,32 @@
 ﻿using Clearinet;
 using System.Drawing;
 using System.Windows.Forms;
+using static Extensions.HeaderView;
 
 namespace Extensions
 {
-    public partial class HeaderEditor : Form
+    internal partial class HeaderEditor : Form
     {
-        public HeaderEditor()
+        internal HeaderEditor(HeaderViewMode mode)
         {
             InitializeComponent();
             txtValue.Focus();
+            txtName.AutoCompleteMode = AutoCompleteMode.Append;
+            txtName.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            // Issue: We don't actually need to do this unless we're in Edit mode.
+            if (mode == HeaderViewMode.Request)
+            {
+                txtName.AutoCompleteCustomSource = new AutoCompleteStringCollection();
+                var sPopularRequestHeaders = CApp.Prefs.GetStringPref("lists.common_request_headers", DEFAULTS.sPopularRequestHeaders);
+                txtName.AutoCompleteCustomSource.AddRange(sPopularRequestHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
+            }
+            else
+            {
+                txtName.AutoCompleteCustomSource = new AutoCompleteStringCollection();
+                var sPopularResponseHeaders = CApp.Prefs.GetStringPref("lists.common_response_headers", DEFAULTS.sPopularResponseHeaders);
+                txtName.AutoCompleteCustomSource.AddRange(sPopularResponseHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
+            }
             // TODO: Set icon to something reasonable
-            // TODO: Use AutoCompleteStringCollection to provide common header names for txtName
         }
 
         public bool IsReadonly

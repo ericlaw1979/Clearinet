@@ -14,9 +14,9 @@ namespace Clearinet
             Win32UI.SetCueText(txtName, "title of the column");
             Win32UI.SetCueText(txtTitle, "title of the column");
 
-            var sPopularRequestHeaders = CApp.Prefs.GetStringPref("lists.common_request_headers", "X-Forwarded-For,User-Agent,Referer,Accept-Encoding,Accept-Language,Content-Type,Content-Length,Authorization");
-            var sPopularResponseHeaders = CApp.Prefs.GetStringPref("lists.common_response_headers", "Content-Type,Content-Length,Content-Encoding,Location,Set-Cookie,Cache-Control,Expires,ETag");
-            var sPopularExchangeFlags = CApp.Prefs.GetStringPref("lists.common_exchange_flags", "X-BreakRequest, X-BreakResponse");  // TODO: Fill more.
+            var sPopularRequestHeaders = CApp.Prefs.GetStringPref("lists.common_request_headers", DEFAULTS.sPopularRequestHeaders);
+            var sPopularResponseHeaders = CApp.Prefs.GetStringPref("lists.common_response_headers", DEFAULTS.sPopularResponseHeaders);
+            var sPopularExchangeFlags = CApp.Prefs.GetStringPref("lists.common_exchange_flags", DEFAULTS.sPopularExchangeFlags);
             acscRequestHeaderNames.AddRange(sPopularRequestHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
             acscResponseHeaderNames.AddRange(sPopularResponseHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
             acscExchangeFlags.AddRange(sPopularExchangeFlags.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
