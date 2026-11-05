@@ -10,9 +10,18 @@ namespace Extensions
 {
     public partial class frmMezerTools : Form
     {
+        private const int WM_CLIPBOARDUPDATE = 0x031D;
         private bool isPickingColor;
         private bool isUpdatingNumber;
         private readonly ErrorProvider colorInputErrors;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool AddClipboardFormatListener(IntPtr hwnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
 
         public frmMezerTools()
         {
@@ -48,8 +57,39 @@ namespace Extensions
             return new string(buffer);
         }
 
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            if (!AddClipboardFormatListener(Handle)) throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            try
+            {
+                if (!RemoveClipboardFormatListener(Handle)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+            finally
+            {
+                base.OnHandleDestroyed(e);
+            }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_CLIPBOARDUPDATE)
+            {
+                LazyGigWorker.bookGig("UpdateClipboardLength", 250, () =>
+                {
+                    UpdateClipboardAnalysis();
+                });
+            }
+            base.WndProc(ref m);
+        }
+
         private void lblCurrentClipboard_MouseMove(object sender, MouseEventArgs e)
         {
+            // Kinda redundant at this point.
             UpdateClipboardAnalysis();
         }
 
@@ -252,16 +292,23 @@ namespace Extensions
             frmPrompt.PromptOptions po = new frmPrompt.PromptOptions
             {
                 Title = "Unicode Lookup",
-                PromptText = "Enter a single Unicode character:",
+                PromptText = "Enter a single Unicode character (including emoji):",
                 CueText = "⛄",
-                MaxLength = 1,
+                MaxLength = 2, // allow for surrogate pairs
+
                 ReturnNullOnCancel = true,
                 OwnerWindow = this
             };
             string sChar = frmPrompt.GetUserString(po);
             if (!sChar.HasText()) return;
-            char c = sChar[0];
-            txtHex.Text = $"{(int)c:X4}";
+            if (sChar.Length > 1)
+            {
+                txtHex.Text = $"{(int)sChar[0]:X4}{(int)sChar[1]:X4}";
+            }
+            else
+            {
+                txtHex.Text = $"{(int)sChar[0]:X4}";
+            }
         }
     }
     public class MezerTools : IAppExtension
