@@ -5,15 +5,23 @@ namespace Clearinet
     public partial class frmELVAddColumn : Form
     {
         AutoCompleteStringCollection acscRequestHeaderNames = new AutoCompleteStringCollection();
+        AutoCompleteStringCollection acscResponseHeaderNames = new AutoCompleteStringCollection();
+        AutoCompleteStringCollection acscExchangeFlags = new AutoCompleteStringCollection();
 
         public frmELVAddColumn()
         {
             InitializeComponent();
             Win32UI.SetCueText(txtName, "title of the column");
             Win32UI.SetCueText(txtTitle, "title of the column");
+
             var sPopularRequestHeaders = CApp.Prefs.GetStringPref("lists.common_request_headers", "X-Forwarded-For,User-Agent,Referer,Accept-Encoding,Accept-Language,Content-Type,Content-Length,Authorization");
+            var sPopularResponseHeaders = CApp.Prefs.GetStringPref("lists.common_response_headers", "Content-Type,Content-Length,Content-Encoding,Location,Set-Cookie,Cache-Control,Expires,ETag");
+            var sPopularExchangeFlags = CApp.Prefs.GetStringPref("lists.common_exchange_flags", "X-BreakRequest, X-BreakResponse");  // TODO: Fill more.
             acscRequestHeaderNames.AddRange(sPopularRequestHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
+            acscResponseHeaderNames.AddRange(sPopularResponseHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
+            acscExchangeFlags.AddRange(sPopularExchangeFlags.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
         }
+
         private void frmELVAddColumn_Shown(object sender, System.EventArgs e)
         {
             cbxSource.SelectedIndex = 0;
@@ -93,11 +101,17 @@ namespace Clearinet
                 txtName.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
                 txtName.AutoCompleteSource = AutoCompleteSource.CustomSource;
             }
-            else
+            else if (cbxSource.SelectedIndex == 1)
             {
-                txtName.AutoCompleteCustomSource = null;
-                txtName.AutoCompleteMode = AutoCompleteMode.None;
-                txtName.AutoCompleteSource = AutoCompleteSource.None;
+                txtName.AutoCompleteCustomSource = acscResponseHeaderNames;
+                txtName.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtName.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            }
+            else if (cbxSource.SelectedIndex == 2)
+            {
+                txtName.AutoCompleteCustomSource = acscExchangeFlags;
+                txtName.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                txtName.AutoCompleteSource = AutoCompleteSource.CustomSource;
             }
         }
     }

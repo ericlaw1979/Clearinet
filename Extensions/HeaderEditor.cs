@@ -11,6 +11,7 @@ namespace Extensions
             InitializeComponent();
             txtValue.Focus();
             // TODO: Set icon to something reasonable
+            // TODO: Use AutoCompleteStringCollection to provide common header names for txtName
         }
 
         public bool IsReadonly
