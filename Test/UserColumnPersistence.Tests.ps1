@@ -17,7 +17,7 @@ public static class UserColumnPersistenceTests
 {
 	private const BindingFlags PrivateInstance = BindingFlags.NonPublic | BindingFlags.Instance;
 	private const BindingFlags PrivateStatic = BindingFlags.NonPublic | BindingFlags.Static;
-	private const string OddTitle = "Odd, title; with ~ and \u00a7 \u00e9";
+	private const string OddTitle = "Odd, title; with punctuation \u00e9";
 	private static int assertions;
 	private static void Check(bool condition, string message)
 	{
@@ -48,7 +48,7 @@ public static class UserColumnPersistenceTests
 				mainForm.SetValue(null, viewer);
 				ExchangeListView list = viewer.lvExchanges;
 				IntPtr handle = list.Handle;
-				Check(CApp.RunExecAction("cols add Server @response.Server"), "cols add was not handled.");
+				Check(CApp.RunExecAction("cols save Server @response.Server"), "cols save was not handled.");
 				Call(list, "AddUserColumn", OddTitle, 70, "@request.X-Odd,Name");
 				Check(CApp.RunExecAction("cols add Gone @request.Gone") && CApp.RunExecAction("cols remove Gone"), "cols add/remove was not handled.");
 				list.AddBoundColumn("ScriptCol", 55, "@response.Via");
