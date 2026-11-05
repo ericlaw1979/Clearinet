@@ -32,7 +32,7 @@ namespace Clearinet
 
             public override string ToString()
             {
-                return $"OVERRIDES: NoAttachOnStartup={NoAttachOnStartup}, DisableScript={DisableScript}, ListenPort={ListenPort}";
+                return $"OVERRIDES:\n\tNoAttachOnStartup={NoAttachOnStartup}\n\tDisableScript={DisableScript}\n\tListenPort={ListenPort}";
             }
         }
         internal static structOverrides OVERRIDES;
@@ -42,9 +42,11 @@ namespace Clearinet
         {
             internal bool DisableScript;
             internal bool SAZRequiresEncryption;
+
+            internal bool ForceViewerMode;
             public override string ToString()
             {
-                return $"POLICIES: DisableScript={DisableScript}, SAZRequiresEncryption={SAZRequiresEncryption}";
+                return $"POLICIES:\n\tDisableScript={DisableScript}\n\tSAZRequiresEncryption={SAZRequiresEncryption}\n\tForceViewerMode={ForceViewerMode}";
             }
         }
         internal static classPolicies POLICIES = new classPolicies();
@@ -328,8 +330,12 @@ namespace Clearinet
                 RegistryKey oReg = Registry.LocalMachine.OpenSubKey(GetRegistryPath("Policies"), RegistryKeyPermissionCheck.ReadSubTree);
                 if (null != oReg)
                 {
+                    // Note: All of these must default to FALSE because if the Registry Key doesn't exist, this
+                    // code block is not entered!
                     POLICIES.DisableScript = Utilities.GetRegistryBool(oReg, "DisableScript", false);
                     POLICIES.SAZRequiresEncryption = Utilities.GetRegistryBool(oReg, "SAZRequiresEncryption", false);
+                    POLICIES.ForceViewerMode = Utilities.GetRegistryBool(oReg, "ForceViewerMode", false);
+                    if (POLICIES.ForceViewerMode) isViewerMode = true;
                 }
             }
             catch (Exception eX)
