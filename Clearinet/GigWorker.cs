@@ -9,7 +9,7 @@ namespace Clearinet
     // Queue jobs and they'll happen periodically at the interval described until canceled.
     // TODO: We could avoid creating the timer if there are no gigs, but that would require a bit more complexity in the code,
     // and in Clearinet, we ALWAYS have work to do.
-    internal class GigWorker : IDisposable
+    public class GigWorker : IDisposable
     {
         private List<gig> listGigs = new List<gig>();
         private Timer _timer;
@@ -100,7 +100,7 @@ namespace Clearinet
             listGigs = null;
         }
 
-        internal class gig
+        public class gig
         {
             public uint _msInterval;
             public UInt64 _ulMostRecentRun;
@@ -112,7 +112,7 @@ namespace Clearinet
             // because the caller needs to be able to pass it back to us when they want to cancel it. So we make it internal.
             // We could fix this by creating the notion of a "gig handle" that the caller can use to cancel,
             // but that seems like overkill.
-            internal gig(string sName, Action actGig, uint msInterval)
+            public gig(string sName, Action actGig, uint msInterval)
             {
                 _name = sName;
                 _actGig = actGig;
@@ -129,7 +129,7 @@ namespace Clearinet
 
     // "LazyGigWorker" should be named something like "CoalescingTaskList" but my name is more fun. 
     // Queue a job by name and it'll happen before the time specified. If the named job was already on the schedule, no work is queued.
-    internal class LazyGigWorker : IDisposable
+    public static class LazyGigWorker
     {
         private class OneOffGig
         {
@@ -265,7 +265,7 @@ namespace Clearinet
             }
         }
 
-        public void Dispose()
+        public static void Dispose()
         {
             _timer?.Dispose();
             _timer = null;
