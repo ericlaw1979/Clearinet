@@ -577,7 +577,7 @@ namespace Clearinet
                 frmSplashScreen.SetStatusText("Loading user interface...");
 
                 Application.Run(CApp._frmMain);
-                if (bMutexAcquired) oMutex.ReleaseMutex();
+                if (bMutexAcquired) oMutex.ReleaseMutex();  // Holds the mutex until the app exits.
             }
         }
 
@@ -744,7 +744,7 @@ namespace Clearinet
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
-            if (CApp.Prefs.GetBoolPref("app.ui.darkmode", false)) ThemeManager.ApplyDarkMode(this);
+            if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
 
         }
 
@@ -767,19 +767,8 @@ namespace Clearinet
             // TODO: Add event handlers for allow back/forward mouse buttons to change between active tabs
             // TODO: Grab system network config
             rtbStatistics.BackColor = rtbLog.BackColor = CONFIG.colorDisabledEdit;
-            CApp.ProxyAttach += HandleProxyAttached;
-            CApp.ProxyDetach += HandleProxyDetached;
-
             lvExchanges.ApplyUserColumns(CApp.Prefs.GetStringPref("app.ui.exchangelist.user_columns", string.Empty));
             lvExchanges.ApplyColumnLayout(CApp.Prefs.GetStringPref("app.ui.exchangelist.column_layout", string.Empty));
-
-            CApp.OnAppBoot();       // ISSUE: We need to figure out whether to wait for the form to SHOW before calling this.
-            frmSplashScreen.CloseSplashScreen();
-
-            timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
-            timerReportUpdater.Tick += new EventHandler(timerReportUpdater_Tick);
-            CApp.CalculateReport += UpdateStatisticsTab;
-
             Win32UI.SetCueText(tstxtLookup.Control, CApp.Prefs.GetStringPref("app.ui.toolbar.lookupcuetext", "Search MDN..."));
             Win32UI.SetCueText(txtLogSearch, "Search log (Enter to find next)");
 
@@ -793,6 +782,17 @@ namespace Clearinet
                 item.Click += tsddbKeepOnly_Click;
                 tsddbKeepOnly.DropDownItems.Add(item);
             }
+
+            CApp.ProxyAttach += HandleProxyAttached;
+            CApp.ProxyDetach += HandleProxyDetached;
+            frmSplashScreen.SetStatusText("Announcing boot...");
+
+            CApp.OnAppBoot();       // ISSUE: We need to figure out whether to wait for the form to SHOW before calling this.
+            frmSplashScreen.CloseSplashScreen();
+
+            timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
+            timerReportUpdater.Tick += new EventHandler(timerReportUpdater_Tick);
+            CApp.CalculateReport += UpdateStatisticsTab;
 
             // =========================== Move TODOs ===========================
             // Today, I only use the VS Designer on a 100% DPI device because otherwise
