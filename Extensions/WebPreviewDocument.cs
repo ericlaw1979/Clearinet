@@ -1,3 +1,4 @@
+using Clearinet;
 using System;
 using System.IO;
 using System.Net;
@@ -87,8 +88,11 @@ namespace Extensions
             }
             else if (IsMedia(type.MediaType))
             {
+                var sType = type.MediaType;
+                // Cheesy hack: Chromium seems to think it can't handle AAC, but if we change the MIME type it works fine.
+                if (sType.OICEqualsAny("audio/x-aac", "audio/aac")) sType = "video/mp4";
                 string element = type.MediaType.StartsWith("video/", StringComparison.OrdinalIgnoreCase) ? "video" : "audio";
-                body = "<" + element + " controls preload=\"none\" src=\"data:" + WebUtility.HtmlEncode(type.MediaType) +
+                body = "<" + element + " controls preload=\"none\" src=\"data:" + WebUtility.HtmlEncode(sType) +
                     ";base64," + Convert.ToBase64String(decodedBody) + "\"></" + element + ">";
             }
             else if (IsWoff2(type.MediaType))
