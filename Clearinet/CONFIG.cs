@@ -446,7 +446,7 @@ namespace Clearinet
 
         internal static void RevertToDefaultAppearance()
         {
-            CApp.Prefs.RemovePref("app.ui.darkmode");
+            CApp.Prefs.RemovePref("app.ui.dark_mode");
             CApp.Prefs.RemovePref("app.ui.exchangelist.column_layout");
             CApp.Prefs.RemovePref("app.ui.inspector.splitter");
             CApp.Prefs.RemovePref("app.ui.main.splitter");
@@ -494,6 +494,15 @@ namespace Clearinet
         #region ToolDetection
         static SynchronizedHashSet<string> sMissingTools = new SynchronizedHashSet<string>();
         static SynchronizedHashSet<string> sAvailableTools = new SynchronizedHashSet<string>();
+
+        // TODO: Cache this at startup and don't recheck the pref.
+        public static bool isDarkMode
+        {
+            get
+            {
+                return CApp.Prefs.GetBoolPref("app.ui.dark_mode");
+            }
+        }
 
         // TODO: We probably want to put a FileSystemWatcher on the Tools folder so that if a tool
         // is added or removed, it calls this method. For now, we'll clear the cache if the user

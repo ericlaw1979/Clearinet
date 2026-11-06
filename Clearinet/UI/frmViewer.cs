@@ -744,11 +744,14 @@ namespace Clearinet
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
-            if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
+
+            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
 
         private void frmViewer_Load(object sender, EventArgs e)
         {
+            // TODO: This entire function needs more exception catching
+
             try
             {
                 CONFIG.RetrieveLayout(this);
@@ -3328,6 +3331,11 @@ namespace Clearinet
         public void AddExtensionToolsMenuItem(ToolStripMenuItem tsmi)
         {
             // TODO: put this in the right place rather than just shoving it at the bottom.
+            if (CONFIG.isDarkMode)
+            {
+                tsmi.ForeColor = Color.White;
+                tsmi.BackColor = Color.FromArgb(45, 45, 48);
+            }
             miTools.DropDownItems.Add(tsmi);
         }
         public void AddExtensionRulesMenuItem(ToolStripMenuItem tsmi)
@@ -3338,6 +3346,11 @@ namespace Clearinet
 
         public void AddViewExtraTabsMenuItem(ToolStripMenuItem tsmi)
         {
+            if (CONFIG.isDarkMode)
+            {
+                tsmi.ForeColor = Color.White;
+                tsmi.BackColor = Color.FromArgb(45, 45, 48);
+            }
             miViewTabs.DropDownItems.Add(tsmi);
         }
 

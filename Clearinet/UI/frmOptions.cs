@@ -43,7 +43,7 @@ namespace Clearinet
             cbChainToGateway.Checked = CApp.Prefs.GetBoolPref("proxy.chain_to_upstream_gateway", true);
             cbDarkMode.Checked = CApp.Prefs.GetBoolPref("app.ui.dark_mode", false);
 
-            if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
+            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
 
         private void lnkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

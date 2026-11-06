@@ -88,7 +88,7 @@ namespace Clearinet
         internal frmPrompt()
         {
             InitializeComponent();
-            if (CApp.Prefs.GetBoolPref("app.ui.dark_mode", false)) ThemeManager.ApplyDarkMode(this);
+            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
 
         }
 

@@ -22,6 +22,7 @@ namespace Clearinet
         public frmAbout()
         {
             InitializeComponent();
+            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
             PlatformAPI.FreeUpMemory();
             txtAbout.Text = $"{GetAppEnvironmentInfo()}\r\n\r\nCopyright ©2026 Clearinet Contributors";
         }
