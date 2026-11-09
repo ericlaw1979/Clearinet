@@ -10,6 +10,31 @@ namespace Clearinet
     /// </summary>
     public class Win32UI
     {
+
+        #region DarkMode
+        public enum PreferredAppMode
+        {
+            Default = 0,
+            AllowDark = 1,
+            ForceDark = 2,
+            ForceLight = 3,
+            Max = 4
+        }
+        // SetPreferredAppMode - UXTheme Ordinal 135 (Windows 10 1903+)
+        // Note: On Windows 10 1809, this was AllowDarkModeForApp (Ordinal 133) taking a bool.
+        [DllImport("uxtheme.dll", EntryPoint = "#135", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern PreferredAppMode SetPreferredAppMode(PreferredAppMode appMode);
+
+        // AllowDarkModeForWindow - UXTheme Ordinal 137
+        [DllImport("uxtheme.dll", EntryPoint = "#137", SetLastError = true, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AllowDarkModeForWindow(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool allow);
+
+        // Forces UXTheme to re-evaluate and apply the newly selected app theme mode
+        [DllImport("uxtheme.dll", EntryPoint = "#104", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern void FlushMenuThemes();
+        #endregion
+
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
 

@@ -82,6 +82,21 @@ public static class ThemeManager
         Win32UI.UseDarkTitleBar(frm.Handle);
         CONFIG.colorDisabledEdit = DarkDisabledEdit; // TODO: Allow user to override.
 
+
+
+        // 1. Set the process-level theme preference to ForceDark (or AllowDark)
+        Win32UI.SetPreferredAppMode(Win32UI.PreferredAppMode.ForceDark);
+
+        // 2. Refresh internal UXTheme cache
+        Win32UI.FlushMenuThemes();
+
+        // 3. Enable dark mode for a specific HWND (e.g., your Form or Control handle)
+        Win32UI.AllowDarkModeForWindow(frm.Handle, true);
+
+
+
+
+
         SetDarkModeMenu(CApp.UI.MainMenuStrip);
         SetDarkModeContextMenu(CApp.UI.lvExchanges.ContextMenuStrip);
 
@@ -109,6 +124,9 @@ public static class ThemeManager
         c.BackColor = (c is Button || c is TextBox) ? DarkSurface : DarkBackground;
         c.ForeColor = DarkText;
 
+        Win32UI.AllowDarkModeForWindow(c.Handle, true);
+
+
         // Custom handling for specific controls like DataGridView
         if (c is DataGridView dgv)
         {
@@ -130,6 +148,13 @@ public static class ThemeManager
         {
             lv.BackColor = DarkSurface;
             lv.ForeColor = DarkText;
+
+
+            Win32UI.UseDarkTitleBar(lv.Handle);  // this was allegedly gonna work but it doesn't.
+
+            //  DwmSetWindowAttribute(control.Handle, DwmWindowAttribute.DWMWA_USE_IMMERSIVE_DARK_MODE, ref trueValue, Marshal.SizeOf(typeof(int)));
+
+
             // //todo: try to set column headers to dark, somehow? TODO: Doesn't seem to work here.
             // if (IsSetWindowThemeSupported) SetWindowTheme(lv.Handle, "Explorer", null);
             IntPtr headerHandle = SendMessage(lv.Handle, LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
