@@ -20,19 +20,66 @@ namespace Clearinet
             ForceLight = 3,
             Max = 4
         }
+
+
+        [DllImport("uxtheme.dll", EntryPoint = "#145", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern int AllowDarkModeForWindowWithParentFallback(IntPtr hwnd, bool bUpdateOnChanged);
+        /* Crazy code including import address table thunking:
+         * https://gist.github.com/rounk-ctrl/b04e5622e30e0d62956870d5c22b7017
+         * Default,
+        AllowDark,
+        ForceDark,
+        ForceLight,
+        Max*/
+
         // SetPreferredAppMode - UXTheme Ordinal 135 (Windows 10 1903+)
         // Note: On Windows 10 1809, this was AllowDarkModeForApp (Ordinal 133) taking a bool.
         [DllImport("uxtheme.dll", EntryPoint = "#135", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern PreferredAppMode SetPreferredAppMode(PreferredAppMode appMode);
 
+        // Forces UXTheme to re-evaluate and apply the newly selected app theme mode
+        [DllImport("uxtheme.dll", EntryPoint = "#136", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern void FlushMenuThemes();
+
+        [DllImport("uxtheme.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        public static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
+
+        public static bool IsSetWindowThemeSupported =>
+            Environment.OSVersion.Platform == PlatformID.Win32NT &&
+            Environment.OSVersion.Version >= new Version(10, 0, 17763);
+
+        // TODO: This does not seem to do anything useful.
+        internal static void SetListViewHeadersToDarkMode(ListView lv)
+        {
+            if (!IsSetWindowThemeSupported) return;
+            IntPtr headerHandle = SendMessage(lv.Handle, Win32ListViewAPI.LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
+
+            if (headerHandle != IntPtr.Zero)
+            {
+
+                SetWindowTheme(headerHandle, "DarkMode_Explorer", "");
+            }
+        }
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+        public static void SetDWMWA_USE_IMMERSIVE_DARK_MODE(IntPtr h)
+        {
+            if (Environment.OSVersion.Version.Major >= 10)
+            {
+                int useDarkMode = 1; // 1 = Dark Mode, 0 = Light Mode
+                                     // DWMWA_USE_IMMERSIVE_DARK_MODE attribute
+                                     // (20 for Windows 11 / 10 20H1+, 19 for older Win10 builds)
+                int attribute = 20;
+                DwmSetWindowAttribute(h, attribute, ref useDarkMode, sizeof(int));
+            }
+        }
+
         // AllowDarkModeForWindow - UXTheme Ordinal 137
         [DllImport("uxtheme.dll", EntryPoint = "#137", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool AllowDarkModeForWindow(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool allow);
-
-        // Forces UXTheme to re-evaluate and apply the newly selected app theme mode
-        [DllImport("uxtheme.dll", EntryPoint = "#104", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern void FlushMenuThemes();
         #endregion
 
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
@@ -189,6 +236,7 @@ namespace Clearinet
 
         private const int LVM_FIRST = 0x1000;
         public const int LVM_GETHEADER = LVM_FIRST + 31;
+
         public const int LVM_GETCOUNTPERPAGE = LVM_FIRST + 40;
 
         public const int HDM_FIRST = 0x1200;

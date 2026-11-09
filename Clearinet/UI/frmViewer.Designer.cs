@@ -1137,7 +1137,7 @@ namespace Clearinet
             this.tsbScreenshot.Name = "tsbScreenshot";
             this.tsbScreenshot.Size = new System.Drawing.Size(24, 24);
             this.tsbScreenshot.Text = "Screenshot";
-            this.tsbScreenshot.ToolTipText = "Store Screenshot\n(Ctrl+Click for instant)";
+            this.tsbScreenshot.ToolTipText = "Store a screenshot\n(Ctrl+Click for instant)";
             this.tsbScreenshot.Click += new System.EventHandler(this.tsbScreenshot_Click);
             // 
             // tssBeforeExt
