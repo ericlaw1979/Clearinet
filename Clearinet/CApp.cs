@@ -71,7 +71,8 @@ namespace Clearinet
         #region Report API
         // A Report is a summary of the currently-selected exchanges in the list.
 
-        // derp derp derp, this needs to be a counter, unless we only allow it to get touched on the UI thread.
+        // derp derp derp, this needs to be a counter (like _countBulkUpdatesUnderway),
+        // unless we could ensure that it's only ever set once at a time.
         private static bool _bPauseReporting = false;
 
         internal static bool PauseReporting

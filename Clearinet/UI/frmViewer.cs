@@ -1826,7 +1826,7 @@ namespace Clearinet
 
         private void lvExchanges_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Trace.WriteLine($"lvExchanges_SelectedIndexChanged: {lvExchanges.SelectedCount} selected");
+            Trace.WriteLine($"Clearinet UI lvExchanges_SelectedIndexChanged: {lvExchanges.SelectedCount} selected.");
             if (CApp.isClosing) return;
             lvExchanges.UpdateActiveItem(); // TODO: Wait, what? Why is this here vs. in the listview?
             actRefreshUI(true);

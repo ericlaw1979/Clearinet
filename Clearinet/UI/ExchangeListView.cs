@@ -27,57 +27,46 @@ namespace Clearinet
     /// </summary>
     public class ExchangeListView : BetterListView
     {
-        // public event EventHandler ItemShowProperties;
-        // public EventHandler OnExchangesAdded;
+        // public event EventHandler ItemShowProperties
 
         private readonly LVCSorter sorter;
 
 
         #region BatchedUpdates
+        // For performance reasons, we want to coalesce additions, removals, and selection-state
+        // updates to Exchanges in the Web Exchanges list. Otherwise, we end up doing tons of
+        // redundant work.
+        private bool _selectionChangePending;
 
-
-
-        private int _countSelectionUpdatesUnderway;
-        private bool _pendingSelectionChangeNotification;
-
-        /// <summary>
-        /// Suspends raising SelectedIndexChanged events until EndUpdateSelection is called.
-        /// </summary>
-        public void BeginUpdateSelection()
-        {
-            ++_countSelectionUpdatesUnderway;
-        }
-        /// <summary>
-        /// Raises a SelectedIndexChanged event if changes have occurred since BeginUpdateSelection was first called.
-        /// </summary>
-        public void EndUpdateSelection()
-        {
-            if (_countSelectionUpdatesUnderway > 0)
-            {
-                --_countSelectionUpdatesUnderway;
-
-                if (_countSelectionUpdatesUnderway == 0 && _pendingSelectionChangeNotification)
-                {
-                    _pendingSelectionChangeNotification = false;
-                    base.OnSelectedIndexChanged(EventArgs.Empty);
-                }
-            }
-        }
-
+        // Many parts of the app are dependent upon what items are selected in the Web Exchanges list,
+        // and they'll do a lot of work in response to changes. We have conflicting goals here: we want
+        // any changes in the list to be reacted to quickly (so the UI feels responsive) but we also do
+        // not want to do redundant work.
+        //
+        // So, we'll coalesce events:
+        // We'll defer raising the event until all pending window messages are processed.
+        //
+        // Windows processes all LVN_ITEMCHANGED notifications within the current message cycle
+        // before moving to the next UI event, scheduling the event dispatch via BeginInvoke defers
+        // execution until all selection state changes are finished.
+        //
+        // Previously, for our internal selection/unselection operations, we'd call
+        // BeginUpdateSelection/EndUpdateSelection to suppress events until the operation is complete,
+        // but this turned out to be basically redundant.
         protected override void OnSelectedIndexChanged(EventArgs e)
         {
-            if (_countSelectionUpdatesUnderway > 0)
+            // Trace.WriteLine("ExchangeListView::OnSelectedIndexChanged");
+
+            // If we've got a pending selection change notification, don't raise another.
+            if (_selectionChangePending) return;
+            _selectionChangePending = true;
+
+            // Postpone raising the event until all pending window messages in this cycle complete
+            BeginInvoke((Action)(() =>
             {
-                // Defer the event notification.
-                Trace.WriteLine("Defering pending selindexchange");
-                _pendingSelectionChangeNotification = true;
-            }
-            else
-            {
-                // Otherwise, fire away.
-                Trace.WriteLine("Firing deferred selindexchange");
-                base.OnSelectedIndexChanged(e);
-            }
+                _selectionChangePending = false;
+                base.OnSelectedIndexChanged(EventArgs.Empty);
+            }));
         }
 
         /// <summary>
@@ -556,10 +545,8 @@ namespace Clearinet
         internal void SelectAll()
         {
             BeginUpdate();
-            BeginUpdateSelection();
             foreach (ListViewItem lvi in Items) lvi.Selected = true;
             EndUpdate();
-            EndUpdateSelection();
         }
 
         // TODO: Do we need to override Clear() instead?
@@ -668,7 +655,6 @@ namespace Clearinet
             StoreItemsBeforeDeletion(SelectedItems);
 
             BeginUpdate();
-            BeginUpdateSelection();
 
             // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the list of
             // SelectedIndicies and delete them downward.
@@ -684,7 +670,6 @@ namespace Clearinet
                 Exchange.ResetExchangeCounter();
             }
             EndUpdate();
-            EndUpdateSelection();
         }
 
         internal void Tail(int iToKeep)
@@ -707,7 +692,6 @@ namespace Clearinet
             }
             StoreItemsBeforeDeletion(itemsToDelete);
             BeginUpdate();
-            BeginUpdateSelection();
             try
             {
                 for (int iX = cToDelete - 1; iX >= 0; --iX)
@@ -718,7 +702,6 @@ namespace Clearinet
             finally
             {
                 EndUpdate();
-                EndUpdateSelection();
             }
         }
 
@@ -735,7 +718,6 @@ namespace Clearinet
             }
 
             BeginUpdate();
-            BeginUpdateSelection();
 
             // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the
             // list of SelectedIndicies and delete all but them downward.
@@ -754,7 +736,6 @@ namespace Clearinet
             }
 
             EndUpdate();
-            EndUpdateSelection();
         }
 
         internal void ConfigureColumn(int ix, ColumnSortType cst)
@@ -965,10 +946,8 @@ namespace Clearinet
             }
             CApp.PauseReporting = true;
             BeginUpdate();
-            BeginUpdateSelection();
             foreach (ListViewItem lvi in Items) lvi.Selected = !lvi.Selected;
             EndUpdate();
-            EndUpdateSelection();
             CApp.PauseReporting = false;
         }
 
