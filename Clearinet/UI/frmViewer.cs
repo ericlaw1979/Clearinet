@@ -484,6 +484,7 @@ namespace Clearinet
         [STAThread]
         static void Main(string[] arrArgs)
         {
+            // Application.SetUnhandledExceptionMode tells a Windows Forms application how to handle uncaught exceptions on UI threads.
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(frmViewer.UnhandledExceptionHandler);
             frmViewer.RunApp(arrArgs);
         }
