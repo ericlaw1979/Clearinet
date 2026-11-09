@@ -26,7 +26,7 @@ namespace Extensions
             try
             {
                 viewer = new FullscreenImageForm(pbImage.Image, Screen.FromControl(pbImage).Bounds);
-                viewer.Show(FindForm());
+                viewer.Show(this.FindForm());
             }
             catch (Exception eX)
             {

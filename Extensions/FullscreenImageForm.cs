@@ -12,8 +12,10 @@ namespace Extensions
         internal FullscreenImageForm(Image image, Rectangle screenBounds)
         {
             AutoScaleMode = AutoScaleMode.None;
-            FormBorderStyle = FormBorderStyle.None;
+            FormBorderStyle = FormBorderStyle.None; // FormBorderStyle.SizableToolWindow;
+            Cursor = Cursors.Cross;
             StartPosition = FormStartPosition.Manual;
+            WindowState = FormWindowState.Maximized;
             Bounds = screenBounds;
             Text = "Image - Esc to close";
             canvas = new ImageCanvas(image) { Dock = DockStyle.Fill };
@@ -26,7 +28,6 @@ namespace Extensions
             canvas.FitToWindow();
             canvas.Focus();
         }
-
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             switch (keyData)
@@ -69,9 +70,9 @@ namespace Extensions
 
             internal void FitToWindow()
             {
-                zoom = Math.Min(1.0, Math.Min(
+                zoom = Math.Min(
                     ClientSize.Width / (double)image.Width,
-                    ClientSize.Height / (double)image.Height));
+                    ClientSize.Height / (double)image.Height);
                 AutoScrollMinSize = ScaledSize;
                 AutoScrollPosition = Point.Empty;
                 Invalidate();
@@ -153,7 +154,7 @@ namespace Extensions
                 if (!Capture)
                 {
                     panning = false;
-                    Cursor = Cursors.Default;
+                    Cursor = Cursors.Cross;
                 }
                 base.OnMouseCaptureChanged(e);
             }
