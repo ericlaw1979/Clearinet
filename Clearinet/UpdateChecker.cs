@@ -89,14 +89,14 @@ public static class UpdateChecker
                 if (latestVersion > currentVersion)
                 {
                     string releaseUrl = urlMatch.Success ? urlMatch.Groups[1].Value : "https://github.com/ericlaw1979/clearinet/releases";
-                    CApp.Log.Log($"Clearinet is up-to-date. Current Version: {currentVersion}, Latest Version: {latestVersion}");
+                    CApp.Log.Log($"Clearinet is outdated. Current Version: {currentVersion}, Latest Version: {latestVersion}");
 
                     // Marshal back using the target form if provided
                     CApp.UIInvokeAsync(new Action(() => PromptUserToUpdate(currentVersion, latestVersion, releaseUrl)));
                 }
                 else
                 {
-                    CApp.Log.Log($"You are running the latest version of Clearinet. Current Version: {currentVersion}, Latest Version: {latestVersion}");
+                    CApp.Log.Log($"You are running the latest version of Clearinet. Latest Version: {latestVersion}; Current Version: {currentVersion}");
 
                     if (bManualCheck && !CONFIG.isQuietMode)
                     {
@@ -104,7 +104,7 @@ public static class UpdateChecker
                         {
                             MessageBox.Show(
                                 CApp.UI,
-                                $"You are running the latest version of Clearinet.\n\nCurrent Version: {currentVersion}\nLatest Version:  {latestVersion}",
+                                $"You are running the latest version of Clearinet.\n\nLatest Version:\t{latestVersion}\nCurrent Version:\t{currentVersion}",
                                 "No Updates Available",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Information);
