@@ -1231,7 +1231,7 @@ namespace Clearinet
             this.lvExchanges.Name = "lvExchanges";
             this.lvExchanges.Size = new System.Drawing.Size(357, 476);
             this.lvExchanges.Sorting = System.Windows.Forms.SortOrder.Ascending;
-            this.lvExchanges.TabIndex = 4;
+            this.lvExchanges.TabIndex = 3;
             this.lvExchanges.UseCompatibleStateImageBehavior = false;
             this.lvExchanges.View = System.Windows.Forms.View.Details;
             this.lvExchanges.SelectedIndexChanged += new System.EventHandler(this.lvExchanges_SelectedIndexChanged);
@@ -1484,7 +1484,7 @@ namespace Clearinet
             this.txtQuickExec.Margin = new System.Windows.Forms.Padding(4);
             this.txtQuickExec.Name = "txtQuickExec";
             this.txtQuickExec.Size = new System.Drawing.Size(357, 20);
-            this.txtQuickExec.TabIndex = 3;
+            this.txtQuickExec.TabIndex = 4;
             this.txtQuickExec.OnExecute += new Clearinet.ExecuteHandler(this.txtQuickExec_OnExecute);
             // 
             // pnlMain
