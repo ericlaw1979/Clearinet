@@ -77,25 +77,21 @@ public static class ThemeManager
     public static readonly Color DarkText = Color.FromArgb(240, 240, 240);
     public static readonly Color DarkDisabledEdit = Color.FromArgb(39, 72, 97);
 
-    public static void ApplyDarkMode(Form frm)
+    public static void SetAppToDarkMode()
     {
-        Win32UI.UseDarkTitleBar(frm.Handle);
-        CONFIG.colorDisabledEdit = DarkDisabledEdit; // TODO: Allow user to override.
-
-
-
         // 1. Set the process-level theme preference to ForceDark (or AllowDark)
         Win32UI.SetPreferredAppMode(Win32UI.PreferredAppMode.ForceDark);
 
         // 2. Refresh internal UXTheme cache
         Win32UI.FlushMenuThemes();
+    }
+    public static void ApplyDarkMode(Form frm)
+    {
+        SetDWMWA_USE_IMMERSIVE_DARK_MODE(frm.Handle);
+        CONFIG.colorDisabledEdit = DarkDisabledEdit; // TODO: Allow user to override.
 
-        // 3. Enable dark mode for a specific HWND (e.g., your Form or Control handle)
+        // Enable dark mode for a specific HWND (e.g., your Form or Control handle)
         Win32UI.AllowDarkModeForWindow(frm.Handle, true);
-
-
-
-
 
         SetDarkModeMenu(CApp.UI.MainMenuStrip);
         SetDarkModeContextMenu(CApp.UI.lvExchanges.ContextMenuStrip);
@@ -119,6 +115,22 @@ public static class ThemeManager
         Environment.OSVersion.Platform == PlatformID.Win32NT &&
         Environment.OSVersion.Version >= new Version(10, 0, 17763);
 
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    public static void SetDWMWA_USE_IMMERSIVE_DARK_MODE(IntPtr h)
+    {
+        if (Environment.OSVersion.Version.Major >= 10)
+        {
+            int useDarkMode = 1; // 1 = Dark Mode, 0 = Light Mode
+                                 // DWMWA_USE_IMMERSIVE_DARK_MODE attribute
+                                 // (20 for Windows 11 / 10 20H1+, 19 for older Win10 builds)
+            int attribute = 20;
+            DwmSetWindowAttribute(h, attribute, ref useDarkMode, sizeof(int));
+        }
+    }
+
     private static void ApplyDarkModeToControl(Control c)
     {
         c.BackColor = (c is Button || c is TextBox) ? DarkSurface : DarkBackground;
@@ -126,8 +138,7 @@ public static class ThemeManager
 
         Win32UI.AllowDarkModeForWindow(c.Handle, true);
 
-
-        // Custom handling for specific controls like DataGridView
+        // Custom handling for specific controls like DataGridView.
         if (c is DataGridView dgv)
         {
             dgv.BackgroundColor = DarkBackground;
@@ -149,32 +160,28 @@ public static class ThemeManager
             lv.BackColor = DarkSurface;
             lv.ForeColor = DarkText;
 
+            SetDWMWA_USE_IMMERSIVE_DARK_MODE(lv.Handle);
 
-            Win32UI.UseDarkTitleBar(lv.Handle);  // this was allegedly gonna work but it doesn't.
-
-            //  DwmSetWindowAttribute(control.Handle, DwmWindowAttribute.DWMWA_USE_IMMERSIVE_DARK_MODE, ref trueValue, Marshal.SizeOf(typeof(int)));
-
-
-            // //todo: try to set column headers to dark, somehow? TODO: Doesn't seem to work here.
-            // if (IsSetWindowThemeSupported) SetWindowTheme(lv.Handle, "Explorer", null);
-            IntPtr headerHandle = SendMessage(lv.Handle, LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
-
-            if (headerHandle != IntPtr.Zero)
-            {
-                // TODO
-                // 3. Apply the dark theme directly to the header
-                //  SetWindowTheme(headerHandle, "Explorer", null); // Or "ItemView" depending on OS build
-
-                SetWindowTheme(headerHandle, "DarkMode_DarkTheme", "");
-
-            }
-
+            SetListViewHeadersToDarkMode(lv);
         }
 
         // Recursively theme child controls inside panels, groupboxes, etc.
         foreach (Control child in c.Controls)
         {
             ApplyDarkModeToControl(child);
+        }
+    }
+
+    // TODO: This does not seem to do anything useful.
+    internal static void SetListViewHeadersToDarkMode(ListView lv)
+    {
+        if (!IsSetWindowThemeSupported) return;
+        IntPtr headerHandle = SendMessage(lv.Handle, LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
+
+        if (headerHandle != IntPtr.Zero)
+        {
+
+            SetWindowTheme(headerHandle, "DarkMode_Explorer", "");
         }
     }
 }

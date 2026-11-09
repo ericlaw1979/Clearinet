@@ -834,6 +834,22 @@ namespace Clearinet
             }
             return null;
         }
+
+        /*
+         * TODO: Once we have a working DarkMode, we probably need
+         * to set it up here.
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            DarkModeHelper.ApplyNativeDarkTheme(this);
+
+            ThemeManager.SetListViewHeadersToDarkMode(this);
+
+            // 2. Set matching managed properties
+            this.BackColor = System.Drawing.Color.FromArgb(32, 32, 32);
+            this.ForeColor = System.Drawing.Color.White;
+        }
+        */
     }
 
     /// <summary>
@@ -894,5 +910,5 @@ namespace Clearinet
             // Reverse result for Descending order
             return (Order == SortOrder.Ascending) ? compareResult : -compareResult;
         }
-    }
+    } // end of LVCSorter
 }

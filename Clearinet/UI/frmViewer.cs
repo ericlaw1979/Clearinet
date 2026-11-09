@@ -493,6 +493,9 @@ namespace Clearinet
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            // It seems likely that we'll need to declare DarkMode early before
+            // we create any UI.
+            // ThemeManager.SetAppToDarkMode();
             CONFIG.RetrieveUrgentSettings();
             frmSplashScreen.CreateAndShow();
             if (!CONFIG.isQuietMode)
@@ -744,7 +747,6 @@ namespace Clearinet
             splitterMain.SplitPosition = CApp.Prefs.GetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
-
 
             if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
