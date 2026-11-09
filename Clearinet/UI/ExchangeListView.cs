@@ -34,22 +34,70 @@ namespace Clearinet
 
 
         #region BatchedUpdates
+
+
+
+        private int _countSelectionUpdatesUnderway;
+        private bool _pendingSelectionChangeNotification;
+
+        /// <summary>
+        /// Suspends raising SelectedIndexChanged events until EndUpdateSelection is called.
+        /// </summary>
+        public void BeginUpdateSelection()
+        {
+            ++_countSelectionUpdatesUnderway;
+        }
+        /// <summary>
+        /// Raises a SelectedIndexChanged event if changes have occurred since BeginUpdateSelection was first called.
+        /// </summary>
+        public void EndUpdateSelection()
+        {
+            if (_countSelectionUpdatesUnderway > 0)
+            {
+                --_countSelectionUpdatesUnderway;
+
+                if (_countSelectionUpdatesUnderway == 0 && _pendingSelectionChangeNotification)
+                {
+                    _pendingSelectionChangeNotification = false;
+                    base.OnSelectedIndexChanged(EventArgs.Empty);
+                }
+            }
+        }
+
+        protected override void OnSelectedIndexChanged(EventArgs e)
+        {
+            if (_countSelectionUpdatesUnderway > 0)
+            {
+                // Defer the event notification.
+                Trace.WriteLine("Defering pending selindexchange");
+                _pendingSelectionChangeNotification = true;
+            }
+            else
+            {
+                // Otherwise, fire away.
+                Trace.WriteLine("Firing deferred selindexchange");
+                base.OnSelectedIndexChanged(e);
+            }
+        }
+
         /// <summary>
         /// Timer that queues pending updates. When it ticks, it collects the pending ListViewItems
         /// and adds them to the list in one shot.
         /// </summary>
         private System.Windows.Forms.Timer timer_AddPending;
 
-        private uint _updateIntervalMS = 80;
         /// <summary>
         /// How long should Clearinet hold onto new Exchanges before adding them to the list?
         /// Controlled by "app.ui.exchangelist.updateinterval"
         /// </summary>
         internal uint updateIntervalMS
         {
-            get => _updateIntervalMS;
-            set => _updateIntervalMS = value;       // TODO: Clamp between 15 and 2500 ?
-
+            get => (uint)timer_AddPending.Interval;
+            set
+            {
+                // TODO: Clamp between 15 and 2500 ?
+                timer_AddPending.Interval = (int)value;
+            }
         }
 
         /// <summary>
@@ -89,7 +137,7 @@ namespace Clearinet
             this.MouseClick += ExchangeListView_MouseClick;
             timer_AddPending = new Timer()
             {
-                Interval = (int)updateIntervalMS,
+                Interval = 80,      // Overridden elsewhere
                 Enabled = false
             };
             timer_AddPending.Tick += timer_AddPendingTick;
@@ -507,10 +555,11 @@ namespace Clearinet
 
         internal void SelectAll()
         {
-            // TODO: For perf, we need to ensure we're not firing events during this process.
             BeginUpdate();
+            BeginUpdateSelection();
             foreach (ListViewItem lvi in Items) lvi.Selected = true;
             EndUpdate();
+            EndUpdateSelection();
         }
 
         // TODO: Do we need to override Clear() instead?
@@ -521,6 +570,7 @@ namespace Clearinet
             this.Items.Clear();
             Exchange.ResetExchangeCounter();
             EndUpdate();
+            // NB: Removing an item doesn't fire SelectedIndexChanged, so we need to do it ourselves.
             base.OnSelectedIndexChanged(EventArgs.Empty);
         }
 
@@ -617,8 +667,8 @@ namespace Clearinet
             }
             StoreItemsBeforeDeletion(SelectedItems);
 
-            // TODO: For perf, we need to ensure we're not firing events during this process.
             BeginUpdate();
+            BeginUpdateSelection();
 
             // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the list of
             // SelectedIndicies and delete them downward.
@@ -634,7 +684,7 @@ namespace Clearinet
                 Exchange.ResetExchangeCounter();
             }
             EndUpdate();
-            base.OnSelectedIndexChanged(EventArgs.Empty);
+            EndUpdateSelection();
         }
 
         internal void Tail(int iToKeep)
@@ -657,6 +707,7 @@ namespace Clearinet
             }
             StoreItemsBeforeDeletion(itemsToDelete);
             BeginUpdate();
+            BeginUpdateSelection();
             try
             {
                 for (int iX = cToDelete - 1; iX >= 0; --iX)
@@ -667,6 +718,7 @@ namespace Clearinet
             finally
             {
                 EndUpdate();
+                EndUpdateSelection();
             }
         }
 
@@ -682,8 +734,8 @@ namespace Clearinet
                 return;
             }
 
-            // TODO: For perf, we need to ensure we're not firing events during this process.
             BeginUpdate();
+            BeginUpdateSelection();
 
             // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the
             // list of SelectedIndicies and delete all but them downward.
@@ -702,6 +754,7 @@ namespace Clearinet
             }
 
             EndUpdate();
+            EndUpdateSelection();
         }
 
         internal void ConfigureColumn(int ix, ColumnSortType cst)
@@ -711,7 +764,6 @@ namespace Clearinet
             ci.SortType = cst;
             Columns[ix].Tag = ci;
         }
-
 
         #region PublicAPI
 
@@ -913,10 +965,11 @@ namespace Clearinet
             }
             CApp.PauseReporting = true;
             BeginUpdate();
+            BeginUpdateSelection();
             foreach (ListViewItem lvi in Items) lvi.Selected = !lvi.Selected;
             EndUpdate();
+            EndUpdateSelection();
             CApp.PauseReporting = false;
-            base.OnSelectedIndexChanged(EventArgs.Empty);
         }
 
         /// <summary>
