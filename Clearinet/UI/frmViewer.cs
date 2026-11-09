@@ -447,7 +447,7 @@ namespace Clearinet
 
         public Exchange[] GetAllExchanges()
         {
-            return lvExchanges.GetAllExchanges();
+            return lvExchanges.GetAllVisibleExchanges();
         }
 
         /// <summary>
@@ -739,6 +739,8 @@ namespace Clearinet
             if (miViewStayOnTop.Checked) TopMost = true;
 
             miViewAutoScroll.Checked = CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true);
+            lvExchanges.updateIntervalMS = (uint)CApp.Prefs.GetInt32Pref("app.ui.exchangelist.updateinterval", 80);
+
             int keepOnly = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only");
             tsddbKeepOnly.Text = "Keep: " + (keepOnly == 0 ? "All Exchanges" : $"{keepOnly} Exchanges");
 
@@ -1049,7 +1051,7 @@ namespace Clearinet
 
         public void actSaveAllExchanges(string sFilename, string sPassword = null)
         {
-            if (!actSaveExchanges(lvExchanges.GetAllExchanges(), sFilename, sPassword))
+            if (!actSaveExchanges(GetAllExchanges(), sFilename, sPassword))
             {
                 CApp.UI.SetStatusText("Save failed.");
             }
@@ -1152,7 +1154,7 @@ namespace Clearinet
                         // To preserve the drop ordering, insert any pending ordinary files before loading Exchanges from this file.
                         if (paths.Count > 0)
                         {
-                            addExchangesToListView(CreateExchangesForFiles(paths));
+                            addExchanges(CreateExchangesForFiles(paths));
                             paths.Clear();
                         }
                         // Archive Importers will batch their own Exchanges.
@@ -1166,7 +1168,7 @@ namespace Clearinet
                     paths.Add(sPath);
                 }
                 // Flush any remaining ordinary files after the last imported file.
-                if (paths.Count > 0) addExchangesToListView(CreateExchangesForFiles(paths));
+                if (paths.Count > 0) addExchanges(CreateExchangesForFiles(paths));
 
                 CApp.UI.SetStatusText($"Pasted {arrFiles.Length} files from the clipboard as Exchanges.");
             }
@@ -1320,7 +1322,7 @@ namespace Clearinet
                 if (exchImported == null) return;
 
                 CApp.PauseReporting = true;
-                addExchangesToListView(exchImported);
+                addExchanges(exchImported);
                 CApp.PauseReporting = false;
 
                 CApp.UI.SetStatusText($"Imported {exchImported.Length} Exchanges from {PlatformAPI.CompactPath(sPath, 32)} using the '{tt.FormatName}' importer.");
@@ -1361,7 +1363,7 @@ namespace Clearinet
                             tsmiNameViewer.ToolTipText = sPath;
                         }
 
-                        addExchangesToListView(sazFile.Exchanges);
+                        addExchanges(sazFile.Exchanges);
                     }
                     return true;
                 }
@@ -1380,13 +1382,74 @@ namespace Clearinet
 
         // TODO: CLEANUP updateLVI and addExchangeToListView ************************************
         // **************************************************************************************
+
+        private void addExchanges(IEnumerable<Exchange> exchanges)
+        {
+            if (lvExchanges.InvokeRequired)
+            {
+                lvExchanges.Invoke((Action<IEnumerable<Exchange>>)addExchanges, exchanges);
+                return;
+            }
+
+            foreach (Exchange exchange in exchanges) addExchange(exchange);
+        }
+
+        public void addExchange(Exchange xc)
+        {
+            if (lvExchanges.InvokeRequired)
+            {
+                lvExchanges.Invoke((Action<Exchange>)addExchange, xc);
+                return;
+            }
+
+            // Already created.
+            if (xc.ViewItem != null) return;
+
+            if (xc.ShouldHide()) return;
+            _materializeExchange(xc, false);
+        }
+
+        private void _materializeExchange(Exchange xc, bool bFinishedAlready)
+        {
+            ListViewItem lvi = new ListViewItem(xc.id.ToString())
+            {
+                Tag = xc
+            };
+            xc.ViewItem = lvi;
+
+            // Fill the columns.
+            lvi.SubItems.AddRange(
+                new string[]
+                {
+                    xc.bHasResponse ? xc.responseCode.ToString() : "-",
+                    xc.RequestHeaders?.HTTPMethod ?? String.Empty,
+                    xc.RequestHeaders?.UriScheme ?? String.Empty,
+                    xc.host,
+                    xc.RequestHeaders?.RequestPath ?? String.Empty,
+                    xc.ResponseBody?.Length.ToString("N0") ?? "-",  // Was -1 in legacy. Is that better?
+                    xc.MediaType ?? "-",
+                    xc["x-processinfo"] ?? String.Empty,
+                    xc["ui-comments"] ?? String.Empty
+                });
+
+            // TODO: Should we cache a set of empty columns?
+            for (int i = 10; i < lvExchanges.Columns.Count; ++i)
+            {
+                lvi.SubItems.Add(lvExchanges.PopulateColumn(i, xc));
+            }
+
+
+            AddFormatting(lvi, xc);
+            lvExchanges.EnqueueItem(lvi);
+        }
+
         private void updateLVI(Exchange xc)
         {
             if (CApp.isClosing) return;
 
             if (null == xc.ViewItem)
             {
-                addExchangeToListView(xc);
+                addExchange(xc);
                 return;
             }
 
@@ -1418,122 +1481,6 @@ namespace Clearinet
             if (!String.Equals(subItem.Text, value, StringComparison.Ordinal))
             {
                 subItem.Text = value;
-            }
-        }
-
-        private bool _updatingExchangeBatch;
-
-        /// <summary>
-        /// Applies a bounded batch of capture updates on the UI thread, sorting and scrolling once.
-        /// </summary>
-        public void RunExchangeUpdateBatch(Action update)
-        {
-            if (update == null) throw new ArgumentNullException(nameof(update));
-            if (InvokeRequired) throw new InvalidOperationException("Exchange batches must run on the UI thread.");
-            if (CApp.isClosing) return;
-            if (_updatingExchangeBatch)
-            {
-                update();
-                return;
-            }
-            bool bAtBottom = lvExchanges.IsScrolledToBottom();
-            var sorter = lvExchanges.ListViewItemSorter;
-            _updatingExchangeBatch = true;
-            lvExchanges.BeginUpdate();
-            try
-            {
-                lvExchanges.ListViewItemSorter = null;
-                update();
-            }
-            finally
-            {
-                // Flush deferred inserts before restoring sorting.
-                try
-                {
-                    lvExchanges.EndUpdate();
-                }
-                finally
-                {
-                    lvExchanges.ListViewItemSorter = sorter;
-                    _updatingExchangeBatch = false;
-                }
-                ScheduleExchangeTrim();
-                onExchangeAdded(bAtBottom);
-            }
-        }
-
-        private void addExchangesToListView(IEnumerable<Exchange> exchanges)
-        {
-            RunExchangeUpdateBatch(() =>
-            {
-                foreach (Exchange exchange in exchanges) addExchangeToListView(exchange);
-            });
-        }
-
-        private void onExchangeAdded(bool bWasPreviouslyAtBottom)
-        {
-            if (bWasPreviouslyAtBottom &&
-                CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true))
-            {
-                Win32UI.ScrollToBottom(lvExchanges);
-                /*int iLatest = this.lvExchanges.Items.Count - 1;
-                if (iLatest > -1) lvExchanges.EnsureVisible(iLatest); */
-            }
-
-            // TODO: Where should this method live? CApp.OnExchangesAdded?.Invoke(this, EventArgs.Empty);
-        }
-
-        internal void addExchangeToListView(Exchange xc)
-        {
-            if (CApp.isClosing) return;
-            if (xc.ViewItem != null) return; // Already added.
-
-            if (lvExchanges.InvokeRequired)
-            {
-                lvExchanges.Invoke((Action<Exchange>)addExchangeToListView, xc);
-                return;
-            }
-            bool bAtBottom = !_updatingExchangeBatch && lvExchanges.IsScrolledToBottom();
-
-            ListViewItem lvi = new ListViewItem(xc.id.ToString())
-            {
-                Tag = xc
-            };
-            xc.ViewItem = lvi;
-
-            lvi.SubItems.Add(xc.bHasResponse ? xc.responseCode.ToString() : "-");
-            lvi.SubItems.Add(xc.RequestHeaders?.HTTPMethod ?? String.Empty);
-            lvi.SubItems.Add(xc.RequestHeaders?.UriScheme ?? String.Empty);
-            lvi.SubItems.Add(xc.host);
-            lvi.SubItems.Add(xc.RequestHeaders?.RequestPath ?? String.Empty);
-            lvi.SubItems.Add(xc.ResponseBody?.Length.ToString("N0") ?? "-");
-            lvi.SubItems.Add(xc.MediaType ?? "-");
-            lvi.SubItems.Add(xc["x-processinfo"] ?? String.Empty);
-            lvi.SubItems.Add(xc["ui-comments"] ?? String.Empty);
-            for (int i = 10; i < lvExchanges.Columns.Count; ++i)
-            {
-                lvi.SubItems.Add(lvExchanges.PopulateColumn(i, xc));
-            }
-
-            AddFormatting(lvi, xc);
-            lvExchanges.Items.Add(lvi);
-
-            if (!_updatingExchangeBatch)
-            {
-                ScheduleExchangeTrim();
-                onExchangeAdded(bAtBottom);
-            }
-        }
-
-        private void ScheduleExchangeTrim()
-        {
-            int iTrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only");
-            if (iTrimTo > 0 && lvExchanges.Items.Count > iTrimTo)
-            {
-                LazyGigWorker.bookGig("TrimExchanges", 250, () =>
-                {
-                    CApp.UIInvokeAsync(() => lvExchanges.Tail(iTrimTo));
-                });
             }
         }
 
@@ -1579,7 +1526,6 @@ namespace Clearinet
             miFileAttach.Checked = false;
             tssbCapture.Text = "(Detached)";
         }
-
         private void frmViewer_FormClosing(object sender, FormClosingEventArgs e)
         {
             bool bWindowsIsShuttingDown = (e.CloseReason == CloseReason.WindowsShutDown);
@@ -1848,13 +1794,13 @@ namespace Clearinet
         private void miEdit_DropDownOpening(object sender, EventArgs e)
         {
             // Requires 1+ Exchange in the list
-            miEditSelectAll.Enabled = miEditCopy.Enabled = miEditMark.Enabled = miEditRemoveSelected.Enabled =
-                miEditCopyResponseDataURI.Enabled = (lvExchanges.SelectedCount > 0);
+            miEditSelectAll.Enabled = miEditRemove.Enabled = miEditFind.Enabled = (lvExchanges.TotalCount > 0);
+
             // Requires 1+ *selected* Exchange in the list
-            miEditRemove.Enabled = miEditFind.Enabled =
+            miEditCopy.Enabled = miEditMark.Enabled = miEditRemoveSelected.Enabled =
                 miEditCopyForAI.Enabled = miEditCopyExchange.Enabled = miEditCopyHeaders.Enabled =
                 miEditCopySummary.Enabled = miEditCopyTerseSummary.Enabled = miEditCopyURL.Enabled =
-                (lvExchanges.Items.Count > 0);
+                miEditCopyResponseDataURI.Enabled = (lvExchanges.SelectedCount > 0);
 
             miEditUnlock.Enabled = (lvExchanges.SelectedCount == 1);
             miEditUnlock.Checked = (GetFirstSelectedExchange()?.oFlags?.ContainsKey("X-Unlocked") == true);
@@ -1866,7 +1812,7 @@ namespace Clearinet
 
         private void miFile_DropDownOpening(object sender, EventArgs e)
         {
-            if (lvExchanges.Items.Count > 0)
+            if (lvExchanges.TotalCount > 0)
             {
                 miFileSave.Enabled = true;
                 miFileSaveSelected.Enabled = (lvExchanges.SelectedCount > 0);
@@ -2091,7 +2037,7 @@ namespace Clearinet
         /// <param name="bNext">True to navigate next, false to navigate to prior.</param>
         internal void actNavigateFindResults(bool bNext)
         {
-            if (lvExchanges.ItemCount < 2) return;
+            if (lvExchanges.TotalCount < 2) return;
 
             // First, figure out where we are.
             Exchange xcActive = GetFirstSelectedExchange();
@@ -2106,7 +2052,7 @@ namespace Clearinet
             if (bNext)
             {
                 ++ix; // Start looking after the current item.
-                while (ix < lvExchanges.ItemCount)
+                while (ix < lvExchanges.Items.Count) // Must use Items.Count because pending items aren't yet in .Items collection.
                 {
                     Exchange xcMaybe = lvExchanges.Items[ix].Tag as Exchange;
                     // Found it.
@@ -2444,7 +2390,7 @@ namespace Clearinet
                 {
                     if (File.Exists(path)) paths.Add(path);
                 }
-                addExchangesToListView(CreateExchangesForFiles(paths));
+                addExchanges(CreateExchangesForFiles(paths));
                 CApp.UI.SetStatusText($"Pasted {paths.Count} files from the clipboard as Exchanges.");
                 return true;
             }
@@ -2481,7 +2427,7 @@ namespace Clearinet
         internal Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
         {
             Exchange exchange = CreateFauxExchange(sRequestPath, sContentType, arrBody);
-            addExchangeToListView(exchange);
+            addExchange(exchange);
             return exchange;
         }
 
@@ -2535,7 +2481,7 @@ namespace Clearinet
                 exchNew.EnsureID();
                 exchNew.Timers.AssignNowToAll();
                 exchNew.state = ExchangeState.Done;
-                addExchangeToListView(exchNew);
+                addExchange(exchNew);
                 return true;
             }
             catch (Exception eX)

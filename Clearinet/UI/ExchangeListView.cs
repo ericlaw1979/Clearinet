@@ -32,6 +32,51 @@ namespace Clearinet
 
         private readonly LVCSorter sorter;
 
+
+        #region BatchedUpdates
+        /// <summary>
+        /// Timer that queues pending updates. When it ticks, it collects the pending ListViewItems
+        /// and adds them to the list in one shot.
+        /// </summary>
+        private System.Windows.Forms.Timer timer_AddPending;
+
+        private uint _updateIntervalMS = 80;
+        /// <summary>
+        /// How long should Clearinet hold onto new Exchanges before adding them to the list?
+        /// Controlled by "app.ui.exchangelist.updateinterval"
+        /// </summary>
+        internal uint updateIntervalMS
+        {
+            get => _updateIntervalMS;
+            set => _updateIntervalMS = value;       // TODO: Clamp between 15 and 2500 ?
+
+        }
+
+        /// <summary>
+        /// List of ListViewItem/Exchanges that should be added on the next tick of timer_addPending.
+        /// </summary>
+        private readonly List<ListViewItem> qPendingLVI = new List<ListViewItem>();
+
+
+        /// <summary>
+        /// Queues and item for addition to the list on the next update.
+        /// </summary>
+        /// <param name="lvi"></param>
+        internal void EnqueueItem(ListViewItem lvi)
+        {
+            lock (qPendingLVI)
+            {
+                qPendingLVI.Add(lvi);
+                timer_AddPending.Enabled = true;
+            }
+        }
+
+        internal void FlushPending()
+        {
+            timer_AddPendingTick(null, null);
+        }
+        #endregion BatchedUpdates
+
         public ExchangeListView()
         {
             sorter = new LVCSorter()
@@ -42,13 +87,81 @@ namespace Clearinet
             this.ListViewItemSorter = sorter;
             this.ItemDrag += ExchangeListView_ItemDrag;
             this.MouseClick += ExchangeListView_MouseClick;
+            timer_AddPending = new Timer()
+            {
+                Interval = (int)updateIntervalMS,
+                Enabled = false
+            };
+            timer_AddPending.Tick += timer_AddPendingTick;
         }
 
+        private void timer_AddPendingTick(object sender, EventArgs e)
+        {
+            if (CApp.isClosing) return;
+
+            bool bAtBottom = IsScrolledToBottom();
+
+            CApp.Log.Log($"**Tick** Adding {qPendingLVI.Count} pending Exchanges to the list (atBottom={bAtBottom})");
+
+            // TODO: Profiling suggested that a big problem was constantly
+            // sorting and resorting the list as items were added. It's not
+            // clear that this will be a problem in this new async update
+            // mode, but we can try detaching and reattaching the sorter
+            // if we finx perf is still bad.
+            // var sorter = ListViewItemSorter;
+
+            // Get the list of pending items to update on this tick.
+            ListViewItem[] arrNewItems;
+            lock (qPendingLVI)
+            {
+                timer_AddPending.Enabled = false;
+                arrNewItems = qPendingLVI.ToArray();
+                qPendingLVI.Clear();
+            }
+
+            if (arrNewItems.Length < 1) return;
+
+            // Now we actually add the new items....
+
+            // TODO: Should we trim here first, or add the items and trim in the Notify?
+            Items.AddRange(arrNewItems);
+            arrNewItems = null;
+
+            NotifyExchangesAdded(bAtBottom);
+        }
+
+        /// <summary>
+        /// This event fires when one or more Exchanges is visibly added to the control.
+        /// </summary>
         public Action OnExchangesAdded;
+
+        private void ScheduleTrimIfNeeded()
+        {
+            int iTrimTo = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only");
+            if (iTrimTo > 0 && Items.Count > iTrimTo)
+            {
+                LazyGigWorker.bookGig("TrimExchanges", 250, () =>
+                {
+                    CApp.UIInvokeAsync(() => Tail(iTrimTo));
+                });
+            }
+        }
+
+        private void NotifyExchangesAdded(bool bWasPreviouslyAtBottom)
+        {
+            ScheduleTrimIfNeeded();
+
+            if (bWasPreviouslyAtBottom &&
+                 CApp.Prefs.GetBoolPref("app.ui.exchangelist.autoscroll", true))
+            {
+                Win32UI.ScrollToBottom(this);
+            }
+
+            OnExchangesAdded?.Invoke();
+        }
 
         private ContextMenuStrip headerMenu;
         private Font headerMenuFont;
-
 
 
         protected override void WndProc(ref Message m)
@@ -172,6 +285,7 @@ namespace Clearinet
             {
                 headerMenu?.Dispose();
                 headerMenuFont?.Dispose();
+                timer_AddPending?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -231,9 +345,13 @@ namespace Clearinet
             CApp.UI.SetStatusText($"Selected {this.SelectedCount} Exchanges where '{sColTitle}'='{sFindText}'.");
         }
 
-        public Exchange[] GetAllExchanges()
+        /// <summary>
+        /// Gets all of the *visible* Exchanges.
+        ///  TODO: Should this include pending Exchanges? If so, we need to lock qPendingLVI and add those too.
+        /// </summary>
+        public Exchange[] GetAllVisibleExchanges()
         {
-            int iCount = ItemCount;
+            int iCount = Items.Count;
             Exchange[] arrExchanges = new Exchange[iCount];
             for (int ix = 0; ix < iCount; ++ix)
             {
@@ -251,6 +369,23 @@ namespace Clearinet
                 arrExchanges[ix] = SelectedItems[ix].Tag as Exchange;
             }
             return arrExchanges;
+        }
+
+        /// <summary>
+        /// Returns the number of visible **and pending** Exchanges in the list. Pending Exchanges
+        /// will appear within the next hundred milliseconds or so.
+        /// </summary>
+        public int TotalCount
+        {
+            get
+            {
+                int i = this.Items.Count;
+                lock (qPendingLVI)
+                {
+                    i += qPendingLVI.Count;
+                }
+                return i;
+            }
         }
 
         // TODO: I *think* what I really want to do is keep a simple boolean flag that tracks
@@ -346,12 +481,6 @@ namespace Clearinet
 
         WeakReference wrActiveItem;
         WeakReference wrPreviousActiveItem;
-
-        public int TotalCount
-        {
-            // TODO: After we start queueing pending additions, include that number
-            get { return this.Items.Count; }
-        }
 
         public ListViewItem[] UnselectedItems
         {
