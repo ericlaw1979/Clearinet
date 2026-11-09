@@ -388,6 +388,17 @@ namespace Clearinet
             }
         }
 
+        public int PendingCount
+        {
+            get
+            {
+                lock (qPendingLVI)
+                {
+                    return qPendingLVI.Count;
+                }
+            }
+        }
+
         // TODO: I *think* what I really want to do is keep a simple boolean flag that tracks
         // whether the user has scrolled up at all (clearing that flag if they scroll down to the bottom).
         // That way, scrolling up becomes a simple "Don't keep autoscrolling" flag and we don't need to worry
@@ -435,7 +446,6 @@ namespace Clearinet
 
             sorter.SortType = (Columns[e.Column].Tag as ColumnInfo?)?.SortType ?? ColumnSortType.Text;
             SetColumnHeaderSortIcon(sorter.SortColumn, sorter.Order);
-            Trace.WriteLine($"Sorting column {sorter.SortColumn} in {sorter.Order} order with SortType {sorter.SortType}");
             this.Sort();
         }
 
@@ -638,12 +648,14 @@ namespace Clearinet
 
             int cToDelete = Items.Count - iToKeep;
             var itemsToDelete = new ListViewItem[cToDelete];
+
+            // BUG BUG: This needs to be smarter. It needs to skip Exchanges that are marked or not complete
+            // (or at the *very very least* skip any that are paused at breakpoints.
             for (int iX = 0; iX < cToDelete; ++iX)
             {
                 itemsToDelete[iX] = Items[iX];
             }
             StoreItemsBeforeDeletion(itemsToDelete);
-
             BeginUpdate();
             try
             {
@@ -698,7 +710,6 @@ namespace Clearinet
             ColumnInfo ci = Columns[ix].Tag as ColumnInfo? ?? new ColumnInfo();
             ci.SortType = cst;
             Columns[ix].Tag = ci;
-            // Trace.WriteLine($"Configured column #{ix} ({Columns[ix].Text}) with sort mode {cst}");
         }
 
 
