@@ -503,8 +503,8 @@ namespace Clearinet
                 if (Keys.Shift == Control.ModifierKeys)
                 {
                     if (DialogResult.Yes ==
-                        MessageBox.Show("The SHIFT Key is down. Would you like to reset Clearinet's appearance?", "Clearinet Safe Mode",
-                            MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2))
+                        MessageBox.Show("The SHIFT key is down. Would you like to reset to Clearinet's default appearance?", "Clearinet Safe Mode",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2, MessageBoxOptions.ServiceNotification))
                     {
                         CONFIG.RevertToDefaultAppearance();
                     }
@@ -847,6 +847,8 @@ namespace Clearinet
             rtbLog.ContextMenuStrip = logContextMenu;
 
             splitRequestResponse.DoubleClick += SplitRequestResponse_DoubleClick;
+            splitterMain.DoubleClick += splitterMain_DoubleClick;
+
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
@@ -865,6 +867,18 @@ namespace Clearinet
             LoadAnyFiles(Environment.GetCommandLineArgs(), bSkipFirst: true);
 
             Task.Run(async () => await UpdateChecker.CheckForUpdatesAsync());
+        }
+
+        private void splitterMain_DoubleClick(object sender, EventArgs e)
+        {
+            if (splitterMain.SplitPosition > 100)
+            {
+                splitterMain.SplitPosition = 50;
+            }
+            else
+            {
+                splitterMain.SplitPosition = this.ClientSize.Width - 50;
+            }
         }
 
         private void SplitRequestResponse_DoubleClick(object sender, EventArgs e)
@@ -1663,11 +1677,6 @@ namespace Clearinet
         {
             string sCommand = ea.Command;
             ea.Handled = CApp.RunExecAction(sCommand);
-        }
-
-        private void splitterMain_DoubleClick(object sender, EventArgs e)
-        {
-            //TODO: Auto-position the splitter based on the expected width of the text.
         }
 
         private void miHelpDiscuss_Click(object sender, EventArgs e)
