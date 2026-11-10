@@ -68,6 +68,11 @@ namespace Clearinet.UI
         public PrefView()
         {
             InitializeComponent();
+            Win32UI.SetCueText(txtSearch, "Text to find... (prefix with EXACT: for case-sensitive search)");
+            dgvPrefs.CellFormatting += dgvPrefs_CellFormatting;
+            dgvPrefs.CellValueChanged += (s, e) => UpdateSearchStatus();
+            dgvPrefs.RowsAdded += (s, e) => UpdateSearchStatus();
+            dgvPrefs.RowsRemoved += (s, e) => UpdateSearchStatus();
         }
 
         public void RefillWholeGrid()
@@ -159,6 +164,13 @@ namespace Clearinet.UI
                 return true;
             }
 
+            if (keyData == (Keys.Control | Keys.F) && dgvPrefs.ContainsFocus)
+            {
+                txtSearch.Focus();
+                txtSearch.SelectAll();
+                return true;
+            }
+
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
@@ -197,6 +209,49 @@ namespace Clearinet.UI
                 _myParent.SelectedTab = _myTabPage;
             };
             frmPrefs.Show();
+        }
+
+        private bool IsSearchMatch(object value)
+        {
+            string sSearch = txtSearch.Text;
+            StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+            if (sSearch.OICStartsWith("EXACT:"))
+            {
+                sSearch = sSearch.Substring(6);
+                comparison = StringComparison.Ordinal;
+            }
+
+            return sSearch.Length > 0 && value != null &&
+                value.ToString().IndexOf(sSearch, comparison) >= 0;
+        }
+
+        private void dgvPrefs_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (IsSearchMatch(e.Value))
+            {
+                e.CellStyle.BackColor = CONFIG.colorHighlight;
+            }
+        }
+
+        private void UpdateSearchStatus()
+        {
+            txtSearch.BackColor = System.Drawing.SystemColors.Window;
+            if (txtSearch.Text.Length == 0 || txtSearch.Text.OICEquals("EXACT:")) return;
+
+            foreach (DataGridViewRow row in dgvPrefs.Rows)
+            {
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    if (IsSearchMatch(cell.Value)) return;
+                }
+            }
+            txtSearch.BackColor = System.Drawing.Color.Red;
+        }
+
+        private void txtSearch_TextChanged(object sender, EventArgs e)
+        {
+            UpdateSearchStatus();
+            dgvPrefs.Invalidate();
         }
     }
 }

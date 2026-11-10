@@ -32,11 +32,14 @@
             this.colPrefName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colPrefValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnlTop = new System.Windows.Forms.Panel();
+            this.lnkTearoff = new System.Windows.Forms.LinkLabel();
             this.lblInstructions = new System.Windows.Forms.Label();
             this.lnkPrefHelp = new System.Windows.Forms.LinkLabel();
-            this.lnkTearoff = new System.Windows.Forms.LinkLabel();
+            this.pnlBottom = new System.Windows.Forms.Panel();
+            this.txtSearch = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPrefs)).BeginInit();
             this.pnlTop.SuspendLayout();
+            this.pnlBottom.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvPrefs
@@ -55,7 +58,7 @@
             this.dgvPrefs.Name = "dgvPrefs";
             this.dgvPrefs.RowHeadersWidth = 40;
             this.dgvPrefs.RowTemplate.Height = 24;
-            this.dgvPrefs.Size = new System.Drawing.Size(744, 637);
+            this.dgvPrefs.Size = new System.Drawing.Size(744, 600);
             this.dgvPrefs.TabIndex = 0;
             this.dgvPrefs.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgvPrefs_CellBeginEdit);
             this.dgvPrefs.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPrefs_CellEndEdit);
@@ -88,6 +91,20 @@
             this.pnlTop.Size = new System.Drawing.Size(744, 43);
             this.pnlTop.TabIndex = 1;
             // 
+            // lnkTearoff
+            // 
+            this.lnkTearoff.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lnkTearoff.AutoSize = true;
+            this.lnkTearoff.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lnkTearoff.Location = new System.Drawing.Point(717, 9);
+            this.lnkTearoff.Name = "lnkTearoff";
+            this.lnkTearoff.Size = new System.Drawing.Size(24, 17);
+            this.lnkTearoff.TabIndex = 2;
+            this.lnkTearoff.TabStop = true;
+            this.lnkTearoff.Text = "🪟";
+            this.lnkTearoff.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.lnkTearoff.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkTearoff_LinkClicked);
+            // 
             // lblInstructions
             // 
             this.lblInstructions.AutoSize = true;
@@ -111,25 +128,33 @@
             this.lnkPrefHelp.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.lnkPrefHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkPrefHelp_LinkClicked);
             // 
-            // lnkTearoff
+            // pnlBottom
             // 
-            this.lnkTearoff.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lnkTearoff.AutoSize = true;
-            this.lnkTearoff.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lnkTearoff.Location = new System.Drawing.Point(717, 9);
-            this.lnkTearoff.Name = "lnkTearoff";
-            this.lnkTearoff.Size = new System.Drawing.Size(24, 17);
-            this.lnkTearoff.TabIndex = 2;
-            this.lnkTearoff.TabStop = true;
-            this.lnkTearoff.Text = "🪟";
-            this.lnkTearoff.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.lnkTearoff.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkTearoff_LinkClicked);
+            this.pnlBottom.Controls.Add(this.txtSearch);
+            this.pnlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlBottom.Location = new System.Drawing.Point(0, 643);
+            this.pnlBottom.Name = "pnlBottom";
+            this.pnlBottom.Size = new System.Drawing.Size(744, 37);
+            this.pnlBottom.TabIndex = 2;
+            // 
+            // txtSearch
+            // 
+            this.txtSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtSearch.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtSearch.Location = new System.Drawing.Point(6, 7);
+            this.txtSearch.Name = "txtSearch";
+            this.txtSearch.Size = new System.Drawing.Size(735, 24);
+            this.txtSearch.TabIndex = 0;
+            this.txtSearch.TextChanged += new System.EventHandler(this.txtSearch_TextChanged);
             // 
             // PrefView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.dgvPrefs);
+            this.Controls.Add(this.pnlBottom);
             this.Controls.Add(this.pnlTop);
             this.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -138,6 +163,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvPrefs)).EndInit();
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
+            this.pnlBottom.ResumeLayout(false);
+            this.pnlBottom.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -151,5 +178,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefValue;
         private System.Windows.Forms.LinkLabel lnkTearoff;
+        private System.Windows.Forms.Panel pnlBottom;
+        private System.Windows.Forms.TextBox txtSearch;
     }
 }
