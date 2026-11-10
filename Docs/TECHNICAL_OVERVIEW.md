@@ -142,6 +142,11 @@ certificate, authenticates an upstream TLS connection, and then processes the
 decrypted HTTP/1.x traffic. The certificate provider caches generated leaf
 certificates and exposes cache cleanup through its abstraction.
 
+ServerPipe reuse is controlled by `proxy.serverpipe.binding_policy`: `Free`
+allows any request to rent a pipe, `Process` (the default) requires the same
+known originating process, and `PipeBound` requires the same ClientPipe. A pipe
+identity includes a stable ID and whether its current stream is TLS-wrapped.
+
 The initial MITM implementation does not negotiate HTTP/2 because .NET Framework
 SslStream does not expose the required ALPN support. Certificate generation and
 trust operate in the current user's Windows certificate stores; deployments that
@@ -176,11 +181,10 @@ to describe this flow; see `Clearinet/ExchangeEnums.cs`.
    metadata can be attached to the Exchange
    (`Clearinet/CaptureEngine/CaptureEngineRuntime.cs`).
 
-2. **Read and parse the request.** `ReadHttpRequestAsync` reads through the end
-   of the HTTP headers, parses the request line and headers, and then buffers a
-   body framed by either `Content-Length` or chunked transfer encoding. Invalid
-   or oversized input aborts the connection rather than allowing a
-   desynchronized request stream.
+2. **Read and parse the request.** The `ClientPipe` owns the client socket,
+   stream, and a `HttpStreamReader`. The reader preserves read-ahead bytes,
+   validates `Content-Length`/chunked framing, and rejects ambiguous framing so
+   a pipelined request cannot be consumed as part of the preceding body.
 
 3. **Create and publish the Exchange.** `BuildExchange` creates an `Exchange`
    containing the request headers and body, assigns its ID, records client and
@@ -198,20 +202,17 @@ to describe this flow; see `Clearinet/ExchangeEnums.cs`.
    `InspectorBase.CommitAnyChanges` in `Clearinet/InspectorAPI.cs` when the user
    continues it.
 
-5. **Choose the HTTP or CONNECT path.** A normal HTTP request is passed from
-   `ForwardToServerViaHttpClientBridgeAsync` to
-   `HTTPClientBridge.SendAndReceiveRawAsync`, which constructs the upstream
-   request from `Exchange.fullUrl`, `RequestHeaders`, and `RequestBody`. A
-   `CONNECT` request instead becomes either a blind byte tunnel or a decrypted
-   TLS tunnel in `HandleBlindConnectTunnelAsync` or
-   `HandleMitmConnectTunnelAsync`, respectively.
+5. **Choose the HTTP or CONNECT path.** A normal HTTP request is sent through
+   `ForwardUsingServerPipeAsync`. The target authority is resolved from the
+   absolute-form request target or `Host`; a `CONNECT` request instead becomes
+   either a blind byte tunnel or a decrypted TLS tunnel in
+   `HandleBlindConnectTunnelAsync` or `HandleMitmConnectTunnelAsync`.
 
-6. **Send the request and read the response.** `HTTPClientBridge` sends the
-   request without following redirects or automatically decompressing content,
-   then records the status line, headers, body, and server-side timers on the
-   same Exchange (`Clearinet/HttpClientBridge.cs`). Decrypted HTTPS traffic uses
-   `WriteHttpRequestAsync` and `ReadHttpResponseAsync`; the latter applies the
-   same bounded, `Content-Length`/chunked buffering rules used for requests.
+6. **Send the request and read the response.** The engine rents a compatible
+   `ServerPipe` or resolves DNS and opens a TCP socket, wrapping HTTPS sockets
+   in a retained `SslStream`. `HttpStreamReader` reads the correctly framed
+   response. The whole pipe, including its TLS state and reader, is returned to
+   the pool only when the protocol permits reuse.
 
 7. **Allow response alteration.** Assigning
    `AutoTamperResponseBefore` invokes every `IAutoTamper` extension and the
@@ -223,10 +224,12 @@ to describe this flow; see `Clearinet/ExchangeEnums.cs`.
    server's response.
 
 8. **Return the response to the client.** The capture engine serializes the
-   possibly altered `ResponseHeaders`, writes the `ResponseBody`, flushes the
-   client stream, and records the client response timers. Blind CONNECT and
-   WebSocket-style tunnels are different: `PumpStreamAsync` copies bytes in
-   both directions without interpreting individual HTTP Exchanges.
+   response headers and body, flushes the `ClientPipe`, and records client
+   response timers. If the client connection remains open and both sides allow
+   persistence, the ClientPipe waits in the reuse queue for up to one minute;
+   a subsequent request repeats the exchange flow. Blind CONNECT and
+   WebSocket-style tunnels instead use `PumpStreamAsync` to copy bytes in both
+   directions without interpreting individual HTTP Exchanges.
 
 9. **Complete or abort.** A successful Exchange enters `Done` and is published
    once more so the UI shows its final status and timing. Parse, TLS, socket, or

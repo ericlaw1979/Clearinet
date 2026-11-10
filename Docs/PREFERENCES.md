@@ -33,9 +33,11 @@ Below is a list of some preferences, their defaults, and what they control
 
 `proxy.decrypt_https`, `false` => Decrypt CONNECT tunnels using generated certificates unless an Exchange has the `x-no-decrypt` flag.
 
-`proxy.socketpool.idle_ms`, `300000` => Maximum idle time for pooled upstream sockets.
+`proxy.socketpool.idle_ms`, `300000` => Maximum idle time for pooled upstream ServerPipes.
 
-`proxy.socketpool.max_age_ms`, `300000` => Maximum lifetime for pooled upstream sockets.
+`proxy.socketpool.max_age_ms`, `300000` => Maximum lifetime for pooled upstream ServerPipes.
+
+`proxy.serverpipe.binding_policy`, `Process` => Reuse policy for upstream ServerPipes: `Free` allows reuse by any request, `Process` limits reuse to the originating process, and `PipeBound` limits reuse to the originating ClientPipe. Process-bound reuse is refused when process ownership cannot be determined.
 
 `proxy.capture.trace`, `false` => Write additional capture-engine diagnostics to the Log tab.
 

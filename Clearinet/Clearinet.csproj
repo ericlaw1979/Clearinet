@@ -92,6 +92,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CaptureEngine\CapturePipes.cs" />
     <Compile Include="CaptureEngine\SocketPool.cs" />
     <Compile Include="CaptureEngine\CertEnrollCertificateProvider.cs" />
     <Compile Include="CaptureEngine\CaptureEngineContracts.cs" />

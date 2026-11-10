@@ -19,8 +19,8 @@ namespace Clearinet.CaptureEngine
 
     internal interface ISocketPool : IDisposable
     {
-        bool TryRent(ServerConnectionKey key, out Socket socket);
-        void Return(ServerConnectionKey key, Socket socket, DateTime idleSinceUtc);
+        bool TryRent(ServerConnectionKey key, string processIdentity, Guid clientPipeId, out ServerPipe pipe);
+        void Return(ServerConnectionKey key, ServerPipe pipe, DateTime idleSinceUtc);
         void PurgeExpired(DateTime nowUtc);
     }
 
@@ -111,6 +111,18 @@ namespace Clearinet.CaptureEngine
         internal const string PrefSocketPoolIdleMs = "proxy.socketpool.idle_ms";
         internal const string PrefSocketPoolMaxAgeMs = "proxy.socketpool.max_age_ms";
         internal const string PrefCaptureTrace = "proxy.capture.trace";
+        internal const string PrefServerPipeBindingPolicy = "proxy.serverpipe.binding_policy";
+
+        internal static ServerPipeBindingPolicy GetServerPipeBindingPolicy()
+        {
+            string policy = CApp.Prefs.GetStringPref(PrefServerPipeBindingPolicy, "Process");
+            if (string.Equals(policy, "Free", StringComparison.OrdinalIgnoreCase)) return ServerPipeBindingPolicy.Free;
+            if (string.Equals(policy, "PipeBound", StringComparison.OrdinalIgnoreCase)) return ServerPipeBindingPolicy.PipeBound;
+            if (string.Equals(policy, "Process", StringComparison.OrdinalIgnoreCase)) return ServerPipeBindingPolicy.Process;
+
+            CApp.Log.Log($"! Invalid {PrefServerPipeBindingPolicy} value '{policy}'; using Process.");
+            return ServerPipeBindingPolicy.Process;
+        }
 
         internal static bool ShouldCaptureConnect()
         {

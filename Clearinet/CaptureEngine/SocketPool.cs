@@ -1,21 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 
 namespace Clearinet.CaptureEngine
 {
     internal sealed class SocketPool : ISocketPool
     {
-        private sealed class PooledSocket
+        private sealed class PooledPipe
         {
-            internal readonly Socket Socket;
-            internal readonly DateTime CreatedUtc;
-            internal DateTime IdleSinceUtc;
+            internal readonly ServerPipe Pipe;
+            internal readonly DateTime IdleSinceUtc;
 
-            internal PooledSocket(Socket socket, DateTime idleSinceUtc)
+            internal PooledPipe(ServerPipe pipe, DateTime idleSinceUtc)
             {
-                Socket = socket;
-                CreatedUtc = DateTime.UtcNow;
+                Pipe = pipe;
                 IdleSinceUtc = idleSinceUtc;
             }
         }
@@ -23,8 +20,8 @@ namespace Clearinet.CaptureEngine
         private readonly object _syncRoot = new object();
         private readonly TimeSpan _idleLimit;
         private readonly TimeSpan _maxAge;
-        private readonly Dictionary<ServerConnectionKey, Stack<PooledSocket>> _pool =
-            new Dictionary<ServerConnectionKey, Stack<PooledSocket>>();
+        private readonly Dictionary<ServerConnectionKey, Stack<PooledPipe>> _pool =
+            new Dictionary<ServerConnectionKey, Stack<PooledPipe>>();
 
         internal SocketPool(TimeSpan idleLimit, TimeSpan maxAge)
         {
@@ -32,56 +29,57 @@ namespace Clearinet.CaptureEngine
             _maxAge = maxAge < TimeSpan.FromSeconds(5) ? TimeSpan.FromSeconds(5) : maxAge;
         }
 
-        public bool TryRent(ServerConnectionKey key, out Socket socket)
+        public bool TryRent(ServerConnectionKey key, string processIdentity, Guid clientPipeId, out ServerPipe pipe)
         {
-            socket = null;
+            pipe = null;
             lock (_syncRoot)
             {
-                if (!_pool.TryGetValue(key, out Stack<PooledSocket> stack) || stack.Count == 0)
-                {
-                    return false;
-                }
+                if (!_pool.TryGetValue(key, out Stack<PooledPipe> stack) || stack.Count == 0) return false;
 
                 DateTime nowUtc = DateTime.UtcNow;
+                Stack<PooledPipe> retained = new Stack<PooledPipe>();
                 while (stack.Count > 0)
                 {
-                    PooledSocket candidate = stack.Pop();
-                    if (IsUsable(candidate, nowUtc))
+                    PooledPipe candidate = stack.Pop();
+                    if (!IsUsable(candidate, nowUtc))
                     {
-                        socket = candidate.Socket;
-                        return true;
+                        candidate.Pipe.Dispose();
+                        continue;
                     }
 
-                    CloseQuietly(candidate.Socket);
+                    if (candidate.Pipe.CanBindTo(processIdentity, clientPipeId))
+                    {
+                        pipe = candidate.Pipe;
+                        while (retained.Count > 0) stack.Push(retained.Pop());
+                        if (stack.Count == 0) _pool.Remove(key);
+                        return true;
+                    }
+                    retained.Push(candidate);
                 }
 
-                if (stack.Count == 0)
-                {
-                    _pool.Remove(key);
-                }
-
+                while (retained.Count > 0) stack.Push(retained.Pop());
+                if (stack.Count == 0) _pool.Remove(key);
                 return false;
             }
         }
 
-        public void Return(ServerConnectionKey key, Socket socket, DateTime idleSinceUtc)
+        public void Return(ServerConnectionKey key, ServerPipe pipe, DateTime idleSinceUtc)
         {
-            if (socket == null) return;
+            if (pipe == null) return;
             lock (_syncRoot)
             {
-                if (!IsSocketConnected(socket))
+                if (!pipe.IsConnected)
                 {
-                    CloseQuietly(socket);
+                    pipe.Dispose();
                     return;
                 }
 
-                if (!_pool.TryGetValue(key, out Stack<PooledSocket> stack))
+                if (!_pool.TryGetValue(key, out Stack<PooledPipe> stack))
                 {
-                    stack = new Stack<PooledSocket>();
+                    stack = new Stack<PooledPipe>();
                     _pool[key] = stack;
                 }
-
-                stack.Push(new PooledSocket(socket, idleSinceUtc));
+                stack.Push(new PooledPipe(pipe, idleSinceUtc));
             }
         }
 
@@ -90,45 +88,20 @@ namespace Clearinet.CaptureEngine
             lock (_syncRoot)
             {
                 List<ServerConnectionKey> empty = new List<ServerConnectionKey>();
-                foreach (var kvp in _pool)
+                foreach (var entry in _pool)
                 {
-                    Stack<PooledSocket> original = kvp.Value;
-                    if (original.Count == 0)
+                    Stack<PooledPipe> stack = entry.Value;
+                    Stack<PooledPipe> retained = new Stack<PooledPipe>();
+                    while (stack.Count > 0)
                     {
-                        empty.Add(kvp.Key);
-                        continue;
+                        PooledPipe candidate = stack.Pop();
+                        if (IsUsable(candidate, nowUtc)) retained.Push(candidate);
+                        else candidate.Pipe.Dispose();
                     }
-
-                    Stack<PooledSocket> retained = new Stack<PooledSocket>(original.Count);
-                    while (original.Count > 0)
-                    {
-                        PooledSocket ps = original.Pop();
-                        if (IsUsable(ps, nowUtc))
-                        {
-                            retained.Push(ps);
-                        }
-                        else
-                        {
-                            CloseQuietly(ps.Socket);
-                        }
-                    }
-
-                    if (retained.Count == 0)
-                    {
-                        empty.Add(kvp.Key);
-                        continue;
-                    }
-
-                    while (retained.Count > 0)
-                    {
-                        original.Push(retained.Pop());
-                    }
+                    while (retained.Count > 0) stack.Push(retained.Pop());
+                    if (stack.Count == 0) empty.Add(entry.Key);
                 }
-
-                for (int i = 0; i < empty.Count; i++)
-                {
-                    _pool.Remove(empty[i]);
-                }
+                for (int i = 0; i < empty.Count; i++) _pool.Remove(empty[i]);
             }
         }
 
@@ -136,45 +109,17 @@ namespace Clearinet.CaptureEngine
         {
             lock (_syncRoot)
             {
-                foreach (var kvp in _pool)
-                {
-                    foreach (PooledSocket ps in kvp.Value)
-                    {
-                        CloseQuietly(ps.Socket);
-                    }
-                }
+                foreach (Stack<PooledPipe> stack in _pool.Values)
+                    while (stack.Count > 0) stack.Pop().Pipe.Dispose();
                 _pool.Clear();
             }
         }
 
-        private bool IsUsable(PooledSocket ps, DateTime nowUtc)
+        private bool IsUsable(PooledPipe pooledPipe, DateTime nowUtc)
         {
-            if (ps == null || ps.Socket == null) return false;
-            if (!IsSocketConnected(ps.Socket)) return false;
-            if ((nowUtc - ps.IdleSinceUtc) > _idleLimit) return false;
-            if ((nowUtc - ps.CreatedUtc) > _maxAge) return false;
-            return true;
-        }
-
-        private static bool IsSocketConnected(Socket socket)
-        {
-            try
-            {
-                if (socket == null || !socket.Connected) return false;
-                bool readyToRead = socket.Poll(0, SelectMode.SelectRead);
-                bool noData = (socket.Available == 0);
-                return !(readyToRead && noData);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static void CloseQuietly(Socket socket)
-        {
-            if (socket == null) return;
-            try { socket.Close(); } catch { }
+            return pooledPipe != null && pooledPipe.Pipe != null && pooledPipe.Pipe.IsConnected &&
+                (nowUtc - pooledPipe.IdleSinceUtc) <= _idleLimit &&
+                (nowUtc - pooledPipe.Pipe.CreatedUtc) <= _maxAge;
         }
     }
 }
