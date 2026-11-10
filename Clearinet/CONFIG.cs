@@ -21,6 +21,7 @@ namespace Clearinet
     {
         internal static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
         internal static readonly Color COLOR_DATA_RESPONSE = Color.DeepSkyBlue; // Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");
+        internal static Color COLOR_DEFAULT_EXCHANGE = Color.Blue;
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
         // This-instance-only override settings (set by command line)
@@ -488,7 +489,7 @@ namespace Clearinet
                 return COLOR_DATA_RESPONSE;
             }
 
-            return Color.Blue;
+            return COLOR_DEFAULT_EXCHANGE;
         }
 
         #region ToolDetection
