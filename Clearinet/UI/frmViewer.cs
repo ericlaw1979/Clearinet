@@ -809,46 +809,12 @@ namespace Clearinet
             // Today, I only use the VS Designer on a 100% DPI device because otherwise
             // the VS designer corrupts the layout. So when working on other devices, I
             // have to manually add these event handlers until I can move them later.
-            this.lvExchanges.DragDrop += lvExchanges_DragDrop;
-            this.lvExchanges.DragEnter += lvExchanges_DragEnter;
-            this.lvExchanges.AllowDrop = true;
-
-            this.rtbLog.LinkClicked += (s, eal) => Utilities.LaunchHyperlink(eal.LinkText);
-
-            btnRunToComplete.Click += (s, ea) =>
-            {
-                if (GetFirstSelectedExchange() is Exchange x)
-                {
-                    //x.oFlags.TryRemove("x-breakresponse", out _);  // do we want that?
-                    ++x.state;
-                    actUpdateInspector(true, true);
-                }
-            };
-            btnBreakAtResponse.Click += (s, ea) =>
-            {
-                if (GetFirstSelectedExchange() is Exchange x)
-                {
-                    x["x-breakresponse"] = "BreakAtButton";
-                    ++x.state;
-                    actUpdateInspector(true, true);
-                }
-            };
-            tslVersion.DoubleClickEnabled = true;
-            tslVersion.DoubleClick += (s, ea) =>
-            {
-                miHelpAbout.PerformClick();
-            };
-
             var logContextMenu = new ContextMenuStrip(components);
             ToolStripItem copyLogItem = logContextMenu.Items.Add("Copy", null, (s1, e1) => rtbLog.Copy());
             logContextMenu.Items.Add("Save...", null, (s1, e1) => SaveLog());
             logContextMenu.Items.Add("Clear Log", null, (s1, e1) => ClearLog());
             logContextMenu.Opening += (s1, e1) => copyLogItem.Enabled = rtbLog.SelectionLength > 0;
             rtbLog.ContextMenuStrip = logContextMenu;
-
-            splitRequestResponse.DoubleClick += SplitRequestResponse_DoubleClick;
-            splitterMain.DoubleClick += splitterMain_DoubleClick;
-
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
@@ -3434,6 +3400,36 @@ namespace Clearinet
             }
 
             base.WndProc(ref m);
+        }
+
+        private void rtbLog_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            Utilities.LaunchHyperlink(e.LinkText);
+        }
+
+        private void btnRunToComplete_Click(object sender, EventArgs e)
+        {
+            if (GetFirstSelectedExchange() is Exchange x)
+            {
+                //x.oFlags.TryRemove("x-breakresponse", out _);  // do we want that?
+                ++x.state;
+                actUpdateInspector(true, true);
+            }
+        }
+
+        private void btnBreakAtResponse_Click(object sender, EventArgs e)
+        {
+            if (GetFirstSelectedExchange() is Exchange x)
+            {
+                x["x-breakresponse"] = "BreakAtButton";
+                ++x.state;
+                actUpdateInspector(true, true);
+            }
+        }
+
+        private void tslVersion_Click(object sender, EventArgs e)
+        {
+            miHelpAbout.PerformClick();
         }
     }
 
