@@ -251,17 +251,17 @@ namespace Clearinet
             // miFileSplit1
             // 
             miFileSplit1.Name = "miFileSplit1";
-            miFileSplit1.Size = new System.Drawing.Size(186, 6);
+            miFileSplit1.Size = new System.Drawing.Size(212, 6);
             // 
             // miFileSplit2
             // 
             miFileSplit2.Name = "miFileSplit2";
-            miFileSplit2.Size = new System.Drawing.Size(186, 6);
+            miFileSplit2.Size = new System.Drawing.Size(212, 6);
             // 
             // miFileSplit3
             // 
             miFileSplit3.Name = "miFileSplit3";
-            miFileSplit3.Size = new System.Drawing.Size(186, 6);
+            miFileSplit3.Size = new System.Drawing.Size(212, 6);
             // 
             // miEditSplitter1
             // 
@@ -359,7 +359,7 @@ namespace Clearinet
             // 
             this.miFileAttach.Name = "miFileAttach";
             this.miFileAttach.ShortcutKeys = System.Windows.Forms.Keys.F12;
-            this.miFileAttach.Size = new System.Drawing.Size(189, 22);
+            this.miFileAttach.Size = new System.Drawing.Size(215, 22);
             this.miFileAttach.Text = "&Capture Exchanges";
             this.miFileAttach.ToolTipText = "Should Clearinet tell the OS to send it network traffic?";
             this.miFileAttach.Click += new System.EventHandler(this.miFileAttach_Click);
@@ -367,7 +367,7 @@ namespace Clearinet
             // miFileNewViewer
             // 
             this.miFileNewViewer.Name = "miFileNewViewer";
-            this.miFileNewViewer.Size = new System.Drawing.Size(189, 22);
+            this.miFileNewViewer.Size = new System.Drawing.Size(215, 22);
             this.miFileNewViewer.Text = "&New Viewer";
             this.miFileNewViewer.ToolTipText = "Spawn a new Viewer-mode instance";
             this.miFileNewViewer.Click += new System.EventHandler(this.miFileNewViewer_Click);
@@ -375,7 +375,7 @@ namespace Clearinet
             // miFileLoadSAZ
             // 
             this.miFileLoadSAZ.Name = "miFileLoadSAZ";
-            this.miFileLoadSAZ.Size = new System.Drawing.Size(189, 22);
+            this.miFileLoadSAZ.Size = new System.Drawing.Size(215, 22);
             this.miFileLoadSAZ.Text = "L&oad Archive...";
             this.miFileLoadSAZ.Click += new System.EventHandler(this.miFileLoadSAZ_Click);
             // 
@@ -384,7 +384,7 @@ namespace Clearinet
             this.mnuFileMRU.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             notYetLoadedToolStripMenuItem});
             this.mnuFileMRU.Name = "mnuFileMRU";
-            this.mnuFileMRU.Size = new System.Drawing.Size(189, 22);
+            this.mnuFileMRU.Size = new System.Drawing.Size(215, 22);
             this.mnuFileMRU.Text = "&Recent Archives";
             this.mnuFileMRU.DropDownOpening += new System.EventHandler(this.mnuFileMRU_DropDownOpening);
             // 
@@ -397,7 +397,7 @@ namespace Clearinet
             this.miFileSaveRequest,
             this.miFileSaveResponse});
             this.miFileSave.Name = "miFileSave";
-            this.miFileSave.Size = new System.Drawing.Size(189, 22);
+            this.miFileSave.Size = new System.Drawing.Size(215, 22);
             this.miFileSave.Text = "&Save";
             // 
             // miFileSaveSAZ
@@ -471,7 +471,7 @@ namespace Clearinet
             // miFileImport
             // 
             this.miFileImport.Name = "miFileImport";
-            this.miFileImport.Size = new System.Drawing.Size(189, 22);
+            this.miFileImport.Size = new System.Drawing.Size(215, 22);
             this.miFileImport.Text = "&Import Exchanges...";
             this.miFileImport.Click += new System.EventHandler(this.miFileImport_Click);
             // 
@@ -481,7 +481,7 @@ namespace Clearinet
             this.miFileExportAll,
             this.miFileExportSelected});
             this.miFileExport.Name = "miFileExport";
-            this.miFileExport.Size = new System.Drawing.Size(189, 22);
+            this.miFileExport.Size = new System.Drawing.Size(215, 22);
             this.miFileExport.Text = "&Export Exchanges";
             // 
             // miFileExportAll
@@ -501,7 +501,7 @@ namespace Clearinet
             // miFileExit
             // 
             this.miFileExit.Name = "miFileExit";
-            this.miFileExit.Size = new System.Drawing.Size(189, 22);
+            this.miFileExit.Size = new System.Drawing.Size(215, 22);
             this.miFileExit.Text = "E&xit";
             this.miFileExit.Click += new System.EventHandler(this.miFileExit_Click);
             // 

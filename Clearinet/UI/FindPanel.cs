@@ -13,7 +13,7 @@ namespace Clearinet.UI
         {
             InitializeComponent();
             txtToFind.Text = CApp.Prefs.GetStringPref("app.find.lastfind.text.ephemeral", string.Empty);
-            Win32UI.SetCueText(txtToFind, "Plaintext to find, EXACT: or REGEX:");
+            Win32UI.SetCueText(txtToFind, "Text to find, EXACT: or REGEX:");
             ccbxWhere.CheckItems.AddRange(new object[] {
                 "URLs", "ExchangeListbox Columns", "Request Headers", "Request Body", "Response Headers", "Response Body"});
             // TODO: Restore last-find targets from prefs, if any. For now, just check all.
