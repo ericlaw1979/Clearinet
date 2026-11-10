@@ -360,8 +360,8 @@ namespace Clearinet
             this.miFileAttach.Name = "miFileAttach";
             this.miFileAttach.ShortcutKeys = System.Windows.Forms.Keys.F12;
             this.miFileAttach.Size = new System.Drawing.Size(189, 22);
-            this.miFileAttach.Text = "&Capture Traffic";
-            this.miFileAttach.ToolTipText = "Should Clearinet tell the OS to send it traffic?";
+            this.miFileAttach.Text = "&Capture Exchanges";
+            this.miFileAttach.ToolTipText = "Should Clearinet tell the OS to send it network traffic?";
             this.miFileAttach.Click += new System.EventHandler(this.miFileAttach_Click);
             // 
             // miFileNewViewer

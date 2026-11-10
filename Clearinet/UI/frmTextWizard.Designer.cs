@@ -49,10 +49,10 @@
             this.pnlFill.Controls.Add(this.txtOutput);
             this.pnlFill.Controls.Add(this.panel2);
             this.pnlFill.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlFill.Location = new System.Drawing.Point(5, 192);
+            this.pnlFill.Location = new System.Drawing.Point(5, 196);
             this.pnlFill.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pnlFill.Name = "pnlFill";
-            this.pnlFill.Size = new System.Drawing.Size(969, 281);
+            this.pnlFill.Size = new System.Drawing.Size(969, 277);
             this.pnlFill.TabIndex = 0;
             // 
             // txtOutput
@@ -65,7 +65,8 @@
             this.txtOutput.Multiline = true;
             this.txtOutput.Name = "txtOutput";
             this.txtOutput.ReadOnly = true;
-            this.txtOutput.Size = new System.Drawing.Size(969, 242);
+            this.txtOutput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtOutput.Size = new System.Drawing.Size(969, 238);
             this.txtOutput.TabIndex = 5;
             this.txtOutput.TextChanged += new System.EventHandler(this.txtOutput_TextChanged);
             // 
@@ -168,7 +169,7 @@
             this.cbxTransforms.Location = new System.Drawing.Point(4, 7);
             this.cbxTransforms.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxTransforms.Name = "cbxTransforms";
-            this.cbxTransforms.Size = new System.Drawing.Size(204, 21);
+            this.cbxTransforms.Size = new System.Drawing.Size(196, 21);
             this.cbxTransforms.TabIndex = 1;
             this.cbxTransforms.SelectedIndexChanged += new System.EventHandler(this.cbxTransforms_SelectedIndexChanged);
             // 
@@ -181,20 +182,22 @@
             this.lblExplain.Location = new System.Drawing.Point(5, 5);
             this.lblExplain.Margin = new System.Windows.Forms.Padding(5);
             this.lblExplain.Name = "lblExplain";
-            this.lblExplain.Size = new System.Drawing.Size(969, 24);
+            this.lblExplain.Padding = new System.Windows.Forms.Padding(4);
+            this.lblExplain.Size = new System.Drawing.Size(969, 28);
             this.lblExplain.TabIndex = 2;
             this.lblExplain.Text = "Textransform encodes and decodes text. Enter text and then select a transform fro" +
     "m the dropdown.";
             // 
             // txtInput
             // 
-            this.txtInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtInput.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtInput.Dock = System.Windows.Forms.DockStyle.Top;
             this.txtInput.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtInput.Location = new System.Drawing.Point(5, 29);
+            this.txtInput.Location = new System.Drawing.Point(5, 33);
             this.txtInput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtInput.Multiline = true;
             this.txtInput.Name = "txtInput";
+            this.txtInput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.txtInput.Size = new System.Drawing.Size(969, 157);
             this.txtInput.TabIndex = 0;
             this.txtInput.TextChanged += new System.EventHandler(this.txtInput_TextChanged);
@@ -203,7 +206,7 @@
             // 
             this.splitInputOutput.BackColor = System.Drawing.Color.LightSteelBlue;
             this.splitInputOutput.Dock = System.Windows.Forms.DockStyle.Top;
-            this.splitInputOutput.Location = new System.Drawing.Point(5, 186);
+            this.splitInputOutput.Location = new System.Drawing.Point(5, 190);
             this.splitInputOutput.Name = "splitInputOutput";
             this.splitInputOutput.Size = new System.Drawing.Size(969, 6);
             this.splitInputOutput.TabIndex = 9;

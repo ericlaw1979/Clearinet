@@ -32,7 +32,7 @@ namespace Clearinet
                 this.Text = $"Clearinet Viewer";
                 tsmiNameViewer.Visible = true;
                 this.lvExchanges.EmptyText = "No Exchanges are loaded";
-                // TODO: Automatically name this viewer if another is already running.
+                // Consider: Automatically rename this viewer if another is already running.
                 tssbCapture.Enabled = miFileAttach.Enabled = false;
             }
         }
