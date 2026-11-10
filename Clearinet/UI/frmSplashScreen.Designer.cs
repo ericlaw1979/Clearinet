@@ -46,6 +46,7 @@
             this.pbSplash.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbSplash.TabIndex = 0;
             this.pbSplash.TabStop = false;
+            this.pbSplash.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pbSplash_MouseDown);
             // 
             // panel1
             // 

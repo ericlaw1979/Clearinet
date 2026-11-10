@@ -798,6 +798,7 @@ namespace Clearinet
             frmSplashScreen.SetStatusText("Announcing boot...");
 
             CApp.OnAppBoot();       // ISSUE: We need to figure out whether to wait for the form to SHOW before calling this.
+            this.Activate();
             frmSplashScreen.CloseSplashScreen();
 
             timerReportUpdater.Interval = 200; // MS. TODO: Make Configurable.
