@@ -18,19 +18,76 @@ namespace Clearinet
     {
         public ColumnSortType SortType;
         public Func<Exchange, string> Provider;
-        /// <summary>Data field of a column the user added (dialog or QuickExec), which is saved across restarts. Null for built-in and script columns.</summary>
+        /// <summary>
+        /// Data field of a column the user added (dialog or QuickExec), which is saved across restarts. Null for built-in and script columns.
+        /// </summary>
         public string UserDataField;
     }
 
     /// <summary>
     /// This is a specialization of the ListView for the primary list of Exchanges at the left of the main UI.
+    /// It is highly optimized for performance (including asynchronous batched updates), and it has a number
+    /// of features that are specific to the needs of Clearinet.
     /// </summary>
     public class ExchangeListView : BetterListView
     {
+        #region Events
         // public event EventHandler ItemShowProperties
+        /// <summary>
+        /// This event fires when one or more Exchanges is visibly added to the control.
+        /// </summary>
+        public Action OnExchangesAdded;
+        #endregion Events
 
-        private readonly LVCSorter sorter;
+        public ExchangeListView()
+        {
+            sorter = new LVCSorter()
+            {
+                SortType = ColumnSortType.Numeric,
+                Order = SortOrder.Ascending,
+            };
+            this.ListViewItemSorter = sorter;
+            this.ItemDrag += ExchangeListView_ItemDrag;
+            this.MouseClick += ExchangeListView_MouseClick;
+            timer_AddPending = new Timer()
+            {
+                Interval = 80,      // Overridden elsewhere
+                Enabled = false
+            };
+            timer_AddPending.Tick += timer_AddPendingTick;
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                headerMenu?.Dispose();
+                headerMenuFont?.Dispose();
+                timer_AddPending?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == 0x007B /* WM_CONTEXTMENU */ && m.LParam != new IntPtr(-1) && View == View.Details)
+            {
+                long coordinates = m.LParam.ToInt64();
+                Point screenPoint = new Point(unchecked((short)coordinates), unchecked((short)(coordinates >> 16)));
+                IntPtr header = Win32ListViewAPI.SendMessage(Handle, Win32ListViewAPI.LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
+                if (header != IntPtr.Zero && Win32ListViewAPI.WindowFromPoint(screenPoint) == header)
+                {
+                    Point headerPoint = screenPoint;
+                    if (!Win32ListViewAPI.ScreenToClient(header, ref headerPoint))
+                        throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+                    var hit = new Win32ListViewAPI.HDHITTESTINFO { pt = headerPoint };
+                    int index = Win32ListViewAPI.SendMessage(header, Win32ListViewAPI.HDM_HITTEST, IntPtr.Zero, ref hit).ToInt32();
+                    ShowHeaderMenu(index >= 0 && index < Columns.Count ? Columns[index] : null, screenPoint);
+                    m.Result = IntPtr.Zero;
+                    return;
+                }
+            }
+            base.WndProc(ref m);
+        }
 
         #region BatchedUpdates
         // For performance reasons, we want to coalesce additions, removals, and selection-state
@@ -88,50 +145,6 @@ namespace Clearinet
                 timer_AddPending.Interval = (int)value;
             }
         }
-
-        /// <summary>
-        /// List of ListViewItem/Exchanges that should be added on the next tick of timer_addPending.
-        /// </summary>
-        private readonly List<ListViewItem> qPendingLVI = new List<ListViewItem>();
-
-
-        /// <summary>
-        /// Queues and item for addition to the list on the next update.
-        /// </summary>
-        /// <param name="lvi"></param>
-        internal void EnqueueItem(ListViewItem lvi)
-        {
-            lock (qPendingLVI)
-            {
-                qPendingLVI.Add(lvi);
-                timer_AddPending.Enabled = true;
-            }
-        }
-
-        internal void FlushPending()
-        {
-            timer_AddPendingTick(null, null);
-        }
-        #endregion BatchedUpdates
-
-        public ExchangeListView()
-        {
-            sorter = new LVCSorter()
-            {
-                SortType = ColumnSortType.Numeric,
-                Order = SortOrder.Ascending,
-            };
-            this.ListViewItemSorter = sorter;
-            this.ItemDrag += ExchangeListView_ItemDrag;
-            this.MouseClick += ExchangeListView_MouseClick;
-            timer_AddPending = new Timer()
-            {
-                Interval = 80,      // Overridden elsewhere
-                Enabled = false
-            };
-            timer_AddPending.Tick += timer_AddPendingTick;
-        }
-
         private void timer_AddPendingTick(object sender, EventArgs e)
         {
             if (CApp.isClosing) return;
@@ -168,9 +181,29 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// This event fires when one or more Exchanges is visibly added to the control.
+        /// List of ListViewItem/Exchanges that should be added on the next tick of timer_addPending.
         /// </summary>
-        public Action OnExchangesAdded;
+        private readonly List<ListViewItem> qPendingLVI = new List<ListViewItem>();
+
+
+        /// <summary>
+        /// Queues an item for addition to the list on the next update.
+        /// </summary>
+        /// <param name="lvi"></param>
+        internal void EnqueueItem(ListViewItem lvi)
+        {
+            lock (qPendingLVI)
+            {
+                qPendingLVI.Add(lvi);
+                timer_AddPending.Enabled = true;
+            }
+        }
+
+        internal void FlushPending()
+        {
+            timer_AddPendingTick(null, null);
+        }
+        #endregion BatchedUpdates
 
         private void ScheduleTrimIfNeeded()
         {
@@ -199,29 +232,6 @@ namespace Clearinet
 
         private ContextMenuStrip headerMenu;
         private Font headerMenuFont;
-
-
-        protected override void WndProc(ref Message m)
-        {
-            if (m.Msg == 0x007B /* WM_CONTEXTMENU */ && m.LParam != new IntPtr(-1) && View == View.Details)
-            {
-                long coordinates = m.LParam.ToInt64();
-                Point screenPoint = new Point(unchecked((short)coordinates), unchecked((short)(coordinates >> 16)));
-                IntPtr header = Win32ListViewAPI.SendMessage(Handle, Win32ListViewAPI.LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
-                if (header != IntPtr.Zero && Win32ListViewAPI.WindowFromPoint(screenPoint) == header)
-                {
-                    Point headerPoint = screenPoint;
-                    if (!Win32ListViewAPI.ScreenToClient(header, ref headerPoint))
-                        throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
-                    var hit = new Win32ListViewAPI.HDHITTESTINFO { pt = headerPoint };
-                    int index = Win32ListViewAPI.SendMessage(header, Win32ListViewAPI.HDM_HITTEST, IntPtr.Zero, ref hit).ToInt32();
-                    ShowHeaderMenu(index >= 0 && index < Columns.Count ? Columns[index] : null, screenPoint);
-                    m.Result = IntPtr.Zero;
-                    return;
-                }
-            }
-            base.WndProc(ref m);
-        }
 
         private void ShowHeaderMenu(ColumnHeader column, Point screenPoint)
         {
@@ -316,17 +326,6 @@ namespace Clearinet
             CApp.UI.SetStatusText($"Flagged {duplicates.Count} Exchanges with duplicate '{column.Text}' values.");
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                headerMenu?.Dispose();
-                headerMenuFont?.Dispose();
-                timer_AddPending?.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         // lvi may be null, ixColumn may be -1 if no column was hit.
         public (ListViewItem lvi, int ixColumn) GetItemAndColumnAt(Point pt)
         {
@@ -384,7 +383,6 @@ namespace Clearinet
 
         /// <summary>
         /// Gets all of the *visible* Exchanges.
-        ///  TODO: Should this include pending Exchanges? If so, we need to lock qPendingLVI and add those too.
         /// </summary>
         public Exchange[] GetAllVisibleExchanges()
         {
@@ -406,6 +404,18 @@ namespace Clearinet
                 arrExchanges[ix] = SelectedItems[ix].Tag as Exchange;
             }
             return arrExchanges;
+        }
+        public ListViewItem[] UnselectedItems
+        {
+            get
+            {
+                var result = new List<ListViewItem>(Items.Count - SelectedCount);
+                foreach (ListViewItem item in Items)
+                {
+                    if (!item.Selected) result.Add(item);
+                }
+                return result.ToArray();
+            }
         }
 
         /// <summary>
@@ -464,6 +474,9 @@ namespace Clearinet
             // Initiate drag
             DoDragDrop(dragData, DragDropEffects.Copy);
         }
+
+        #region ColumnSorting
+        private readonly LVCSorter sorter;
 
         protected override void OnColumnClick(ColumnClickEventArgs e)
         {
@@ -525,22 +538,7 @@ namespace Clearinet
                 Win32ListViewAPI.SendMessage(hHeader, Win32ListViewAPI.HDM_SETITEM, new IntPtr(i), ref item);
             }
         }
-
-        WeakReference wrActiveItem;
-        WeakReference wrPreviousActiveItem;
-
-        public ListViewItem[] UnselectedItems
-        {
-            get
-            {
-                var result = new List<ListViewItem>(Items.Count - SelectedCount);
-                foreach (ListViewItem item in Items)
-                {
-                    if (!item.Selected) result.Add(item);
-                }
-                return result.ToArray();
-            }
-        }
+        #endregion ColumnSorting
 
         internal void SelectAll()
         {
@@ -549,7 +547,10 @@ namespace Clearinet
             EndUpdate();
         }
 
-        // TODO: Do we need to override Clear() instead?
+        /// <summary>
+        /// Note: Call this instead of ListView.Items.Clear.
+        /// Don't ever call ListView.Clear, as that wipes the columns too.
+        /// </summary>
         internal void ClearExchanges()
         {
             BeginUpdate();
@@ -561,6 +562,9 @@ namespace Clearinet
             base.OnSelectedIndexChanged(EventArgs.Empty);
         }
 
+        #region BackForwardButtonSupport
+        WeakReference wrActiveItem;
+        WeakReference wrPreviousActiveItem;
         internal void UpdateActiveItem()
         {
             wrPreviousActiveItem = wrActiveItem;
@@ -590,6 +594,9 @@ namespace Clearinet
             SelectedItems.Clear();
             oLVI.Selected = oLVI.Focused = true;
         }
+        #endregion BackForwardButtonSupport
+
+        #region UndeleteSupport
 
         internal bool CanUndelete()
         {
@@ -638,6 +645,7 @@ namespace Clearinet
                 CApp.ReportException(eX, "Failed to undelete Exchanges");
             }
         }
+        #endregion UndeleteSupport
 
         internal void RemoveSelected()
         {
@@ -646,7 +654,7 @@ namespace Clearinet
 
             RestorePriorActiveItem();
 
-            // Perf optimization.
+            // Are we deleting everything?
             if (cSelected == Items.Count)
             {
                 ClearExchanges();
@@ -656,8 +664,10 @@ namespace Clearinet
 
             BeginUpdate();
 
-            // TODO PERF: If ItemCount > 1000 and cSelected > 12 or so, get the list of
-            // SelectedIndicies and delete them downward.
+            // TODO PERF: The deletion algorithm in the ListView is historically poor.
+            // If we're deleting more than a handful and ItemCount > 1000, we might
+            // improve performance by getting the SelectedIndicies and removing them
+            // in descending order.
 
             // For small numbers of items, just remove.
             foreach (ListViewItem lvi in SelectedItems)
