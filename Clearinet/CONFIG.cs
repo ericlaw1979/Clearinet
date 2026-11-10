@@ -20,7 +20,9 @@ namespace Clearinet
     public static class CONFIG
     {
         internal static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
-        internal static readonly Color COLOR_DATA_RESPONSE = Color.DeepSkyBlue; // Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");
+        internal static readonly Color COLOR_DARK_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#0A252C");
+        internal static Color COLOR_DATA_RESPONSE = Color.DeepSkyBlue; // Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");
+        internal static Color colorNoResultsFound = Color.Red;
         internal static Color COLOR_DEFAULT_EXCHANGE = Color.Blue;
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
@@ -89,6 +91,10 @@ namespace Clearinet
         /// Color for disabled editors app UI.
         /// </summary>
         public static Color colorDisabledEdit = COLOR_DEFAULT_DISABLEDEDIT;
+        public static Color colorDisabledEditForeColor = Color.FromKnownColor(KnownColor.ControlText);
+
+        public static Color colorEdit = SystemColors.Window;
+
         public static Color colorHighlight = Color.Yellow;
 
         internal static PreferenceBag pbPrefs

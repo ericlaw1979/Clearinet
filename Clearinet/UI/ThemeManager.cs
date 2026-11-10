@@ -1,9 +1,24 @@
 ﻿using Clearinet;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
 public static class ThemeManager
 {
+    public static Color GetContrastingTextColor(Color background)
+    {
+        double Linearize(byte channel)
+        {
+            double value = channel / 255.0;
+            return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
+        }
+
+        double luminance = 0.2126 * Linearize(background.R) + 0.7152 * Linearize(background.G) + 0.0722 * Linearize(background.B);
+        double blackContrast = (luminance + 0.05) / 0.05;
+        double whiteContrast = 1.05 / (luminance + 0.05);
+        return blackContrast >= whiteContrast ? Color.Black : Color.White;
+    }
+
     public class DarkColorTable : ProfessionalColorTable
     {
         public override Color MenuBorder => Color.FromArgb(64, 64, 64);
@@ -44,7 +59,7 @@ public static class ThemeManager
             }
         };
     }
-    private static void SetDarkModeContextMenu(ContextMenuStrip menuStrip)
+    internal static void SetDarkModeContextMenu(ContextMenuStrip menuStrip)
     {
         if (menuStrip == null) return;
         menuStrip.Renderer = new ToolStripProfessionalRenderer(new DarkColorTable());
@@ -73,7 +88,7 @@ public static class ThemeManager
     public static readonly Color DarkBackground = Color.FromArgb(32, 32, 32);
     public static readonly Color DarkSurface = Color.FromArgb(45, 45, 48);
     public static readonly Color DarkText = Color.FromArgb(240, 240, 240);
-    public static readonly Color DarkDisabledEdit = Color.FromArgb(39, 72, 97);
+    public static readonly Color DarkDisabledEdit = CONFIG.COLOR_DARK_DEFAULT_DISABLEDEDIT;
 
     public static void SetAppToDarkMode()
     {
@@ -100,6 +115,8 @@ public static class ThemeManager
 
         // HACKERY. 
         CONFIG.colorDisabledEdit = DarkDisabledEdit; // TODO: Allow user to override.
+        CONFIG.colorDisabledEditForeColor = Color.White;
+        CONFIG.colorEdit = DarkBackground;
         CONFIG.COLOR_DEFAULT_EXCHANGE = Color.FromArgb(247, 254, 160); // TODO: Allow user to override.
 
         // Enable dark mode for a specific HWND (e.g., your Form or Control handle)

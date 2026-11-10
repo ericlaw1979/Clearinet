@@ -270,6 +270,7 @@ namespace Clearinet
                     dlg.ShowDialog(FindForm());
                 }
             });
+            if (CONFIG.isDarkMode) ThemeManager.SetDarkModeContextMenu(headerMenu);
             headerMenu.Show(screenPoint);
         }
 

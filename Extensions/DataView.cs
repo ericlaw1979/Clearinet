@@ -26,7 +26,7 @@ namespace Extensions
 
         public DataView()
         {
-            tree = new BetterTreeView { Dock = DockStyle.Fill, HideSelection = false, BackColor = CONFIG.colorDisabledEdit };
+            tree = new BetterTreeView { Dock = DockStyle.Fill, HideSelection = false, BackColor = CONFIG.colorDisabledEdit, ForeColor = CONFIG.colorDisabledEditForeColor };
             contextMenu = new ContextMenuStrip();
             var copy = new ToolStripMenuItem("&Copy");
             var copySubtree = new ToolStripMenuItem("Copy &Subtree");

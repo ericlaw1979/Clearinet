@@ -12,6 +12,7 @@ namespace Clearinet.UI
             XC = xc;
             InitializeComponent();
             rtbProperties.BackColor = CONFIG.colorDisabledEdit;
+            rtbProperties.ForeColor = CONFIG.colorDisabledEditForeColor;
             rtbProperties.Text = Summarize();
             frmViewer.doPopulateInspectorTabs(tabsInspectRequest, tabsInspectResponse, "NewWindow");
             this.Text = $"{Text}{XC.id} - {XC.fullUrl}";

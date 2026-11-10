@@ -62,6 +62,7 @@ namespace Extensions
             Controls.Add(previewPanel);
             //Controls.Add(notice);
             BackColor = CONFIG.colorDisabledEdit;
+            ForeColor = CONFIG.colorDisabledEditForeColor;
         }
 
         internal void Assign(HTTPResponseHeaders headers, byte[] body)

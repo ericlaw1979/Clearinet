@@ -28,8 +28,8 @@ namespace Extensions
             {
                 _readonly = value;
                 txtFirstLine.ReadOnly = _readonly;
-                txtFirstLine.BackColor = _readonly ? CONFIG.colorDisabledEdit : SystemColors.Window;
-                tvNVP.BackColor = _readonly ? CONFIG.colorDisabledEdit : SystemColors.Window;
+                txtFirstLine.BackColor = _readonly ? CONFIG.colorDisabledEdit : CONFIG.colorEdit;
+                tvNVP.BackColor = _readonly ? CONFIG.colorDisabledEdit : CONFIG.colorEdit;
             }
         }
         public HeaderView(InspectorBase owner)
@@ -38,7 +38,38 @@ namespace Extensions
             Mode = (owner is RequestInspectorBase) ? HeaderViewMode.Request : HeaderViewMode.Response;
             InitializeComponent();
             tvNVP.BackColor = txtFirstLine.BackColor = CONFIG.colorDisabledEdit;
+            tvNVP.ForeColor = txtFirstLine.ForeColor = CONFIG.colorDisabledEditForeColor;
             txtFirstLine.TextChanged += (sender, e) => HasChanges = true;
+            if (Mode == HeaderViewMode.Request)
+            {
+                txtFirstLine.Enter += txtFirstLine_Enter;
+                txtFirstLine.Leave += txtFirstLine_Leave;
+            }
+        }
+
+        private void txtFirstLine_Leave(object sender, EventArgs e)
+        {
+            if (!txtFirstLine.Multiline) return;
+
+            // ISSUE: Simply removing the multi-line behavior recreates the control which can
+            // lose the text. So for now, let's just shrink it back to a single line height and disable wordwrap.
+            txtFirstLine.WordWrap = txtFirstLine.Multiline = false;
+
+            txtFirstLine.Height = txtFirstLine.Font.Height + 4; // Reset to single line height
+            // Remove any selection and go to the start.
+            txtFirstLine.SelectionStart = txtFirstLine.SelectionLength = 0;
+        }
+
+        private void txtFirstLine_Enter(object sender, EventArgs e)
+        {
+            if (txtFirstLine.TextLength > 72)
+            {
+                if (CApp.Prefs.GetBoolPref("inspectors.headers.AutoSizeRequestLine", true))
+                {
+                    txtFirstLine.WordWrap = txtFirstLine.Multiline = true;
+                    txtFirstLine.Height = (txtFirstLine.Font.Height + 4) * 3; // TODO: Instead grow this to the correct length.
+                }
+            }
         }
 
         /// <summary>

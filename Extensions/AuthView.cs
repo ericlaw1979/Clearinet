@@ -57,6 +57,7 @@ namespace Extensions
                 ScrollBars = ScrollBars.Both,
                 WordWrap = false,
                 BackColor = CONFIG.colorDisabledEdit,
+                ForeColor = CONFIG.colorDisabledEditForeColor,
                 BorderStyle = BorderStyle.FixedSingle,
             };
             Controls.Add(txtAuth);

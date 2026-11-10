@@ -16,6 +16,7 @@ namespace Extensions
             rtbRaw.Font = new Font("Lucida Console", CONFIG.flFontSize);
 
             rtbRaw.BackColor = CONFIG.colorDisabledEdit;
+            rtbRaw.ForeColor = CONFIG.colorDisabledEditForeColor;
 
             Win32UI.SetCueText(txtFind, " Find... (Ctrl+Enter to highlight all)");
         }

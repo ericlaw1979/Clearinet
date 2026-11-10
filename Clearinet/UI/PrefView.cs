@@ -238,6 +238,9 @@ namespace Clearinet.UI
             txtSearch.BackColor = System.Drawing.SystemColors.Window;
             if (txtSearch.Text.Length == 0 || txtSearch.Text.OICEquals("EXACT:")) return;
 
+            // TODO: It's a /little/ ridiculous that we end up doing the search twice
+            // to update the search status and then to highlight the cells. But this isn't
+            // likely to be a meaningful performance issue so we'll leave it like this.
             foreach (DataGridViewRow row in dgvPrefs.Rows)
             {
                 foreach (DataGridViewCell cell in row.Cells)
@@ -245,7 +248,9 @@ namespace Clearinet.UI
                     if (IsSearchMatch(cell.Value)) return;
                 }
             }
-            txtSearch.BackColor = System.Drawing.Color.Red;
+
+            // No results found.
+            txtSearch.BackColor = CONFIG.colorNoResultsFound;
         }
 
         private void txtSearch_TextChanged(object sender, EventArgs e)

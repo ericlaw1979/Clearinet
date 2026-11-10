@@ -682,6 +682,7 @@ namespace Clearinet
             this.miEditUnlock.ShortcutKeys = System.Windows.Forms.Keys.F2;
             this.miEditUnlock.Size = new System.Drawing.Size(208, 22);
             this.miEditUnlock.Text = "Unlock for &Editing";
+            this.miEditUnlock.Click += new System.EventHandler(this.miEditUnlock_Click);
             // 
             // miEditMark
             // 
@@ -1803,6 +1804,7 @@ namespace Clearinet
 
         }
 
+        // ISSUE: For reasons unknown, the Designer keeps detaching this.
         private void miEditUnlock_Click(object sender, EventArgs e)
         {
             Exchange xc = GetFirstSelectedExchange();

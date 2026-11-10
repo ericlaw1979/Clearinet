@@ -415,6 +415,7 @@ namespace Clearinet
             txtInput.Font = new Font(txtInput.Font.FontFamily, CONFIG.flFontSize);
             txtOutput.Font = new Font(txtOutput.Font.FontFamily, CONFIG.flFontSize);
             txtOutput.BackColor = CONFIG.colorDisabledEdit;
+            txtOutput.ForeColor = CONFIG.colorDisabledEditForeColor;
             cbxTransforms.Items.AddRange(CApp.scriptRules.AvailableTextCodecs());
 
             try

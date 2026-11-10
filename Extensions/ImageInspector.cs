@@ -22,13 +22,14 @@ namespace Extensions
             o.Controls.Add(oView);
             oView.Dock = DockStyle.Fill;
             oView.txtMetadata.BackColor = oView.pbImage.BackColor = CONFIG.colorDisabledEdit;
+            oView.txtMetadata.ForeColor = CONFIG.colorDisabledEditForeColor;
             oView.pbImage.MouseUp += PbImage_MouseUp;
         }
 
         private void DumpImageToDesktop()
         {
             // TODO: Keep original format
-            oView.txtMetadata.BackColor = Color.Cyan;
+            oView.txtMetadata.BackColor = Color.Cyan;  // Flash background
             oView.txtMetadata.Refresh();
 
             var oMS = new MemoryStream();
@@ -36,7 +37,7 @@ namespace Extensions
             string sFilename = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + Path.DirectorySeparatorChar +
                 $"{DateTime.Now:H-mm-ss}.png";
             File.WriteAllBytes(sFilename, oMS.ToArray());
-            oView.txtMetadata.BackColor = CONFIG.colorDisabledEdit;
+            oView.txtMetadata.BackColor = CONFIG.colorDisabledEdit; // Unflash background
             oView.txtMetadata.Refresh();
             CApp.UI.SetStatusText($"Dumped image to {sFilename}");
         }

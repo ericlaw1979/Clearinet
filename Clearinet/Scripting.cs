@@ -730,6 +730,7 @@ namespace Clearinet
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 BackColor = CONFIG.colorDisabledEdit,
+                ForeColor = CONFIG.colorDisabledEditForeColor,
                 BorderStyle = BorderStyle.None,
                 WordWrap = !(b._sOptions?.OICContains("<nowrap>") == true)
             };

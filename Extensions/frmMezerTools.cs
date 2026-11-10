@@ -196,21 +196,7 @@ namespace Extensions
             colorInputErrors.SetError(txtColorHex, string.Empty);
             txtColorRGB.Text = $"R:{color.R},G:{color.G},B:{color.B}";
             txtColorHex.BackColor = txtColorRGB.BackColor = color;
-            txtColorHex.ForeColor = txtColorRGB.ForeColor = GetContrastingTextColor(color);
-        }
-
-        private static Color GetContrastingTextColor(Color background)
-        {
-            double Linearize(byte channel)
-            {
-                double value = channel / 255.0;
-                return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
-            }
-
-            double luminance = 0.2126 * Linearize(background.R) + 0.7152 * Linearize(background.G) + 0.0722 * Linearize(background.B);
-            double blackContrast = (luminance + 0.05) / 0.05;
-            double whiteContrast = 1.05 / (luminance + 0.05);
-            return blackContrast >= whiteContrast ? Color.Black : Color.White;
+            txtColorHex.ForeColor = txtColorRGB.ForeColor = ThemeManager.GetContrastingTextColor(color);
         }
 
 

@@ -20,6 +20,8 @@ namespace Clearinet
             acscRequestHeaderNames.AddRange(sPopularRequestHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
             acscResponseHeaderNames.AddRange(sPopularResponseHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
             acscExchangeFlags.AddRange(sPopularExchangeFlags.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
+
+            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
 
         private void frmELVAddColumn_Shown(object sender, System.EventArgs e)

@@ -27,6 +27,7 @@ namespace Extensions
                 txtName.AutoCompleteCustomSource.AddRange(sPopularResponseHeaders.Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries));
             }
             // TODO: Set icon to something reasonable
+            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
 
         public bool IsReadonly

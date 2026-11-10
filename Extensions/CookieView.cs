@@ -26,6 +26,7 @@ namespace Extensions
                 WordWrap = false,
                 HideSelection = false,
                 BackColor = CONFIG.colorDisabledEdit,
+                ForeColor = CONFIG.colorDisabledEditForeColor,
                 AccessibleName = "Cookies",
                 BorderStyle = BorderStyle.FixedSingle
             };
