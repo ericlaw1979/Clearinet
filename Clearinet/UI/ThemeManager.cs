@@ -77,8 +77,15 @@ public static class ThemeManager
 
     public static void SetAppToDarkMode()
     {
+        // This doesn't seem to do a whole lot, but it ~does~ at least set the
+        // system menu (hit Alt+Space) to dark mode.
+        //
         Win32UI.SetPreferredAppMode(Win32UI.PreferredAppMode.ForceDark);
         Win32UI.FlushMenuThemes();
+
+        // Interestingly, Common File Dialogs seem to inherit the system's dark mode
+        // setting, regardless of what we do here. Meanwhile, common controls like ListView, TreeView, etc.
+        // do not inherit the system's dark mode setting and don't expose any straightforward way to respect it.
     }
 
     public static void ApplyDarkMode(Form frm)
@@ -91,7 +98,9 @@ public static class ThemeManager
         Win32UI.AllowDarkModeForWindow(frm.Handle, true);
         Win32UI.SetDWMWA_USE_IMMERSIVE_DARK_MODE(frm.Handle);
 
+        // HACKERY. 
         CONFIG.colorDisabledEdit = DarkDisabledEdit; // TODO: Allow user to override.
+        CONFIG.COLOR_DEFAULT_EXCHANGE = Color.FromArgb(247, 254, 160); // TODO: Allow user to override.
 
         // Enable dark mode for a specific HWND (e.g., your Form or Control handle)
         SetDarkModeMenu(CApp.UI.MainMenuStrip);

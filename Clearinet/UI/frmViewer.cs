@@ -749,7 +749,11 @@ namespace Clearinet
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
-            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
+            if (CONFIG.isDarkMode)
+            {
+                ThemeManager.SetAppToDarkMode();
+                ThemeManager.ApplyDarkMode(this);
+            }
         }
 
         private void frmViewer_Load(object sender, EventArgs e)

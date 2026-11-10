@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Clearinet
@@ -10,6 +11,9 @@ namespace Clearinet
         internal frmSplashScreen()
         {
             InitializeComponent();
+            // TODO: Need to do something for DarkMode.
+            Region = Region.FromHrgn(PlatformAPI.CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
+
         }
         protected override CreateParams CreateParams
         {
@@ -32,9 +36,10 @@ namespace Clearinet
                     _Instance.Show();
                     Label lblVer = new Label()
                     {
+                        Parent = _Instance.pbSplash,
                         AutoSize = true,
-                        BackColor = System.Drawing.Color.Transparent,
-                        ForeColor = System.Drawing.Color.LimeGreen,
+                        BackColor = System.Drawing.Color.White,
+                        ForeColor = System.Drawing.Color.DarkSlateGray,
                         Font = new System.Drawing.Font("Tahoma", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point),
                         Text = $"v{Application.ProductVersion}",
                     };
