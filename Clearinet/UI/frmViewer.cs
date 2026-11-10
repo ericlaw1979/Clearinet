@@ -140,6 +140,14 @@ namespace Clearinet
         {
             return Win32UI.activateTitledTab(sTabTitle, tabsViews);
         }
+        public bool ActivateRequestInspector(string sTabTitle)
+        {
+            return Win32UI.activateTitledTab(sTabTitle, tabsRequest);
+        }
+        public bool ActivateResponseInspector(string sTabTitle)
+        {
+            return Win32UI.activateTitledTab(sTabTitle, tabsResponse);
+        }
 
         // Script-friendly shim: accepts a JScript.NET function object. This
         // is messy because JScript.NET doesn't support generics or mapping to delegates,

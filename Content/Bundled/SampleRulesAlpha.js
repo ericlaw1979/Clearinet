@@ -294,6 +294,12 @@ class Handlers
             case "sesame":
                 CApp.UI.SetStatusText("Now allowing close");
                 bCanClose = true;
+                return true;
+
+            case "tabs":
+                CApp.UI.ActivateRequestInspector("Headers");
+                CApp.UI.ActivateResponseInspector("Hex");
+                CApp.UI.actActivateTab("Inspectors");
             return true;
 
             case "ver":
