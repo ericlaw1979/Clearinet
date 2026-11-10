@@ -107,9 +107,34 @@ namespace Clearinet
             // Dragging anywhere on the SplashScreen picturebox will move the form.
             if (e.Button == MouseButtons.Left)
             {
+                this.Activate();
                 ReleaseCapture();
                 SendMessage(this.Handle, WM_NCLBUTTONDOWN, (IntPtr)HTCAPTION, IntPtr.Zero);
             }
         }
+        /*
+        // TODO: Form drag seems a little flaky -- like if the form didn't have focus, I gotta click twice. 
+        // hrmph. But the code below doesn't seem to help that.
+        private const int WM_MOUSEACTIVATE = 0x0021;
+        private const int MA_ACTIVATE = 1;
+        private const int WM_NCHITTEST = 0x84;
+        private const int HTCLIENT = 0x1;
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_MOUSEACTIVATE)
+            {
+                Trace.WriteLine("Mouse activated splash screen.");
+                m.Result = (IntPtr)MA_ACTIVATE;
+                return;
+            }
+
+            base.WndProc(ref m);
+
+            if (m.Msg == WM_NCHITTEST)
+            {
+                m.Result = (IntPtr)HTCAPTION;
+            }
+        }*/
     }
 }
