@@ -37,30 +37,43 @@ namespace Clearinet
         {
             if (_Instance != null) return;
 
+            // Use a ManualResetEventSlim to signal when the SplashScreen is ready, otherwise
+            // we could be trying to set the status text before the form is created.
+            ManualResetEventSlim mresWaitForReady = new ManualResetEventSlim(false);
+
             // Create a new thread dedicated to running the second form
             Thread threadSplashUI = new Thread(() =>
             {
-                // Create the form instance on this specific thread
-                _Instance = new frmSplashScreen();
-                if (!CONFIG.isQuietMode)
+                try
                 {
-                    //_Instance.Show();
-                    Label lblVer = new Label()
+                    // Create the form instance on this specific thread
+                    _Instance = new frmSplashScreen();
+                    if (!CONFIG.isQuietMode)
                     {
-                        Parent = _Instance.pbSplash,
-                        AutoSize = true,
-                        BackColor = System.Drawing.Color.White,
-                        ForeColor = System.Drawing.Color.DarkSlateGray,
-                        Font = new System.Drawing.Font("Tahoma", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point),
-                        Text = $"v{Application.ProductVersion}",
-                    };
-                    _Instance.Text = "Starting Clearinet...";
-                    _Instance.Controls.Add(lblVer);
-                    lblVer.Location = new System.Drawing.Point(_Instance.Width - lblVer.Width - 5, 5);
-                    lblVer.BringToFront();
+                        //_Instance.Show();
+                        Label lblVer = new Label()
+                        {
+                            Parent = _Instance.pbSplash,
+                            AutoSize = true,
+                            BackColor = System.Drawing.Color.White,
+                            ForeColor = System.Drawing.Color.DarkSlateGray,
+                            Font = new System.Drawing.Font("Tahoma", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point),
+                            Text = $"v{Application.ProductVersion}",
+                        };
+                        _Instance.Text = "Starting Clearinet...";
+                        _Instance.Controls.Add(lblVer);
+                        lblVer.Location = new System.Drawing.Point(_Instance.Width - lblVer.Width - 5, 5);
+                        lblVer.BringToFront();
+                    }
                 }
-
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error creating splash screen: {ex}");
+                    mresWaitForReady.Set();
+                    return;
+                }
                 // Start a completely independent message loop for this form
+                mresWaitForReady.Set();
                 Application.Run(_Instance);
             });
 
@@ -69,6 +82,7 @@ namespace Clearinet
             threadSplashUI.IsBackground = true; // Don't block process exit.
             // Start the thread
             threadSplashUI.Start();
+            mresWaitForReady.Wait(); // Wait for the SplashScreen to be ready.
         }
 
         internal static void CloseSplashScreen()
