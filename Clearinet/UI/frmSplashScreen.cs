@@ -13,9 +13,9 @@ namespace Clearinet
         internal frmSplashScreen()
         {
             InitializeComponent();
-            // TODO: Need to do something for DarkMode, as the white background is a /lot/.
             Region = Region.FromHrgn(PlatformAPI.CreateRoundRectRgn(0, 0, Width, Height, 25, 25));
-
+            // TODO: Need to do something for DarkMode, as the white background is a /lot/.
+            this.Opacity = 0.90;
         }
 
         protected override CreateParams CreateParams
@@ -66,6 +66,7 @@ namespace Clearinet
 
             // CRITICAL: WinForms UI threads must be STA
             threadSplashUI.SetApartmentState(ApartmentState.STA);
+            threadSplashUI.IsBackground = true; // Don't block process exit.
             // Start the thread
             threadSplashUI.Start();
         }
