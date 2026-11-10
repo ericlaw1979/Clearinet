@@ -177,6 +177,7 @@ namespace Clearinet
         {
             base.OnHandleCreated(e);
             SetCueText();
+            Win32UI.SetHorizontalPadding(this, 5, 5);
         }
         private void SetCueText()
         {

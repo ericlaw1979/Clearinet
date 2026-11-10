@@ -149,6 +149,20 @@ namespace Clearinet
             return null;
         }
 
+
+        private const int EM_SETMARGINS = 0xD3;
+        private const int EC_LEFTMARGIN = 0x1;
+        private const int EC_RIGHTMARGIN = 0x2;
+
+        public static void SetHorizontalPadding(TextBox textBox, int left, int right)
+        {
+            // Combine left and right margins into a single 32-bit integer (low word = left, high word = right)
+            IntPtr lparam = (IntPtr)((right << 16) | (left & 0xFFFF));
+            IntPtr wparam = (IntPtr)(EC_LEFTMARGIN | EC_RIGHTMARGIN);
+
+            SendMessage(textBox.Handle, EM_SETMARGINS, wparam, lparam);
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct SCROLLINFO
         {
