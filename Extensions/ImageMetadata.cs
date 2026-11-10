@@ -81,7 +81,9 @@ namespace Extensions
             foreach (string detail in result.details) text.Append(detail).Append("\r\n");
             if (result.comments.Count != 0 || result.commentsTruncated)
             {
-                text.Append("Comments (first 1 KB):\r\n").Append(string.Join("\r\n", result.comments));
+                text.Append("Comments");
+                if (result.commentsTruncated) text.Append(" (first 1 KB)");
+                text.Append(":\r\n").Append(string.Join("\r\n", result.comments));
                 if (result.commentsTruncated) text.Append("...");
                 text.Append("\r\n");
             }
