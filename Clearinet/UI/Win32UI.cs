@@ -56,8 +56,8 @@ namespace Clearinet
 
             if (headerHandle != IntPtr.Zero)
             {
-
-                SetWindowTheme(headerHandle, "DarkMode_Explorer", "");
+                // Doing this actually *breaks* dark mode. That's weird af. 
+                // SetWindowTheme(headerHandle, "DarkMode_Explorer", "");
             }
         }
 

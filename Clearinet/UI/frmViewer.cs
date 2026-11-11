@@ -761,6 +761,22 @@ namespace Clearinet
             {
                 ThemeManager.SetAppToDarkMode();
                 ThemeManager.ApplyDarkMode(this);
+
+                // HACKERY: The ComCtrl32 library only renders the tab headers in dark mode
+                // if the TabControl's Appearance is set to Normal. If it's set to Buttons,
+                // the headers are always light. So we'll just show regular tabs in this case.
+                tabsRequest.Appearance = TabAppearance.Normal;
+                tabsResponse.Appearance = TabAppearance.Normal;
+
+                // Setting the column headers to "Nonclickable" makes them render in dark mode,
+                // but it also disables sorting. We can probably fix this by handling the message
+                // ourselves in the wndproc, but for now we'll just leave it alone.
+                //
+                // You'd think this would cause the headers to render in Dark Mode, but it actually
+                // does the opposite. 
+                // SetWindowTheme(headerHandle, "DarkMode_Explorer", "");
+                //
+                // lvExchanges.HeaderStyle = ColumnHeaderStyle.Nonclickable;
             }
         }
 
