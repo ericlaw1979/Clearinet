@@ -70,7 +70,7 @@ namespace Clearinet
                 if ((origin != null) && origin.Contains(":"))
                 {
                     rqh.UriScheme = origin.TrimAfter(":");
-                    if (!rqh.Exists("Host"))
+                    //if (!rqh.Exists("Host"))              // TODO: Offer some way to force a host?
                     {
                         rqh["Host"] = origin.TrimBefore("://");
                         bHeadersFixed = true;
@@ -184,6 +184,10 @@ namespace Clearinet
             bool bVerbAllowsBody = cbxMethod.Text.OICEqualsAny("POST", "PUT", "PATCH", "QUERY", "DELETE", "OPTIONS");
             txtBody.BackColor = bVerbAllowsBody ? SystemColors.Window : SystemColors.ControlLight;
             // TODO: Go red for TRACE and CONNECT?
+        }
+        private void cbxMethod_Leave(object sender, EventArgs e)
+        {
+            cbxMethod.Select(0, 0);
         }
     }
 }

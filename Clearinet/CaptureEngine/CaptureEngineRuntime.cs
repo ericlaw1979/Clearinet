@@ -1378,6 +1378,8 @@ namespace Clearinet.CaptureEngine
         /// </summary>
         private async Task CreateReflectorPage(Exchange xc, Stream stream, CancellationToken token)
         {
+            xc.SetBitFlag(ExchangeFlags.ResponseGeneratedByClearinet);
+
             if (xc.urlContains("ClearinetRoot.cer"))
             {
                 var cert = _certificateProvider.GetRootCertificate();

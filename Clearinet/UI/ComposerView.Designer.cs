@@ -1,4 +1,6 @@
-﻿namespace Clearinet
+﻿using System;
+
+namespace Clearinet
 {
     partial class ComposerView
     {
@@ -58,6 +60,7 @@
             this.cbxMethod.Size = new System.Drawing.Size(119, 24);
             this.cbxMethod.TabIndex = 4;
             this.cbxMethod.TextChanged += new System.EventHandler(this.cbxMethod_TextChanged);
+            this.cbxMethod.Leave += new System.EventHandler(this.cbxMethod_Leave);
             // 
             // cbxHTTPVersion
             // 
@@ -168,7 +171,6 @@
             this.PerformLayout();
 
         }
-
         #endregion
 
         internal System.Windows.Forms.ComboBox cbxMethod;
