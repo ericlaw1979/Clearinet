@@ -83,7 +83,7 @@ namespace Clearinet.CaptureEngine
 
     internal sealed class TcpCaptureEngineListener : ICaptureEngineListener
     {
-        private const int MaxHeaderBytes = 64 * 1024;
+        private const int MaxHeaderBytes = 64 * 1024;                   // TODO: Configurable max.
 
         private readonly CaptureEngineOptions _options;
         private readonly MapSocketToProcess _mapper;
@@ -143,7 +143,7 @@ namespace Clearinet.CaptureEngine
                 {
                     _cts.Cancel();
                     _listener.Stop();
-                    _acceptLoop?.Wait(TimeSpan.FromSeconds(2));
+                    _acceptLoop?.Wait(TimeSpan.FromSeconds(2));             // TODO: Configurable timeout. 
                     if (_socketPoolJanitorGig != null)
                     {
                         CApp.gwHoneyDew.cancelGig(_socketPoolJanitorGig);
@@ -249,18 +249,18 @@ namespace Clearinet.CaptureEngine
                             };
                             exchange = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
                             context.Exchange = exchange;
-                            PublishExchange(exchange);
+                            UpdateUIForExchange(exchange);
 
-                            if (ShouldReturnYetImplemented(exchange))
+                            if (ExchangeTargetsReflector(exchange))
                             {
-                                await SendNotYetImplementedAsync(clientPipe.Stream, token).ConfigureAwait(false);
+                                await WriteReflectorPage(exchange, clientPipe.Stream, token).ConfigureAwait(false);
                                 return;
                             }
 
                             if (exchange.HTTPMethodIs("CONNECT"))
                             {
                                 Stream tunnelStream = clientPipe.Reader.DetachUnreadStream();
-                                if (ShouldDecryptConnectTunnel(exchange))
+                                if (ShouldDecryptTunnel(exchange))
                                 {
                                     exchange["x-connect-decrypt-eligible"] = "true";
                                     await HandleMitmConnectTunnelAsync(exchange, client, tunnelStream, clientPipe, token).ConfigureAwait(false);
@@ -352,7 +352,7 @@ namespace Clearinet.CaptureEngine
                     clientBody, token).ConfigureAwait(false);
                 exchange.Timers.ClientDoneResponse = DateTime.Now;
                 exchange.state = ExchangeState.Done;
-                PublishExchange(exchange);
+                UpdateUIForExchange(exchange);
                 return response.reusable && ShouldKeepAlive(exchange.RequestHeaders, exchange.ResponseHeaders) && clientPipe.IsConnected;
             }
             finally
@@ -410,8 +410,22 @@ namespace Clearinet.CaptureEngine
             return port > 0 && port <= IPEndPoint.MaxPort;
         }
 
+        /// <summary>
+        /// Remove any headers the client (likely) added targeting me, the proxy.
+        /// 
+        /// Technically, a "Connection" header is a hop-by-hop header, and should not be
+        /// forwarded to the next hop. But I don't think we used to remove those.
+        /// 
+        /// </summary>
         private static void PrepareRequestForServer(HTTPRequestHeaders headers, byte[] body)
         {
+            // ISSUE: We should only remove proxy-authorization if there's not an upstream
+            // gateway that asked for it. And we probably want to convert a Proxy-Connection
+            // header to a Connection header.
+            headers.Remove("Proxy-Authorization", "Proxy-Connection");
+
+
+            /*
             bool closeRequested = HasHeaderToken(headers, "Connection", "close") ||
                 HasHeaderToken(headers, "Proxy-Connection", "close");
             var connectionOptions = new List<string>();
@@ -421,9 +435,9 @@ namespace Clearinet.CaptureEngine
                     !header.Name.Equals("Proxy-Connection", StringComparison.OrdinalIgnoreCase)) continue;
                 string[] options = header.Value.Split(',');
                 for (int i = 0; i < options.Length; i++) connectionOptions.Add(options[i].Trim());
-            }
+            }*/
 
-            headers.Remove("Proxy-Authorization", "Proxy-Connection", "Keep-Alive");
+            /*
             for (int i = 0; i < connectionOptions.Count; i++)
             {
                 string option = connectionOptions[i];
@@ -435,6 +449,60 @@ namespace Clearinet.CaptureEngine
             else headers["Connection"] = "keep-alive";
             if (body.Length > 0 && !headers.Exists("Content-Length") && !headers.Exists("Transfer-Encoding"))
                 headers["Content-Length"] = body.Length.ToString(CultureInfo.InvariantCulture);
+            */
+        }
+
+        private static void PrepareResponseForClient(HTTPResponseHeaders headers)
+        {
+            // If we got a 401 from the server, ensure the client knows that we
+            // are smart enough to bind their requesting socket to the server to
+            // avoid reusing it for a different client request that might not have the same credentials.
+            if (401 == headers.StatusCode)
+            {
+                if (headers.ExistsAndContains("WWW-Authenticate", "Negotiate") ||
+                   headers.ExistsAndContains("WWW-Authenticate", "NTLM"))
+                {
+                    headers.Add("Proxy-Support", "Session-Based-Authentication");
+                }
+                return;
+            }
+
+            if (407 == headers.StatusCode)
+            {
+                // SECURITY: TODO: If we got a 407 from upstream on an unencrypted
+                // connection, then we should not forward it to the client because
+                // it's likely to think that WE are the proxy asking for credentials.
+                //
+                // I can't recall whether we should allow these to flow through if
+                // the upstream connection is over HTTPS.
+            }
+
+
+            /*
+            bool closeRequested = HasHeaderToken(headers, "Connection", "close") ||
+                HasHeaderToken(headers, "Proxy-Connection", "close");
+            var connectionOptions = new List<string>();
+            foreach (HTTPHeaderItem header in headers)
+            {
+                if (!header.Name.Equals("Connection", StringComparison.OrdinalIgnoreCase) &&
+                    !header.Name.Equals("Proxy-Connection", StringComparison.OrdinalIgnoreCase)) continue;
+                string[] options = header.Value.Split(',');
+                for (int i = 0; i < options.Length; i++) connectionOptions.Add(options[i].Trim());
+            }*/
+
+            /*
+            for (int i = 0; i < connectionOptions.Count; i++)
+            {
+                string option = connectionOptions[i];
+                if (option.Length > 0 && !option.Equals("Connection", StringComparison.OrdinalIgnoreCase))
+                    headers.Remove(option);
+            }
+            headers.Remove("Connection");
+            if (closeRequested) headers["Connection"] = "close";
+            else headers["Connection"] = "keep-alive";
+            if (body.Length > 0 && !headers.Exists("Content-Length") && !headers.Exists("Transfer-Encoding"))
+                headers["Content-Length"] = body.Length.ToString(CultureInfo.InvariantCulture);
+            */
         }
 
         private async Task<ServerPipe> ConnectServerPipeAsync(string host, int port, bool isTls,
@@ -511,7 +579,7 @@ namespace Clearinet.CaptureEngine
             }
 
             exchange.state = ExchangeState.Aborted;
-            PublishExchange(exchange);
+            UpdateUIForExchange(exchange);
         }
 
         private static async Task<(HTTPRequestHeaders requestHeaders, byte[] requestBody)> ReadHttpRequestAsync(Stream stream, CancellationToken token)
@@ -733,6 +801,11 @@ namespace Clearinet.CaptureEngine
             return data[cursor.Value++];
         }
 
+        /// <summary>
+        /// This is basically an Integer that we're calling a cursor.
+        /// NB: It's not clear what value this provides. 
+        /// 
+        /// </summary>
         private sealed class OffsetCursor
         {
             internal int Value;
@@ -762,6 +835,8 @@ namespace Clearinet.CaptureEngine
                 xc["x-processinfo"] = context.LocalProcessDescriptor;
             }
 
+            // By default a connect tunnel will be blind, but we might decide
+            // to enable TLS decryption later.
             if (method.OICEquals("CONNECT"))
             {
                 xc.SetBitFlag(ExchangeFlags.IsBlindTunnel);
@@ -771,29 +846,37 @@ namespace Clearinet.CaptureEngine
             return xc;
         }
 
-        private static void PublishExchange(Exchange exchange)
+        // Update the UI asynchronously, but don't block the capture engine thread on it.
+        // NB: It's not clear that this is the right way to do this.
+        private static void UpdateUIForExchange(Exchange exchange)
         {
             CApp.UIInvokeAsync(() =>
             {
-                if (CApp.UI == null || exchange == null) return;
                 CApp.UI.UpdateViewItem(exchange);
             });
         }
 
-        private static bool ShouldReturnYetImplemented(Exchange exchange)
+        /// <summary>
+        /// Does the client's request target Clearinet's reflector?
+        /// </summary>
+        private static bool ExchangeTargetsReflector(Exchange xc)
         {
-            if (exchange == null) return false;
-            return exchange.hostname.OICEquals("localhost.fiddler");
+            if (xc == null) return false;
+            if (xc.port == CONFIG.ListenPort)
+            {
+                if (xc.hostname.OICEqualsAny("localhost", "127.0.0.1", "::1")) return true;
+            }
+            return xc.hostname.OICEqualsAny(
+                "localhost.clearinet", "ipv4.clearinet", "iv6.clearinet",
+                "localhost.fiddler", "ipv4.fiddler", "ipv6.fiddler");
         }
 
-        private static bool ShouldDecryptConnectTunnel(Exchange exchange)
+        private static bool ShouldDecryptTunnel(Exchange xc)
         {
-            return false;
-            /* NYI
-            if (exchange == null || !exchange.HTTPMethodIs("CONNECT")) return false;
+            if (xc.BitFlags.HasFlag(ExchangeFlags.Ignored)) return false;
             if (!CaptureEnginePrefs.ShouldDecryptHttps()) return false;
-            if (exchange["x-no-decrypt"] != null) return false;
-            return true;*/
+            if (xc["x-no-decrypt"] != null) return false;
+            return true;
         }
 
         private async Task HandleMitmConnectTunnelAsync(Exchange exchange, TcpClient client, Stream clientStream,
@@ -803,6 +886,7 @@ namespace Clearinet.CaptureEngine
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
 
+            // Validate that we got a valid CONNECT request.
             if (!TryGetConnectTarget(exchange, out string host, out int port))
             {
                 exchange.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
@@ -814,17 +898,16 @@ namespace Clearinet.CaptureEngine
                 exchange.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
                 await WriteExchangeResponseToClientAsync(exchange, clientStream, token).ConfigureAwait(false);
                 exchange.state = ExchangeState.Done;
-                PublishExchange(exchange);
+                UpdateUIForExchange(exchange);
                 return;
             }
 
             _certificateProvider.EnsureRootTrust();
             X509Certificate2 leaf = _certificateProvider.GetCertificateForHost(host);
-            exchange["x-tunnel-mode"] = "mitm";
 
             Guid clientPipeId = clientPipe.Id;
             string processIdentity = clientPipe.ProcessIdentity;
-            var upstreamKey = new ServerConnectionKey(host, port, true);
+            var upstreamKey = new ServerConnectionKey(host, port, true);   // Issue: We need to also account for an upstream gateway proxy.
             ServerPipe upstreamPipe = null;
             bool returnUpstreamPipe = false;
             bool keepAliveAllowed = true;
@@ -833,7 +916,6 @@ namespace Clearinet.CaptureEngine
                 if (_socketPool.TryRent(upstreamKey, processIdentity, clientPipeId, out upstreamPipe))
                 {
                     exchange.BitFlags |= ExchangeFlags.ServerPipeReused;
-                    exchange["x-serverpool-reused"] = "true";
                 }
                 else
                 {
@@ -842,7 +924,7 @@ namespace Clearinet.CaptureEngine
                 }
 
                 exchange.Timers.ServerConnected = DateTime.Now;
-                exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Connection Established", new[]
+                exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Decrypting Connection Established", new[]
                 {
                     "Connection: keep-alive"
                 });
@@ -852,7 +934,7 @@ namespace Clearinet.CaptureEngine
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
 
                 var clientTls = new SslStream(clientStream, false);
-                clientTls.AuthenticateAsServer(leaf, false, SslProtocols.Tls12 | SslProtocols.Tls13, false);
+                clientTls.AuthenticateAsServer(leaf, false, SslProtocols.Tls12 | SslProtocols.Tls13, false); // TODO: Configure protocols 
                 clientPipe.SetStream(clientTls);
                 {
                     var clientReader = clientPipe.Reader;
@@ -889,7 +971,7 @@ namespace Clearinet.CaptureEngine
 
                         inner.Timers.ClientDoneResponse = DateTime.Now;
                         inner.state = ExchangeState.Done;
-                        PublishExchange(inner);
+                        UpdateUIForExchange(inner);
                         keepAliveAllowed = upstreamResponse.reusable &&
                             ShouldKeepAlive(upstreamRequest, inner.ResponseHeaders) && upstreamPipe.IsConnected;
                         if (!keepAliveAllowed || !ShouldKeepAlive(inner.RequestHeaders, inner.ResponseHeaders)) break;
@@ -916,7 +998,7 @@ namespace Clearinet.CaptureEngine
 
             exchange.Timers.ClientDoneResponse = DateTime.Now;
             exchange.state = ExchangeState.Done;
-            PublishExchange(exchange);
+            UpdateUIForExchange(exchange);
         }
 
         private bool callbackValidateServerCertificate(string targetHost, object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
@@ -950,7 +1032,7 @@ namespace Clearinet.CaptureEngine
                 exchange.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
                 await WriteExchangeResponseToClientAsync(exchange, clientStream, token).ConfigureAwait(false);
                 exchange.state = ExchangeState.Done;
-                PublishExchange(exchange);
+                UpdateUIForExchange(exchange);
                 return;
             }
 
@@ -961,7 +1043,7 @@ namespace Clearinet.CaptureEngine
                 await upstream.ConnectAsync(host, port).ConfigureAwait(false);
                 exchange.Timers.ServerConnected = DateTime.Now;
 
-                exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Connection Established", new[]
+                exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Blind Connection Established", new[]
                 {
                     "Connection: keep-alive"
                 });
@@ -995,7 +1077,7 @@ namespace Clearinet.CaptureEngine
             exchange.Timers.ServerDoneResponse = DateTime.Now;
             exchange.Timers.ClientDoneResponse = DateTime.Now;
             exchange.state = ExchangeState.Done;
-            PublishExchange(exchange);
+            UpdateUIForExchange(exchange);
         }
 
         private static async Task WriteExchangeResponseToClientAsync(Exchange exchange, Stream clientStream, CancellationToken token)
@@ -1021,9 +1103,12 @@ namespace Clearinet.CaptureEngine
         private static async Task WriteHttpRequestAsync(Stream stream, HTTPRequestHeaders headers, byte[] body, CancellationToken token)
         {
             byte[] headerBytes = headers.ToByteArray(false);
+            // TODO: Set the correct timer.
             await stream.WriteAsync(headerBytes, 0, headerBytes.Length, token).ConfigureAwait(false);
+
             if (body != null && body.Length > 0)
             {
+                // TODO: Set the correct timer.
                 await stream.WriteAsync(body, 0, body.Length, token).ConfigureAwait(false);
             }
             await stream.FlushAsync(token).ConfigureAwait(false);
@@ -1031,12 +1116,16 @@ namespace Clearinet.CaptureEngine
 
         private static async Task WriteHttpResponseAsync(Stream stream, HTTPResponseHeaders headers, byte[] body, CancellationToken token)
         {
-            if (body != null && body.Length > 0 && !headers.Exists("Content-Length") && !headers.Exists("Transfer-Encoding"))
-                headers["Content-Length"] = body.Length.ToString(CultureInfo.InvariantCulture);
+            //if (body != null && body.Length > 0 && !headers.Exists("Content-Length") && !headers.Exists("Transfer-Encoding"))
+            //    headers["Content-Length"] = body.Length.ToString(CultureInfo.InvariantCulture);
+
             byte[] headerBytes = headers.ToByteArray();
             await stream.WriteAsync(headerBytes, 0, headerBytes.Length, token).ConfigureAwait(false);
+            // TODO: Set the correct timer.
+
             if (body != null && body.Length > 0)
             {
+                // TODO: Set the correct timer.
                 await stream.WriteAsync(body, 0, body.Length, token).ConfigureAwait(false);
             }
             await stream.FlushAsync(token).ConfigureAwait(false);
@@ -1125,45 +1214,36 @@ namespace Clearinet.CaptureEngine
         private static bool ShouldKeepAlive(HTTPRequestHeaders requestHeaders, HTTPResponseHeaders responseHeaders)
         {
             if (requestHeaders == null || responseHeaders == null) return false;
-            if (HasHeaderToken(requestHeaders, "Connection", "close") ||
-                HasHeaderToken(requestHeaders, "Proxy-Connection", "close") ||
-                HasHeaderToken(responseHeaders, "Connection", "close")) return false;
+            if (HasHeaderWithToken(requestHeaders, "Connection", "close") ||
+                HasHeaderWithToken(requestHeaders, "Proxy-Connection", "close") ||
+                HasHeaderWithToken(responseHeaders, "Connection", "close")) return false;
 
             bool requestHttp10 = (requestHeaders.HTTPVersion ?? string.Empty).OICContains("HTTP/1.0");
             bool responseHttp10 = (responseHeaders.HTTPVersion ?? string.Empty).OICContains("HTTP/1.0");
             bool requestPersistent = !requestHttp10 ||
-                HasHeaderToken(requestHeaders, "Connection", "keep-alive") ||
-                HasHeaderToken(requestHeaders, "Proxy-Connection", "keep-alive");
-            bool responsePersistent = !responseHttp10 || HasHeaderToken(responseHeaders, "Connection", "keep-alive");
+                HasHeaderWithToken(requestHeaders, "Connection", "keep-alive") ||
+                HasHeaderWithToken(requestHeaders, "Proxy-Connection", "keep-alive");
+            bool responsePersistent = !responseHttp10 || HasHeaderWithToken(responseHeaders, "Connection", "keep-alive");
             return requestPersistent && responsePersistent;
         }
 
-        private static bool HasHeaderToken(IEnumerable<HTTPHeaderItem> headers, string headerName, string sought)
+        // Perf: This probably allocates more often than it needs to.
+        private static bool HasHeaderWithToken(IEnumerable<HTTPHeaderItem> headers, string headerName, string sought)
         {
             foreach (HTTPHeaderItem header in headers)
             {
-                if (!header.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!header.Name.OICEquals(headerName)) continue;
                 string[] tokens = header.Value.Split(',');
                 for (int i = 0; i < tokens.Length; i++)
-                    if (string.Equals(tokens[i].Trim(), sought, StringComparison.OrdinalIgnoreCase)) return true;
+                    if (tokens[i].Trim().OICEquals(sought)) return true;
             }
             return false;
         }
 
-        private static bool IsSocketReusable(Socket socket)
-        {
-            if (socket == null || !socket.Connected) return false;
-            try
-            {
-                bool readReady = socket.Poll(0, SelectMode.SelectRead);
-                bool noData = socket.Available == 0;
-                return !(readReady && noData);
-            }
-            catch
-            {
-                return false;
-            }
-        }
+        // Probe a socket for reusability.
+        //            if (!socket?.Connected == true) return false;
+        //       bool readReady = socket.Poll(0, SelectMode.SelectRead);
+        //       bool noData = socket.Available == 0;
 
         private static async Task<Socket> ConnectSocketAsync(string host, int port)
         {
@@ -1285,18 +1365,52 @@ namespace Clearinet.CaptureEngine
             return bytesRead;
         }
 
-        private static async Task SendNotYetImplementedAsync(Stream stream, CancellationToken token)
+
+        /// <summary>
+        /// Send a simple HTML page to the client. TODO: The page should include the root certificate for the user to trust. 
+        /// </summary>
+        private static async Task WriteReflectorPage(Exchange xc, Stream stream, CancellationToken token)
         {
-            const string message = "Capture engine transport is not fully implemented yet.";
-            string responseText =
-                "HTTP/1.1 501 Not Implemented\r\n" +
-                "Connection: close\r\n" +
-                "Content-Type: text/plain; charset=utf-8\r\n" +
-                "Content-Length: " + Encoding.UTF8.GetByteCount(message) + "\r\n\r\n" +
-                message;
-            byte[] bytes = Encoding.ASCII.GetBytes(responseText);
+            xc.state = ExchangeState.ReadingResponseHeaders;
+            StringBuilder sbResponse = new StringBuilder(2048);
+            sbResponse.Append("<!doctype html><html><head><title>Clearinet Reflector Page</title></head>" +
+                $"<body><h1>Clearinet Reflector</h1>This client is listening using {Utilities.HtmlEncode(CApp.VersionString)}.<br />");
+
+            sbResponse.Append("<h2>Echo</h2><pre>");
+            sbResponse.Append(Utilities.HtmlEncode(xc.RequestHeaders.ToString()));
+            sbResponse.Append("</pre><h2>Request Body</h2><pre>");
+            if (xc.RequestBody != null && xc.RequestBody.Length > 0)
+            {
+                sbResponse.Append(Utilities.HtmlEncode(Encoding.UTF8.GetString(xc.RequestBody)));
+            }
+            else
+            {
+                sbResponse.Append("<i>(No request body)</i>");
+            }
+            sbResponse.Append("</pre></body></html>");
+
+            xc.ResponseBody = Encoding.UTF8.GetBytes(sbResponse.ToString());
+            string sBody = sbResponse.ToString();
+
+            xc.ResponseHeaders = new HTTPResponseHeaders(200, "Generated", new[]
+            {
+                "Connection: close",
+                "Content-Type: text/html; charset=utf-8",
+                $"Content-Length: {xc.ResponseBody.Length}"
+            });
+
+            xc.Timers.ClientBeginResponse = DateTime.Now;
+
+            // Write headers.
+            byte[] bytes = xc.ResponseHeaders.ToByteArray();
             await stream.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
+
+            // Write body.
+            await stream.WriteAsync(xc.ResponseBody, 0, xc.ResponseBody.Length, token).ConfigureAwait(false);
+
             await stream.FlushAsync(token).ConfigureAwait(false);
+            xc.Timers.ClientDoneResponse = DateTime.Now;
+            xc.state = ExchangeState.Done;
         }
 
         private static void AbortWithRst(TcpClient client)
