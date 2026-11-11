@@ -24,12 +24,16 @@ public class HTTPClientBridge
     private static readonly HttpClient client = new HttpClient(new HttpClientHandler
     {
         AutomaticDecompression = System.Net.DecompressionMethods.None,
-        AllowAutoRedirect = false
+        AllowAutoRedirect = false,
+        UseDefaultCredentials = false,
+        UseCookies = false,
+        PreAuthenticate = false,
     });
 
     public async Task SendAndReceiveRawAsync(Exchange XC /*hstring requestUri, byte[] payload, string rawHeaders*/)
     {
         XC.Timers.ClientBeginRequest = XC.Timers.ProxyGotRequestHeaders = XC.Timers.ClientDoneRequest = XC.Timers.ClientConnected = DateTime.Now;
+        client.DefaultRequestHeaders.ExpectContinue = false;
         using (var request = new HttpRequestMessage(new HttpMethod(XC.RequestMethod), XC.fullUrl))
         {
             if (XC.RequestBody.HasData()) request.Content = new ByteArrayContent(XC.RequestBody);
