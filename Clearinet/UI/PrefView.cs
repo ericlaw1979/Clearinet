@@ -22,8 +22,13 @@ namespace Clearinet.UI
                 _myTabPage.Controls.Add(prefView);
                 prefView.Dock = DockStyle.Fill;
                 tabControl.TabPages.Add(_myTabPage);
-                prefView.dgvPrefs.AlternatingRowsDefaultCellStyle.BackColor = CONFIG.colorDisabledEdit;
+                //  prefView.dgvPrefs.BackgroundColor = CONFIG.colorDisabledEdit;
                 prefView.dgvPrefs.DefaultCellStyle.BackColor = CONFIG.colorEdit;
+                prefView.dgvPrefs.DefaultCellStyle.ForeColor = CONFIG.colorEditForeColor;
+
+                prefView.dgvPrefs.AlternatingRowsDefaultCellStyle.BackColor = CONFIG.colorDisabledEdit;
+                prefView.dgvPrefs.AlternatingRowsDefaultCellStyle.ForeColor = CONFIG.colorDisabledEditForeColor;
+
                 if (CONFIG.isViewerMode)
                 {
                     prefView.lblInstructions.ForeColor = System.Drawing.Color.Red;

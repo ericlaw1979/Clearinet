@@ -751,9 +751,12 @@ namespace Clearinet
             int keepOnly = CApp.Prefs.GetInt32Pref("app.ui.exchangelist.keep_only");
             tsddbKeepOnly.Text = "Keep: " + (keepOnly == 0 ? "All Exchanges" : $"{keepOnly} Exchanges");
 
+            // TODO: Does this work properly if we're in the middle of a SuspendLayout?
+            // Trace.WriteLine($"[Clearinet] Initializing UI from prefs: splitterMain.SplitPosition={splitterMain.SplitPosition}, splitRequestResponse.SplitPosition={splitRequestResponse.SplitPosition}");
             splitRequestResponse.SplitPosition =
                 CApp.Prefs.GetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
             splitterMain.SplitPosition = CApp.Prefs.GetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
+            // Trace.WriteLine($"[Clearinet] Initialized UI from prefs: splitterMain.SplitPosition={splitterMain.SplitPosition}, splitRequestResponse.SplitPosition={splitRequestResponse.SplitPosition}");
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
@@ -845,7 +848,7 @@ namespace Clearinet
             CApp.gwHoneyDew.createGig("UpdateMemoryCounter", () => UpdateMemoryCounter(), 5000);
 
             CApp.EnsureCaptureEngineRunning();
-            CONFIG.WriteCleanupRegistryKey();
+            CONFIG.WriteCleanupRegistryKey();       // TODO: Is this where we want this?
 
             CApp.Log.Log($"{CONFIG.POLICIES}\n{CONFIG.OVERRIDES}");
             CApp.Log.Log($"[{DateTime.Now}] {CApp.VersionString} ready. OS: {Environment.OSVersion}. .NET: {Environment.Version}.\nUser: {Environment.UserName}. PID: {Process.GetCurrentProcess().Id}.\nCommandLine: {Environment.CommandLine}");
@@ -3392,7 +3395,6 @@ namespace Clearinet
         {
             PrefView.CreatePrefsTab(tabsViews);
         }
-
 
         internal CancelEventHandler OnWindowsQueryShutdown;
 

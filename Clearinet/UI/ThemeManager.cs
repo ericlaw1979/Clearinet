@@ -41,7 +41,6 @@ public static class ThemeManager
         public override Color ToolStripDropDownBackground => Color.FromArgb(45, 45, 48);
         public override Color MenuItemSelectedGradientBegin => Color.FromArgb(70, 70, 70);
         public override Color MenuItemSelectedGradientEnd => Color.FromArgb(70, 70, 70);
-
     }
 
     private static void SetDarkModeMenu(MenuStrip menuStrip)
@@ -115,7 +114,7 @@ public static class ThemeManager
 
         // HACKERY. 
         CONFIG.colorDisabledEdit = DarkDisabledEdit; // TODO: Allow user to override.
-        CONFIG.colorDisabledEditForeColor = Color.White;
+        CONFIG.colorEditForeColor = CONFIG.colorDisabledEditForeColor = Color.White;
         CONFIG.colorEdit = DarkBackground;
         CONFIG.COLOR_DEFAULT_EXCHANGE = Color.FromArgb(247, 254, 160); // TODO: Allow user to override.
 
@@ -156,16 +155,15 @@ public static class ThemeManager
             linkLabel.ActiveLinkColor = Color.FromArgb(87, 166, 74);
         }
 
-        if (c is ListView lv)
-        {
+        /* if (c is ListView lv)
+         {
+             lv.BackColor = DarkSurface;
+             lv.ForeColor = DarkText;
 
-            lv.BackColor = DarkSurface;
-            lv.ForeColor = DarkText;
+             Win32UI.SetDWMWA_USE_IMMERSIVE_DARK_MODE(lv.Handle);
 
-            Win32UI.SetDWMWA_USE_IMMERSIVE_DARK_MODE(lv.Handle);
-
-            Win32UI.SetListViewHeadersToDarkMode(lv);
-        }
+             Win32UI.SetListViewHeadersToDarkMode(lv);
+         }*/
 
         // Recursively theme child controls inside panels, groupboxes, etc.
         foreach (Control child in c.Controls)
