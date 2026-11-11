@@ -26,13 +26,14 @@ namespace Clearinet
         {
             if (CApp.isClosing)
             {
+                // Rather than disposing, we're gonna just drop the
+                // worklist on the floor, cuz we're about to exit anyway.
+                // 
                 _timer.Dispose();
-                listGigs = null;
                 return;
             }
 
             gig[] gigsThisRun = getAllGigs();
-
 
             foreach (var todo in gigsThisRun)
             {
@@ -56,9 +57,10 @@ namespace Clearinet
             return gigNew;
         }
 
-
         internal void cancelGig(gig gigToCancel)
         {
+            // TODO: Should we just bail if we're in shutdown?
+            if (null == listGigs) return;
             if (null == gigToCancel) { Debug.Assert(false); return; }
             lock (listGigs)
             {
@@ -68,6 +70,10 @@ namespace Clearinet
 
         internal void cancelGigsNamed(string sName)
         {
+            // TODO: Should we just bail if we're in shutdown?
+            if (null == listGigs) return;
+            if (!sName.HasText()) { Debug.Assert(false); return; }
+
             lock (listGigs)
             {
                 listGigs.RemoveAll(g => g._name.OICEquals(sName));
