@@ -368,13 +368,20 @@ namespace Clearinet
 
         internal static void RetrieveLayout(frmViewer f)
         {
-            f.Font = new Font(f.Font.FontFamily, CONFIG.flFontSize);
+            f.Font = new Font(f.Font.FontFamily, DpiFontUnits.LogicalFontPointsToManagedFontPoints(CONFIG.flFontSize, f.DeviceDpi));
+            // Font autoscaling can resize the window; restore the saved physical bounds afterward.
+            RetrieveWindowBounds(f);
+        }
+
+        internal static void RetrieveWindowBounds(frmViewer f)
+        {
             f.StartPosition = FormStartPosition.Manual;
             try
             {
                 RegistryKey oReg = Registry.CurrentUser.OpenSubKey(GetRegistryPath("UI"), RegistryKeyPermissionCheck.ReadSubTree);
                 if (null != oReg)
                 {
+                    // Saved desktop bounds are already physical pixels, not 96-DPI logical dimensions.
                     f.Bounds = new Rectangle(
                        Utilities.GetRegistryInt(oReg, f.Name + "_Left", f.Left),
                        Utilities.GetRegistryInt(oReg, f.Name + "_Top", f.Top),

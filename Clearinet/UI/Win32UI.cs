@@ -85,6 +85,45 @@ namespace Clearinet
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
 
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct RichTextCharFormat
+        {
+            public uint Size;
+            public uint Mask;
+            public uint Effects;
+            public int Height;
+            public int Offset;
+            public uint TextColor;
+            public byte CharacterSet;
+            public byte PitchAndFamily;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string FaceName;
+        }
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageW")]
+        private static extern IntPtr SendRichTextMessage(IntPtr handle, int message, IntPtr wparam, ref RichTextCharFormat format);
+
+        /// <summary>
+        /// Normalizes all RichEdit character sizes to logical points (rounded to twentieth-point twips),
+        /// preserving other character attributes and the final Modified flag. Intended for uniform Raw/log text,
+        /// not general rich-document formatting. Does nothing without a handle and never creates one.
+        /// This native formatting write does not guarantee unchanged undo history or event silence.
+        /// </summary>
+        public static void SetRichTextFontSize(RichTextBox control, float points)
+        {
+            if (!control.IsHandleCreated) return;
+            var format = new RichTextCharFormat
+            {
+                Size = (uint)Marshal.SizeOf(typeof(RichTextCharFormat)),
+                Mask = 0x80000000, // CFM_SIZE: preserve all other character formatting.
+                Height = (int)Math.Round(points * 20f),
+                FaceName = string.Empty
+            };
+            bool wasModified = control.Modified;
+            SendRichTextMessage(control.Handle, 0x444 /* EM_SETCHARFORMAT */, new IntPtr(4) /* SCF_ALL */, ref format);
+            if (control.Modified != wasModified) control.Modified = wasModified;
+        }
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
@@ -478,6 +517,16 @@ namespace Clearinet
         }
     }
 
+    public class BetterTabControl : TabControl
+    {
+        protected override void OnDpiChangedAfterParent(EventArgs e)
+        {
+            base.OnDpiChangedAfterParent(e);
+            // Native controls can retain an inherited HFONT that the parent replaced during scaling.
+            base.OnFontChanged(EventArgs.Empty);
+        }
+    }
+
     /// <summary>
     /// An improved version of the Win32 Listview with empty text and assorted other improvements.
     /// </summary>
@@ -538,6 +587,13 @@ namespace Clearinet
 
         private const int LVM_SETEXTENDEDLISTVIEWSTYLE = 0x1000 + 54;
         private const int LVS_EX_DOUBLEBUFFER = 0x00010000;
+        protected override void OnDpiChangedAfterParent(EventArgs e)
+        {
+            base.OnDpiChangedAfterParent(e);
+            // Reapply the final inherited font to both the list and its native column header.
+            base.OnFontChanged(EventArgs.Empty);
+        }
+
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);

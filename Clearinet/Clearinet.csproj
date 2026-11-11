@@ -100,6 +100,7 @@
     <Compile Include="CaptureEngine\CaptureEngineRuntime.cs" />
     <Compile Include="CaptureEngine\MapSocketToProcess.cs" />
     <Compile Include="GigWorker.cs" />
+    <Compile Include="UI\DpiFontUnits.cs" />
     <Compile Include="UI\ComposerView.cs">
       <SubType>UserControl</SubType>
     </Compile>

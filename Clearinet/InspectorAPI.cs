@@ -74,11 +74,21 @@ namespace Clearinet
             try
             {
                 AddToTab(oTarget);
+                // Parenting establishes the target DPI before explicit fonts are assigned and readiness is recorded.
+                SetFontSize(DpiFontUnits.LogicalFontPointsToManagedFontPoints(CONFIG.flFontSize, oTarget.DeviceDpi));
                 isTabReady = true;
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Adding Inspector to Tab Failed");
+            }
+        }
+
+        internal void UpdateFontSize(TabPage target)
+        {
+            if (isTabReady)
+            {
+                SetFontSize(DpiFontUnits.LogicalFontPointsToManagedFontPoints(CONFIG.flFontSize, target.DeviceDpi));
             }
         }
 
@@ -127,6 +137,10 @@ namespace Clearinet
         public abstract void AddToTab(TabPage o);  // After calling this, set isTabReady=true; 
         public abstract int GetOrder();
 
+        /// <summary>
+        /// Updates an initialized inspector using DPI-adjusted managed font points, not logical configured points.
+        /// Called after AddToTab has parented the view; runtime notifications do not initialize hidden views.
+        /// </summary>
         public virtual void SetFontSize(float flSize)
         {
             if (CApp.isTracing) Trace.WriteLine($"Inspector:{this} didn't implement SetFontSize.");

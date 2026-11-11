@@ -184,11 +184,11 @@ namespace Clearinet
             this.pnlLeftBottom = new System.Windows.Forms.Panel();
             this.txtQuickExec = new Clearinet.QuickExecBox();
             this.pnlMain = new System.Windows.Forms.Panel();
-            this.tabsViews = new System.Windows.Forms.TabControl();
+            this.tabsViews = new Clearinet.BetterTabControl();
             this.pageStatistics = new System.Windows.Forms.TabPage();
             this.rtbStatistics = new Clearinet.RichTextBoxV5();
             this.pageInspectors = new System.Windows.Forms.TabPage();
-            this.tabsResponse = new System.Windows.Forms.TabControl();
+            this.tabsResponse = new Clearinet.BetterTabControl();
             this.mnuInspectors = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miInspectorScreenshot = new System.Windows.Forms.ToolStripMenuItem();
             this.miInspectorAbout = new System.Windows.Forms.ToolStripMenuItem();
@@ -197,7 +197,7 @@ namespace Clearinet
             this.lblBreakpointed = new System.Windows.Forms.Label();
             this.btnRunToComplete = new System.Windows.Forms.Button();
             this.splitRequestResponse = new System.Windows.Forms.Splitter();
-            this.tabsRequest = new System.Windows.Forms.TabControl();
+            this.tabsRequest = new Clearinet.BetterTabControl();
             this.pageAutoResponder = new System.Windows.Forms.TabPage();
             this.label1 = new System.Windows.Forms.Label();
             this.pageComposer = new System.Windows.Forms.TabPage();
