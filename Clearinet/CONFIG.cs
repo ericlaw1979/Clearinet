@@ -91,9 +91,10 @@ namespace Clearinet
         /// Color for disabled editors app UI.
         /// </summary>
         public static Color colorDisabledEdit = COLOR_DEFAULT_DISABLEDEDIT;
-        public static Color colorDisabledEditForeColor = Color.FromKnownColor(KnownColor.ControlText);
+        public static Color colorDisabledEditForeColor = SystemColors.ControlText;
 
         public static Color colorEdit = SystemColors.Window;
+        public static Color colorEditForeColor = SystemColors.ControlText;
 
         public static Color colorHighlight = Color.Yellow;
 
