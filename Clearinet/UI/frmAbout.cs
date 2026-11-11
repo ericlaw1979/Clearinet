@@ -94,6 +94,7 @@ namespace Clearinet
                           $".{fvi.FilePrivatePart} for {targetFramework}");
             sb.AppendLine($"Built:\t{builtDate:yyyy-MMM-d}");
             sb.AppendLine($"Updated:\t{updatedDate:yyyy-MMM-d}");
+            sb.AppendLine($"Listening on Port: {CONFIG.ListenPort}");
             sb.AppendLine(string.Empty);
             sb.AppendLine($"CPU: {bitness} {architecture}");
             sb.AppendLine($"WorkingSet: {workingSetMB:F1}mb; Private bytes: {privateBytesMB:F1}mb");
