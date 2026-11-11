@@ -283,6 +283,59 @@ namespace Clearinet
             }
         }
 
+
+        public string hostname
+        {
+            get
+            {
+                string sHostname;
+                int iThrowaway = 0;
+                Parser.CrackHost(host, out sHostname, ref iThrowaway);
+                return sHostname;
+            }
+            set
+            {
+                int iOldPort = 0;
+                Parser.CrackHost(host, out _, ref iOldPort);
+                if (iOldPort > 0)
+                {
+                    host = $"{value}:{iOldPort}";
+
+                }
+                else
+                {
+                    host = value;
+                }
+            }
+        }
+        public int port
+        {
+            get
+            {
+                int iPort = BitFlags.HasFlag(ExchangeFlags.IsHTTPS) ? 443 : 80;
+                Parser.CrackHost(host, out _, ref iPort);
+                return iPort;
+            }
+            set
+            {
+                host = $"{hostname}:{value}";
+            }
+        }
+
+        public string clientIP { get; set; }  // TODO: Fill this. Use oFlags["x-clientip"] as a fallback if present?
+        public int responseCode
+        {
+            get => ResponseHeaders?.StatusCode ?? 0;
+            set
+            {
+                if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
+                ResponseHeaders.StatusCode = value;
+            }
+        }
+
+        public void PoisonServerPipe() { } // TODO: Prevent server connection reuse
+        public void PoisonClientPipe() { } // TODO: Prevent client connection reuse
+
         public string MediaType
         {
             get
@@ -385,32 +438,6 @@ namespace Clearinet
             }
             return sb.ToString();
         }
-
-        public string hostname
-        {
-            get
-            {
-                return host.TrimAfter(':').Trim();
-            }
-            set
-            {
-                host = value.TrimAfter(':').Trim();
-            }
-        }
-        public int port { get; set; }  // TODO: Fill this.
-        public string clientIP { get; set; }  // TODO: Fill this. Use oFlags["x-clientip"] as a fallback if present?
-        public int responseCode
-        {
-            get => ResponseHeaders?.StatusCode ?? 0;
-            set
-            {
-                if (null == ResponseHeaders) ResponseHeaders = new HTTPResponseHeaders();
-                ResponseHeaders.StatusCode = value;
-            }
-        }
-
-        public void PoisonServerPipe() { } // TODO: Prevent server connection reuse
-        public void PoisonClientPipe() { } // TODO: Prevent client connection reuse
 
         internal void Abort()
         {

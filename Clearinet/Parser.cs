@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 
 namespace Clearinet
@@ -138,6 +139,39 @@ namespace Clearinet
             }
 
             return (ixBody, hew);
+        }
+
+        public static void CrackHost(string sHost, out string sHostname, ref int iPort)
+        {
+            // Port is after the final colon unless the colon is inside IPv6-literal [brackets]
+            int ixColon = sHost.LastIndexOf(':');
+            if ((ixColon < 0) || (ixColon < sHost.LastIndexOf(']')))
+            {
+                // Easy case: http://example/
+                sHostname = sHost;
+            }
+            else
+            {
+                // Harder cases: http://example:1234/ or http://[::1]:8888/
+                if (!int.TryParse(sHost.Substring(1 + ixColon), NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out iPort))
+                {
+                    // Non-integer, it's not legal.
+                    Debug.Assert(false, "Malformed Port in host");
+                    iPort = 0;
+                }
+                sHostname = sHost.Substring(0, ixColon);
+                if ((iPort > 65535) || (iPort < 1))
+                {
+                    Debug.Assert(false, "Illegal port value");
+                    iPort = 0;
+                }
+            }
+
+            // Strip IPv6 Literal brackets.
+            if (sHostname.StartsWith("[") && sHostname.EndsWith("]"))
+            {
+                sHostname = sHostname.Substring(1, sHostname.Length - 2);
+            }
         }
 
         public static (string headers, byte[] body) CrackHttpMessage(Stream stream)
