@@ -1428,6 +1428,12 @@ namespace Clearinet.CaptureEngine
             sbResponse.Append($"<hr />This response's <b>Status Code: {iStatusCode}</b> (<a href='/200/'>200</a> <a href='/400/'>400</a> <a href='/500/'>500</a>)<br />");
             #endregion UserSelectedStatusCode
 
+            // TODO: Should we support TCP/IP termination parameters, e.g. /RST to send a TCP RST instead of a normal response?
+            // /CLOSE to close the connection after the response?
+            // /DELAY=5000 to delay the response by 5 seconds?
+            // /ECHO to echo back the request body as the response body with no modifications?
+            // Each of these has interesting security implications.
+
             sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />Originating Process: {xc.LocalProcess}<br />");
 
             sbResponse.AppendLine("<hr /><ul><li>To configure Clearinet as a reverse proxy (instead of this service), see " +
