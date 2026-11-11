@@ -177,6 +177,27 @@ namespace Clearinet.UI
                 return true;
             }
 
+            if (txtSearch.ContainsFocus)
+            {
+                if (keyData == Keys.Escape)
+                {
+                    if (txtSearch.Text.HasText())
+                    {
+                        txtSearch.Text = string.Empty;
+                    }
+                    else
+                    {
+                        dgvPrefs.Focus();
+                    }
+                    return true;
+                }
+                if (keyData == Keys.Enter)
+                {
+                    dgvPrefs.Focus();
+                    return true;
+                }
+            }
+
             return base.ProcessCmdKey(ref msg, keyData);
         }
 

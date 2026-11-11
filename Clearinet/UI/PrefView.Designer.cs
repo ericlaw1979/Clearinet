@@ -35,11 +35,9 @@
             this.lnkTearoff = new System.Windows.Forms.LinkLabel();
             this.lblInstructions = new System.Windows.Forms.Label();
             this.lnkPrefHelp = new System.Windows.Forms.LinkLabel();
-            this.pnlBottom = new System.Windows.Forms.Panel();
             this.txtSearch = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPrefs)).BeginInit();
             this.pnlTop.SuspendLayout();
-            this.pnlBottom.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvPrefs
@@ -58,7 +56,7 @@
             this.dgvPrefs.Name = "dgvPrefs";
             this.dgvPrefs.RowHeadersWidth = 40;
             this.dgvPrefs.RowTemplate.Height = 24;
-            this.dgvPrefs.Size = new System.Drawing.Size(744, 600);
+            this.dgvPrefs.Size = new System.Drawing.Size(744, 637);
             this.dgvPrefs.TabIndex = 0;
             this.dgvPrefs.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgvPrefs_CellBeginEdit);
             this.dgvPrefs.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPrefs_CellEndEdit);
@@ -81,6 +79,7 @@
             // 
             // pnlTop
             // 
+            this.pnlTop.Controls.Add(this.txtSearch);
             this.pnlTop.Controls.Add(this.lnkTearoff);
             this.pnlTop.Controls.Add(this.lblInstructions);
             this.pnlTop.Controls.Add(this.lnkPrefHelp);
@@ -96,7 +95,7 @@
             this.lnkTearoff.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lnkTearoff.AutoSize = true;
             this.lnkTearoff.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lnkTearoff.Location = new System.Drawing.Point(717, 9);
+            this.lnkTearoff.Location = new System.Drawing.Point(717, 11);
             this.lnkTearoff.Name = "lnkTearoff";
             this.lnkTearoff.Size = new System.Drawing.Size(24, 17);
             this.lnkTearoff.TabIndex = 2;
@@ -107,54 +106,47 @@
             // 
             // lblInstructions
             // 
-            this.lblInstructions.AutoSize = true;
-            this.lblInstructions.Location = new System.Drawing.Point(3, 9);
+            this.lblInstructions.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblInstructions.AutoEllipsis = true;
+            this.lblInstructions.Location = new System.Drawing.Point(280, 1);
             this.lblInstructions.Name = "lblInstructions";
-            this.lblInstructions.Size = new System.Drawing.Size(304, 17);
+            this.lblInstructions.Size = new System.Drawing.Size(379, 39);
             this.lblInstructions.TabIndex = 1;
             this.lblInstructions.Text = "This page allows viewing and editing Preferences.";
+            this.lblInstructions.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lnkPrefHelp
             // 
             this.lnkPrefHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lnkPrefHelp.AutoSize = true;
             this.lnkPrefHelp.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkPrefHelp.Location = new System.Drawing.Point(555, 9);
+            this.lnkPrefHelp.Location = new System.Drawing.Point(665, 12);
             this.lnkPrefHelp.Name = "lnkPrefHelp";
-            this.lnkPrefHelp.Size = new System.Drawing.Size(141, 17);
+            this.lnkPrefHelp.Size = new System.Drawing.Size(46, 17);
             this.lnkPrefHelp.TabIndex = 0;
             this.lnkPrefHelp.TabStop = true;
-            this.lnkPrefHelp.Text = "Help on Preferences...";
+            this.lnkPrefHelp.Text = "Help...";
             this.lnkPrefHelp.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.lnkPrefHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkPrefHelp_LinkClicked);
             // 
-            // pnlBottom
-            // 
-            this.pnlBottom.Controls.Add(this.txtSearch);
-            this.pnlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlBottom.Location = new System.Drawing.Point(0, 643);
-            this.pnlBottom.Name = "pnlBottom";
-            this.pnlBottom.Size = new System.Drawing.Size(744, 37);
-            this.pnlBottom.TabIndex = 2;
-            // 
             // txtSearch
             // 
-            this.txtSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left 
-            | System.Windows.Forms.AnchorStyles.Right));
+            this.txtSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtSearch.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtSearch.Location = new System.Drawing.Point(6, 7);
+            this.txtSearch.Location = new System.Drawing.Point(5, 9);
+            this.txtSearch.MinimumSize = new System.Drawing.Size(80, 0);
             this.txtSearch.Name = "txtSearch";
-            this.txtSearch.Size = new System.Drawing.Size(735, 24);
-            this.txtSearch.TabIndex = 0;
+            this.txtSearch.Size = new System.Drawing.Size(269, 24);
+            this.txtSearch.TabIndex = 3;
             this.txtSearch.TextChanged += new System.EventHandler(this.txtSearch_TextChanged);
             // 
             // PrefView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.pnlBottom);
-            this.Controls.Add(this.pnlTop);
             this.Controls.Add(this.dgvPrefs);
+            this.Controls.Add(this.pnlTop);
             this.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "PrefView";
@@ -162,8 +154,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvPrefs)).EndInit();
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
-            this.pnlBottom.ResumeLayout(false);
-            this.pnlBottom.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -177,7 +167,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefValue;
         private System.Windows.Forms.LinkLabel lnkTearoff;
-        private System.Windows.Forms.Panel pnlBottom;
         private System.Windows.Forms.TextBox txtSearch;
     }
 }
