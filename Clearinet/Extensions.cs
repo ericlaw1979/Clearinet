@@ -240,10 +240,8 @@ namespace Clearinet
         public string ToString(bool bVerbose)
         {
             StringBuilder sbResult = new StringBuilder(128);
-            sbResult.Append($"Extensions: {m_Extensions.Count} loaded: " +
-                $"{m_RequestInspectors.Count} Request Inspectors; " +
-                $"{m_ResponseInspectors.Count} Response Inspectors; " +
-                $"{m_AutoTamperers.Count} AutoTamperers");
+            sbResult.Append($"Extensions: {m_Extensions.Count} ({m_AutoTamperers.Count} AutoTamperers). " +
+                $"Inspectors: {m_RequestInspectors.Count} Request, {m_ResponseInspectors.Count} Response.");
 
             if (bVerbose)
             {
