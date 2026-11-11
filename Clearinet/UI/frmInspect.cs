@@ -16,6 +16,10 @@ namespace Clearinet.UI
             rtbProperties.Text = Summarize();
             frmViewer.doPopulateInspectorTabs(tabsInspectRequest, tabsInspectResponse, "NewWindow");
             this.Text = $"{Text}{XC.id} - {XC.fullUrl}";
+            if (CONFIG.isDarkMode)
+            {
+                ThemeManager.ApplyDarkMode(this);
+            }
         }
 
         private string Summarize()

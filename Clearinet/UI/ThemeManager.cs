@@ -86,7 +86,7 @@ public static class ThemeManager
 
     public static readonly Color DarkBackground = Color.FromArgb(32, 32, 32);
     public static readonly Color DarkSurface = Color.FromArgb(45, 45, 48);
-    public static readonly Color DarkText = Color.FromArgb(240, 240, 240);
+    public static readonly Color DarkContrastingText = Color.FromArgb(240, 240, 240);
     public static readonly Color DarkDisabledEdit = CONFIG.COLOR_DARK_DEFAULT_DISABLEDEDIT;
 
     public static void SetAppToDarkMode()
@@ -123,7 +123,7 @@ public static class ThemeManager
         SetDarkModeContextMenu(CApp.UI.lvExchanges.ContextMenuStrip);
 
         frm.BackColor = DarkBackground;
-        frm.ForeColor = DarkText;
+        frm.ForeColor = DarkContrastingText;
 
         foreach (Control c in frm.Controls)
         {
@@ -134,7 +134,7 @@ public static class ThemeManager
     private static void ApplyDarkModeToControl(Control c)
     {
         c.BackColor = (c is Button || c is TextBox) ? DarkSurface : DarkBackground;
-        c.ForeColor = DarkText;
+        c.ForeColor = DarkContrastingText;
 
         Win32UI.AllowDarkModeForWindow(c.Handle, true);
 
@@ -143,9 +143,9 @@ public static class ThemeManager
         {
             dgv.BackgroundColor = DarkBackground;
             dgv.DefaultCellStyle.BackColor = DarkSurface;
-            dgv.DefaultCellStyle.ForeColor = DarkText;
+            dgv.DefaultCellStyle.ForeColor = DarkContrastingText;
             dgv.ColumnHeadersDefaultCellStyle.BackColor = DarkBackground;
-            dgv.ColumnHeadersDefaultCellStyle.ForeColor = DarkText;
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = DarkContrastingText;
             dgv.EnableHeadersVisualStyles = false;
         }
 
@@ -153,6 +153,17 @@ public static class ThemeManager
         {
             linkLabel.LinkColor = Color.FromArgb(159, 253, 255);
             linkLabel.ActiveLinkColor = Color.FromArgb(87, 166, 74);
+        }
+
+        if (c is TabControl tabControl)
+        {
+            // HACKERY: The ComCtrl32 library only renders the tab headers in dark mode
+            // if the TabControl's Appearance is set to Normal. If it's set to Buttons,
+            // the headers are always light. So we'll just show regular tabs in this case.
+            if (tabControl.Appearance == TabAppearance.FlatButtons)
+            {
+                tabControl.Appearance = TabAppearance.Normal;
+            }
         }
 
         /* if (c is ListView lv)

@@ -50,7 +50,7 @@ namespace Extensions
 
         private void AddEncoding(FlowLayoutPanel layout, string encoding, string title)
         {
-            var box = new CheckBox { AutoSize = true, Text = title };
+            var box = new CheckBox { AutoSize = true, Text = title, ForeColor = CONFIG.colorEditForeColor };
             box.CheckedChanged += (sender, e) =>
             {
                 if (!assigning) owner.ToggleEncoding(encoding, box.Checked);
