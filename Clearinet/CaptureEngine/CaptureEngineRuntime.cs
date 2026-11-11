@@ -253,7 +253,7 @@ namespace Clearinet.CaptureEngine
 
                             if (ExchangeTargetsReflector(exchange))
                             {
-                                await WriteReflectorPage(exchange, clientPipe.Stream, token).ConfigureAwait(false);
+                                await CreateReflectorPage(exchange, clientPipe.Stream, token).ConfigureAwait(false);
                                 return;
                             }
 
@@ -1367,18 +1367,42 @@ namespace Clearinet.CaptureEngine
 
 
         /// <summary>
-        /// Send a simple HTML page to the client. TODO: The page should include the root certificate for the user to trust. 
+        /// Send a simple HTML page to the client.
+        /// 
+        /// TODO: The right way for this to work is to overwrite the response of the Exchange and then
+        /// let it flow through the rest of the state machine as normal.
+        /// 
+        /// TODO: Should allow the user to pick a URL path containing the response code (e.g. /reflector/404) 
+        /// and then use that code in the response.
+        /// 
         /// </summary>
-        private static async Task WriteReflectorPage(Exchange xc, Stream stream, CancellationToken token)
+        private async Task CreateReflectorPage(Exchange xc, Stream stream, CancellationToken token)
         {
+            if (xc.urlContains("ClearinetRoot.cer"))
+            {
+                var cert = _certificateProvider.GetRootCertificate();
+                byte[] certBytes = cert.Export(X509ContentType.Cert);
+
+                xc.ResponseHeaders = new HTTPResponseHeaders(200, "OK", new[]
+                {
+                    "Connection: close",
+                    "Content-Type: application/x-x509-ca-cert",
+                    $"Content-Length: {certBytes.Length}"
+                });
+                xc.ResponseBody = certBytes;
+                await WriteExchangeResponseToClientAsync(xc, stream, token).ConfigureAwait(false);
+                xc.state = ExchangeState.Done;
+                return;
+            }
+
             xc.state = ExchangeState.ReadingResponseHeaders;
             StringBuilder sbResponse = new StringBuilder(2048);
-            sbResponse.Append("<!doctype html><html><head><title>Clearinet Reflector Page</title></head>" +
-                $"<body><h1>Clearinet Reflector</h1>This client is listening using {Utilities.HtmlEncode(CApp.VersionString)}.<br />");
+            sbResponse.AppendLine("<!doctype html>\r\n<html><head><title>Clearinet Echo Service</title>");
+            sbResponse.AppendLine("<style>body {font-family: sans-serif, arial} a { text-decoration: none } a:hover { text-decoration: underline; }</style></head>");
+            sbResponse.AppendLine("<body><h1>Clearinet Reflector</h1>");
 
-            sbResponse.Append("<h2>Echo</h2><pre>");
+            sbResponse.Append("<pre>");
             sbResponse.Append(Utilities.HtmlEncode(xc.RequestHeaders.ToString()));
-            sbResponse.Append("</pre><h2>Request Body</h2><pre>");
             if (xc.RequestBody != null && xc.RequestBody.Length > 0)
             {
                 sbResponse.Append(Utilities.HtmlEncode(Encoding.UTF8.GetString(xc.RequestBody)));
@@ -1387,12 +1411,36 @@ namespace Clearinet.CaptureEngine
             {
                 sbResponse.Append("<i>(No request body)</i>");
             }
-            sbResponse.Append("</pre></body></html>");
+            sbResponse.AppendLine("</pre>");
+
+            #region UserSelectedStatusCode
+            // Check if the URL had a status code in it, and if so, use that as the response code. Otherwise default to 200.
+            int iStatusCode = 200;
+            if (xc.RequestHeaders.RequestPath != "/")
+            {
+                string[] parts = xc.RequestHeaders.RequestPath.Split('/');
+                if (parts.Length > 1 && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
+                {
+                    if (parsed < 0 || parsed > 999) parsed = 200;
+                    iStatusCode = parsed;
+                }
+            }
+            sbResponse.Append($"<hr />This response's <b>Status Code: {iStatusCode}</b> (<a href='/200/'>200</a> <a href='/400/'>400</a> <a href='/500/'>500</a>)<br />");
+            #endregion UserSelectedStatusCode
+
+            sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />Originating Process: {xc.LocalProcess}<br />");
+
+            sbResponse.AppendLine("<hr /><ul><li>To configure Clearinet as a reverse proxy (instead of this service), see " +
+                $"<a href='{CONFIG.GetURL("HelpReverseProxy")}'>Reverse Proxy</a>");
+            sbResponse.AppendLine("<li>You can also download the <a href='ClearinetRoot.cer'>Clearinet Root Certificate</a>");
+            sbResponse.AppendLine("</ul>");
+
+            sbResponse.AppendLine("</body></html>");
 
             xc.ResponseBody = Encoding.UTF8.GetBytes(sbResponse.ToString());
             string sBody = sbResponse.ToString();
 
-            xc.ResponseHeaders = new HTTPResponseHeaders(200, "Generated", new[]
+            xc.ResponseHeaders = new HTTPResponseHeaders(iStatusCode, "Generated", new[]
             {
                 "Connection: close",
                 "Content-Type: text/html; charset=utf-8",

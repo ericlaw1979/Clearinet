@@ -204,6 +204,8 @@ namespace Clearinet
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HELP.md";
                 case "HelpPrefs":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/PREFERENCES.md";
+                case "HelpReverseProxy":
+                    return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/ReverseProxy.md";
                 case "HelpColumns":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/CustomColumns.md";
             }
