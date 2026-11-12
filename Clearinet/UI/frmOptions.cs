@@ -152,7 +152,8 @@ namespace Clearinet
                 {
                     btnSetColorMark.BackColor = dlg.Color;
 
-                    // BUG: This shouldn't take effect until the user pressed OK, but they can't in Viewer mode... hrmph.
+                    // BUG: This shouldn't take effect until the user pressed OK,
+                    // but they can't in Viewer mode... hrmph.
                     CONFIG.colorHighlight = dlg.Color;
                 }
             }

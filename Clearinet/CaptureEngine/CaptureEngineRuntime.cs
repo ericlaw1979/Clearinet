@@ -452,6 +452,32 @@ namespace Clearinet.CaptureEngine
             */
         }
 
+        // Clearinet will include some built-in rules. We will run those at the appropriate time.
+        private static void RunBuiltInRulesBeforeRequest(Exchange xc)
+        {
+            if (CApp.isClosing) return;
+            // autodecompress if not streaming/rpc and.ui.rules.removeencoding
+            // hide if image request  ui.rules.hideimages based on URI's extension?
+            // Toolbar's ProcessFilter
+            // ui.rules.hideconnects+
+            // bRequireProxyAuth = CApp.Prefs.GetBoolPref("ui.ephemeral.rules.requireproxyauth");
+            // if (bRequireProxyAuth) 
+            // { // check to see if it's there
+            // if (!xc.RequestHeaders.ExistsAndContains("Proxy-Authorization", "Basic " + CApp.Prefs.GetStringPref("app.proxy.creds", "MTox"))
+            //{
+            //   
+            //}
+            // else 
+            // { xc.RequestHeaders.Remove("Proxy-Authorization"); } // remove it so we don't forward it to the upstream proxy? But is this confusing
+            // to the user since it doesn't show in our UI anymore??
+            // }
+            // ) // 1:1
+            // TODO: Don't do this if we're in a CONNECT Tunnel.
+            // Ensure we send a 407 with a message > 512 bytes
+            // If the proxy creds are still 1:1, then tell the user that in our prompt.
+            //xc.ResponseHeaders.Add("Proxy-Authenticate", $"Basic realm=\"ClearinetProxy (user=1, pass=1)\"");
+        }
+
         private static void PrepareResponseForClient(HTTPResponseHeaders headers)
         {
             // If we got a 401 from the server, ensure the client knows that we

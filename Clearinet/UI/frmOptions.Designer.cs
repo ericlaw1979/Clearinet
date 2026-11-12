@@ -35,14 +35,19 @@
             this.cbxBigSwitch = new System.Windows.Forms.ComboBox();
             this.cbCheckForUpdates = new System.Windows.Forms.CheckBox();
             this.cbAttachOnStartup = new System.Windows.Forms.CheckBox();
+            this.pageNetworking = new System.Windows.Forms.TabPage();
+            this.udListenPort = new System.Windows.Forms.NumericUpDown();
+            this.cbEnableIPv6 = new System.Windows.Forms.CheckBox();
+            this.cbAllowRemoteConnections = new System.Windows.Forms.CheckBox();
+            this.lblListenOn = new System.Windows.Forms.Label();
+            this.pageGateway = new System.Windows.Forms.TabPage();
+            this.cbChainToGateway = new System.Windows.Forms.CheckBox();
             this.pageHTTPS = new System.Windows.Forms.TabPage();
             this.txtDecryptHosts = new System.Windows.Forms.TextBox();
             this.cbIgnoreUpstreamCertErrors = new System.Windows.Forms.CheckBox();
             this.cbxDecryptFor = new System.Windows.Forms.ComboBox();
             this.cbCaptureCONNECT = new System.Windows.Forms.CheckBox();
             this.cbDecryptHTTPS = new System.Windows.Forms.CheckBox();
-            this.pageNetworking = new System.Windows.Forms.TabPage();
-            this.pageGateway = new System.Windows.Forms.TabPage();
             this.pageAppearance = new System.Windows.Forms.TabPage();
             this.cbDarkMode = new System.Windows.Forms.CheckBox();
             this.btnSetColorMark = new System.Windows.Forms.Button();
@@ -54,48 +59,43 @@
             this.pnlExtFooter = new System.Windows.Forms.Panel();
             this.lnkGetExtensions = new System.Windows.Forms.LinkLabel();
             this.pagePerformance = new System.Windows.Forms.TabPage();
+            this.cbAutoStream = new System.Windows.Forms.CheckBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.cbxStreamBehavior = new System.Windows.Forms.ComboBox();
+            this.lblMB = new System.Windows.Forms.Label();
+            this.lblAutoStreamSize = new System.Windows.Forms.Label();
+            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
             this.pagePaths = new System.Windows.Forms.TabPage();
+            this.btnPickDiffTool = new System.Windows.Forms.Button();
+            this.btnPickScriptEditor = new System.Windows.Forms.Button();
+            this.btnPickTextEditor = new System.Windows.Forms.Button();
+            this.txtToolDiffArgs = new System.Windows.Forms.TextBox();
+            this.txtToolDiff = new System.Windows.Forms.TextBox();
+            this.txtToolScriptEditor = new System.Windows.Forms.TextBox();
+            this.txtToolTextEditor = new System.Windows.Forms.TextBox();
+            this.lblDiffToolArgs = new System.Windows.Forms.Label();
+            this.lblToolDiffTool = new System.Windows.Forms.Label();
+            this.lblToolScriptEditor = new System.Windows.Forms.Label();
+            this.lblToolTextEditor = new System.Windows.Forms.Label();
             this.pnlFooter = new System.Windows.Forms.Panel();
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lblUsageNote = new System.Windows.Forms.Label();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
-            this.lblListenOn = new System.Windows.Forms.Label();
-            this.cbAllowRemoteConnections = new System.Windows.Forms.CheckBox();
-            this.cbChainToGateway = new System.Windows.Forms.CheckBox();
-            this.cbEnableIPv6 = new System.Windows.Forms.CheckBox();
-            this.udListenPort = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
-            this.lblAutoStreamSize = new System.Windows.Forms.Label();
-            this.lblMB = new System.Windows.Forms.Label();
-            this.cbxStreamBehavior = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.lblToolTextEditor = new System.Windows.Forms.Label();
-            this.lblToolScriptEditor = new System.Windows.Forms.Label();
-            this.lblToolDiffTool = new System.Windows.Forms.Label();
-            this.lblDiffToolArgs = new System.Windows.Forms.Label();
-            this.txtToolTextEditor = new System.Windows.Forms.TextBox();
-            this.txtToolScriptEditor = new System.Windows.Forms.TextBox();
-            this.txtToolDiff = new System.Windows.Forms.TextBox();
-            this.txtToolDiffArgs = new System.Windows.Forms.TextBox();
-            this.btnPickTextEditor = new System.Windows.Forms.Button();
-            this.btnPickScriptEditor = new System.Windows.Forms.Button();
-            this.btnPickDiffTool = new System.Windows.Forms.Button();
-            this.cbAutoStream = new System.Windows.Forms.CheckBox();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
-            this.pageHTTPS.SuspendLayout();
             this.pageNetworking.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.udListenPort)).BeginInit();
             this.pageGateway.SuspendLayout();
+            this.pageHTTPS.SuspendLayout();
             this.pageAppearance.SuspendLayout();
             this.pageExtensions.SuspendLayout();
             this.pnlExtFooter.SuspendLayout();
             this.pagePerformance.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             this.pagePaths.SuspendLayout();
             this.pnlFooter.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.udListenPort)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             this.SuspendLayout();
             // 
             // tcOptions
@@ -132,12 +132,13 @@
             // 
             // gbWebServices
             // 
-            this.gbWebServices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbWebServices.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.gbWebServices.Controls.Add(this.cbxBigSwitch);
             this.gbWebServices.Controls.Add(this.cbCheckForUpdates);
-            this.gbWebServices.Location = new System.Drawing.Point(378, 23);
+            this.gbWebServices.Location = new System.Drawing.Point(23, 60);
             this.gbWebServices.Name = "gbWebServices";
-            this.gbWebServices.Size = new System.Drawing.Size(284, 154);
+            this.gbWebServices.Size = new System.Drawing.Size(620, 117);
             this.gbWebServices.TabIndex = 7;
             this.gbWebServices.TabStop = false;
             this.gbWebServices.Text = "Clearinet Cloud Services";
@@ -152,7 +153,7 @@
             "Disallow all Web Service calls"});
             this.cbxBigSwitch.Location = new System.Drawing.Point(17, 35);
             this.cbxBigSwitch.Name = "cbxBigSwitch";
-            this.cbxBigSwitch.Size = new System.Drawing.Size(252, 25);
+            this.cbxBigSwitch.Size = new System.Drawing.Size(313, 25);
             this.cbxBigSwitch.TabIndex = 1;
             // 
             // cbCheckForUpdates
@@ -174,6 +175,87 @@
             this.cbAttachOnStartup.TabIndex = 3;
             this.cbAttachOnStartup.Text = "Attach on Startup";
             this.cbAttachOnStartup.UseVisualStyleBackColor = true;
+            // 
+            // pageNetworking
+            // 
+            this.pageNetworking.Controls.Add(this.udListenPort);
+            this.pageNetworking.Controls.Add(this.cbEnableIPv6);
+            this.pageNetworking.Controls.Add(this.cbAllowRemoteConnections);
+            this.pageNetworking.Controls.Add(this.lblListenOn);
+            this.pageNetworking.Location = new System.Drawing.Point(4, 26);
+            this.pageNetworking.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.pageNetworking.Name = "pageNetworking";
+            this.pageNetworking.Size = new System.Drawing.Size(670, 316);
+            this.pageNetworking.TabIndex = 2;
+            this.pageNetworking.Text = "Networking";
+            this.pageNetworking.UseVisualStyleBackColor = true;
+            // 
+            // udListenPort
+            // 
+            this.udListenPort.Location = new System.Drawing.Point(101, 22);
+            this.udListenPort.Maximum = new decimal(new int[] {
+            65535,
+            0,
+            0,
+            0});
+            this.udListenPort.Name = "udListenPort";
+            this.udListenPort.Size = new System.Drawing.Size(65, 24);
+            this.udListenPort.TabIndex = 11;
+            this.udListenPort.Value = new decimal(new int[] {
+            8888,
+            0,
+            0,
+            0});
+            // 
+            // cbEnableIPv6
+            // 
+            this.cbEnableIPv6.AutoSize = true;
+            this.cbEnableIPv6.Location = new System.Drawing.Point(20, 102);
+            this.cbEnableIPv6.Name = "cbEnableIPv6";
+            this.cbEnableIPv6.Size = new System.Drawing.Size(186, 21);
+            this.cbEnableIPv6.TabIndex = 10;
+            this.cbEnableIPv6.Text = "Enable IPv6 (if supported)";
+            this.cbEnableIPv6.UseVisualStyleBackColor = true;
+            // 
+            // cbAllowRemoteConnections
+            // 
+            this.cbAllowRemoteConnections.AutoSize = true;
+            this.cbAllowRemoteConnections.Location = new System.Drawing.Point(20, 75);
+            this.cbAllowRemoteConnections.Name = "cbAllowRemoteConnections";
+            this.cbAllowRemoteConnections.Size = new System.Drawing.Size(189, 21);
+            this.cbAllowRemoteConnections.TabIndex = 9;
+            this.cbAllowRemoteConnections.Text = "Allow Remote Connections";
+            this.cbAllowRemoteConnections.UseVisualStyleBackColor = true;
+            // 
+            // lblListenOn
+            // 
+            this.lblListenOn.AutoSize = true;
+            this.lblListenOn.Location = new System.Drawing.Point(17, 24);
+            this.lblListenOn.Name = "lblListenOn";
+            this.lblListenOn.Size = new System.Drawing.Size(78, 17);
+            this.lblListenOn.TabIndex = 0;
+            this.lblListenOn.Text = "Listen Port:";
+            // 
+            // pageGateway
+            // 
+            this.pageGateway.Controls.Add(this.cbChainToGateway);
+            this.pageGateway.Location = new System.Drawing.Point(4, 26);
+            this.pageGateway.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.pageGateway.Name = "pageGateway";
+            this.pageGateway.Size = new System.Drawing.Size(670, 316);
+            this.pageGateway.TabIndex = 3;
+            this.pageGateway.Text = "Gateway";
+            this.pageGateway.UseVisualStyleBackColor = true;
+            // 
+            // cbChainToGateway
+            // 
+            this.cbChainToGateway.AutoSize = true;
+            this.cbChainToGateway.Location = new System.Drawing.Point(11, 16);
+            this.cbChainToGateway.Name = "cbChainToGateway";
+            this.cbChainToGateway.Size = new System.Drawing.Size(198, 21);
+            this.cbChainToGateway.TabIndex = 10;
+            this.cbChainToGateway.Text = "Chain to Upstream Gateway";
+            this.cbChainToGateway.UseVisualStyleBackColor = true;
             // 
             // pageHTTPS
             // 
@@ -247,31 +329,6 @@
             this.cbDecryptHTTPS.Text = "&Decrypt HTTPS exchanges";
             this.cbDecryptHTTPS.UseVisualStyleBackColor = true;
             // 
-            // pageNetworking
-            // 
-            this.pageNetworking.Controls.Add(this.udListenPort);
-            this.pageNetworking.Controls.Add(this.cbEnableIPv6);
-            this.pageNetworking.Controls.Add(this.cbAllowRemoteConnections);
-            this.pageNetworking.Controls.Add(this.lblListenOn);
-            this.pageNetworking.Location = new System.Drawing.Point(4, 26);
-            this.pageNetworking.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.pageNetworking.Name = "pageNetworking";
-            this.pageNetworking.Size = new System.Drawing.Size(670, 316);
-            this.pageNetworking.TabIndex = 2;
-            this.pageNetworking.Text = "Networking";
-            this.pageNetworking.UseVisualStyleBackColor = true;
-            // 
-            // pageGateway
-            // 
-            this.pageGateway.Controls.Add(this.cbChainToGateway);
-            this.pageGateway.Location = new System.Drawing.Point(4, 26);
-            this.pageGateway.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.pageGateway.Name = "pageGateway";
-            this.pageGateway.Size = new System.Drawing.Size(670, 316);
-            this.pageGateway.TabIndex = 3;
-            this.pageGateway.Text = "Gateway";
-            this.pageGateway.UseVisualStyleBackColor = true;
-            // 
             // pageAppearance
             // 
             this.pageAppearance.Controls.Add(this.cbDarkMode);
@@ -290,7 +347,7 @@
             // cbDarkMode
             // 
             this.cbDarkMode.AutoSize = true;
-            this.cbDarkMode.Location = new System.Drawing.Point(11, 141);
+            this.cbDarkMode.Location = new System.Drawing.Point(11, 142);
             this.cbDarkMode.Name = "cbDarkMode";
             this.cbDarkMode.Size = new System.Drawing.Size(177, 21);
             this.cbDarkMode.TabIndex = 6;
@@ -319,12 +376,12 @@
             // 
             // lblFontSize
             // 
-            this.lblFontSize.AutoSize = true;
-            this.lblFontSize.Location = new System.Drawing.Point(8, 19);
+            this.lblFontSize.Location = new System.Drawing.Point(8, 16);
             this.lblFontSize.Name = "lblFontSize";
-            this.lblFontSize.Size = new System.Drawing.Size(68, 17);
+            this.lblFontSize.Size = new System.Drawing.Size(106, 22);
             this.lblFontSize.TabIndex = 3;
             this.lblFontSize.Text = "Font Size:";
+            this.lblFontSize.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // cbxFontSize
             // 
@@ -342,7 +399,7 @@
             "24",
             "28",
             "32"});
-            this.cbxFontSize.Location = new System.Drawing.Point(82, 16);
+            this.cbxFontSize.Location = new System.Drawing.Point(120, 16);
             this.cbxFontSize.Name = "cbxFontSize";
             this.cbxFontSize.Size = new System.Drawing.Size(99, 25);
             this.cbxFontSize.TabIndex = 2;
@@ -409,6 +466,73 @@
             this.pagePerformance.Text = "Performance";
             this.pagePerformance.UseVisualStyleBackColor = true;
             // 
+            // cbAutoStream
+            // 
+            this.cbAutoStream.AutoSize = true;
+            this.cbAutoStream.Location = new System.Drawing.Point(17, 17);
+            this.cbAutoStream.Name = "cbAutoStream";
+            this.cbAutoStream.Size = new System.Drawing.Size(194, 21);
+            this.cbAutoStream.TabIndex = 0;
+            this.cbAutoStream.Text = "Automatically &stream media";
+            this.cbAutoStream.UseVisualStyleBackColor = true;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(14, 93);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(207, 17);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "If a client &aborts while streaming:";
+            // 
+            // cbxStreamBehavior
+            // 
+            this.cbxStreamBehavior.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxStreamBehavior.FormattingEnabled = true;
+            this.cbxStreamBehavior.Items.AddRange(new object[] {
+            "finish downloading anyway",
+            "finish only if Exchange is visible",
+            "close the server connection"});
+            this.cbxStreamBehavior.Location = new System.Drawing.Point(227, 90);
+            this.cbxStreamBehavior.Name = "cbxStreamBehavior";
+            this.cbxStreamBehavior.Size = new System.Drawing.Size(240, 25);
+            this.cbxStreamBehavior.TabIndex = 5;
+            // 
+            // lblMB
+            // 
+            this.lblMB.AutoSize = true;
+            this.lblMB.Location = new System.Drawing.Point(288, 53);
+            this.lblMB.Name = "lblMB";
+            this.lblMB.Size = new System.Drawing.Size(28, 17);
+            this.lblMB.TabIndex = 3;
+            this.lblMB.Text = "mb";
+            // 
+            // lblAutoStreamSize
+            // 
+            this.lblAutoStreamSize.AutoSize = true;
+            this.lblAutoStreamSize.Location = new System.Drawing.Point(16, 53);
+            this.lblAutoStreamSize.Name = "lblAutoStreamSize";
+            this.lblAutoStreamSize.Size = new System.Drawing.Size(195, 17);
+            this.lblAutoStreamSize.TabIndex = 1;
+            this.lblAutoStreamSize.Text = "Stream and forget bodies over";
+            // 
+            // numericUpDown2
+            // 
+            this.numericUpDown2.Location = new System.Drawing.Point(217, 51);
+            this.numericUpDown2.Maximum = new decimal(new int[] {
+            2147,
+            0,
+            0,
+            0});
+            this.numericUpDown2.Name = "numericUpDown2";
+            this.numericUpDown2.Size = new System.Drawing.Size(65, 24);
+            this.numericUpDown2.TabIndex = 2;
+            this.numericUpDown2.Value = new decimal(new int[] {
+            2147,
+            0,
+            0,
+            0});
+            // 
             // pagePaths
             // 
             this.pagePaths.Controls.Add(this.btnPickDiffTool);
@@ -429,6 +553,121 @@
             this.pagePaths.TabIndex = 7;
             this.pagePaths.Text = "Paths";
             this.pagePaths.UseVisualStyleBackColor = true;
+            // 
+            // btnPickDiffTool
+            // 
+            this.btnPickDiffTool.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPickDiffTool.Location = new System.Drawing.Point(613, 89);
+            this.btnPickDiffTool.Name = "btnPickDiffTool";
+            this.btnPickDiffTool.Size = new System.Drawing.Size(37, 23);
+            this.btnPickDiffTool.TabIndex = 8;
+            this.btnPickDiffTool.Text = "...";
+            this.btnPickDiffTool.UseVisualStyleBackColor = true;
+            this.btnPickDiffTool.Click += new System.EventHandler(this.btnPickDiffTool_Click);
+            // 
+            // btnPickScriptEditor
+            // 
+            this.btnPickScriptEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPickScriptEditor.Location = new System.Drawing.Point(613, 51);
+            this.btnPickScriptEditor.Name = "btnPickScriptEditor";
+            this.btnPickScriptEditor.Size = new System.Drawing.Size(37, 23);
+            this.btnPickScriptEditor.TabIndex = 5;
+            this.btnPickScriptEditor.Text = "...";
+            this.btnPickScriptEditor.UseVisualStyleBackColor = true;
+            this.btnPickScriptEditor.Click += new System.EventHandler(this.btnPickScriptEditor_Click);
+            // 
+            // btnPickTextEditor
+            // 
+            this.btnPickTextEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPickTextEditor.Location = new System.Drawing.Point(613, 14);
+            this.btnPickTextEditor.Name = "btnPickTextEditor";
+            this.btnPickTextEditor.Size = new System.Drawing.Size(37, 23);
+            this.btnPickTextEditor.TabIndex = 2;
+            this.btnPickTextEditor.Text = "...";
+            this.btnPickTextEditor.UseVisualStyleBackColor = true;
+            this.btnPickTextEditor.Click += new System.EventHandler(this.btnPickTextEditor_Click);
+            // 
+            // txtToolDiffArgs
+            // 
+            this.txtToolDiffArgs.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtToolDiffArgs.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtToolDiffArgs.Location = new System.Drawing.Point(196, 127);
+            this.txtToolDiffArgs.Name = "txtToolDiffArgs";
+            this.txtToolDiffArgs.Size = new System.Drawing.Size(454, 24);
+            this.txtToolDiffArgs.TabIndex = 10;
+            // 
+            // txtToolDiff
+            // 
+            this.txtToolDiff.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtToolDiff.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.txtToolDiff.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
+            this.txtToolDiff.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtToolDiff.Location = new System.Drawing.Point(116, 89);
+            this.txtToolDiff.Name = "txtToolDiff";
+            this.txtToolDiff.Size = new System.Drawing.Size(491, 24);
+            this.txtToolDiff.TabIndex = 7;
+            // 
+            // txtToolScriptEditor
+            // 
+            this.txtToolScriptEditor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtToolScriptEditor.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.txtToolScriptEditor.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
+            this.txtToolScriptEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtToolScriptEditor.Location = new System.Drawing.Point(116, 51);
+            this.txtToolScriptEditor.Name = "txtToolScriptEditor";
+            this.txtToolScriptEditor.Size = new System.Drawing.Size(491, 24);
+            this.txtToolScriptEditor.TabIndex = 4;
+            // 
+            // txtToolTextEditor
+            // 
+            this.txtToolTextEditor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtToolTextEditor.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.txtToolTextEditor.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
+            this.txtToolTextEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtToolTextEditor.Location = new System.Drawing.Point(116, 15);
+            this.txtToolTextEditor.Name = "txtToolTextEditor";
+            this.txtToolTextEditor.Size = new System.Drawing.Size(491, 24);
+            this.txtToolTextEditor.TabIndex = 1;
+            // 
+            // lblDiffToolArgs
+            // 
+            this.lblDiffToolArgs.AutoSize = true;
+            this.lblDiffToolArgs.Location = new System.Drawing.Point(86, 129);
+            this.lblDiffToolArgs.Name = "lblDiffToolArgs";
+            this.lblDiffToolArgs.Size = new System.Drawing.Size(104, 17);
+            this.lblDiffToolArgs.TabIndex = 9;
+            this.lblDiffToolArgs.Text = "&Diff Arguments:";
+            // 
+            // lblToolDiffTool
+            // 
+            this.lblToolDiffTool.AutoSize = true;
+            this.lblToolDiffTool.Location = new System.Drawing.Point(9, 92);
+            this.lblToolDiffTool.Name = "lblToolDiffTool";
+            this.lblToolDiffTool.Size = new System.Drawing.Size(63, 17);
+            this.lblToolDiffTool.TabIndex = 6;
+            this.lblToolDiffTool.Text = "&Diff Tool:";
+            // 
+            // lblToolScriptEditor
+            // 
+            this.lblToolScriptEditor.AutoSize = true;
+            this.lblToolScriptEditor.Location = new System.Drawing.Point(9, 54);
+            this.lblToolScriptEditor.Name = "lblToolScriptEditor";
+            this.lblToolScriptEditor.Size = new System.Drawing.Size(88, 17);
+            this.lblToolScriptEditor.TabIndex = 3;
+            this.lblToolScriptEditor.Text = "&Script Editor:";
+            // 
+            // lblToolTextEditor
+            // 
+            this.lblToolTextEditor.AutoSize = true;
+            this.lblToolTextEditor.Location = new System.Drawing.Point(9, 18);
+            this.lblToolTextEditor.Name = "lblToolTextEditor";
+            this.lblToolTextEditor.Size = new System.Drawing.Size(81, 17);
+            this.lblToolTextEditor.TabIndex = 0;
+            this.lblToolTextEditor.Text = "&Text Editor:";
             // 
             // pnlFooter
             // 
@@ -492,244 +731,6 @@
             this.lnkHelp.Text = "&Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
-            // lblListenOn
-            // 
-            this.lblListenOn.AutoSize = true;
-            this.lblListenOn.Location = new System.Drawing.Point(17, 24);
-            this.lblListenOn.Name = "lblListenOn";
-            this.lblListenOn.Size = new System.Drawing.Size(78, 17);
-            this.lblListenOn.TabIndex = 0;
-            this.lblListenOn.Text = "Listen Port:";
-            // 
-            // cbAllowRemoteConnections
-            // 
-            this.cbAllowRemoteConnections.AutoSize = true;
-            this.cbAllowRemoteConnections.Location = new System.Drawing.Point(20, 75);
-            this.cbAllowRemoteConnections.Name = "cbAllowRemoteConnections";
-            this.cbAllowRemoteConnections.Size = new System.Drawing.Size(189, 21);
-            this.cbAllowRemoteConnections.TabIndex = 9;
-            this.cbAllowRemoteConnections.Text = "Allow Remote Connections";
-            this.cbAllowRemoteConnections.UseVisualStyleBackColor = true;
-            // 
-            // cbChainToGateway
-            // 
-            this.cbChainToGateway.AutoSize = true;
-            this.cbChainToGateway.Location = new System.Drawing.Point(11, 16);
-            this.cbChainToGateway.Name = "cbChainToGateway";
-            this.cbChainToGateway.Size = new System.Drawing.Size(198, 21);
-            this.cbChainToGateway.TabIndex = 10;
-            this.cbChainToGateway.Text = "Chain to Upstream Gateway";
-            this.cbChainToGateway.UseVisualStyleBackColor = true;
-            // 
-            // cbEnableIPv6
-            // 
-            this.cbEnableIPv6.AutoSize = true;
-            this.cbEnableIPv6.Location = new System.Drawing.Point(20, 102);
-            this.cbEnableIPv6.Name = "cbEnableIPv6";
-            this.cbEnableIPv6.Size = new System.Drawing.Size(186, 21);
-            this.cbEnableIPv6.TabIndex = 10;
-            this.cbEnableIPv6.Text = "Enable IPv6 (if supported)";
-            this.cbEnableIPv6.UseVisualStyleBackColor = true;
-            // 
-            // udListenPort
-            // 
-            this.udListenPort.Location = new System.Drawing.Point(101, 22);
-            this.udListenPort.Maximum = new decimal(new int[] {
-            65535,
-            0,
-            0,
-            0});
-            this.udListenPort.Name = "udListenPort";
-            this.udListenPort.Size = new System.Drawing.Size(65, 24);
-            this.udListenPort.TabIndex = 11;
-            this.udListenPort.Value = new decimal(new int[] {
-            8888,
-            0,
-            0,
-            0});
-            // 
-            // numericUpDown2
-            // 
-            this.numericUpDown2.Location = new System.Drawing.Point(217, 51);
-            this.numericUpDown2.Maximum = new decimal(new int[] {
-            2147,
-            0,
-            0,
-            0});
-            this.numericUpDown2.Name = "numericUpDown2";
-            this.numericUpDown2.Size = new System.Drawing.Size(65, 24);
-            this.numericUpDown2.TabIndex = 2;
-            this.numericUpDown2.Value = new decimal(new int[] {
-            2147,
-            0,
-            0,
-            0});
-            // 
-            // lblAutoStreamSize
-            // 
-            this.lblAutoStreamSize.AutoSize = true;
-            this.lblAutoStreamSize.Location = new System.Drawing.Point(16, 53);
-            this.lblAutoStreamSize.Name = "lblAutoStreamSize";
-            this.lblAutoStreamSize.Size = new System.Drawing.Size(195, 17);
-            this.lblAutoStreamSize.TabIndex = 1;
-            this.lblAutoStreamSize.Text = "Stream and forget bodies over";
-            // 
-            // lblMB
-            // 
-            this.lblMB.AutoSize = true;
-            this.lblMB.Location = new System.Drawing.Point(288, 53);
-            this.lblMB.Name = "lblMB";
-            this.lblMB.Size = new System.Drawing.Size(28, 17);
-            this.lblMB.TabIndex = 3;
-            this.lblMB.Text = "mb";
-            // 
-            // cbxStreamBehavior
-            // 
-            this.cbxStreamBehavior.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbxStreamBehavior.FormattingEnabled = true;
-            this.cbxStreamBehavior.Items.AddRange(new object[] {
-            "finish downloading anyway",
-            "finish only if Exchange is visible",
-            "close the server connection"});
-            this.cbxStreamBehavior.Location = new System.Drawing.Point(227, 90);
-            this.cbxStreamBehavior.Name = "cbxStreamBehavior";
-            this.cbxStreamBehavior.Size = new System.Drawing.Size(240, 25);
-            this.cbxStreamBehavior.TabIndex = 5;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 93);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(207, 17);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "If a client &aborts while streaming:";
-            // 
-            // lblToolTextEditor
-            // 
-            this.lblToolTextEditor.AutoSize = true;
-            this.lblToolTextEditor.Location = new System.Drawing.Point(9, 18);
-            this.lblToolTextEditor.Name = "lblToolTextEditor";
-            this.lblToolTextEditor.Size = new System.Drawing.Size(81, 17);
-            this.lblToolTextEditor.TabIndex = 0;
-            this.lblToolTextEditor.Text = "&Text Editor:";
-            // 
-            // lblToolScriptEditor
-            // 
-            this.lblToolScriptEditor.AutoSize = true;
-            this.lblToolScriptEditor.Location = new System.Drawing.Point(9, 54);
-            this.lblToolScriptEditor.Name = "lblToolScriptEditor";
-            this.lblToolScriptEditor.Size = new System.Drawing.Size(88, 17);
-            this.lblToolScriptEditor.TabIndex = 3;
-            this.lblToolScriptEditor.Text = "&Script Editor:";
-            // 
-            // lblToolDiffTool
-            // 
-            this.lblToolDiffTool.AutoSize = true;
-            this.lblToolDiffTool.Location = new System.Drawing.Point(9, 92);
-            this.lblToolDiffTool.Name = "lblToolDiffTool";
-            this.lblToolDiffTool.Size = new System.Drawing.Size(63, 17);
-            this.lblToolDiffTool.TabIndex = 6;
-            this.lblToolDiffTool.Text = "&Diff Tool:";
-            // 
-            // lblDiffToolArgs
-            // 
-            this.lblDiffToolArgs.AutoSize = true;
-            this.lblDiffToolArgs.Location = new System.Drawing.Point(86, 129);
-            this.lblDiffToolArgs.Name = "lblDiffToolArgs";
-            this.lblDiffToolArgs.Size = new System.Drawing.Size(104, 17);
-            this.lblDiffToolArgs.TabIndex = 9;
-            this.lblDiffToolArgs.Text = "&Diff Arguments:";
-            // 
-            // txtToolTextEditor
-            // 
-            this.txtToolTextEditor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtToolTextEditor.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.txtToolTextEditor.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
-            this.txtToolTextEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtToolTextEditor.Location = new System.Drawing.Point(116, 15);
-            this.txtToolTextEditor.Name = "txtToolTextEditor";
-            this.txtToolTextEditor.Size = new System.Drawing.Size(491, 24);
-            this.txtToolTextEditor.TabIndex = 1;
-            // 
-            // txtToolScriptEditor
-            // 
-            this.txtToolScriptEditor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtToolScriptEditor.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.txtToolScriptEditor.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
-            this.txtToolScriptEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtToolScriptEditor.Location = new System.Drawing.Point(116, 51);
-            this.txtToolScriptEditor.Name = "txtToolScriptEditor";
-            this.txtToolScriptEditor.Size = new System.Drawing.Size(491, 24);
-            this.txtToolScriptEditor.TabIndex = 4;
-            // 
-            // txtToolDiff
-            // 
-            this.txtToolDiff.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtToolDiff.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.txtToolDiff.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
-            this.txtToolDiff.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtToolDiff.Location = new System.Drawing.Point(116, 89);
-            this.txtToolDiff.Name = "txtToolDiff";
-            this.txtToolDiff.Size = new System.Drawing.Size(491, 24);
-            this.txtToolDiff.TabIndex = 7;
-            // 
-            // txtToolDiffArgs
-            // 
-            this.txtToolDiffArgs.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtToolDiffArgs.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtToolDiffArgs.Location = new System.Drawing.Point(196, 127);
-            this.txtToolDiffArgs.Name = "txtToolDiffArgs";
-            this.txtToolDiffArgs.Size = new System.Drawing.Size(454, 24);
-            this.txtToolDiffArgs.TabIndex = 10;
-            // 
-            // btnPickTextEditor
-            // 
-            this.btnPickTextEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnPickTextEditor.Location = new System.Drawing.Point(613, 14);
-            this.btnPickTextEditor.Name = "btnPickTextEditor";
-            this.btnPickTextEditor.Size = new System.Drawing.Size(37, 23);
-            this.btnPickTextEditor.TabIndex = 2;
-            this.btnPickTextEditor.Text = "...";
-            this.btnPickTextEditor.UseVisualStyleBackColor = true;
-            this.btnPickTextEditor.Click += new System.EventHandler(this.btnPickTextEditor_Click);
-            // 
-            // btnPickScriptEditor
-            // 
-            this.btnPickScriptEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnPickScriptEditor.Location = new System.Drawing.Point(613, 51);
-            this.btnPickScriptEditor.Name = "btnPickScriptEditor";
-            this.btnPickScriptEditor.Size = new System.Drawing.Size(37, 23);
-            this.btnPickScriptEditor.TabIndex = 5;
-            this.btnPickScriptEditor.Text = "...";
-            this.btnPickScriptEditor.UseVisualStyleBackColor = true;
-            this.btnPickScriptEditor.Click += new System.EventHandler(this.btnPickScriptEditor_Click);
-            // 
-            // btnPickDiffTool
-            // 
-            this.btnPickDiffTool.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnPickDiffTool.Location = new System.Drawing.Point(613, 89);
-            this.btnPickDiffTool.Name = "btnPickDiffTool";
-            this.btnPickDiffTool.Size = new System.Drawing.Size(37, 23);
-            this.btnPickDiffTool.TabIndex = 8;
-            this.btnPickDiffTool.Text = "...";
-            this.btnPickDiffTool.UseVisualStyleBackColor = true;
-            this.btnPickDiffTool.Click += new System.EventHandler(this.btnPickDiffTool_Click);
-            // 
-            // cbAutoStream
-            // 
-            this.cbAutoStream.AutoSize = true;
-            this.cbAutoStream.Location = new System.Drawing.Point(17, 17);
-            this.cbAutoStream.Name = "cbAutoStream";
-            this.cbAutoStream.Size = new System.Drawing.Size(194, 21);
-            this.cbAutoStream.TabIndex = 0;
-            this.cbAutoStream.Text = "Automatically &stream media";
-            this.cbAutoStream.UseVisualStyleBackColor = true;
-            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
@@ -753,12 +754,13 @@
             this.pageGeneral.PerformLayout();
             this.gbWebServices.ResumeLayout(false);
             this.gbWebServices.PerformLayout();
-            this.pageHTTPS.ResumeLayout(false);
-            this.pageHTTPS.PerformLayout();
             this.pageNetworking.ResumeLayout(false);
             this.pageNetworking.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.udListenPort)).EndInit();
             this.pageGateway.ResumeLayout(false);
             this.pageGateway.PerformLayout();
+            this.pageHTTPS.ResumeLayout(false);
+            this.pageHTTPS.PerformLayout();
             this.pageAppearance.ResumeLayout(false);
             this.pageAppearance.PerformLayout();
             this.pageExtensions.ResumeLayout(false);
@@ -767,12 +769,11 @@
             this.pnlExtFooter.PerformLayout();
             this.pagePerformance.ResumeLayout(false);
             this.pagePerformance.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             this.pagePaths.ResumeLayout(false);
             this.pagePaths.PerformLayout();
             this.pnlFooter.ResumeLayout(false);
             this.pnlFooter.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.udListenPort)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             this.ResumeLayout(false);
 
         }
