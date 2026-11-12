@@ -236,6 +236,25 @@ namespace Clearinet
             }
         }
 
+        private bool TrySmartPaste()
+        {
+            if (ReadOnly) return false;
+            try
+            {
+                if (!Clipboard.ContainsText()) return false;
+                var text = Clipboard.GetText();
+                // Replace any newlines with spaces, and trim leading and trailing whitespace.
+                text = text.Replace("\r\n", " ").Replace("\n", " ").Trim();
+                SelectedText = text;
+                return true;
+            }
+            catch (System.Runtime.InteropServices.ExternalException ex)
+            {
+                CApp.Log.Log("Unable to paste text into QuickExec: " + ex.Message);
+                return true;
+            }
+        }
+
         protected override void WndProc(ref Message m)
         {
             const int WM_PASTE = 0x0302;
@@ -256,6 +275,7 @@ namespace Clearinet
                 case Keys.Control | Keys.V:
                 case Keys.Shift | Keys.Insert:
                     if (TryPasteFiles()) return true;
+                    if (TrySmartPaste()) return true;
                     break;
                 case Keys.Control | Keys.U:
                     if (!ReadOnly)
