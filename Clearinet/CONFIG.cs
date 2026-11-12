@@ -200,6 +200,8 @@ namespace Clearinet
             {
                 case "Homepage":
                     return "https://clearinet.app/";
+                case "GetExtensions":
+                    return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/ExtensionGallery.md";
                 case "Help":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HELP.md";
                 case "HelpPrefs":
@@ -220,6 +222,8 @@ namespace Clearinet
                 case "Captures":
                     return CApp.Prefs.GetStringPref("app.paths.captures",
                                          $"{GetPath("UserFolder")}Captures{Path.DirectorySeparatorChar}");
+                case "Editor.Text":
+                    return CApp.Prefs.GetStringPref("user.paths.editors.text", "notepad.exe");
                 case "Editor.Code":
                     return CApp.Prefs.GetStringPref("user.paths.editors.code", "notepad.exe");
                 case "Tools.Diff":

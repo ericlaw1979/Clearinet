@@ -43,6 +43,13 @@ namespace Clearinet
             cbChainToGateway.Checked = CApp.Prefs.GetBoolPref("proxy.chain_to_upstream_gateway", true);
             cbDarkMode.Checked = CApp.Prefs.GetBoolPref("app.ui.dark_mode", false);
 
+            udListenPort.Value = CONFIG.ListenPort;
+
+            txtToolTextEditor.Text = CONFIG.GetPath("Editor.Text");
+            txtToolScriptEditor.Text = CONFIG.GetPath("Editor.Code");
+            txtToolDiff.Text = CONFIG.GetPath("Tools.Diff");
+            txtToolDiffArgs.Text = CApp.Prefs.GetStringPref("app.tools.diff.args", "--diff %1 %2");
+
             if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
 
@@ -65,6 +72,11 @@ namespace Clearinet
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.unsafe.ignore_cert_errors", cbIgnoreUpstreamCertErrors.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.chain_to_upstream_gateway", cbChainToGateway.Checked, true);
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.dark_mode", cbDarkMode.Checked, false);
+
+            if (txtToolTextEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.text", txtToolTextEditor.Text.HasText() ? txtToolTextEditor.Text : null);
+            if (txtToolScriptEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.code", txtToolScriptEditor.Text.HasText() ? txtToolScriptEditor.Text : null);
+            if (txtToolDiff.Modified) CApp.Prefs.SetStringPref("user.paths.tools.diff", txtToolDiff.Text.HasText() ? txtToolDiff.Text : null);
+            if (txtToolDiffArgs.Modified) CApp.Prefs.SetStringPref("app.tools.diff.args", txtToolDiffArgs.Text.HasText() ? txtToolDiffArgs.Text : null);
 
             if (cbxBigSwitch.SelectedIndex == 0)
             { // Allow all Web Service calls
@@ -154,6 +166,29 @@ namespace Clearinet
         private void cbIgnoreUpstreamCertErrors_CheckedChanged(object sender, EventArgs e)
         {
             cbIgnoreUpstreamCertErrors.ForeColor = cbIgnoreUpstreamCertErrors.Checked ? Color.Red : SystemColors.ControlText;
+        }
+
+        private void lnkGetExtensions_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Utilities.LaunchHyperlink(CONFIG.GetURL("GetExtensions"));
+        }
+
+        private void btnPickTextEditor_Click(object sender, EventArgs e)
+        {
+            var sNew = Utilities.ObtainOpenFilename("Select Text Editor", "Executable Files|*.exe|All Files|*.*", txtToolTextEditor.Text);
+            if (sNew.HasText()) { txtToolTextEditor.Text = sNew; txtToolTextEditor.Modified = true; }
+        }
+
+        private void btnPickScriptEditor_Click(object sender, EventArgs e)
+        {
+            var sNew = Utilities.ObtainOpenFilename("Select Script Editor", "Executable Files|*.exe|All Files|*.*", txtToolScriptEditor.Text);
+            if (sNew.HasText()) { txtToolScriptEditor.Text = sNew; txtToolScriptEditor.Modified = true; }
+        }
+
+        private void btnPickDiffTool_Click(object sender, EventArgs e)
+        {
+            var sNew = Utilities.ObtainOpenFilename("Select Diff Tool", "Executable Files|*.exe|All Files|*.*", txtToolDiff.Text);
+            if (sNew.HasText()) { txtToolDiff.Text = sNew; txtToolDiff.Modified = true; }
         }
     }
 }

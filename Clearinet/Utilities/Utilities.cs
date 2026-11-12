@@ -577,10 +577,13 @@ namespace Clearinet
 
                 using (var process = new Process())
                 {
+                    string args = CApp.Prefs.GetStringPref("app.tools.diff.args", "--diff %1 %2");
+                    args = args.Replace("%1", $"\"{path1}\"").Replace("%2", $"\"{path2}\"");
+
                     process.StartInfo = new ProcessStartInfo
                     {
                         FileName = CONFIG.GetPath("Tools.Diff"),
-                        Arguments = CApp.Prefs.GetStringPref("app.tools.diff.args", $"--diff \"{path1}\" \"{path2}\""),
+                        Arguments = args
                     };
                     process.Start();
                 }
