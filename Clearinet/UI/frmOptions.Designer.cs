@@ -139,7 +139,7 @@
             this.gbWebServices.Location = new System.Drawing.Point(23, 60);
             this.gbWebServices.Name = "gbWebServices";
             this.gbWebServices.Size = new System.Drawing.Size(620, 117);
-            this.gbWebServices.TabIndex = 7;
+            this.gbWebServices.TabIndex = 1;
             this.gbWebServices.TabStop = false;
             this.gbWebServices.Text = "Clearinet Cloud Services";
             // 
@@ -154,7 +154,7 @@
             this.cbxBigSwitch.Location = new System.Drawing.Point(17, 35);
             this.cbxBigSwitch.Name = "cbxBigSwitch";
             this.cbxBigSwitch.Size = new System.Drawing.Size(313, 25);
-            this.cbxBigSwitch.TabIndex = 1;
+            this.cbxBigSwitch.TabIndex = 0;
             // 
             // cbCheckForUpdates
             // 
@@ -162,7 +162,7 @@
             this.cbCheckForUpdates.Location = new System.Drawing.Point(17, 66);
             this.cbCheckForUpdates.Name = "cbCheckForUpdates";
             this.cbCheckForUpdates.Size = new System.Drawing.Size(210, 21);
-            this.cbCheckForUpdates.TabIndex = 0;
+            this.cbCheckForUpdates.TabIndex = 1;
             this.cbCheckForUpdates.Text = "Check for Updates on Startup";
             this.cbCheckForUpdates.UseVisualStyleBackColor = true;
             // 
@@ -172,7 +172,7 @@
             this.cbAttachOnStartup.Location = new System.Drawing.Point(23, 23);
             this.cbAttachOnStartup.Name = "cbAttachOnStartup";
             this.cbAttachOnStartup.Size = new System.Drawing.Size(137, 21);
-            this.cbAttachOnStartup.TabIndex = 3;
+            this.cbAttachOnStartup.TabIndex = 0;
             this.cbAttachOnStartup.Text = "Attach on Startup";
             this.cbAttachOnStartup.UseVisualStyleBackColor = true;
             // 
@@ -200,7 +200,7 @@
             0});
             this.udListenPort.Name = "udListenPort";
             this.udListenPort.Size = new System.Drawing.Size(65, 24);
-            this.udListenPort.TabIndex = 11;
+            this.udListenPort.TabIndex = 1;
             this.udListenPort.Value = new decimal(new int[] {
             8888,
             0,
@@ -213,7 +213,7 @@
             this.cbEnableIPv6.Location = new System.Drawing.Point(20, 102);
             this.cbEnableIPv6.Name = "cbEnableIPv6";
             this.cbEnableIPv6.Size = new System.Drawing.Size(186, 21);
-            this.cbEnableIPv6.TabIndex = 10;
+            this.cbEnableIPv6.TabIndex = 3;
             this.cbEnableIPv6.Text = "Enable IPv6 (if supported)";
             this.cbEnableIPv6.UseVisualStyleBackColor = true;
             // 
@@ -223,7 +223,7 @@
             this.cbAllowRemoteConnections.Location = new System.Drawing.Point(20, 75);
             this.cbAllowRemoteConnections.Name = "cbAllowRemoteConnections";
             this.cbAllowRemoteConnections.Size = new System.Drawing.Size(189, 21);
-            this.cbAllowRemoteConnections.TabIndex = 9;
+            this.cbAllowRemoteConnections.TabIndex = 2;
             this.cbAllowRemoteConnections.Text = "Allow Remote Connections";
             this.cbAllowRemoteConnections.UseVisualStyleBackColor = true;
             // 
@@ -282,7 +282,7 @@
             this.txtDecryptHosts.Multiline = true;
             this.txtDecryptHosts.Name = "txtDecryptHosts";
             this.txtDecryptHosts.Size = new System.Drawing.Size(581, 0);
-            this.txtDecryptHosts.TabIndex = 7;
+            this.txtDecryptHosts.TabIndex = 4;
             // 
             // cbIgnoreUpstreamCertErrors
             // 
@@ -290,7 +290,7 @@
             this.cbIgnoreUpstreamCertErrors.Location = new System.Drawing.Point(54, 140);
             this.cbIgnoreUpstreamCertErrors.Name = "cbIgnoreUpstreamCertErrors";
             this.cbIgnoreUpstreamCertErrors.Size = new System.Drawing.Size(265, 21);
-            this.cbIgnoreUpstreamCertErrors.TabIndex = 6;
+            this.cbIgnoreUpstreamCertErrors.TabIndex = 3;
             this.cbIgnoreUpstreamCertErrors.Text = "&Ignore server certificate errors (unsafe)";
             this.cbIgnoreUpstreamCertErrors.UseVisualStyleBackColor = true;
             this.cbIgnoreUpstreamCertErrors.CheckedChanged += new System.EventHandler(this.cbIgnoreUpstreamCertErrors_CheckedChanged);
@@ -307,7 +307,7 @@
             this.cbxDecryptFor.Location = new System.Drawing.Point(54, 91);
             this.cbxDecryptFor.Name = "cbxDecryptFor";
             this.cbxDecryptFor.Size = new System.Drawing.Size(225, 25);
-            this.cbxDecryptFor.TabIndex = 5;
+            this.cbxDecryptFor.TabIndex = 2;
             // 
             // cbCaptureCONNECT
             // 
@@ -315,7 +315,7 @@
             this.cbCaptureCONNECT.Location = new System.Drawing.Point(11, 21);
             this.cbCaptureCONNECT.Name = "cbCaptureCONNECT";
             this.cbCaptureCONNECT.Size = new System.Drawing.Size(193, 21);
-            this.cbCaptureCONNECT.TabIndex = 4;
+            this.cbCaptureCONNECT.TabIndex = 0;
             this.cbCaptureCONNECT.Text = "Capture &HTTPS CONNECTs";
             this.cbCaptureCONNECT.UseVisualStyleBackColor = true;
             // 
@@ -325,7 +325,7 @@
             this.cbDecryptHTTPS.Location = new System.Drawing.Point(31, 48);
             this.cbDecryptHTTPS.Name = "cbDecryptHTTPS";
             this.cbDecryptHTTPS.Size = new System.Drawing.Size(192, 21);
-            this.cbDecryptHTTPS.TabIndex = 0;
+            this.cbDecryptHTTPS.TabIndex = 1;
             this.cbDecryptHTTPS.Text = "&Decrypt HTTPS exchanges";
             this.cbDecryptHTTPS.UseVisualStyleBackColor = true;
             // 
@@ -350,7 +350,7 @@
             this.cbDarkMode.Location = new System.Drawing.Point(11, 142);
             this.cbDarkMode.Name = "cbDarkMode";
             this.cbDarkMode.Size = new System.Drawing.Size(177, 21);
-            this.cbDarkMode.TabIndex = 6;
+            this.cbDarkMode.TabIndex = 4;
             this.cbDarkMode.Text = "Dark Mode (rough draft)";
             this.cbDarkMode.UseVisualStyleBackColor = true;
             // 
@@ -359,7 +359,7 @@
             this.btnSetColorMark.Location = new System.Drawing.Point(11, 94);
             this.btnSetColorMark.Name = "btnSetColorMark";
             this.btnSetColorMark.Size = new System.Drawing.Size(208, 32);
-            this.btnSetColorMark.TabIndex = 5;
+            this.btnSetColorMark.TabIndex = 3;
             this.btnSetColorMark.Text = "Set node \'mark\' color";
             this.btnSetColorMark.UseVisualStyleBackColor = true;
             this.btnSetColorMark.Click += new System.EventHandler(this.btnSetColorMark_Click);
@@ -369,7 +369,7 @@
             this.btnSetColorReadonly.Location = new System.Drawing.Point(11, 57);
             this.btnSetColorReadonly.Name = "btnSetColorReadonly";
             this.btnSetColorReadonly.Size = new System.Drawing.Size(208, 31);
-            this.btnSetColorReadonly.TabIndex = 4;
+            this.btnSetColorReadonly.TabIndex = 2;
             this.btnSetColorReadonly.Text = "Set \'readonly\' color";
             this.btnSetColorReadonly.UseVisualStyleBackColor = true;
             this.btnSetColorReadonly.Click += new System.EventHandler(this.btnSetColorReadonly_Click);
@@ -379,7 +379,7 @@
             this.lblFontSize.Location = new System.Drawing.Point(8, 16);
             this.lblFontSize.Name = "lblFontSize";
             this.lblFontSize.Size = new System.Drawing.Size(106, 22);
-            this.lblFontSize.TabIndex = 3;
+            this.lblFontSize.TabIndex = 0;
             this.lblFontSize.Text = "Font Size:";
             this.lblFontSize.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
@@ -402,7 +402,7 @@
             this.cbxFontSize.Location = new System.Drawing.Point(120, 16);
             this.cbxFontSize.Name = "cbxFontSize";
             this.cbxFontSize.Size = new System.Drawing.Size(99, 25);
-            this.cbxFontSize.TabIndex = 2;
+            this.cbxFontSize.TabIndex = 1;
             this.cbxFontSize.SelectionChangeCommitted += new System.EventHandler(this.cbxFontSize_SelectionChangeCommitted);
             // 
             // pageExtensions
