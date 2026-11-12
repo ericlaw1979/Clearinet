@@ -155,22 +155,22 @@ namespace Clearinet.CaptureEngine
         /// </summary>
         internal static void SetProxyForClearinet(string proxyServer, string proxyBypassList)
         {
+            if (null == proxyBypassList) proxyBypassList = string.Empty;
+
+            // Issue: We could just make this turn into "DIRECT"?
             if (string.IsNullOrWhiteSpace(proxyServer))
             {
                 throw new ArgumentException("Proxy server must be provided.", nameof(proxyServer));
             }
 
-            if (string.IsNullOrWhiteSpace(proxyBypassList))
-            {
-                throw new ArgumentException("Proxy bypass list must be provided.", nameof(proxyBypassList));
-            }
-
+            // If we are not capturing CONNECT requests, we need to prepend the protocol to the
+            // proxy server so that WinINET knows to use it for only HTTP requests.
             if (!CApp.Prefs.GetBoolPref("proxy.capture_connect", true))
             {
                 proxyServer = $"http={proxyServer}";
             }
 
-            // TODO: Do we need to set the AutoConfigUrl and AutoDiscoveryFlags to null/0 here?
+            // Note: We don't need to explicitly set the AutoConfigUrl and AutoDiscoveryFlags to null/0 here.
             SetPerConnectionOptions(
                 new INTERNET_PER_CONN_OPTION
                 {

@@ -128,9 +128,12 @@ namespace Clearinet
 
             if (isAttached) return;
 
-            if (CApp.Prefs.GetBoolPref("proxy.ephemeral.show_nyi_dialog", true))
+            if (!CApp.Prefs.GetBoolPref("proxy.reed.enabled") &&
+                 CApp.Prefs.GetBoolPref("proxy.ephemeral.show_nyi_dialog", true))
             {
-                CApp.alert("Sorry!\n\nTraffic capture is not actually implemented yet.\n\nStay tuned!"); // TODO:
+                CApp.DoNotifyUser("Sorry!\n\nThe built-in proxy engine is still experimental.\n\n" +
+                    "You'll need to manually \"prefs set proxy.reed.enabled true\" and restart if you want to try it.",
+                    "Not Yet Implemented", MessageBoxIcon.Information);
             }
 
             // TODO: Move this into the CaptureEngine
@@ -589,7 +592,7 @@ namespace Clearinet
         internal static bool EnsureCaptureEngineRunning()
         {
             if (CONFIG.isViewerMode) return false;
-            if (!Prefs.GetBoolPref("proxy.reed.enabled", true))
+            if (!Prefs.GetBoolPref("proxy.reed.enabled", false))    // TODO! change to TRUE
             {
                 Log.Log("! Reed proxy is disabled via `proxy.reed.enabled`, engine startup canceled.");
                 return false;
