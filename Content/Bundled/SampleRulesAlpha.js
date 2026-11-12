@@ -97,9 +97,16 @@ class Handlers
 
     BindUIButton("SingleBrowserMode \uD83D\uDC40", "Launches a browser pointed at the Clearinet proxy.")
     public static function LaunchSingleInstance() {
+        var proxyServer = '127.0.0.1:'+ CONFIG.ListenPort;
+        
+        // If we're not meant to capture HTTPS, scope the proxy to http:
+        if (!CApp.Prefs.GetBoolPref("proxy.capture_connect", true)) {
+            proxyServer = 'http=' + proxyServer;
+        }
+            
         Utilities.LaunchNative('msedge.exe', 
-            '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server=127.0.0.1:' 
-            + CONFIG.ListenPort + ' about:blank');
+            '--user-data-dir="C:\\temp\\throwaway" --no-first-run --proxy-server="' 
+            + proxyServer + '" --proxy-bypass-list="<-loopback>" about:blank');
     }
 
     public static BindTextCodec("to UPPERCASE")

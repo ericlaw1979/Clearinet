@@ -165,6 +165,11 @@ namespace Clearinet.CaptureEngine
                 throw new ArgumentException("Proxy bypass list must be provided.", nameof(proxyBypassList));
             }
 
+            if (!CApp.Prefs.GetBoolPref("proxy.capture_connect", true))
+            {
+                proxyServer = $"http={proxyServer}";
+            }
+
             // TODO: Do we need to set the AutoConfigUrl and AutoDiscoveryFlags to null/0 here?
             SetPerConnectionOptions(
                 new INTERNET_PER_CONN_OPTION
