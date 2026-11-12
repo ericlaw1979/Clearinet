@@ -83,6 +83,10 @@ class Handlers
     BindPref("demoscript.ephemeral.allow_close")
     public static var bCanClose: boolean = true;
 
+    // Override Accept-Language header.
+    public static RulesOption("Request &Chinese Content")
+    var m_RequestChinese: boolean = false;
+    
     RulesOption("Some Random Toggler&2")
     BindPref("demoscript.randomToggle#2")
     public static var bRandomToggler2: boolean;
@@ -191,6 +195,10 @@ class Handlers
     static function OnBeforeRequest(XC: Exchange) {
         // XC["x-replywithfile"] = "C:\\temp\\foo.html";
         XC["ui-backcolor"] = "LimeGreen";
+        
+        if (m_RequestChinese) {
+            XC.RequestHeaders["Accept-Language"] = "zh-CN";
+        }
         
         // Break if the request's URL contains the string we said to break on...
         if ((null != bpRequestURL) && !XC.HTTPMethodIs("CONNECT") 

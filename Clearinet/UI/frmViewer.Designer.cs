@@ -206,6 +206,7 @@ namespace Clearinet
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
+            this.tsmiRulesSplit = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -743,7 +744,8 @@ namespace Clearinet
             // miRules
             // 
             this.miRules.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miRulesCustomize});
+            this.miRulesCustomize,
+            this.tsmiRulesSplit});
             this.miRules.Name = "miRules";
             this.miRules.Size = new System.Drawing.Size(51, 21);
             this.miRules.Text = "&Rules";
@@ -1755,6 +1757,11 @@ namespace Clearinet
             this.splitterMain.TabStop = false;
             this.splitterMain.DoubleClick += new System.EventHandler(this.splitterMain_DoubleClick);
             // 
+            // tsmiRulesSplit
+            // 
+            this.tsmiRulesSplit.Name = "tsmiRulesSplit";
+            this.tsmiRulesSplit.Size = new System.Drawing.Size(222, 6);
+            // 
             // frmViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1984,6 +1991,7 @@ namespace Clearinet
         private System.Windows.Forms.ToolStripMenuItem miViewTabsAboutConfig;
         private System.Windows.Forms.ToolStripMenuItem miEditCopyResponseDataURI;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem8;
+        private System.Windows.Forms.ToolStripSeparator tsmiRulesSplit;
     }
 }
 
