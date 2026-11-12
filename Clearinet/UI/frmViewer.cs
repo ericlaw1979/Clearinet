@@ -758,6 +758,8 @@ namespace Clearinet
             splitterMain.SplitPosition = CApp.Prefs.GetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
             // Trace.WriteLine($"[Clearinet] Initialized UI from prefs: splitterMain.SplitPosition={splitterMain.SplitPosition}, splitRequestResponse.SplitPosition={splitRequestResponse.SplitPosition}");
 
+            miRulesRequireAuth.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
+
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
             if (CONFIG.isDarkMode)
@@ -3450,6 +3452,11 @@ namespace Clearinet
         private void tslVersion_Click(object sender, EventArgs e)
         {
             miHelpAbout.PerformClick();
+        }
+
+        private void miRulesRequireAuth_CheckedChanged(object sender, EventArgs e)
+        {
+            CApp.Prefs.SetBoolPref("app.ui.rules.ephemeral.require_proxy_auth", miRulesRequireAuth.Checked);
         }
     }
 

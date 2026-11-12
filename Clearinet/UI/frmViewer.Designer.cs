@@ -100,6 +100,8 @@ namespace Clearinet
             this.miEditFind = new System.Windows.Forms.ToolStripMenuItem();
             this.miRules = new System.Windows.Forms.ToolStripMenuItem();
             this.miRulesCustomize = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiRulesSplit = new System.Windows.Forms.ToolStripSeparator();
+            this.miRulesRequireAuth = new System.Windows.Forms.ToolStripMenuItem();
             this.miTools = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsOptions = new System.Windows.Forms.ToolStripMenuItem();
             this.miTextWizard = new System.Windows.Forms.ToolStripMenuItem();
@@ -206,7 +208,6 @@ namespace Clearinet
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.tsmiRulesSplit = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -745,7 +746,8 @@ namespace Clearinet
             // 
             this.miRules.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miRulesCustomize,
-            this.tsmiRulesSplit});
+            this.tsmiRulesSplit,
+            this.miRulesRequireAuth});
             this.miRules.Name = "miRules";
             this.miRules.Size = new System.Drawing.Size(51, 21);
             this.miRules.Text = "&Rules";
@@ -754,9 +756,22 @@ namespace Clearinet
             // 
             this.miRulesCustomize.Name = "miRulesCustomize";
             this.miRulesCustomize.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
-            this.miRulesCustomize.Size = new System.Drawing.Size(225, 22);
+            this.miRulesCustomize.Size = new System.Drawing.Size(243, 22);
             this.miRulesCustomize.Text = "Customize &Rules...";
             this.miRulesCustomize.Click += new System.EventHandler(this.miRulesCustomize_Click);
+            // 
+            // tsmiRulesSplit
+            // 
+            this.tsmiRulesSplit.Name = "tsmiRulesSplit";
+            this.tsmiRulesSplit.Size = new System.Drawing.Size(240, 6);
+            // 
+            // miRulesRequireAuth
+            // 
+            this.miRulesRequireAuth.CheckOnClick = true;
+            this.miRulesRequireAuth.Name = "miRulesRequireAuth";
+            this.miRulesRequireAuth.Size = new System.Drawing.Size(243, 22);
+            this.miRulesRequireAuth.Text = "Require &Proxy Authentication";
+            this.miRulesRequireAuth.CheckedChanged += new System.EventHandler(this.miRulesRequireAuth_CheckedChanged);
             // 
             // miTools
             // 
@@ -1757,11 +1772,6 @@ namespace Clearinet
             this.splitterMain.TabStop = false;
             this.splitterMain.DoubleClick += new System.EventHandler(this.splitterMain_DoubleClick);
             // 
-            // tsmiRulesSplit
-            // 
-            this.tsmiRulesSplit.Name = "tsmiRulesSplit";
-            this.tsmiRulesSplit.Size = new System.Drawing.Size(222, 6);
-            // 
             // frmViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1992,6 +2002,7 @@ namespace Clearinet
         private System.Windows.Forms.ToolStripMenuItem miEditCopyResponseDataURI;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem8;
         private System.Windows.Forms.ToolStripSeparator tsmiRulesSplit;
+        private System.Windows.Forms.ToolStripMenuItem miRulesRequireAuth;
     }
 }
 
