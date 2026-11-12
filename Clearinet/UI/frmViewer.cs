@@ -3397,6 +3397,15 @@ namespace Clearinet
         protected override void WndProc(ref Message m)
         {
             const int WM_QUERYENDSESSION = 0x0011;
+            const int WM_SIZE = 0x0005;
+            const int SIZE_MINIMIZED = 0x1;
+
+            if ((m.Msg == WM_SIZE) && (SIZE_MINIMIZED == (int)m.WParam)
+                && (CApp.Prefs.GetBoolPref("app.ui.minimize_to_tray") || CONFIG.isQuietMode))
+            {
+                actMinimizeToTray();
+                return;
+            }
 
             if (m.Msg == WM_QUERYENDSESSION)
             {

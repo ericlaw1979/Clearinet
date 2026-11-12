@@ -82,6 +82,7 @@
             this.btnOk = new System.Windows.Forms.Button();
             this.lblUsageNote = new System.Windows.Forms.Label();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
+            this.cbMinimizeToTray = new System.Windows.Forms.CheckBox();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -331,6 +332,7 @@
             // 
             // pageAppearance
             // 
+            this.pageAppearance.Controls.Add(this.cbMinimizeToTray);
             this.pageAppearance.Controls.Add(this.cbDarkMode);
             this.pageAppearance.Controls.Add(this.btnSetColorMark);
             this.pageAppearance.Controls.Add(this.btnSetColorReadonly);
@@ -731,6 +733,16 @@
             this.lnkHelp.Text = "&Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
+            // cbMinimizeToTray
+            // 
+            this.cbMinimizeToTray.AutoSize = true;
+            this.cbMinimizeToTray.Location = new System.Drawing.Point(11, 169);
+            this.cbMinimizeToTray.Name = "cbMinimizeToTray";
+            this.cbMinimizeToTray.Size = new System.Drawing.Size(125, 21);
+            this.cbMinimizeToTray.TabIndex = 5;
+            this.cbMinimizeToTray.Text = "Minimize to Tray";
+            this.cbMinimizeToTray.UseVisualStyleBackColor = true;
+            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
@@ -833,5 +845,6 @@
         private System.Windows.Forms.Button btnPickScriptEditor;
         private System.Windows.Forms.Button btnPickTextEditor;
         private System.Windows.Forms.CheckBox cbAutoStream;
+        private System.Windows.Forms.CheckBox cbMinimizeToTray;
     }
 }

@@ -42,6 +42,7 @@ namespace Clearinet
             cbIgnoreUpstreamCertErrors.Checked = CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors", false);
             cbChainToGateway.Checked = CApp.Prefs.GetBoolPref("proxy.chain_to_upstream_gateway", true);
             cbDarkMode.Checked = CApp.Prefs.GetBoolPref("app.ui.dark_mode", false);
+            cbMinimizeToTray.Checked = CApp.Prefs.GetBoolPref("app.ui.minimize_to_tray", false);
 
             udListenPort.Value = CONFIG.ListenPort;
 
@@ -72,6 +73,7 @@ namespace Clearinet
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.unsafe.ignore_cert_errors", cbIgnoreUpstreamCertErrors.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.chain_to_upstream_gateway", cbChainToGateway.Checked, true);
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.dark_mode", cbDarkMode.Checked, false);
+            CApp.Prefs.AssignOrRemoveIfDefault("app.ui.minimize_to_tray", cbMinimizeToTray.Checked, false);
 
             if (txtToolTextEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.text", txtToolTextEditor.Text.HasText() ? txtToolTextEditor.Text : null);
             if (txtToolScriptEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.code", txtToolScriptEditor.Text.HasText() ? txtToolScriptEditor.Text : null);
