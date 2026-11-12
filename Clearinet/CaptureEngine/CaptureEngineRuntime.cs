@@ -458,10 +458,21 @@ namespace Clearinet.CaptureEngine
         private async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
         {
             if (CApp.isClosing) return;
-            // autodecompress if not streaming/rpc and.ui.rules.removeencoding
+
             // hide if image request  ui.rules.hideimages based on URI's extension?
             // Toolbar's ProcessFilter
             // ui.rules.hideconnects+
+
+            if (xc.HTTPMethodIs("CONNECT") && CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects"))
+            {
+                xc["ui-hide"] = "Rules > HideCONNECTs";
+            }
+            if (CApp.Prefs.GetBoolPref("app.ui.rules.hide_images") &&
+                xc.url.OICEndsWithAny(".svg", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".ico"))
+            {
+                xc["ui-hide"] = "Rules > HideImages";
+            }
+
             var bRequireProxyAuth = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
             if (bRequireProxyAuth && xc.RequestHeaders.UriScheme.OICEquals("http"))                  // Don't do this if we're in a CONNECT Tunnel!
             {
@@ -487,6 +498,13 @@ namespace Clearinet.CaptureEngine
                 // to the user since it doesn't show in our UI anymore??
                 // }
                 // ) // 1:1
+            }
+
+            // Should we skip this if the Exchange is hidden/ignored?
+            if (CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress") &&
+                !xc.BitFlags.HasFlag(ExchangeFlags.RequestStreamed) && !xc.BitFlags.HasFlag(ExchangeFlags.IsRPCTunnel))
+            {
+                xc.utilDecodeRequest();
             }
         }
 

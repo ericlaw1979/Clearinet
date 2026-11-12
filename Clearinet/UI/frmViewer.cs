@@ -733,6 +733,19 @@ namespace Clearinet
                 case "app.ui.toolbar.lookupcuetext":
                     CApp.UIInvokeAsync(() => Win32UI.SetCueText(tstxtLookup.Control, pceaChange.ValueString));
                     break;
+                case "app.ui.rules.autodecompress":
+                    CApp.UIInvokeAsync(() =>
+                    {
+                        miRulesAutoDecode.Checked = pceaChange.ValueBool;
+                        tsbDecompress.Checked = pceaChange.ValueBool;
+                    });
+                    break;
+                case "app.ui.rules.hide_connects":
+                    CApp.UIInvokeAsync(() => miRulesHideCONNECTs.Checked = pceaChange.ValueBool);
+                    break;
+                case "app.ui.rules.hide_images":
+                    CApp.UIInvokeAsync(() => miRulesHideImages.Checked = pceaChange.ValueBool);
+                    break;
             }
         }
 
@@ -759,6 +772,9 @@ namespace Clearinet
             // Trace.WriteLine($"[Clearinet] Initialized UI from prefs: splitterMain.SplitPosition={splitterMain.SplitPosition}, splitRequestResponse.SplitPosition={splitRequestResponse.SplitPosition}");
 
             miRulesRequireAuth.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
+            miRulesAutoDecode.Checked = tsbDecompress.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress");
+            miRulesHideCONNECTs.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects");
+            miRulesHideImages.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_images");
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
@@ -3366,7 +3382,7 @@ namespace Clearinet
             if (Control.ModifierKeys == Keys.Control)
             {
                 tsbDecompress.Checked = !tsbDecompress.Checked;
-                CApp.Prefs.SetBoolPref("app.ui.autodecompress", tsbDecompress.Checked);
+                CApp.Prefs.SetBoolPref("app.ui.rules.autodecompress", tsbDecompress.Checked);
                 CApp.UI.SetStatusText($"{(tsbDecompress.Checked ? "Enabled" : "Disabled")} automatic decompression.");
 
                 return;
@@ -3396,9 +3412,10 @@ namespace Clearinet
 
         protected override void WndProc(ref Message m)
         {
-            const int WM_QUERYENDSESSION = 0x0011;
             const int WM_SIZE = 0x0005;
             const int SIZE_MINIMIZED = 0x1;
+
+            const int WM_QUERYENDSESSION = 0x0011;
 
             if ((m.Msg == WM_SIZE) && (SIZE_MINIMIZED == (int)m.WParam)
                 && (CApp.Prefs.GetBoolPref("app.ui.minimize_to_tray") || CONFIG.isQuietMode))
@@ -3466,6 +3483,21 @@ namespace Clearinet
         private void miRulesRequireAuth_CheckedChanged(object sender, EventArgs e)
         {
             CApp.Prefs.SetBoolPref("app.ui.rules.ephemeral.require_proxy_auth", miRulesRequireAuth.Checked);
+        }
+
+        private void miRulesAutoDecode_CheckedChanged(object sender, EventArgs e)
+        {
+            CApp.Prefs.SetBoolPref("app.ui.rules.autodecompress", miRulesAutoDecode.Checked);
+        }
+
+        private void miRulesHideCONNECTs_CheckedChanged(object sender, EventArgs e)
+        {
+            CApp.Prefs.SetBoolPref("app.ui.rules.hide_connects", miRulesHideCONNECTs.Checked);
+        }
+
+        private void miRulesHideImages_CheckedChanged(object sender, EventArgs e)
+        {
+            CApp.Prefs.SetBoolPref("app.ui.rules.hide_images", miRulesHideImages.Checked);
         }
     }
 

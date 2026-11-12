@@ -100,8 +100,10 @@ namespace Clearinet
             this.miEditFind = new System.Windows.Forms.ToolStripMenuItem();
             this.miRules = new System.Windows.Forms.ToolStripMenuItem();
             this.miRulesCustomize = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiRulesSplit = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmiRulesSplit1 = new System.Windows.Forms.ToolStripSeparator();
             this.miRulesRequireAuth = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRulesAutoDecode = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiRulesSplit2 = new System.Windows.Forms.ToolStripSeparator();
             this.miTools = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsOptions = new System.Windows.Forms.ToolStripMenuItem();
             this.miTextWizard = new System.Windows.Forms.ToolStripMenuItem();
@@ -208,6 +210,8 @@ namespace Clearinet
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
+            this.miRulesHideCONNECTs = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRulesHideImages = new System.Windows.Forms.ToolStripMenuItem();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -746,8 +750,12 @@ namespace Clearinet
             // 
             this.miRules.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miRulesCustomize,
-            this.tsmiRulesSplit,
-            this.miRulesRequireAuth});
+            this.tsmiRulesSplit1,
+            this.miRulesRequireAuth,
+            this.miRulesAutoDecode,
+            this.miRulesHideCONNECTs,
+            this.miRulesHideImages,
+            this.tsmiRulesSplit2});
             this.miRules.Name = "miRules";
             this.miRules.Size = new System.Drawing.Size(51, 21);
             this.miRules.Text = "&Rules";
@@ -756,22 +764,35 @@ namespace Clearinet
             // 
             this.miRulesCustomize.Name = "miRulesCustomize";
             this.miRulesCustomize.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
-            this.miRulesCustomize.Size = new System.Drawing.Size(243, 22);
+            this.miRulesCustomize.Size = new System.Drawing.Size(246, 22);
             this.miRulesCustomize.Text = "Customize &Rules...";
             this.miRulesCustomize.Click += new System.EventHandler(this.miRulesCustomize_Click);
             // 
-            // tsmiRulesSplit
+            // tsmiRulesSplit1
             // 
-            this.tsmiRulesSplit.Name = "tsmiRulesSplit";
-            this.tsmiRulesSplit.Size = new System.Drawing.Size(240, 6);
+            this.tsmiRulesSplit1.Name = "tsmiRulesSplit1";
+            this.tsmiRulesSplit1.Size = new System.Drawing.Size(243, 6);
             // 
             // miRulesRequireAuth
             // 
             this.miRulesRequireAuth.CheckOnClick = true;
             this.miRulesRequireAuth.Name = "miRulesRequireAuth";
-            this.miRulesRequireAuth.Size = new System.Drawing.Size(243, 22);
+            this.miRulesRequireAuth.Size = new System.Drawing.Size(246, 22);
             this.miRulesRequireAuth.Text = "Require &Proxy Authentication";
             this.miRulesRequireAuth.CheckedChanged += new System.EventHandler(this.miRulesRequireAuth_CheckedChanged);
+            // 
+            // miRulesAutoDecode
+            // 
+            this.miRulesAutoDecode.CheckOnClick = true;
+            this.miRulesAutoDecode.Name = "miRulesAutoDecode";
+            this.miRulesAutoDecode.Size = new System.Drawing.Size(246, 22);
+            this.miRulesAutoDecode.Text = "Auto-&Decompress Exchanges";
+            this.miRulesAutoDecode.CheckedChanged += new System.EventHandler(this.miRulesAutoDecode_CheckedChanged);
+            // 
+            // tsmiRulesSplit2
+            // 
+            this.tsmiRulesSplit2.Name = "tsmiRulesSplit2";
+            this.tsmiRulesSplit2.Size = new System.Drawing.Size(243, 6);
             // 
             // miTools
             // 
@@ -1083,8 +1104,8 @@ namespace Clearinet
             this.tsbDecompress.Name = "tsbDecompress";
             this.tsbDecompress.Size = new System.Drawing.Size(85, 24);
             this.tsbDecompress.Text = "Decompress";
-            this.tsbDecompress.ToolTipText = "Decompress the selected Exchanges. Ctrl+Click to automatically do so for future c" +
-    "aptured Exchanges.";
+            this.tsbDecompress.ToolTipText = "Decompress the selected Exchanges. Ctrl+Click to toggle for all future captured E" +
+    "xchanges.";
             this.tsbDecompress.Click += new System.EventHandler(this.tsbDecompress_Click);
             // 
             // tsddbRemove
@@ -1772,6 +1793,22 @@ namespace Clearinet
             this.splitterMain.TabStop = false;
             this.splitterMain.DoubleClick += new System.EventHandler(this.splitterMain_DoubleClick);
             // 
+            // miRulesHideCONNECTs
+            // 
+            this.miRulesHideCONNECTs.CheckOnClick = true;
+            this.miRulesHideCONNECTs.Name = "miRulesHideCONNECTs";
+            this.miRulesHideCONNECTs.Size = new System.Drawing.Size(246, 22);
+            this.miRulesHideCONNECTs.Text = "&Hide CONNECT Tunnels";
+            this.miRulesHideCONNECTs.CheckedChanged += new System.EventHandler(this.miRulesHideCONNECTs_CheckedChanged);
+            // 
+            // miRulesHideImages
+            // 
+            this.miRulesHideImages.CheckOnClick = true;
+            this.miRulesHideImages.Name = "miRulesHideImages";
+            this.miRulesHideImages.Size = new System.Drawing.Size(246, 22);
+            this.miRulesHideImages.Text = "&Hide Images";
+            this.miRulesHideImages.CheckedChanged += new System.EventHandler(this.miRulesHideImages_CheckedChanged);
+            // 
             // frmViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -2001,8 +2038,12 @@ namespace Clearinet
         private System.Windows.Forms.ToolStripMenuItem miViewTabsAboutConfig;
         private System.Windows.Forms.ToolStripMenuItem miEditCopyResponseDataURI;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem8;
-        private System.Windows.Forms.ToolStripSeparator tsmiRulesSplit;
+        private System.Windows.Forms.ToolStripSeparator tsmiRulesSplit1;
         private System.Windows.Forms.ToolStripMenuItem miRulesRequireAuth;
+        private System.Windows.Forms.ToolStripSeparator tsmiRulesSplit2;
+        private System.Windows.Forms.ToolStripMenuItem miRulesAutoDecode;
+        private System.Windows.Forms.ToolStripMenuItem miRulesHideCONNECTs;
+        private System.Windows.Forms.ToolStripMenuItem miRulesHideImages;
     }
 }
 
