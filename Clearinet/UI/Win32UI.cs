@@ -337,6 +337,7 @@ namespace Clearinet
         const int TVS_NOTOOLTIPS = 0x80;
         const int TVM_SETEXTENDEDSTYLE = 0x112c;
 
+
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
         private static extern IntPtr SendMessage(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam);
 
@@ -486,7 +487,7 @@ namespace Clearinet
     public class BetterListView : System.Windows.Forms.ListView
     {
         /// <summary>
-        /// Like SelectedItems.Count, but MUCH MUCH faster.
+        /// Like SelectedItems.Count, but MUCH MUCH faster because it doesn't allocate.
         /// </summary>
         public int SelectedCount
         {
