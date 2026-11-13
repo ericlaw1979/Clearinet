@@ -149,6 +149,7 @@ namespace Clearinet
         bool isValidName(string sName);
 
         void AssignOrRemoveIfDefault(string sPrefName, bool bValue, bool bDefault);
+        void AssignOrRemoveIfDefault(string sPrefName, string sValue, string sDefault);
     }
 
     /// <summary>
@@ -517,6 +518,18 @@ namespace Clearinet
             else
             {
                 SetBoolPref(sPrefName, bValue);
+            }
+        }
+
+        public void AssignOrRemoveIfDefault(string sPrefName, string sValue, string sDefault)
+        {
+            if (sValue == sDefault)
+            {
+                RemovePref(sPrefName);
+            }
+            else
+            {
+                SetStringPref(sPrefName, sValue);
             }
         }
 

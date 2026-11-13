@@ -36,6 +36,9 @@
             this.cbCheckForUpdates = new System.Windows.Forms.CheckBox();
             this.cbAttachOnStartup = new System.Windows.Forms.CheckBox();
             this.pageNetworking = new System.Windows.Forms.TabPage();
+            this.cbProxyFTP = new System.Windows.Forms.CheckBox();
+            this.lblBypassList = new System.Windows.Forms.Label();
+            this.txtProxyBypass = new System.Windows.Forms.TextBox();
             this.udListenPort = new System.Windows.Forms.NumericUpDown();
             this.cbEnableIPv6 = new System.Windows.Forms.CheckBox();
             this.cbAllowRemoteConnections = new System.Windows.Forms.CheckBox();
@@ -49,6 +52,7 @@
             this.cbCaptureCONNECT = new System.Windows.Forms.CheckBox();
             this.cbDecryptHTTPS = new System.Windows.Forms.CheckBox();
             this.pageAppearance = new System.Windows.Forms.TabPage();
+            this.cbMinimizeToTray = new System.Windows.Forms.CheckBox();
             this.cbDarkMode = new System.Windows.Forms.CheckBox();
             this.btnSetColorMark = new System.Windows.Forms.Button();
             this.btnSetColorReadonly = new System.Windows.Forms.Button();
@@ -82,7 +86,6 @@
             this.btnOk = new System.Windows.Forms.Button();
             this.lblUsageNote = new System.Windows.Forms.Label();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
-            this.cbMinimizeToTray = new System.Windows.Forms.CheckBox();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -115,7 +118,7 @@
             this.tcOptions.Name = "tcOptions";
             this.tcOptions.SelectedIndex = 0;
             this.tcOptions.Size = new System.Drawing.Size(678, 346);
-            this.tcOptions.TabIndex = 0;
+            this.tcOptions.TabIndex = 1;
             this.tcOptions.Selecting += new System.Windows.Forms.TabControlCancelEventHandler(this.tcOptions_Selecting);
             // 
             // pageGeneral
@@ -179,6 +182,9 @@
             // 
             // pageNetworking
             // 
+            this.pageNetworking.Controls.Add(this.cbProxyFTP);
+            this.pageNetworking.Controls.Add(this.lblBypassList);
+            this.pageNetworking.Controls.Add(this.txtProxyBypass);
             this.pageNetworking.Controls.Add(this.udListenPort);
             this.pageNetworking.Controls.Add(this.cbEnableIPv6);
             this.pageNetworking.Controls.Add(this.cbAllowRemoteConnections);
@@ -190,6 +196,36 @@
             this.pageNetworking.TabIndex = 2;
             this.pageNetworking.Text = "Networking";
             this.pageNetworking.UseVisualStyleBackColor = true;
+            // 
+            // cbProxyFTP
+            // 
+            this.cbProxyFTP.AutoSize = true;
+            this.cbProxyFTP.Enabled = false;
+            this.cbProxyFTP.Location = new System.Drawing.Point(20, 129);
+            this.cbProxyFTP.Name = "cbProxyFTP";
+            this.cbProxyFTP.Size = new System.Drawing.Size(141, 21);
+            this.cbProxyFTP.TabIndex = 4;
+            this.cbProxyFTP.Text = "Captur&e FTP traffic";
+            this.cbProxyFTP.UseVisualStyleBackColor = true;
+            // 
+            // lblBypassList
+            // 
+            this.lblBypassList.AutoSize = true;
+            this.lblBypassList.Location = new System.Drawing.Point(342, 13);
+            this.lblBypassList.Name = "lblBypassList";
+            this.lblBypassList.Size = new System.Drawing.Size(170, 17);
+            this.lblBypassList.TabIndex = 5;
+            this.lblBypassList.Text = "Bypass Clear&inet for hosts:";
+            // 
+            // txtProxyBypass
+            // 
+            this.txtProxyBypass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtProxyBypass.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtProxyBypass.Location = new System.Drawing.Point(345, 33);
+            this.txtProxyBypass.Multiline = true;
+            this.txtProxyBypass.Name = "txtProxyBypass";
+            this.txtProxyBypass.Size = new System.Drawing.Size(317, 124);
+            this.txtProxyBypass.TabIndex = 6;
             // 
             // udListenPort
             // 
@@ -225,7 +261,7 @@
             this.cbAllowRemoteConnections.Name = "cbAllowRemoteConnections";
             this.cbAllowRemoteConnections.Size = new System.Drawing.Size(189, 21);
             this.cbAllowRemoteConnections.TabIndex = 2;
-            this.cbAllowRemoteConnections.Text = "Allow Remote Connections";
+            this.cbAllowRemoteConnections.Text = "Allo&w Remote Connections";
             this.cbAllowRemoteConnections.UseVisualStyleBackColor = true;
             // 
             // lblListenOn
@@ -345,6 +381,16 @@
             this.pageAppearance.TabIndex = 4;
             this.pageAppearance.Text = "Appearance";
             this.pageAppearance.UseVisualStyleBackColor = true;
+            // 
+            // cbMinimizeToTray
+            // 
+            this.cbMinimizeToTray.AutoSize = true;
+            this.cbMinimizeToTray.Location = new System.Drawing.Point(11, 169);
+            this.cbMinimizeToTray.Name = "cbMinimizeToTray";
+            this.cbMinimizeToTray.Size = new System.Drawing.Size(125, 21);
+            this.cbMinimizeToTray.TabIndex = 5;
+            this.cbMinimizeToTray.Text = "Minimize to Tray";
+            this.cbMinimizeToTray.UseVisualStyleBackColor = true;
             // 
             // cbDarkMode
             // 
@@ -733,16 +779,6 @@
             this.lnkHelp.Text = "&Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
-            // cbMinimizeToTray
-            // 
-            this.cbMinimizeToTray.AutoSize = true;
-            this.cbMinimizeToTray.Location = new System.Drawing.Point(11, 169);
-            this.cbMinimizeToTray.Name = "cbMinimizeToTray";
-            this.cbMinimizeToTray.Size = new System.Drawing.Size(125, 21);
-            this.cbMinimizeToTray.TabIndex = 5;
-            this.cbMinimizeToTray.Text = "Minimize to Tray";
-            this.cbMinimizeToTray.UseVisualStyleBackColor = true;
-            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
@@ -846,5 +882,8 @@
         private System.Windows.Forms.Button btnPickTextEditor;
         private System.Windows.Forms.CheckBox cbAutoStream;
         private System.Windows.Forms.CheckBox cbMinimizeToTray;
+        private System.Windows.Forms.CheckBox cbProxyFTP;
+        private System.Windows.Forms.Label lblBypassList;
+        private System.Windows.Forms.TextBox txtProxyBypass;
     }
 }
