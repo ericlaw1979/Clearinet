@@ -319,7 +319,7 @@ namespace Clearinet.CaptureEngine
                 if (_socketPool.TryRent(key, processIdentity, clientPipe.Id, out serverPipe))
                 {
                     xc.BitFlags |= ExchangeFlags.ServerPipeReused;
-                    xc["x-serverpool-reused"] = "true";
+                    //xc["x-serverpool-reused"] = "true";
                 }
                 else
                 {
@@ -343,12 +343,12 @@ namespace Clearinet.CaptureEngine
                 xc.Timers.ServerDoneResponse = DateTime.Now;
 
                 returnServerPipe = response.reusable && ShouldKeepAlive(upstreamRequest, response.responseHeaders) && serverPipe.IsConnected;
-                if (!response.reusable && !xc.ResponseHeaders.Exists("Connection"))
-                    xc.ResponseHeaders["Connection"] = "close";
+                //if (!response.reusable && !xc.ResponseHeaders.Exists("Connection"))
+                //    xc.ResponseHeaders["Connection"] = "close";
 
                 xc.state = ExchangeState.AutoTamperResponseBefore;
                 byte[] clientBody = xc.ResponseBody ?? Array.Empty<byte>();
-                NormalizeResponseLength(xc.RequestHeaders, xc.ResponseHeaders, clientBody);
+                //NormalizeResponseLength(xc.RequestHeaders, xc.ResponseHeaders, clientBody);
                 xc.Timers.ClientBeginResponse = DateTime.Now;
                 await WriteHttpResponseAsync(clientPipe.Stream, xc.ResponseHeaders,
                     clientBody, token).ConfigureAwait(false);
@@ -364,7 +364,7 @@ namespace Clearinet.CaptureEngine
                     if (returnServerPipe)
                     {
                         _socketPool.Return(key, serverPipe, DateTime.UtcNow);
-                        xc["x-serverpool-returned"] = "true";
+                        //xc["x-serverpool-returned"] = "true";
                     }
                     else
                     {
@@ -1023,7 +1023,7 @@ namespace Clearinet.CaptureEngine
                         inner.state = ExchangeState.AutoTamperResponseBefore;
                         if (!upstreamResponse.reusable && !inner.ResponseHeaders.Exists("Connection"))
                             inner.ResponseHeaders["Connection"] = "close";
-                        NormalizeResponseLength(inner.RequestHeaders, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>());
+                        //NormalizeResponseLength(inner.RequestHeaders, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>());
                         await WriteHttpResponseAsync(clientTls, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
 
                         inner.Timers.ClientDoneResponse = DateTime.Now;
@@ -1258,7 +1258,7 @@ namespace Clearinet.CaptureEngine
             return new HTTPRequestHeaders("/", null) { HTTPMethod = "GET", HTTPVersion = "HTTP/1.1" };
         }
 
-        private static void NormalizeResponseLength(HTTPRequestHeaders requestHeaders, HTTPResponseHeaders responseHeaders, byte[] body)
+        /*private static void NormalizeResponseLength(HTTPRequestHeaders requestHeaders, HTTPResponseHeaders responseHeaders, byte[] body)
         {
             if (requestHeaders.HTTPMethod.OICEquals("HEAD") ||
                 (responseHeaders.StatusCode >= 100 && responseHeaders.StatusCode < 200) ||
@@ -1266,7 +1266,7 @@ namespace Clearinet.CaptureEngine
                 responseHeaders.Exists("Transfer-Encoding")) return;
 
             responseHeaders["Content-Length"] = (body ?? Array.Empty<byte>()).Length.ToString(CultureInfo.InvariantCulture);
-        }
+        }*/
 
         private static bool ShouldKeepAlive(HTTPRequestHeaders requestHeaders, HTTPResponseHeaders responseHeaders)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
@@ -210,30 +211,51 @@ namespace Clearinet.CaptureEngine
                 };
 
                 if (headers.Exists("Transfer-Encoding") && headers.Exists("Content-Length"))
-                    throw new InvalidDataException("A response cannot contain both Transfer-Encoding and Content-Length.");
-                if (statusCode >= 100 && statusCode < 200 && statusCode != 101) continue;
+                {
+                    /*
+                     * RFC 9112, Section 6.1: Explicitly forbids senders from combining the two headers in any HTTP message (both requests and responses):
+                     * A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field."
+                    */
+                    Debug.Assert(false, "A response cannot contain both Transfer-Encoding and Content-Length.");
+                    headers.RenameHeaderItems("Content-Length", "PROTOCOL-VIOLATION-Content-Length");
+                }
 
-                bool hasNoBody = requestMethod.OICEquals("HEAD") ||
+                // RFC 7230 Section 3.3.3: "All 1xx (Informational), 204 (No Content), and 304 (Not Modified) responses do not include a message body."
+                if (statusCode >= 100 && statusCode < 200 && statusCode != 101)
+                {
+                    if (headers.Exists("Content-Length") && !headers.ExistsAndContains("Content-Length", "0"))
+                    {
+                        Debug.Assert(false, "Content is unexpected on a HTTP/1.xx");
+                    }
+
+                    // NYI: TODO: Squirrel away the informational header block for later storage, and read the next header block.
+                    continue; // Read the next header block.
+                }
+
+                /* TODO: Track as HTTP Protocol violation.
+                 * bool hasNoBody = requestMethod.OICEquals("HEAD") ||
                     (statusCode >= 100 && statusCode < 200) || statusCode == 204 || statusCode == 304;
-                if (hasNoBody) return (headers, Array.Empty<byte>(), statusCode != 101);
+                if (hasNoBody) return (headers, Array.Empty<byte>(), statusCode != 101);*/
 
                 if (ContainsHeaderToken(headers, "Transfer-Encoding", "chunked"))
                 {
                     byte[] chunkedBody = await ReadChunkedBodyAsync(token).ConfigureAwait(false);
-                    return (headers, chunkedBody, statusCode != 101);
+                    return (headers, chunkedBody, headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
                 }
 
                 if (headers.Exists("Transfer-Encoding"))
                 {
-                    return (headers, await ReadToEndAsync(token).ConfigureAwait(false), false);
+                    Debug.Assert(false, "Unexpected T-E, but it's possible to have a compression alg here.");
+                    //return (headers, await ReadToEndAsync(token).ConfigureAwait(false), false);
                 }
 
                 if (headers.Exists("Content-Length"))
                 {
                     int contentLength = GetContentLength(headers);
-                    return (headers, await ReadExactlyAsync(contentLength, token).ConfigureAwait(false), statusCode != 101);
+                    return (headers, await ReadExactlyAsync(contentLength, token).ConfigureAwait(false), headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
                 }
 
+                Debug.Assert(headers.ExistsAndContains("Connection", "close"), "Unexpected response with no framing and no Connection: close.");
                 return (headers, await ReadToEndAsync(token).ConfigureAwait(false), false);
             }
         }
