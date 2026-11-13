@@ -1302,6 +1302,7 @@ namespace Clearinet
             // colScheme
             // 
             this.colScheme.Text = "Protocol";
+            this.colScheme.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // colHost
             // 

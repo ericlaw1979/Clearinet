@@ -105,12 +105,13 @@ public static class ThemeManager
     public static void ApplyDarkMode(Form frm)
     {
         // On latest .NET, we could use Application.SetColorMode(SystemColorMode.Dark);
-
         // It's not clear that any of these calls actually work. sigh.
         Win32UI.SetDWMWA_USE_IMMERSIVE_DARK_MODE(frm.Handle);
+
+        // This one gets the ListView headers to dark mode, but it also shows the "Column Header divider extensions" (vertical lines).
+        // Preventing those from painting seems basically impossible.
         Win32UI.AllowDarkModeForWindowWithParentFallback(frm.Handle, true);
-        Win32UI.AllowDarkModeForWindow(frm.Handle, true);
-        Win32UI.SetDWMWA_USE_IMMERSIVE_DARK_MODE(frm.Handle);
+        //     Win32UI.AllowDarkModeForWindow(frm.Handle, true);
 
         // HACKERY. 
         CONFIG.colorDisabledEdit = DarkDisabledEdit; // TODO: Allow user to override.
@@ -166,15 +167,15 @@ public static class ThemeManager
             }
         }
 
-        /* if (c is ListView lv)
-         {
-             lv.BackColor = DarkSurface;
-             lv.ForeColor = DarkText;
+        if (c is ListView lv)
+        {
+            lv.BackColor = DarkSurface;
+            lv.ForeColor = DarkContrastingText;
 
-             Win32UI.SetDWMWA_USE_IMMERSIVE_DARK_MODE(lv.Handle);
+            // Win32UI.SetDWMWA_USE_IMMERSIVE_DARK_MODE(lv.Handle);
 
-             Win32UI.SetListViewHeadersToDarkMode(lv);
-         }*/
+            Win32UI.SetListViewHeadersToDarkMode(lv);
+        }
 
         // Recursively theme child controls inside panels, groupboxes, etc.
         foreach (Control child in c.Controls)

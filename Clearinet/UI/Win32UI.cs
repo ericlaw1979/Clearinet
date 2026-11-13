@@ -51,14 +51,16 @@ namespace Clearinet
         // TODO: This does not seem to do anything useful.
         internal static void SetListViewHeadersToDarkMode(ListView lv)
         {
-            if (!IsSetWindowThemeSupported) return;
+            /*if (!IsSetWindowThemeSupported) return;
             IntPtr headerHandle = SendMessage(lv.Handle, Win32ListViewAPI.LVM_GETHEADER, IntPtr.Zero, IntPtr.Zero);
 
             if (headerHandle != IntPtr.Zero)
             {
                 // Doing this actually *breaks* dark mode. That's weird af. 
                 // SetWindowTheme(headerHandle, "DarkMode_Explorer", "");
-            }
+                Win32UI.AllowDarkModeForWindow(headerHandle, true);
+                SetWindowTheme(headerHandle, "DarkMode_ItemsView", null);
+            }*/
         }
 
         [DllImport("dwmapi.dll")]
@@ -183,7 +185,7 @@ namespace Clearinet
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref Point lParam);
 
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -514,6 +516,7 @@ namespace Clearinet
             {
                 case 0x204E: // WM_NOTIFY | WM_REFLECT
                     Win32ListViewAPI.NMHDR nmhdr = (Win32ListViewAPI.NMHDR)m.GetLParam(typeof(Win32ListViewAPI.NMHDR));
+
                     if (Win32ListViewAPI.LVN_GETEMPTYMARKUP != nmhdr.code) break;
                     var em = (Win32ListViewAPI.NMLVEMPTYMARKUP)m.GetLParam(typeof(Win32ListViewAPI.NMLVEMPTYMARKUP));
                     em.szMarkup = EmptyText;

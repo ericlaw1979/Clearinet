@@ -1020,19 +1020,11 @@ namespace Clearinet
 
         /*
          * TODO: Once we have a working DarkMode, we probably need
-         * to set it up here.
+         * to do work here.*/
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-            DarkModeHelper.ApplyNativeDarkTheme(this);
-
-            ThemeManager.SetListViewHeadersToDarkMode(this);
-
-            // 2. Set matching managed properties
-            this.BackColor = System.Drawing.Color.FromArgb(32, 32, 32);
-            this.ForeColor = System.Drawing.Color.White;
         }
-        */
     }
 
     /// <summary>
