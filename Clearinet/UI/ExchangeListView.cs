@@ -151,7 +151,7 @@ namespace Clearinet
 
             bool bAtBottom = IsScrolledToBottom();
 
-            CApp.Log.Log($"**Tick** Adding {qPendingLVI.Count} pending Exchanges to the list (atBottom={bAtBottom})");
+            // CApp.Log.Log($"**Tick** Adding {qPendingLVI.Count} pending Exchanges to the list (atBottom={bAtBottom})");
 
             // TODO: Profiling suggested that a big problem was constantly
             // sorting and resorting the list as items were added. It's not
