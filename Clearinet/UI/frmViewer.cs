@@ -2709,8 +2709,12 @@ namespace Clearinet
 
         private void UpdateMemoryCounter()
         {
-            double mb = Process.GetCurrentProcess().PrivateMemorySize64 / (1024.0 * 1024.0);
-            CApp.UIInvokeAsync((MethodInvoker)(() => { tslMemory.Text = $"{mb:N1}mb"; }), null);
+            CurrentProcessMetrics cpm = SelfProcessMetrics.GetMetrics();
+            //double mb = Process.GetCurrentProcess().PrivateMemorySize64 / (1024.0 * 1024.0);
+            double mb = cpm.PrivateBytes / (1024.0 * 1024.0);
+
+            // Issue: Does the thread emoji look clean, or should we use knot instead? \uD83E\uDEA2 or just tilde? ~5~
+            CApp.UIInvokeAsync((MethodInvoker)(() => { tslMemory.Text = $"{mb:N1}mb ({cpm.ThreadCount}\uD83E\uDDF5)"; }), null);
         }
 
         private void UpdateStatusBar(bool bNow)
@@ -2719,10 +2723,9 @@ namespace Clearinet
             // to periodically post updates to the UI thread.
             if (!bNow && (CApp.PauseReporting))
             {
-                // TODO: Background update
-                //    ScheduledTasks.ScheduleWork("UpdateStatusBar", 100,
-                //      () => { CApp.UIInvokeAsync((MethodInvoker)_UpdateStatusBar, null); });
-                //return;
+                LazyGigWorker.bookGig("UpdateStatusBar", 250,
+                    () => { CApp.UIInvokeAsync((MethodInvoker)_UpdateStatusBar, null); });
+                return;
             }
 
             if (CApp.UI.InvokeRequired)

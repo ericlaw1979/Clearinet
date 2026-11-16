@@ -203,7 +203,7 @@ class Handlers
         // XC["x-replywithfile"] = "C:\\temp\\foo.html";
         XC["ui-backcolor"] = "LimeGreen";
         
-        if (m_RequestChinese) {
+        if (m_RequestChinese && !XC.HTTPMethodIs("CONNECT")) {
             XC.RequestHeaders["Accept-Language"] = "zh-CN";
         }
         

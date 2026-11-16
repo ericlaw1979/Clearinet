@@ -1043,7 +1043,7 @@ namespace Clearinet
             this.tslMemory.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslMemory.Name = "tslMemory";
             this.tslMemory.Size = new System.Drawing.Size(34, 26);
-            this.tslMemory.Text = "0mb";
+            this.tslMemory.Text = "---";
             // 
             // tslInfo
             // 
