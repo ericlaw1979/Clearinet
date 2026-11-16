@@ -17,6 +17,8 @@ namespace Clearinet
 {
     public partial class frmViewer : Form
     {
+        ToolStripMenuItem miHelpTroubleshootFilters = new ToolStripMenuItem("Troubleshoot Fi&lters");
+
         public frmViewer()
         {
             InitializeComponent();
@@ -746,6 +748,9 @@ namespace Clearinet
                 case "app.ui.rules.hide_images":
                     CApp.UIInvokeAsync(() => miRulesHideImages.Checked = pceaChange.ValueBool);
                     break;
+                case "app.ui.help.troubleshoot_filters":
+                    CApp.UIInvokeAsync(() => miHelpTroubleshootFilters.Checked = pceaChange.ValueBool);
+                    break;
             }
         }
 
@@ -775,6 +780,8 @@ namespace Clearinet
             miRulesAutoDecode.Checked = tsbDecompress.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress");
             miRulesHideCONNECTs.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects");
             miRulesHideImages.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_images");
+
+            miHelpTroubleshootFilters.Checked = CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true);
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
@@ -854,6 +861,12 @@ namespace Clearinet
             logContextMenu.Items.Add("Clear Log", null, (s1, e1) => ClearLog());
             logContextMenu.Opening += (s1, e1) => copyLogItem.Enabled = rtbLog.SelectionLength > 0;
             rtbLog.ContextMenuStrip = logContextMenu;
+
+
+            miHelp.DropDownItems.Insert(3, miHelpTroubleshootFilters);
+            miHelpTroubleshootFilters.CheckOnClick = true;
+            miHelpTroubleshootFilters.CheckedChanged += (s1, e1) => CApp.Prefs.SetBoolPref("app.ui.help.troubleshoot_filters", miHelp.Checked);
+
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
             CApp.gwHoneyDew.createGig("UpdateStatusBar", () => UpdateStatusBar(false), 250);
@@ -1428,7 +1441,21 @@ namespace Clearinet
             // Already created.
             if (xc.ViewItem != null) return;
 
-            if (xc.ShouldHide()) return;
+            if (!xc.BitFlags.HasFlag(ExchangeFlags.ImportedFromOtherTool) &&
+                !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&
+                xc.ShouldHide())
+            {
+                if (CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true))
+                {
+                    //CApp.Log.Log($"Exchange #{xc.id} is hidden by rules. Use the 'Troubleshoot Filters' option in the Help menu to see why.");
+                    xc["ui-strikeout"] = "Unhidden because of Help > Troubleshoot Filters";
+                }
+                else
+                {
+                    return; // skip creation.
+                }
+
+            }
             _materializeExchange(xc, false);
         }
 
@@ -1475,6 +1502,24 @@ namespace Clearinet
                 addExchange(xc);
                 return;
             }
+
+
+            if (!xc.BitFlags.HasFlag(ExchangeFlags.ImportedFromOtherTool) &&
+                !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&
+                xc.ShouldHide())
+            {
+                if (CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true))
+                {
+                    //CApp.Log.Log($"Exchange #{xc.id} is hidden by rules. Use the 'Troubleshoot Filters' option in the Help menu to see why.");
+                    xc["ui-strikeout"] = "Unhidden because of Help > Troubleshoot Filters";
+                }
+                else
+                {
+                    return; // skip creation.
+                }
+
+            }
+
 
             ListViewItem lvi = xc.ViewItem;
             SetLviSubItemText(lvi, 1, xc.bHasResponse ? xc.responseCode.ToString() : "-");

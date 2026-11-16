@@ -10,5 +10,11 @@
 
         // "lists.common_exchange_flags"  // TODO: Flesh this out.
         public const string sPopularExchangeFlags = "X-BreakRequest,X-BreakResponse,X-ClientIP,ui-comments";
+
+        public const string sPopularHTTPMethods = "GET,POST,PUT,DELETE,HEAD,OPTIONS,PATCH,TRACE,CONNECT";
+
+        // "lists.common_browser_processes"
+        // Base process name, no ".exe" 
+        public const string sPopularBrowserProcessNames = "msedge,chrome,firefox,iexplore,opera,brave,vivaldi";
     }
 }

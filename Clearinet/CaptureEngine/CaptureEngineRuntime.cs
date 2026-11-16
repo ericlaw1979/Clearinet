@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -262,7 +263,7 @@ namespace Clearinet.CaptureEngine
                                 Stream tunnelStream = clientPipe.Reader.DetachUnreadStream();
                                 if (ShouldDecryptTunnel(exchange))
                                 {
-                                    exchange["x-connect-decrypt-eligible"] = "true";
+                                    //exchange["x-connect-decrypt-eligible"] = "true";
                                     await HandleMitmConnectTunnelAsync(exchange, client, tunnelStream, clientPipe, token).ConfigureAwait(false);
                                 }
                                 else
@@ -454,19 +455,37 @@ namespace Clearinet.CaptureEngine
             */
         }
 
-        // Clearinet will include some built-in rules. We will run those at the appropriate time.
+        // Clearinet includes some built-in rules. We will run those at the appropriate time.
         private async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
         {
             if (CApp.isClosing) return;
 
-            // hide if image request  ui.rules.hideimages based on URI's extension?
-            // Toolbar's ProcessFilter
-            // ui.rules.hideconnects+
-
-            if (xc.HTTPMethodIs("CONNECT") && CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects"))
+            if (xc["x-no-decrypt"] == null)
             {
-                xc["ui-hide"] = "Rules > HideCONNECTs";
+                var commonBrowserProcesses = CApp.Prefs.GetStringPref("lists.common_browser_processes",
+                    DEFAULTS.sPopularBrowserProcessNames);
+                if (!IsBrowserProcessName(xc.LocalProcess, commonBrowserProcesses))
+                {
+                    xc["x-no-decrypt"] = "Rules > NonBrowserProcess";
+                }
             }
+
+            // Toolbar's ProcessFilter
+
+
+            if (xc.HTTPMethodIs("CONNECT"))
+            {
+                // Should we hide the tunnel?
+                if (CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects"))
+                {
+                    xc["ui-hide"] = "Rules > HideCONNECTs";
+                }
+
+                // Should we decrypt the tunnel?
+
+
+            }
+
             if (CApp.Prefs.GetBoolPref("app.ui.rules.hide_images") &&
                 xc.url.OICEndsWithAny(".svg", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".ico"))
             {
@@ -479,8 +498,8 @@ namespace Clearinet.CaptureEngine
                 if (!xc.RequestHeaders.ExistsAndContains("Proxy-Authorization",
                                                          "Basic " + CApp.Prefs.GetStringPref("app.proxy.creds", "MTox")))
                 {
-                    // Ensure we send a 407 with a message > 512 bytes
-                    var sMessage = "You gotta auth, yo.";
+                    var sMessage = "You gotta auth, yo. ".PadRight(513);
+                    Debug.Assert(sMessage.Length > 512, "Legacy IE's 'Friendly Errors' feature will hide short response bodies.");
                     xc.ResponseBody = Encoding.UTF8.GetBytes(sMessage);
                     xc.ResponseHeaders = new HTTPResponseHeaders(407, "Proxy Auth (Clearinet) Required", new[]
                     {
@@ -506,6 +525,23 @@ namespace Clearinet.CaptureEngine
             {
                 xc.utilDecodeRequest();
             }
+        }
+
+        private static bool IsBrowserProcessName(string processIdentity, string browserProcessList)
+        {
+            string normalizedProcessName = processIdentity.TrimAfter(":");
+            if (!normalizedProcessName.HasText()) return false;
+            if (!browserProcessList.HasText()) return false;
+
+            // TODO: Cache this somewhere
+            string[] processList = browserProcessList.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < processList.Length; i++)
+            {
+                string candidate = processList[i];
+                if (normalizedProcessName.OICEquals(candidate)) return true;
+            }
+
+            return false;
         }
 
         private static void PrepareResponseForClient(HTTPResponseHeaders headers)
