@@ -12,12 +12,13 @@ namespace Clearinet.CaptureEngine
         // I expect 64kb should be plenty.
         private const int TunnelSniffBytes = 64 * 1024;
 
-        internal static bool TryBuildTlsClientHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
+        internal static bool TryBuildTlsClientHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary, out string sniffedSNI)
         {
             summary = null;
+            sniffedSNI = null;
             if (IsClearlyNotTls(sniffBuffer, sniffLength)) return false;
             if (!TryExtractTlsHandshakeMessage(sniffBuffer, sniffLength, 1, out byte[] body)) return false;
-            return TryDescribeClientHello(body, out summary);
+            return TryDescribeClientHello(body, out summary, out sniffedSNI);
         }
 
         internal static bool TryBuildTlsServerHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
@@ -120,9 +121,10 @@ namespace Clearinet.CaptureEngine
             return false;
         }
 
-        private static bool TryDescribeClientHello(byte[] body, out string summary)
+        private static bool TryDescribeClientHello(byte[] body, out string summary, out string sniffedSNI)
         {
             summary = null;
+            sniffedSNI = null;
             if (body == null || body.Length < 34) return false;
 
             int offset = 0;
@@ -155,7 +157,7 @@ namespace Clearinet.CaptureEngine
             if (offset < body.Length)
             {
                 if (!TryReadVector16(body, ref offset, out byte[] extensionsRaw)) return false;
-                if (!TryDescribeExtensions(extensionsRaw, true, sb)) return false;
+                if (!TryDescribeExtensions(extensionsRaw, true, sb, out sniffedSNI)) return false;
             }
 
             summary = sb.ToString();
@@ -189,15 +191,16 @@ namespace Clearinet.CaptureEngine
             if (offset < body.Length)
             {
                 if (!TryReadVector16(body, ref offset, out byte[] extensionsRaw)) return false;
-                if (!TryDescribeExtensions(extensionsRaw, false, sb)) return false;
+                if (!TryDescribeExtensions(extensionsRaw, false, sb, out _)) return false;
             }
 
             summary = sb.ToString();
             return true;
         }
 
-        private static bool TryDescribeExtensions(byte[] extensionsRaw, bool fromClientHello, StringBuilder sb)
+        private static bool TryDescribeExtensions(byte[] extensionsRaw, bool fromClientHello, StringBuilder sb, out string sniffedSNI)
         {
+            sniffedSNI = null;
             int offset = 0;
             int extensionCount = 0;
             var extensionsBlock = new StringBuilder();
@@ -212,6 +215,10 @@ namespace Clearinet.CaptureEngine
 
                 string detail = DescribeExtension(extensionType, extensionsRaw, offset, extensionLength, fromClientHello);
                 extensionsBlock.AppendLine($"  - {DescribeExtensionType(extensionType)}: {detail}");
+                if (extensionType == 0) // server_name
+                {
+                    sniffedSNI = detail;
+                }
                 extensionCount++;
 
                 offset += extensionLength;

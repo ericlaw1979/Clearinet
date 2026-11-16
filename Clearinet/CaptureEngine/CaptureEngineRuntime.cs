@@ -1178,9 +1178,10 @@ namespace Clearinet.CaptureEngine
                                 clientToServerSniffLength += toCopy;
 
                                 if (!clientHelloParsed && clientToServerSniffLength >= TunnelSniffInitialParseThresholdBytes &&
-                                    TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string summaryOfHandshake))
+                                    TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string summaryOfHandshake, out string sniffedSNI))
                                 {
                                     xc.RequestBody = Encoding.UTF8.GetBytes(summaryOfHandshake);
+                                    if (sniffedSNI.HasText()) xc["HTTPS-Client-SNIHostname"] = sniffedSNI;
                                     clientHelloParsed = true;
                                 }
                             });
@@ -1214,18 +1215,20 @@ namespace Clearinet.CaptureEngine
                         try { clientToClearinetBytes = await relayClientToServer.ConfigureAwait(false); } catch { }
                         try { serverToClearinetBytes = await relayServerToClient.ConfigureAwait(false); } catch { }
 
-                        if (!clientHelloParsed && TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string requestSummary))
+                        /* All of this should've been computed in the relay callbacks above.
+                        if (!clientHelloParsed && TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string requestSummary, out string sniffedSNI))
                         {
                             xc.RequestBody = Encoding.UTF8.GetBytes(requestSummary);
+                            if (sniffedSNI.HasText()) xc["HTTPS-Client-SNIHostname"] = sniffedSNI;
                         }
 
                         if (!serverHelloParsed && TryBuildTlsServerHelloSummary(serverToClientSniff, serverToClientSniffLength, out string responseSummary))
                         {
                             xc.ResponseBody = Encoding.UTF8.GetBytes(responseSummary);
-                        }
+                        }*/
 
-                        xc["Tunnel-ByteCount-FromClient"] = clientToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
-                        xc["Tunnel-ByteCount-FromServer"] = serverToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                        //xc["Tunnel-ByteCount-FromClient"] = clientToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                        //xc["Tunnel-ByteCount-FromServer"] = serverToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
                     }
                 }
             }
@@ -1522,14 +1525,15 @@ namespace Clearinet.CaptureEngine
             return bytesRead;
         }
 
-        private static bool TryBuildTlsClientHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
+        private static bool TryBuildTlsClientHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary, out string sniffedSNI)
         {
             if (!CApp.Prefs.GetBoolPref("proxy.parse_clienthello", true))
             {
                 summary = "(TLS ClientHello parsing is disabled: proxy.parse_clienthello=false)";
+                sniffedSNI = null;
                 return true;
             }
-            return HTTPSMessages.TryBuildTlsClientHelloSummary(sniffBuffer, sniffLength, out summary);
+            return HTTPSMessages.TryBuildTlsClientHelloSummary(sniffBuffer, sniffLength, out summary, out sniffedSNI);
         }
 
         private static bool TryBuildTlsServerHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
