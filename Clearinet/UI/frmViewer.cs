@@ -473,7 +473,25 @@ namespace Clearinet
             actReportStatistics();
 
             int cSelected = lvExchanges.SelectedCount;
-            if (cSelected == 1) tslInfo.Text = GetFirstSelectedExchange()?.fullUrl ?? string.Empty;
+            if (cSelected == 1)
+            {
+                var xc = GetFirstSelectedExchange();
+                if (xc.HTTPMethodIs("CONNECT"))
+                {
+                    if (xc.BitFlags.HasFlag(ExchangeFlags.IsBlindTunnel) && xc.state < ExchangeState.Done)
+                    {
+                        tslInfo.Text = $"Active blind tunnel to {xc.host}; bytes out: {xc["Tunnel-ByteCount-FromClient"]}, in: {xc["Tunnel-ByteCount-FromServer"]}.";
+                    }
+                    else
+                    {
+                        tslInfo.Text = $"Tunnel to {xc.fullUrl}.";
+                    }
+                }
+                else
+                {
+                    tslInfo.Text = xc?.fullUrl ?? string.Empty;
+                }
+            }
         }
 
         private void miFileNewViewer_Click(object sender, EventArgs e)
