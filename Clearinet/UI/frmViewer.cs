@@ -1023,6 +1023,13 @@ namespace Clearinet
                 $"\r\nRequest Body:     {cRequestBodyBytes:N0} bytes" +
                 $"\r\nResponse Headers: {cResponseHeaderBytes:N0} bytes" +
                 $"\r\nResponse Body:    {cResponseBodyBytes:N0} bytes";
+
+                if (arrExchanges[0].HTTPMethodIs("CONNECT"))
+                {
+                    rtbStatistics.Text += $"\r\n\r\nTunnel Sent:\t\t{arrExchanges[0]["Tunnel-ByteCount-FromClient"]} bytes\r\n"
+                        + $"Tunnel Received:\t{arrExchanges[0]["Tunnel-ByteCount-FromServer"]} bytes";
+                }
+
                 return;
             }
 

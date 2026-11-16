@@ -127,6 +127,8 @@ namespace Clearinet
             return $"{responseCode} {ResponseHeaders.StatusText}";
         }
 
+
+        // TODO: Not sure I want it like this.
         public bool bypassGateway
         {
             get => oFlags.ContainsKey("net-bypassgateway");
@@ -676,6 +678,8 @@ namespace Clearinet
         public HTTPResponseHeaders ResponseHeaders { get; set; }
 
         #region FlagHandling
+
+        // Default Indexer. Returns null for missing keys.
         public ConcurrentDictionary<string, string> oFlags =
             new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         public string this[string sFlagName]

@@ -1110,24 +1110,24 @@ namespace Clearinet.CaptureEngine
             return false;
         }
 
-        private static async Task HandleBlindConnectTunnelAsync(Exchange exchange, TcpClient client, Stream clientStream, CancellationToken token)
+        private static async Task HandleBlindConnectTunnelAsync(Exchange xc, TcpClient client, Stream clientStream, CancellationToken token)
         {
-            if (exchange == null) throw new ArgumentNullException(nameof(exchange));
+            if (xc == null) throw new ArgumentNullException(nameof(xc));
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
 
-            if (!TryGetConnectTarget(exchange, out string host, out int port))
+            if (!TryGetConnectTarget(xc, out string host, out int port))
             {
-                exchange.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
+                xc.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
                 {
                     "Content-Type: text/plain; charset=utf-8",
                     "Connection: close"
                 });
-                exchange.utilSetResponseBody("CONNECT target must be in host:port form.");
-                exchange.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
-                await WriteExchangeResponseToClientAsync(exchange, clientStream, token).ConfigureAwait(false);
-                exchange.state = ExchangeState.Done;
-                UpdateUIForExchange(exchange);
+                xc.utilSetResponseBody("CONNECT target must be in host:port form.");
+                xc.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+                await WriteExchangeResponseToClientAsync(xc, clientStream, token).ConfigureAwait(false);
+                xc.state = ExchangeState.Done;
+                UpdateUIForExchange(xc);
                 return;
             }
 
@@ -1136,23 +1136,35 @@ namespace Clearinet.CaptureEngine
                 upstream.NoDelay = true;
 
                 await upstream.ConnectAsync(host, port).ConfigureAwait(false);
-                exchange.Timers.ServerConnected = DateTime.Now;
+                xc.Timers.ServerConnected = DateTime.Now;
 
-                exchange.ResponseHeaders = new HTTPResponseHeaders(200, "Blind Connection Established", new[]
+                xc.ResponseHeaders = new HTTPResponseHeaders(200, "Blind Connection Established", new[]
                 {
                     "Connection: keep-alive"
                 });
 
-                exchange.Timers.ClientBeginResponse = DateTime.Now;
-                await clientStream.WriteAsync(exchange.ResponseHeaders.ToByteArray(), 0, exchange.ResponseHeaders.ToByteArray().Length, token).ConfigureAwait(false);
+                xc.Timers.ClientBeginResponse = DateTime.Now;
+                await clientStream.WriteAsync(xc.ResponseHeaders.ToByteArray(), 0, xc.ResponseHeaders.ToByteArray().Length, token).ConfigureAwait(false);
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
+
+                // TODO: Set the State properly.
+
+                UpdateUIForExchange(xc);
 
                 using (NetworkStream upstreamStream = upstream.GetStream())
                 {
                     using (CancellationTokenSource relayCts = CancellationTokenSource.CreateLinkedTokenSource(token))
                     {
-                        Task<long> relayClientToServer = PumpStreamAsync(clientStream, upstreamStream, relayCts.Token);
-                        Task<long> relayServerToClient = PumpStreamAsync(upstreamStream, clientStream, relayCts.Token);
+                        Task<long> relayClientToServer = PumpStreamAsync(
+                            clientStream,
+                            upstreamStream,
+                            relayCts.Token,
+                            bytes => xc["Tunnel-ByteCount-FromClient"] = bytes.ToString("N0", CultureInfo.InvariantCulture));
+                        Task<long> relayServerToClient = PumpStreamAsync(
+                            upstreamStream,
+                            clientStream,
+                            relayCts.Token,
+                            bytes => xc["Tunnel-ByteCount-FromServer"] = bytes.ToString("N0", CultureInfo.InvariantCulture));
 
                         await Task.WhenAny(relayClientToServer, relayServerToClient).ConfigureAwait(false);
                         relayCts.Cancel();
@@ -1163,16 +1175,16 @@ namespace Clearinet.CaptureEngine
                         try { clientToClearinetBytes = await relayClientToServer.ConfigureAwait(false); } catch { }
                         try { serverToClearinetBytes = await relayServerToClient.ConfigureAwait(false); } catch { }
 
-                        exchange["Tunnel-ByteCount-FromClient"] = clientToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
-                        exchange["Tunnel-ByteCount-FromServer"] = serverToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                        xc["Tunnel-ByteCount-FromClient"] = clientToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
+                        xc["Tunnel-ByteCount-FromServer"] = serverToClearinetBytes.ToString("N0", CultureInfo.InvariantCulture);
                     }
                 }
             }
 
-            exchange.Timers.ServerDoneResponse = DateTime.Now;
-            exchange.Timers.ClientDoneResponse = DateTime.Now;
-            exchange.state = ExchangeState.Done;
-            UpdateUIForExchange(exchange);
+            xc.Timers.ServerDoneResponse = DateTime.Now;
+            xc.Timers.ClientDoneResponse = DateTime.Now;
+            xc.state = ExchangeState.Done;
+            UpdateUIForExchange(xc);
         }
 
         private static async Task WriteExchangeResponseToClientAsync(Exchange exchange, Stream clientStream, CancellationToken token)
@@ -1410,7 +1422,7 @@ namespace Clearinet.CaptureEngine
             return host.HasText();
         }
 
-        private static async Task<long> PumpStreamAsync(Stream source, Stream destination, CancellationToken token)
+        private static async Task<long> PumpStreamAsync(Stream source, Stream destination, CancellationToken token, Action<long> onBytesPumped = null)
         {
             byte[] buffer = new byte[8192];
             long bytesRead = 0;
@@ -1437,6 +1449,7 @@ namespace Clearinet.CaptureEngine
                 if (read <= 0) return bytesRead;
 
                 bytesRead += read;
+                onBytesPumped?.Invoke(bytesRead);
 
                 try
                 {
