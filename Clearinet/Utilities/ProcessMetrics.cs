@@ -91,6 +91,12 @@
                 vmCounters.WorkingSetSize.ToInt64());
         }
 
+        private const uint STILL_ACTIVE = 259;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
+
         private static int CountCurrentProcessThreads()
         {
             int count = 0;
@@ -102,7 +108,7 @@
                 THREAD_QUERY_LIMITED_INFORMATION,
                 0,
                 0,
-                out IntPtr nextThread) == 0) // STATUS_SUCCESS
+                out IntPtr nextThread) == 0 /*STATUS_SUCCESS*/)
             {
                 if (currentThread != IntPtr.Zero)
                 {
@@ -110,7 +116,11 @@
                 }
 
                 currentThread = nextThread;
-                count++;
+
+                if (GetExitCodeThread(currentThread, out uint exitCode) && exitCode == STILL_ACTIVE)
+                {
+                    count++;
+                }
             }
 
             if (currentThread != IntPtr.Zero)
