@@ -3098,7 +3098,14 @@ namespace Clearinet
 
         private void miRulesCustomize_Click(object sender, EventArgs e)
         {
-            Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"), $"\"{CONFIG.GetPath("RulesScript")}\"");
+            actCustomizeRules();
+        }
+
+        public void actCustomizeRules()
+        {
+            CApp.scriptRules.EnsureUserScriptExists();
+            Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"),
+                $"\"{CONFIG.GetPath("RulesScript")}\"");
         }
 
         private void tsbComment_Click(object sender, EventArgs e)

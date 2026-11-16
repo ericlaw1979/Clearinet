@@ -74,6 +74,18 @@ namespace Clearinet
         private MethodInfo _methodExecAction;
 
         private static ulong tcLatestScriptLoad = 0;
+
+        internal void EnsureUserScriptExists()
+        {
+            if (!File.Exists(_scriptPath))
+            {
+                string directory = Path.GetDirectoryName(_scriptPath);
+
+                CApp.Log.Log($"Creating: `{_scriptPath}` from SampleRules.");
+                File.Copy(CONFIG.GetPath("SampleRulesScript"), _scriptPath);
+            }
+        }
+
         internal JScriptEngine(string scriptPath)
         {
             if (CONFIG.OVERRIDES.DisableScript)
@@ -93,14 +105,24 @@ namespace Clearinet
                 string directory = Path.GetDirectoryName(_scriptPath);
                 string fileName = Path.GetFileName(_scriptPath);
 
-                // If we boot and the script file doesn't exist, copy the sample script to the expected location.
-                // Ensure we do this BEFORE trying to set up the watchers to ensure the folders are created or
-                // else adding the watcher will fail with a DirectoryNotFoundException.
+                // If we boot and the script file doesn't exist, ensure that its folder exists so that
+                // we can watch for any new script file that may be created later.
+                // If the script file doesn't exist, we will either load the sample script or copy it
+                // to the target folder, depending on the "scripting.delay_create" preference.
+                //
                 if (!File.Exists(_scriptPath))
                 {
-                    CApp.Log.Log($"Script file not found: {_scriptPath}; creating from default sample.");
-                    Directory.CreateDirectory(directory);
-                    File.Copy(CONFIG.GetPath("SampleRulesScript"), _scriptPath);
+                    if (!CApp.Prefs.GetBoolPref("scripting.delay_create", true))
+                    {
+                        EnsureUserScriptExists();
+                    }
+                    else
+                    {
+                        // Ensure we still create the directory so we can watch the path
+                        // for changes.
+                        // else adding the watcher will fail with a DirectoryNotFoundException.
+                        Directory.CreateDirectory(directory);
+                    }
                 }
 
                 try
@@ -122,10 +144,7 @@ namespace Clearinet
                         $"There was a problem initializing the script file watcher for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
                 }
 
-                if (File.Exists(_scriptPath))
-                {
-                    CompileScript();
-                }
+                CompileScript();
             }
             catch (Exception ex)
             {
@@ -226,11 +245,21 @@ namespace Clearinet
         {
             try
             {
-                CApp.Log.Log($"CompileScript(`{_scriptPath}`");
+                // If the user doesn't have their own customrules.js file, we'll just load the
+                // sample rules. If the user later uses Rules > Customize, we'll create it at that
+                // time.
+                var _sActualPath = _scriptPath;
+                if (!File.Exists(_sActualPath))
+                {
+                    _sActualPath = CONFIG.GetPath("SampleRulesScript");
+                    CApp.Log.Log($"User's script doesn't exist; using default script: `{_sActualPath}`.");
+                }
+
+                CApp.Log.Log($"CompileScript(`{_sActualPath}`)");
                 // Clear any prior script state before compiling the new script.
                 UnloadScript();
                 string scriptContent;
-                using (var stream = new FileStream(_scriptPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var stream = new FileStream(_sActualPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var reader = new StreamReader(stream))
                 {
                     scriptContent = reader.ReadToEnd();
