@@ -480,7 +480,7 @@ namespace Clearinet
                 {
                     if (xc.BitFlags.HasFlag(ExchangeFlags.IsBlindTunnel) && xc.state < ExchangeState.Done)
                     {
-                        tslInfo.Text = $"Active blind tunnel to {xc.host}; bytes out: {xc["Tunnel-ByteCount-FromClient"]}, in: {xc["Tunnel-ByteCount-FromServer"]}.";
+                        tslInfo.Text = $"Active blind tunnel to '{xc.host}'. Bytes out: {xc["Tunnel-ByteCount-FromClient"]}, in: {xc["Tunnel-ByteCount-FromServer"]}.";
                     }
                     else
                     {
