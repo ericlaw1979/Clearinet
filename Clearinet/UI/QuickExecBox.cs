@@ -162,7 +162,8 @@ namespace Clearinet
                 {
                     _historyIndex = i;
                     string completion = _typedText + _history[i].Substring(_typedText.Length);
-                    ShowHistoryText(completion, _typedText.Length);
+                    int selectionStart = _typedText.Length == 0 ? completion.Length : _typedText.Length;
+                    ShowHistoryText(completion, selectionStart);
                     return;
                 }
             }

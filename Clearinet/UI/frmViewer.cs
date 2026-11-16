@@ -783,6 +783,10 @@ namespace Clearinet
 
             miHelpTroubleshootFilters.Checked = CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true);
 
+            txtQuickExec.BackColor = CONFIG.GetColor("app.ui.colors.quickexec", txtQuickExec.BackColor);
+            txtQuickExec.ForeColor = CONFIG.GetColor("app.ui.colors.quickexectext", txtQuickExec.ForeColor);
+
+
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
             if (CONFIG.isDarkMode)
