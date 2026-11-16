@@ -223,7 +223,7 @@ namespace Clearinet.CaptureEngine
                     bool waitForNextRequest = false;
                     while (!token.IsCancellationRequested)
                     {
-                        Exchange exchange = null;
+                        Exchange xc = null;
                         try
                         {
                             if (waitForNextRequest && !_clientPipeReuseQueue.TryAdd(clientPipe.Id, clientPipe))
@@ -248,38 +248,40 @@ namespace Clearinet.CaptureEngine
                             {
                                 LocalProcessDescriptor = processIdentity
                             };
-                            exchange = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
-                            context.Exchange = exchange;
-                            UpdateUIForExchange(exchange);
+                            xc = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
+                            context.Exchange = xc;
+                            await RunBuiltInRulesBeforeRequest(xc, clientPipe.Stream, token).ConfigureAwait(false);
 
-                            if (ExchangeTargetsReflector(exchange))
+                            UpdateUIForExchange(xc);
+
+                            if (ExchangeTargetsReflector(xc))
                             {
-                                await CreateReflectorPage(exchange, clientPipe.Stream, token).ConfigureAwait(false);
+                                await CreateReflectorPage(xc, clientPipe.Stream, token).ConfigureAwait(false);
                                 return;
                             }
 
-                            if (exchange.HTTPMethodIs("CONNECT"))
+                            if (xc.HTTPMethodIs("CONNECT"))
                             {
                                 Stream tunnelStream = clientPipe.Reader.DetachUnreadStream();
-                                if (ShouldDecryptTunnel(exchange))
+                                if (ShouldDecryptTunnel(xc))
                                 {
                                     //exchange["x-connect-decrypt-eligible"] = "true";
-                                    await HandleMitmConnectTunnelAsync(exchange, client, tunnelStream, clientPipe, token).ConfigureAwait(false);
+                                    await HandleMitmConnectTunnelAsync(xc, client, tunnelStream, clientPipe, token).ConfigureAwait(false);
                                 }
                                 else
                                 {
-                                    await HandleBlindConnectTunnelAsync(exchange, client, tunnelStream, token).ConfigureAwait(false);
+                                    await HandleBlindConnectTunnelAsync(xc, client, tunnelStream, token).ConfigureAwait(false);
                                 }
                                 return;
                             }
 
-                            waitForNextRequest = await ForwardUsingServerPipeAsync(exchange, clientPipe, token).ConfigureAwait(false);
+                            waitForNextRequest = await ForwardUsingServerPipeAsync(xc, clientPipe, token).ConfigureAwait(false);
                             if (!waitForNextRequest || !clientPipe.IsConnected) return;
                         }
                         catch (Exception eX)
                         {
                             _clientPipeReuseQueue.TryRemove(clientPipe.Id, out _);
-                            await HandleCaptureFailureAsync(exchange, clientPipe.Stream, eX, token).ConfigureAwait(false);
+                            await HandleCaptureFailureAsync(xc, clientPipe.Stream, eX, token).ConfigureAwait(false);
                             return;
                         }
                     }
@@ -330,7 +332,7 @@ namespace Clearinet.CaptureEngine
 
                 xc.Timers.ServerConnected = DateTime.Now;
                 HTTPRequestHeaders upstreamRequest = xc.RequestHeaders.Clone();
-                await RunBuiltInRulesBeforeRequest(xc, clientPipe.Stream, token).ConfigureAwait(false);
+                //await RunBuiltInRulesBeforeRequest(xc, clientPipe.Stream, token).ConfigureAwait(false);
 
                 PrepareRequestForServer(upstreamRequest, xc.RequestBody ?? Array.Empty<byte>());
                 await WriteHttpRequestAsync(serverPipe.Stream, upstreamRequest,

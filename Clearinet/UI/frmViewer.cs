@@ -17,7 +17,7 @@ namespace Clearinet
 {
     public partial class frmViewer : Form
     {
-        ToolStripMenuItem miHelpTroubleshootFilters = new ToolStripMenuItem("Troubleshoot Fi&lters");
+        ToolStripMenuItem miHelpTroubleshootFilters = new ToolStripMenuItem("&Troubleshoot Filters");
 
         public frmViewer()
         {
@@ -865,7 +865,7 @@ namespace Clearinet
 
             miHelp.DropDownItems.Insert(3, miHelpTroubleshootFilters);
             miHelpTroubleshootFilters.CheckOnClick = true;
-            miHelpTroubleshootFilters.CheckedChanged += (s1, e1) => CApp.Prefs.SetBoolPref("app.ui.help.troubleshoot_filters", miHelp.Checked);
+            miHelpTroubleshootFilters.CheckedChanged += miHelpTroubleshootFilters_CheckedChanged;
 
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
@@ -1449,6 +1449,7 @@ namespace Clearinet
                 {
                     //CApp.Log.Log($"Exchange #{xc.id} is hidden by rules. Use the 'Troubleshoot Filters' option in the Help menu to see why.");
                     xc["ui-strikeout"] = "Unhidden because of Help > Troubleshoot Filters";
+                    xc["ui-comments"] = $"Hidden by {xc["ui-hide"]}";
                 }
                 else
                 {
@@ -1512,6 +1513,7 @@ namespace Clearinet
                 {
                     //CApp.Log.Log($"Exchange #{xc.id} is hidden by rules. Use the 'Troubleshoot Filters' option in the Help menu to see why.");
                     xc["ui-strikeout"] = "Unhidden because of Help > Troubleshoot Filters";
+                    xc["ui-comments"] = $"Hidden by {xc["ui-hide"]}";
                 }
                 else
                 {
@@ -1575,7 +1577,7 @@ namespace Clearinet
                     }
                     catch { }
                 }
-                else if (xc.bHasResponse)
+                else
                 {
                     lvi.ForeColor = CONFIG.GetExchangeColor(xc);
                 }
@@ -3544,6 +3546,11 @@ namespace Clearinet
         {
             CApp.Prefs.SetBoolPref("app.ui.rules.hide_images", miRulesHideImages.Checked);
         }
-    }
 
+        private void miHelpTroubleshootFilters_CheckedChanged(object sender, EventArgs e)
+        {
+            CApp.Prefs.SetBoolPref("app.ui.help.troubleshoot_filters", miHelpTroubleshootFilters.Checked);
+        }
+
+    }
 }

@@ -476,11 +476,12 @@ namespace Clearinet
         /// <returns></returns>
         public static Color GetExchangeColor(Exchange exchange)
         {
-            string mediaType = exchange == null ? string.Empty : exchange.MediaType;
             if (exchange.HTTPMethodIs("CONNECT", "HEAD"))
             {
                 return Color.Gray;
             }
+
+            string mediaType = exchange == null ? string.Empty : exchange.MediaType;
 
             if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             {
