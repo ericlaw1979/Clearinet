@@ -1,10 +1,9 @@
-using System;
+using Clearinet.CaptureEngine;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Clearinet.CaptureEngine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CaptureEngine.Tests
 {
@@ -41,7 +40,7 @@ namespace CaptureEngine.Tests
 
             Assert.AreEqual(200, first.responseHeaders.StatusCode);
             Assert.AreEqual("OK", Encoding.ASCII.GetString(first.responseBody));
-            Assert.IsTrue(first.reusable);
+            Assert.IsTrue(first.pipeIsReusable);
             Assert.AreEqual(204, second.responseHeaders.StatusCode);
             Assert.AreEqual(0, second.responseBody.Length);
         }

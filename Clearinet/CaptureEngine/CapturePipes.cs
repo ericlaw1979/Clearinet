@@ -195,7 +195,7 @@ namespace Clearinet.CaptureEngine
             return (headers, body);
         }
 
-        internal async Task<(Clearinet.HTTPResponseHeaders responseHeaders, byte[] responseBody, bool reusable)> ReadResponseAsync(
+        internal async Task<(Clearinet.HTTPResponseHeaders responseHeaders, byte[] responseBody, bool pipeIsReusable)> ReadResponseAsync(
             string requestMethod, CancellationToken token)
         {
             while (true)
@@ -240,7 +240,7 @@ namespace Clearinet.CaptureEngine
                 if (ContainsHeaderToken(headers, "Transfer-Encoding", "chunked"))
                 {
                     byte[] chunkedBody = await ReadChunkedBodyAsync(token).ConfigureAwait(false);
-                    return (headers, chunkedBody, headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
+                    return (headers, chunkedBody, !headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
                 }
 
                 if (headers.Exists("Transfer-Encoding"))
@@ -252,7 +252,7 @@ namespace Clearinet.CaptureEngine
                 if (headers.Exists("Content-Length"))
                 {
                     int contentLength = GetContentLength(headers);
-                    return (headers, await ReadExactlyAsync(contentLength, token).ConfigureAwait(false), headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
+                    return (headers, await ReadExactlyAsync(contentLength, token).ConfigureAwait(false), !headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
                 }
 
                 Debug.Assert(headers.ExistsAndContains("Connection", "close"), "Unexpected response with no framing and no Connection: close.");
