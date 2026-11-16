@@ -25,8 +25,9 @@
       <_ClearinetPluginRestoreProject Include="@(_ClearinetPluginProject)"
                                      Condition="'%(_ClearinetPluginProject.RestoreBeforeBuild)' == 'true'" />
     </ItemGroup>
+    <!-- A distinct restore evaluation lets the build import newly restored NuGet targets. -->
     <MSBuild Projects="@(_ClearinetPluginRestoreProject)" Targets="Restore"
-             Properties="$(_ClearinetPluginBuildProperties)" />
+             Properties="$(_ClearinetPluginBuildProperties);ExcludeRestorePackageImports=true" />
     <MSBuild Projects="@(_ClearinetPluginProject)" Targets="GetClearinetPackagePayload"
              Properties="$(_ClearinetPluginBuildProperties)"
              BuildInParallel="true">
