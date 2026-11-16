@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
@@ -14,6 +15,7 @@ namespace Clearinet.CaptureEngine
         internal static bool TryBuildTlsClientHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
         {
             summary = null;
+            if (IsClearlyNotTls(sniffBuffer, sniffLength)) return false;
             if (!TryExtractTlsHandshakeMessage(sniffBuffer, sniffLength, 1, out byte[] body)) return false;
             return TryDescribeClientHello(body, out summary);
         }
@@ -21,8 +23,32 @@ namespace Clearinet.CaptureEngine
         internal static bool TryBuildTlsServerHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
         {
             summary = null;
+            if (IsClearlyNotTls(sniffBuffer, sniffLength)) return false;
             if (!TryExtractTlsHandshakeMessage(sniffBuffer, sniffLength, 2, out byte[] body)) return false;
             return TryDescribeServerHello(body, out summary);
+        }
+
+        /// <summary>
+        /// Are the bytes clearly not the start of TLS?
+        /// </summary>
+        private static bool IsClearlyNotTls(byte[] data, int dataLength)
+        {
+            Debug.Assert(dataLength > 0 && dataLength <= data.Length, "dataLength is out of bounds");
+            if (!data.HasData()) return false;
+
+            // 1) TLS record content type: Handshake
+            if (data[0] != 0x16) return true;
+
+            int safeLength = Math.Min(dataLength, data.Length);
+            // 2) TLS record version major byte
+            if (safeLength < 2) return false;
+            if (data[1] != 0x03) return true;
+
+            // 3) TLS record version minor byte (SSL3..TLS1.3)
+            if (safeLength < 3) return false;
+            if (data[2] > 0x04) return true;
+
+            return false;
         }
 
         private static bool TryExtractTlsHandshakeMessage(byte[] data, int dataLength, byte handshakeType, out byte[] body)

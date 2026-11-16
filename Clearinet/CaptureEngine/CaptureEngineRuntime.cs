@@ -1178,9 +1178,9 @@ namespace Clearinet.CaptureEngine
                                 clientToServerSniffLength += toCopy;
 
                                 if (!clientHelloParsed && clientToServerSniffLength >= TunnelSniffInitialParseThresholdBytes &&
-                                    TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string requestSummaryLive))
+                                    TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string summaryOfHandshake))
                                 {
-                                    xc.RequestBody = Encoding.UTF8.GetBytes(requestSummaryLive);
+                                    xc.RequestBody = Encoding.UTF8.GetBytes(summaryOfHandshake);
                                     clientHelloParsed = true;
                                 }
                             });
@@ -1198,9 +1198,9 @@ namespace Clearinet.CaptureEngine
                                 serverToClientSniffLength += toCopy;
 
                                 if (!serverHelloParsed && serverToClientSniffLength >= TunnelSniffInitialParseThresholdBytes &&
-                                    TryBuildTlsServerHelloSummary(serverToClientSniff, serverToClientSniffLength, out string responseSummaryLive))
+                                    TryBuildTlsServerHelloSummary(serverToClientSniff, serverToClientSniffLength, out string summaryOfHandshake))
                                 {
-                                    xc.ResponseBody = Encoding.UTF8.GetBytes(responseSummaryLive);
+                                    xc.ResponseBody = Encoding.UTF8.GetBytes(summaryOfHandshake);
                                     serverHelloParsed = true;
                                 }
                             });
@@ -1524,138 +1524,148 @@ namespace Clearinet.CaptureEngine
 
         private static bool TryBuildTlsClientHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
         {
+            if (!CApp.Prefs.GetBoolPref("proxy.parse_clienthello", true))
+            {
+                summary = "(TLS ClientHello parsing is disabled: proxy.parse_clienthello=false)";
+                return true;
+            }
             return HTTPSMessages.TryBuildTlsClientHelloSummary(sniffBuffer, sniffLength, out summary);
         }
 
         private static bool TryBuildTlsServerHelloSummary(byte[] sniffBuffer, int sniffLength, out string summary)
         {
+            if (!CApp.Prefs.GetBoolPref("proxy.parse_serverhello", true))
+            {
+                summary = "(TLS ServerHello parsing is disabled: proxy.parse_serverhello=false)";
+                return true;
+            }
             return HTTPSMessages.TryBuildTlsServerHelloSummary(sniffBuffer, sniffLength, out summary);
         }
 
 
-/// <summary>
-/// Send a simple HTML page to the client.
-/// 
-/// TODO: The right way for this to work is to overwrite the response of the Exchange and then
-/// let it flow through the rest of the state machine as normal.
-/// 
-/// TODO: Should allow the user to pick a URL path containing the response code (e.g. /reflector/404) 
-/// and then use that code in the response.
-/// 
-/// </summary>
-private async Task CreateReflectorPage(Exchange xc, Stream stream, CancellationToken token)
-{
-    xc.SetBitFlag(ExchangeFlags.ResponseGeneratedByClearinet);
-
-    if (xc.urlContains("ClearinetRoot.cer"))
-    {
-        var cert = _certificateProvider.GetRootCertificate();
-        byte[] certBytes = cert.Export(X509ContentType.Cert);
-
-        xc.ResponseHeaders = new HTTPResponseHeaders(200, "OK", new[]
+        /// <summary>
+        /// Send a simple HTML page to the client.
+        /// 
+        /// TODO: The right way for this to work is to overwrite the response of the Exchange and then
+        /// let it flow through the rest of the state machine as normal.
+        /// 
+        /// TODO: Should allow the user to pick a URL path containing the response code (e.g. /reflector/404) 
+        /// and then use that code in the response.
+        /// 
+        /// </summary>
+        private async Task CreateReflectorPage(Exchange xc, Stream stream, CancellationToken token)
         {
+            xc.SetBitFlag(ExchangeFlags.ResponseGeneratedByClearinet);
+
+            if (xc.urlContains("ClearinetRoot.cer"))
+            {
+                var cert = _certificateProvider.GetRootCertificate();
+                byte[] certBytes = cert.Export(X509ContentType.Cert);
+
+                xc.ResponseHeaders = new HTTPResponseHeaders(200, "OK", new[]
+                {
                     "Connection: close",
                     "Content-Type: application/x-x509-ca-cert",
                     $"Content-Length: {certBytes.Length}"
                 });
-        xc.ResponseBody = certBytes;
-        await WriteExchangeResponseToClientAsync(xc, stream, token).ConfigureAwait(false);
-        xc.state = ExchangeState.Done;
-        return;
-    }
+                xc.ResponseBody = certBytes;
+                await WriteExchangeResponseToClientAsync(xc, stream, token).ConfigureAwait(false);
+                xc.state = ExchangeState.Done;
+                return;
+            }
 
-    xc.state = ExchangeState.ReadingResponseHeaders;
-    StringBuilder sbResponse = new StringBuilder(2048);
-    sbResponse.AppendLine("<!doctype html>\r\n<html><head><title>Clearinet Echo Service</title>");
-    sbResponse.AppendLine("<style>body {font-family: sans-serif, arial} a { text-decoration: none } a:hover { text-decoration: underline; }</style></head>");
-    sbResponse.AppendLine("<body><h1>Clearinet Reflector</h1>");
+            xc.state = ExchangeState.ReadingResponseHeaders;
+            StringBuilder sbResponse = new StringBuilder(2048);
+            sbResponse.AppendLine("<!doctype html>\r\n<html><head><title>Clearinet Echo Service</title>");
+            sbResponse.AppendLine("<style>body {font-family: sans-serif, arial} a { text-decoration: none } a:hover { text-decoration: underline; }</style></head>");
+            sbResponse.AppendLine("<body><h1>Clearinet Reflector</h1>");
 
-    sbResponse.Append("<pre>");
-    sbResponse.Append(Utilities.HtmlEncode(xc.RequestHeaders.ToString()));
-    if (xc.RequestBody != null && xc.RequestBody.Length > 0)
-    {
-        sbResponse.Append(Utilities.HtmlEncode(Encoding.UTF8.GetString(xc.RequestBody)));
-    }
-    else
-    {
-        sbResponse.Append("<i>(No request body)</i>");
-    }
-    sbResponse.AppendLine("</pre>");
+            sbResponse.Append("<pre>");
+            sbResponse.Append(Utilities.HtmlEncode(xc.RequestHeaders.ToString()));
+            if (xc.RequestBody != null && xc.RequestBody.Length > 0)
+            {
+                sbResponse.Append(Utilities.HtmlEncode(Encoding.UTF8.GetString(xc.RequestBody)));
+            }
+            else
+            {
+                sbResponse.Append("<i>(No request body)</i>");
+            }
+            sbResponse.AppendLine("</pre>");
 
-    #region UserSelectedStatusCode
-    // Check if the URL had a status code in it, and if so, use that as the response code. Otherwise default to 200.
-    int iStatusCode = 200;
-    if (xc.RequestHeaders.RequestPath != "/")
-    {
-        string[] parts = xc.RequestHeaders.RequestPath.Split('/');
-        if (parts.Length > 1 && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
-        {
-            if (parsed < 0 || parsed > 999) parsed = 200;
-            iStatusCode = parsed;
-        }
-    }
-    sbResponse.Append($"<hr />This response's <b>Status Code: {iStatusCode}</b> (<a href='/200/'>200</a> <a href='/400/'>400</a> <a href='/500/'>500</a>)<br />");
-    #endregion UserSelectedStatusCode
+            #region UserSelectedStatusCode
+            // Check if the URL had a status code in it, and if so, use that as the response code. Otherwise default to 200.
+            int iStatusCode = 200;
+            if (xc.RequestHeaders.RequestPath != "/")
+            {
+                string[] parts = xc.RequestHeaders.RequestPath.Split('/');
+                if (parts.Length > 1 && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
+                {
+                    if (parsed < 0 || parsed > 999) parsed = 200;
+                    iStatusCode = parsed;
+                }
+            }
+            sbResponse.Append($"<hr />This response's <b>Status Code: {iStatusCode}</b> (<a href='/200/'>200</a> <a href='/400/'>400</a> <a href='/500/'>500</a>)<br />");
+            #endregion UserSelectedStatusCode
 
-    // TODO: Should we support TCP/IP termination parameters, e.g. /RST to send a TCP RST instead of a normal response?
-    // /CLOSE to close the connection after the response?
-    // /DELAY=5000 to delay the response by 5 seconds?
-    // /ECHO to echo back the request body as the response body with no modifications?
-    // Each of these has interesting security implications.
+            // TODO: Should we support TCP/IP termination parameters, e.g. /RST to send a TCP RST instead of a normal response?
+            // /CLOSE to close the connection after the response?
+            // /DELAY=5000 to delay the response by 5 seconds?
+            // /ECHO to echo back the request body as the response body with no modifications?
+            // Each of these has interesting security implications.
 
-    sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />Originating Process: {xc.LocalProcess}<br />");
+            sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />Originating Process: {xc.LocalProcess}<br />");
 
-    sbResponse.AppendLine("<hr /><ul><li>To configure Clearinet as a reverse proxy (instead of this service), see " +
-        $"<a href='{CONFIG.GetURL("HelpReverseProxy")}'>Reverse Proxy</a>");
-    sbResponse.AppendLine("<li>You can also download the <a href='ClearinetRoot.cer'>Clearinet Root Certificate</a>");
-    sbResponse.AppendLine("</ul>");
+            sbResponse.AppendLine("<hr /><ul><li>To configure Clearinet as a reverse proxy (instead of this service), see " +
+                $"<a href='{CONFIG.GetURL("HelpReverseProxy")}'>Reverse Proxy</a>");
+            sbResponse.AppendLine("<li>You can also download the <a href='ClearinetRoot.cer'>Clearinet Root Certificate</a>");
+            sbResponse.AppendLine("</ul>");
 
-    sbResponse.AppendLine("</body></html>");
+            sbResponse.AppendLine("</body></html>");
 
-    xc.ResponseBody = Encoding.UTF8.GetBytes(sbResponse.ToString());
-    string sBody = sbResponse.ToString();
+            xc.ResponseBody = Encoding.UTF8.GetBytes(sbResponse.ToString());
+            string sBody = sbResponse.ToString();
 
-    xc.ResponseHeaders = new HTTPResponseHeaders(iStatusCode, "Generated", new[]
-    {
+            xc.ResponseHeaders = new HTTPResponseHeaders(iStatusCode, "Generated", new[]
+            {
                 "Connection: close",
                 "Content-Type: text/html; charset=utf-8",
                 $"Content-Length: {xc.ResponseBody.Length}"
             });
 
-    xc.Timers.ClientBeginResponse = DateTime.Now;
+            xc.Timers.ClientBeginResponse = DateTime.Now;
 
-    // Write headers.
-    byte[] bytes = xc.ResponseHeaders.ToByteArray();
-    await stream.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
+            // Write headers.
+            byte[] bytes = xc.ResponseHeaders.ToByteArray();
+            await stream.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
 
-    // Write body.
-    await stream.WriteAsync(xc.ResponseBody, 0, xc.ResponseBody.Length, token).ConfigureAwait(false);
+            // Write body.
+            await stream.WriteAsync(xc.ResponseBody, 0, xc.ResponseBody.Length, token).ConfigureAwait(false);
 
-    await stream.FlushAsync(token).ConfigureAwait(false);
-    xc.Timers.ClientDoneResponse = DateTime.Now;
-    xc.state = ExchangeState.Done;
-}
-
-private static void AbortWithRst(TcpClient client)
-{
-    if (client == null) return;
-    try
-    {
-        client.Client.LingerState = new LingerOption(true, 0);
-        try
-        {
-            client.Client.Shutdown(SocketShutdown.Both);
+            await stream.FlushAsync(token).ConfigureAwait(false);
+            xc.Timers.ClientDoneResponse = DateTime.Now;
+            xc.state = ExchangeState.Done;
         }
-        catch
+
+        private static void AbortWithRst(TcpClient client)
         {
-            // Ignore shutdown failures; close still tears down the socket.
+            if (client == null) return;
+            try
+            {
+                client.Client.LingerState = new LingerOption(true, 0);
+                try
+                {
+                    client.Client.Shutdown(SocketShutdown.Both);
+                }
+                catch
+                {
+                    // Ignore shutdown failures; close still tears down the socket.
+                }
+                client.Close();
+            }
+            catch
+            {
+                // Ignore and fall back to normal close by caller disposal.
+            }
         }
-        client.Close();
-    }
-    catch
-    {
-        // Ignore and fall back to normal close by caller disposal.
-    }
-}
     }
 }
