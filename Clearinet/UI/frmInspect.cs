@@ -7,6 +7,33 @@ namespace Clearinet.UI
     public partial class frmInspect : Form
     {
         private Exchange XC;
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.F5))
+            {
+                RefreshData();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void RefreshData()
+        {
+            if (tabsInspect.SelectedTab == pageRequest)
+            {
+                UpdateInspectors(true, false);
+            }
+            else if (tabsInspect.SelectedTab == pageResponse)
+            {
+                UpdateInspectors(false, true);
+            }
+            else if (tabsInspect.SelectedTab == this.pageProperties)
+            {
+                rtbProperties.Text = Summarize();
+            }
+        }
+
         public frmInspect(Exchange xc)
         {
             XC = xc;
@@ -76,14 +103,7 @@ namespace Clearinet.UI
 
         private void tabsInspect_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabsInspect.SelectedTab == pageRequest)
-            {
-                UpdateInspectors(true, false);
-            }
-            else if (tabsInspect.SelectedTab == pageResponse)
-            {
-                UpdateInspectors(false, true);
-            }
+            RefreshData();
         }
     }
 }
