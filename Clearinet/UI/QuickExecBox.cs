@@ -346,14 +346,19 @@ namespace Clearinet
                     Clear();
                     return true;
                 case Keys.Escape:
-                    if (TextLength > 0)
+                    if (SelectedText.Length > 0)
                     {
-                        Clear();
+                        SelectedText = string.Empty;
                     }
                     else
-                    {
-                        CApp.UI.lvExchanges.Focus();
-                    }
+                        if (TextLength > 0)
+                        {
+                            Clear();
+                        }
+                        else
+                        {
+                            CApp.UI.lvExchanges.Focus();
+                        }
                     return true;
                 case Keys.Up:
                 case Keys.Down:
