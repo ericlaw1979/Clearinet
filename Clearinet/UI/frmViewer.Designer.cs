@@ -103,6 +103,8 @@ namespace Clearinet
             this.tsmiRulesSplit1 = new System.Windows.Forms.ToolStripSeparator();
             this.miRulesRequireAuth = new System.Windows.Forms.ToolStripMenuItem();
             this.miRulesAutoDecode = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRulesHideCONNECTs = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRulesHideImages = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiRulesSplit2 = new System.Windows.Forms.ToolStripSeparator();
             this.miTools = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsOptions = new System.Windows.Forms.ToolStripMenuItem();
@@ -210,8 +212,6 @@ namespace Clearinet
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.miRulesHideCONNECTs = new System.Windows.Forms.ToolStripMenuItem();
-            this.miRulesHideImages = new System.Windows.Forms.ToolStripMenuItem();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -789,6 +789,22 @@ namespace Clearinet
             this.miRulesAutoDecode.Text = "Auto-&Decompress Exchanges";
             this.miRulesAutoDecode.CheckedChanged += new System.EventHandler(this.miRulesAutoDecode_CheckedChanged);
             // 
+            // miRulesHideCONNECTs
+            // 
+            this.miRulesHideCONNECTs.CheckOnClick = true;
+            this.miRulesHideCONNECTs.Name = "miRulesHideCONNECTs";
+            this.miRulesHideCONNECTs.Size = new System.Drawing.Size(246, 22);
+            this.miRulesHideCONNECTs.Text = "&Hide CONNECT Tunnels";
+            this.miRulesHideCONNECTs.CheckedChanged += new System.EventHandler(this.miRulesHideCONNECTs_CheckedChanged);
+            // 
+            // miRulesHideImages
+            // 
+            this.miRulesHideImages.CheckOnClick = true;
+            this.miRulesHideImages.Name = "miRulesHideImages";
+            this.miRulesHideImages.Size = new System.Drawing.Size(246, 22);
+            this.miRulesHideImages.Text = "&Hide Images";
+            this.miRulesHideImages.CheckedChanged += new System.EventHandler(this.miRulesHideImages_CheckedChanged);
+            // 
             // tsmiRulesSplit2
             // 
             this.tsmiRulesSplit2.Name = "tsmiRulesSplit2";
@@ -1042,14 +1058,14 @@ namespace Clearinet
             // 
             this.tslMemory.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslMemory.Name = "tslMemory";
-            this.tslMemory.Size = new System.Drawing.Size(34, 26);
+            this.tslMemory.Size = new System.Drawing.Size(23, 26);
             this.tslMemory.Text = "---";
             // 
             // tslInfo
             // 
             this.tslInfo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslInfo.Name = "tslInfo";
-            this.tslInfo.Size = new System.Drawing.Size(847, 26);
+            this.tslInfo.Size = new System.Drawing.Size(858, 26);
             this.tslInfo.Spring = true;
             this.tslInfo.Text = "Welcome to Clearinet!";
             this.tslInfo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -1793,22 +1809,6 @@ namespace Clearinet
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             this.splitterMain.DoubleClick += new System.EventHandler(this.splitterMain_DoubleClick);
-            // 
-            // miRulesHideCONNECTs
-            // 
-            this.miRulesHideCONNECTs.CheckOnClick = true;
-            this.miRulesHideCONNECTs.Name = "miRulesHideCONNECTs";
-            this.miRulesHideCONNECTs.Size = new System.Drawing.Size(246, 22);
-            this.miRulesHideCONNECTs.Text = "&Hide CONNECT Tunnels";
-            this.miRulesHideCONNECTs.CheckedChanged += new System.EventHandler(this.miRulesHideCONNECTs_CheckedChanged);
-            // 
-            // miRulesHideImages
-            // 
-            this.miRulesHideImages.CheckOnClick = true;
-            this.miRulesHideImages.Name = "miRulesHideImages";
-            this.miRulesHideImages.Size = new System.Drawing.Size(246, 22);
-            this.miRulesHideImages.Text = "&Hide Images";
-            this.miRulesHideImages.CheckedChanged += new System.EventHandler(this.miRulesHideImages_CheckedChanged);
             // 
             // frmViewer
             // 
