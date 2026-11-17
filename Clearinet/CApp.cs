@@ -12,6 +12,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+/*
+ * With shared keys and wildcards already implemented, the next options are:
+1.	Avoid installing each leaf in the Windows store. Use .NET’s CertificateRequest to sign a leaf with the root, attach the shared private key using CopyWithPrivateKey, and pass it directly to SslStream. This bypasses CertEnroll COM and per-leaf store installation. The tradeoff is losing persisted leaf reuse across restarts unless we save them separately.
+2.	Index stored leaves once. Our current lookup enumerates the Personal store on every memory-cache miss. Loading an index once would reduce lookup overhead as the store grows, although this speeds selection rather than generation.
+3.	Consider ECDSA keys. These can reduce key-generation and signing costs, but require checking client compatibility. Shared RSA keys already eliminate most repeated key-generation work.
+My next choice would be measuring signing versus store-installation time, then trying option 1. It offers a concrete way to remove work, but the improvement needs measuremen
+*/
+
 namespace Clearinet
 {
     public delegate void CalculateReportHandler(Exchange[] arrExchanges);

@@ -140,7 +140,24 @@ and copies bytes in both directions. With decryption enabled, Clearinet sends th
 CONNECT success response, authenticates the client side with a generated leaf
 certificate, authenticates an upstream TLS connection, and then processes the
 decrypted HTTP/1.x traffic. The certificate provider caches generated leaf
-certificates and exposes cache cleanup through its abstraction.
+certificates and exposes cache cleanup through its abstraction. Root creation is
+serialized separately from leaf creation. Requests for the same normalized hostname
+wait for and reuse its certificate, while different hostnames can be generated in
+parallel. On a memory-cache miss, valid leaves in the current user's Personal store
+are reused only if their identity matches and their certificate chain ends at the
+current root. Cached leaves are renewed when their issuing root changes.
+`proxy.reed.certs.wildcard` defaults to `true`, sharing a wildcard certificate such
+as `*.google.com` between `mail.google.com` and `www.google.com`. Only the leftmost
+label is replaced, and IP addresses and DNS names with fewer than three labels
+remain exact. Cache cleanup waits for in-flight certificate operations before
+deleting certificates and keys.
+Root trust installation uses a separate lock and checks the trusted store by
+thumbprint before adding the root, so concurrent callers do not install it repeatedly.
+Leaf certificates issued by the same root share a persisted, non-exportable RSA-2048
+key, avoiding per-host key generation; the root retains its separate RSA-3072 key.
+Each enrollment opens its own key wrapper, so different hosts can still be generated
+in parallel. Cleanup removes all leaf certificates before deleting their shared key.
+Compromise of a shared leaf key affects all leaves using it, but not the root key.
 
 ServerPipe reuse is controlled by `proxy.serverpipe.binding_policy`: `Free`
 allows any request to rent a pipe, `Process` (the default) requires the same

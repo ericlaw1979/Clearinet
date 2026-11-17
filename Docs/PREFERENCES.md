@@ -33,6 +33,8 @@ Below is a list of some preferences, their defaults, and what they control
 
 `proxy.decrypt_https`, `false` => Decrypt CONNECT tunnels using generated certificates unless an Exchange has the `x-no-decrypt` flag.
 
+`proxy.reed.certs.wildcard`, `true` => Replace the leftmost label of DNS names with at least three labels with `*` when selecting or generating interception certificates (e.g. `mail.google.com` and `www.google.com` share `*.google.com`). Wildcards cover one label only. IP addresses and names with fewer than three labels remain exact. Set to `false` to use exact-host certificates. Valid installed certificates are reused across app runs.
+
 `proxy.socketpool.idle_ms`, `300000` => Maximum idle time for pooled upstream ServerPipes.
 
 `proxy.socketpool.max_age_ms`, `300000` => Maximum lifetime for pooled upstream ServerPipes.

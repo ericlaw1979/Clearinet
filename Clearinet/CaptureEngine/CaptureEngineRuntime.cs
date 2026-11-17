@@ -998,7 +998,8 @@ namespace Clearinet.CaptureEngine
                 return;
             }
 
-            _certificateProvider.EnsureRootTrust();
+            _certificateProvider.EnsureRootTrust();     // ISSUE: This should not live here.
+
             X509Certificate2 leaf = _certificateProvider.GetCertificateForHost(host);
 
             Guid clientPipeId = clientPipe.Id;
