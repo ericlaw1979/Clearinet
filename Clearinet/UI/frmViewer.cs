@@ -2717,7 +2717,7 @@ namespace Clearinet
             double mb = cpm.PrivateBytes / (1024.0 * 1024.0);
 
             // Issue: Does the thread emoji look clean, or should we use knot instead? \uD83E\uDEA2 or just tilde? ~5~
-            CApp.UIInvokeAsync((MethodInvoker)(() => { tslMemory.Text = $"{mb:N1}mb ({cpm.ThreadCount}\uD83E\uDDF5)"; }), null);
+            CApp.UIInvokeAsync((MethodInvoker)(() => { tslMemory.Text = $"{mb:N0}mb ({cpm.ThreadCount}\uD83E\uDDF5)"; }), null);
         }
 
         private void UpdateStatusBar(bool bNow)
