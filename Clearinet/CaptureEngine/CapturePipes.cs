@@ -220,6 +220,8 @@ namespace Clearinet.CaptureEngine
                     headers.RenameHeaderItems("Content-Length", "PROTOCOL-VIOLATION-Content-Length");
                 }
 
+                bool bHasConnectionClose = headers.ExistsAndContains("Connection", "close");
+
                 // RFC 7230 Section 3.3.3: "All 1xx (Informational), 204 (No Content), and 304 (Not Modified) responses do not include a message body."
                 if (statusCode >= 100 && statusCode < 200 && statusCode != 101)
                 {
@@ -232,10 +234,25 @@ namespace Clearinet.CaptureEngine
                     continue; // Read the next header block.
                 }
 
-                /* TODO: Track as HTTP Protocol violation.
-                 * bool hasNoBody = requestMethod.OICEquals("HEAD") ||
-                    (statusCode >= 100 && statusCode < 200) || statusCode == 204 || statusCode == 304;
-                if (hasNoBody) return (headers, Array.Empty<byte>(), statusCode != 101);*/
+                bool bodyIsForbidden = requestMethod.OICEquals("HEAD") ||
+                    (statusCode >= 100 && statusCode < 200) ||
+                    statusCode == 204 || statusCode == 304;
+
+                // If a message body is forbidden, then we are done reading.
+                if (bodyIsForbidden)
+                {
+                    bool illegalLength = statusCode != 304 &&
+                                        !requestMethod.OICEquals("HEAD") &&
+                                        headers.Exists("Content-Length") &&
+                                        !headers.ExistsAndContains("Content-Length", "0");
+                    /* TODO: Track any TE/unexpectedCL as HTTP Protocol violation. */
+                    Debug.Assert(false, "Content is unexpected on this response!");
+                    return (headers, Array.Empty<byte>(),
+                        statusCode != 101        // Cannot reuse the socket if it's gonna be piping WebSocket messages
+                        && !illegalLength        // Don't reuse the socket if there's possibly an illegal body
+                        && !bHasConnectionClose  // Don't reuse the socket if the server doesn't want us to
+                    );
+                }
 
                 if (ContainsHeaderToken(headers, "Transfer-Encoding", "chunked"))
                 {
@@ -255,7 +272,7 @@ namespace Clearinet.CaptureEngine
                     return (headers, await ReadExactlyAsync(contentLength, token).ConfigureAwait(false), !headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
                 }
 
-                Debug.Assert(headers.ExistsAndContains("Connection", "close"), "Unexpected response with no framing and no Connection: close.");
+                Debug.Assert(bHasConnectionClose, "Unexpected response with no framing and no Connection: close.\n\n" + headers.ToString(true, true));
                 return (headers, await ReadToEndAsync(token).ConfigureAwait(false), false);
             }
         }

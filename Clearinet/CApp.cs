@@ -584,7 +584,7 @@ namespace Clearinet
         }
         internal static void OnProxyDetach()
         {
-            StopCaptureEngine();
+            // StopCaptureEngine();
             // TODO: update state of status bar capturing indicator
             ProxyDetach?.Invoke();
             scriptRules?.DoOnDetach();
