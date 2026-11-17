@@ -8,6 +8,8 @@ namespace Clearinet
     public class LongRunningOperation : IDisposable
     {
         DateTime dtFirstProgress = DateTime.MinValue;
+        uint uiLastReportedPercent = 0;
+
         private bool PreventSleepOrExit { get; set; }
 
         public string OperationName { get; private set; }
@@ -68,12 +70,7 @@ namespace Clearinet
         {
             if (dtFirstProgress == DateTime.MinValue) dtFirstProgress = DateTime.Now;
             if (sStatusText.HasText()) StatusText = sStatusText;
-            if (iPercent >= 100)
-            {
-                iPercent = 100;
-                //Dispose();
-                return;
-            }
+            iPercent = iPercent.Clamp(0, 100);
             if (null != ProgressUI)
             {
                 UpdateUIForProgress(iPercent);
@@ -82,11 +79,15 @@ namespace Clearinet
 
         private void UpdateUIForProgress(int iPercent)
         {
+            // Don't perform an expensive update of the UI if the % didn't change.
+            if (iPercent == uiLastReportedPercent) return;
             if (CApp.UI.InvokeRequired)
             {
                 CApp.UI.Invoke((Action)(() => { UpdateUIForProgress(iPercent); }));
                 return;
             }
+
+            uiLastReportedPercent = (uint)iPercent;
             if (null == ProgressUI) return;
 
             ProgressUI.Style = ProgressBarStyle.Blocks;

@@ -41,4 +41,13 @@ namespace Clearinet
             return false;
         }
     }
+
+    public static class MathExtensions
+    {
+        public static int Clamp(this int value, int min, int max) =>
+            value < min ? min : (value > max ? max : value);
+
+        public static double Clamp(this double value, double min, double max) =>
+            value < min ? min : (value > max ? max : value);
+    }
 }
