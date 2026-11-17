@@ -141,12 +141,14 @@ namespace Clearinet.CaptureEngine
 
         internal static int GetSocketPoolIdleMs()
         {
-            return NormalizeDuration(CApp.Prefs.GetInt32Pref(PrefSocketPoolIdleMs, 5 * 60 * 1000));
+            // Clamp to 0-60 minutes, default 5 minutes
+            return CApp.Prefs.GetInt32Pref(PrefSocketPoolIdleMs, 5 * 60 * 1000).Clamp(0, 60 * 60 * 1000);
         }
 
         internal static int GetSocketPoolMaxAgeMs()
         {
-            return NormalizeDuration(CApp.Prefs.GetInt32Pref(PrefSocketPoolMaxAgeMs, 5 * 60 * 1000));
+            // Clamp to 0-60 minutes, default 5 minutes
+            return CApp.Prefs.GetInt32Pref(PrefSocketPoolMaxAgeMs, 5 * 60 * 1000).Clamp(0, 60 * 60 * 1000);
         }
 
         internal static IPAddress GetListenAddress()
@@ -155,13 +157,6 @@ namespace Clearinet.CaptureEngine
             bool enableIPv6 = CApp.Prefs.GetBoolPref(PrefEnableIPv6, true);
             if (!allowRemote) return IPAddress.Loopback;
             return enableIPv6 ? IPAddress.IPv6Any : IPAddress.Any;      // This will trigger a firewall prompt if an exclusion wasn't set.
-        }
-
-        private static int NormalizeDuration(int durationMs)
-        {
-            if (durationMs < 5000) return 5000;
-            if (durationMs > 24 * 60 * 60 * 1000) return 24 * 60 * 60 * 1000;
-            return durationMs;
         }
     }
 }

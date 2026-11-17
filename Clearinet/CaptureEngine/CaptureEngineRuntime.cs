@@ -1062,8 +1062,8 @@ namespace Clearinet.CaptureEngine
                         inner.ResponseHeaders = upstreamResponse.responseHeaders;
                         inner.ResponseBody = upstreamResponse.responseBody;
                         inner.state = ExchangeState.AutoTamperResponseBefore;
-                        if (!upstreamResponse.pipeIsReusable && !inner.ResponseHeaders.Exists("Connection"))
-                            inner.ResponseHeaders["Connection"] = "close";
+                        //if (!upstreamResponse.pipeIsReusable && !inner.ResponseHeaders.Exists("Connection"))
+                        //  inner.ResponseHeaders["Connection"] = "close";
                         //NormalizeResponseLength(inner.RequestHeaders, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>());
                         await WriteHttpResponseAsync(clientTls, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
 

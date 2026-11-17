@@ -257,7 +257,7 @@ namespace Clearinet.CaptureEngine
                 if (ContainsHeaderToken(headers, "Transfer-Encoding", "chunked"))
                 {
                     byte[] chunkedBody = await ReadChunkedBodyAsync(token).ConfigureAwait(false);
-                    return (headers, chunkedBody, !headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
+                    return (headers, chunkedBody, !bHasConnectionClose); /*hack: not quite right*/
                 }
 
                 if (headers.Exists("Transfer-Encoding"))
@@ -269,7 +269,8 @@ namespace Clearinet.CaptureEngine
                 if (headers.Exists("Content-Length"))
                 {
                     int contentLength = GetContentLength(headers);
-                    return (headers, await ReadExactlyAsync(contentLength, token).ConfigureAwait(false), !headers.ExistsAndContains("Connection", "close")); /*hack: not quite right*/
+                    return (headers, await ReadExactlyAsync(contentLength, token).ConfigureAwait(false),
+                        !bHasConnectionClose); /*hack: not quite right*/
                 }
 
                 Debug.Assert(bHasConnectionClose, "Unexpected response with no framing and no Connection: close.\n\n" + headers.ToString(true, true));
