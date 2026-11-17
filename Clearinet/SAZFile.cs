@@ -414,6 +414,9 @@ namespace Clearinet
                 // need Zip64 because without it the number of files exceeds the 65535 file
                 // limit of non-Zip64 format.
                 UseZip64WhenSaving = Zip64Option.AsNecessary,
+
+                // ISSUE: Does .NET ZIP still have this bug where certain file sizes will cause corruption?
+                // https://web.archive.org/web/20140420163057/https://dotnetzip.codeplex.com/workitem/14087
                 BufferSize = 131071
             };
 
