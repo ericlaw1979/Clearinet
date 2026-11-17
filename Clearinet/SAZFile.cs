@@ -408,17 +408,23 @@ namespace Clearinet
         {
             if (exchanges == null || exchanges.Length < 1) throw new ArgumentException("No Exchanges to save.");
             Utilities.EnsurePathExists(filePath);
-            ZipFile zf = new ZipFile();
-            // Each Exchange writes at least 3 files. SAZ Files with over 21844 exchanges
-            // need Zip64 because without it the number of files exceeds the 65535 file
-            // limit of non-Zip64 format.
-            zf.UseZip64WhenSaving = Zip64Option.AsNecessary;
+            ZipFile zf = new ZipFile
+            {
+                // Each Exchange writes at least 3 files. SAZ Files with over 21844 exchanges
+                // need Zip64 because without it the number of files exceeds the 65535 file
+                // limit of non-Zip64 format.
+                UseZip64WhenSaving = Zip64Option.AsNecessary,
+                BufferSize = 131071
+            };
 
             if (CApp.Prefs.GetBoolPref("saz.compression.disabled", false))
             {
                 zf.CompressionMethod = CompressionMethod.None;
                 zf.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
             }
+
+            // If the content is already a compressed format, skip recompressing it.
+            bool bSkipRecompressing = CApp.Prefs.GetBoolPref("saz.compression.skip_recompressing", true);
 
             if (password.HasText())
             {
@@ -452,7 +458,7 @@ namespace Clearinet
                     }
                 });
                 // Write the server response
-                zf.AddEntry(sBaseName + "s.txt", (_, strm) =>
+                var ZE = zf.AddEntry(sBaseName + "s.txt", (_, strm) =>
                 {
                     if (exch.ResponseHeaders != null)
                     {
@@ -465,17 +471,38 @@ namespace Clearinet
                     }
                 });
 
+                // Avoid trying to DEFLATE already-compressed response bodies.
+                //
+                // TODO: MediaTypeShouldStream is not a perfect heuristic for
+                // "is this file type compressed", but it's decent.
+                if (bSkipRecompressing &&
+                    (exch.ResponseHeaders.Exists("Content-Encoding") ||
+                     exch.MediaType.OICStartsWithAny("image/", "font/") ||
+                     Utilities.MediaTypeShouldStream(exch.MediaType)))
+                {
+                    ZE.CompressionMethod = CompressionMethod.None;
+                    ZE.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
+                }
+
                 // Write the metadata
                 zf.AddEntry(sBaseName + "m.xml", (_, strm) =>
                 {
                     exch.WriteMetadataToStream(strm);
                 });
-                lro?.UpdateProgress((iX * 100) / exchanges.Length);
-                // System.Threading.Thread.Sleep(2000); // Give the UI a moment to update
+                lro?.UpdateProgress((iX * 20) / exchanges.Length);
             }
             #endregion
 
             WriteLegacyIndexFile(zf, exchanges);
+
+            zf.SaveProgress += (sender, e) =>
+            {
+                if (e.EventType == ZipProgressEventType.Saving_AfterWriteEntry)
+                {
+                    lro?.UpdateProgress((int)Math.Round(20 + ((double)e.EntriesSaved / e.EntriesTotal) * 80));
+                }
+            };
+
             zf.Save(filePath);
             zf.Dispose();
             return true;

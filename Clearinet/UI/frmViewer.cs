@@ -1177,11 +1177,14 @@ namespace Clearinet
                     }
                 }
 
-                using (LongRunningOperation lro = new LongRunningOperation("Saving Exchanges...", true))
+                using (LongRunningOperation lro = new LongRunningOperation($"Saving {arrExchanges.Length:N0} Exchanges...", true))
                 {
+                    Stopwatch oSW = Stopwatch.StartNew();
                     SAZFile.SaveTo(sFilename, arrExchanges, sPassword, lro: lro);
+                    oSW.Stop();
                     CApp.UI.mruRecents.PushFile(sFilename);
-                    CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypted" : "Saved")} {arrExchanges.Length} Exchanges to {PlatformAPI.CompactPath(sFilename, 48)}");
+                    CApp.Log.Log($"Saved {arrExchanges.Length:N0} Exchanges to '{sFilename}' in {oSW.ElapsedMilliseconds:N0}ms.");
+                    CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypted" : "Saved")} {arrExchanges.Length:N0} Exchanges to {PlatformAPI.CompactPath(sFilename, 48)}");
                 }
             }
             catch (Exception eX) { CApp.ReportException(eX, "Save failed"); }
