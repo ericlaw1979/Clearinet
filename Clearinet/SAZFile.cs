@@ -415,8 +415,10 @@ namespace Clearinet
                 // limit of non-Zip64 format.
                 UseZip64WhenSaving = Zip64Option.AsNecessary,
 
-                // ISSUE: Does .NET ZIP still have this bug where certain file sizes will cause corruption?
+                // TODO: Investigate exact-buffer-multiple corruption in DotNetZip:
                 // https://web.archive.org/web/20140420163057/https://dotnetzip.codeplex.com/workitem/14087
+                // The bundled version does not apply its parallel DEFLATE threshold to the
+                // write-delegate entries below because their lengths are unknown at stream setup.
                 BufferSize = 131071
             };
 
@@ -496,7 +498,10 @@ namespace Clearinet
             }
             #endregion
 
-            WriteLegacyIndexFile(zf, exchanges);
+            if (CApp.UI != null)
+            {
+                WriteLegacyIndexFile(zf, exchanges);
+            }
 
             zf.SaveProgress += (sender, e) =>
             {
