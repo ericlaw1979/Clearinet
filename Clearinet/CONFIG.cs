@@ -27,8 +27,13 @@ namespace Clearinet
         internal static Color COLOR_DEFAULT_EXCHANGE = Color.Blue;
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
 
-        // TODO: Make this configurable.
+        // TODO: Make Accepted*Protocols configurable by preference.
+
+        // These are the protocols that we will accept from the webserver.
         internal static SslProtocols oAcceptedServerProtocols = SslProtocols.Tls12 | SslProtocols.Tls13;
+
+        // These are the protocols that we will accept from the client.
+        internal static SslProtocols oAcceptedClientProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
 
         // This-instance-only override settings (set by command line)
         internal struct structOverrides

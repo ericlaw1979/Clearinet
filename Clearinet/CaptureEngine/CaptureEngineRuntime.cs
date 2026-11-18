@@ -1052,7 +1052,7 @@ namespace Clearinet.CaptureEngine
                 UpdateUIForExchange(xc);
 
                 var clientTls = new SslStream(clientStream, false);
-                clientTls.AuthenticateAsServer(leaf, false, SslProtocols.Tls12 | SslProtocols.Tls13, false); // TODO: Configure protocols 
+                clientTls.AuthenticateAsServer(leaf, false, CONFIG.oAcceptedClientProtocols, false);
                 clientPipe.SetStream(clientTls);
                 {
                     var clientReader = clientPipe.Reader;
