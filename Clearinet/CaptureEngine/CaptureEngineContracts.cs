@@ -110,6 +110,7 @@ namespace Clearinet.CaptureEngine
         internal const string PrefEnableIPv6 = "proxy.enable_ipv6";
         internal const string PrefSocketPoolIdleMs = "proxy.socketpool.idle_ms";
         internal const string PrefSocketPoolMaxAgeMs = "proxy.socketpool.max_age_ms";
+        internal const string PrefDnsCacheLifetimeMs = "proxy.dns.cache.lifetime_ms";
         internal const string PrefCaptureTrace = "proxy.capture.trace";
         internal const string PrefServerPipeBindingPolicy = "proxy.serverpipe.binding_policy";
 
@@ -151,10 +152,21 @@ namespace Clearinet.CaptureEngine
             return CApp.Prefs.GetInt32Pref(PrefSocketPoolMaxAgeMs, 5 * 60 * 1000).Clamp(0, 60 * 60 * 1000);
         }
 
+        internal static int GetDnsCacheLifetimeMs()
+        {
+            // Clamp to 0-60 minutes, default 1 minute
+            return CApp.Prefs.GetInt32Pref(PrefDnsCacheLifetimeMs, 60 * 1000).Clamp(0, 60 * 60 * 1000);
+        }
+
+        internal static bool IsIPv6Enabled()
+        {
+            return CApp.Prefs.GetBoolPref(PrefEnableIPv6, true);
+        }
+
         internal static IPAddress GetListenAddress()
         {
             bool allowRemote = CApp.Prefs.GetBoolPref(PrefAllowRemoteConnections, false);
-            bool enableIPv6 = CApp.Prefs.GetBoolPref(PrefEnableIPv6, true);
+            bool enableIPv6 = IsIPv6Enabled();
             if (!allowRemote) return IPAddress.Loopback;
             return enableIPv6 ? IPAddress.IPv6Any : IPAddress.Any;      // This will trigger a firewall prompt if an exclusion wasn't set.
         }

@@ -237,28 +237,30 @@ namespace Clearinet.CaptureEngine
                 var clientPipe = new ClientPipe(client.Client, client.GetStream(), processIdentity);
                 using (clientPipe)
                 {
-                    bool waitForNextRequest = false;
+                    // Should we keep this client connection alive and read another request when done?
+                    bool acceptAnotherRequest = false;
+
                     while (!token.IsCancellationRequested)
                     {
                         Exchange xc = null;
                         try
                         {
-                            if (waitForNextRequest && !_clientPipeReuseQueue.TryAdd(clientPipe.Id, clientPipe))
+                            if (acceptAnotherRequest && !_clientPipeReuseQueue.TryAdd(clientPipe.Id, clientPipe))
                                 throw new InvalidOperationException("Client pipe was already registered for reuse.");
 
                             (HTTPRequestHeaders requestHeaders, byte[] requestBody) requestData;
                             try
                             {
-                                requestData = waitForNextRequest
+                                requestData = acceptAnotherRequest
                                     ? await ReadNextClientRequestAsync(clientPipe, token).ConfigureAwait(false)
                                     : await clientPipe.Reader.ReadRequestAsync(token).ConfigureAwait(false);
                             }
                             finally
                             {
-                                if (waitForNextRequest) _clientPipeReuseQueue.TryRemove(clientPipe.Id, out _);
+                                if (acceptAnotherRequest) _clientPipeReuseQueue.TryRemove(clientPipe.Id, out _);
                             }
 
-                            waitForNextRequest = false;
+                            acceptAnotherRequest = false;
                             if (requestData.requestHeaders == null) return;
 
                             var context = new CaptureConnectionContext(clientPipe.Socket)
@@ -295,8 +297,8 @@ namespace Clearinet.CaptureEngine
                                 return;
                             }
 
-                            waitForNextRequest = await ForwardUsingServerPipeAsync(xc, clientPipe, token).ConfigureAwait(false);
-                            if (!waitForNextRequest || !clientPipe.IsConnected) return;
+                            acceptAnotherRequest = await ForwardUsingServerPipeAsync(xc, clientPipe, token).ConfigureAwait(false);
+                            if (!acceptAnotherRequest || !clientPipe.IsConnected) return;
                         }
                         catch (Exception eX)
                         {
@@ -684,7 +686,7 @@ namespace Clearinet.CaptureEngine
                 "Connection: close",
                 "X-CaptureEngine-Error: " + eX.GetType().Name
             });
-            xc.utilSetResponseBody($"At state {xc.state}, capture engine threw: {eX.Message}");
+            xc.utilSetResponseBody($"At state {xc.state}, capture engine threw:\n{Utilities.DescribeException(eX)}");
             xc.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
 
             try
@@ -1426,7 +1428,7 @@ namespace Clearinet.CaptureEngine
         private static async Task<Socket> ConnectSocketAsync(Exchange xc, string host, int port)
         {
             Stopwatch oSW = Stopwatch.StartNew();
-            IPAddress[] addresses = Dns.GetHostAddresses(host);
+            IPAddress[] addresses = await DnsCache.LookupAsync(host).ConfigureAwait(false);
             oSW.Stop();
             xc.Timers.DNSTime = (int)oSW.ElapsedMilliseconds;
             Exception last = null;
