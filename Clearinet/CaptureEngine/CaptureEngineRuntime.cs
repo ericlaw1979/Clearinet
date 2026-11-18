@@ -267,7 +267,6 @@ namespace Clearinet.CaptureEngine
                                 Stream tunnelStream = clientPipe.Reader.DetachUnreadStream();
                                 if (ShouldDecryptTunnel(xc))
                                 {
-                                    //exchange["x-connect-decrypt-eligible"] = "true";
                                     await HandleMitmConnectTunnelAsync(xc, client, tunnelStream, clientPipe, token).ConfigureAwait(false);
                                 }
                                 else
@@ -464,7 +463,8 @@ namespace Clearinet.CaptureEngine
         {
             if (CApp.isClosing) return;
 
-            if (xc["x-no-decrypt"] == null)
+            // If it's a CONNECT, see if we should decrypt it based on the Process Name or Hostname.
+            if (xc.HTTPMethodIs("CONNECT") && xc["x-no-decrypt"] == null)
             {
                 var commonBrowserProcesses = CApp.Prefs.GetStringPref("lists.common_browser_processes",
                     DEFAULTS.sPopularBrowserProcessNames);
@@ -472,6 +472,8 @@ namespace Clearinet.CaptureEngine
                 {
                     xc["x-no-decrypt"] = "Rules > NonBrowserProcess";
                 }
+
+                // TODO: If the user has configured a list of hostnames to decrypt, then we will only decrypt those.
             }
 
             // Toolbar's ProcessFilter
@@ -1029,6 +1031,7 @@ namespace Clearinet.CaptureEngine
                 byte[] established = xc.ResponseHeaders.ToByteArray();
                 await clientStream.WriteAsync(established, 0, established.Length, token).ConfigureAwait(false);
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
+                UpdateUIForExchange(xc);
 
                 var clientTls = new SslStream(clientStream, false);
                 clientTls.AuthenticateAsServer(leaf, false, SslProtocols.Tls12 | SslProtocols.Tls13, false); // TODO: Configure protocols 
@@ -1041,12 +1044,12 @@ namespace Clearinet.CaptureEngine
                         if (tunneledRequest.requestHeaders == null) break;
 
                         tunneledRequest.requestHeaders.UriScheme = "https";
-                        if (!tunneledRequest.requestHeaders.Exists("Host"))
-                            tunneledRequest.requestHeaders["Host"] = port == 443 ? host : host + ":" + port;
+                        //if (!tunneledRequest.requestHeaders.Exists("Host"))
+                        //    tunneledRequest.requestHeaders["Host"] = port == 443 ? host : host + ":" + port;
 
                         var innerContext = new CaptureConnectionContext(client.Client) { LocalProcessDescriptor = processIdentity };
                         Exchange inner = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
-                        inner.SetBitFlag(ExchangeFlags.IsDecryptingTunnel);
+                        // inner.SetBitFlag(ExchangeFlags.IsDecryptingTunnel);
                         inner.SetBitFlag(ExchangeFlags.IsHTTPS);
                         inner.state = ExchangeState.AutoTamperRequestBefore;
 
@@ -1063,7 +1066,7 @@ namespace Clearinet.CaptureEngine
                         inner.ResponseBody = upstreamResponse.responseBody;
                         inner.state = ExchangeState.AutoTamperResponseBefore;
                         //if (!upstreamResponse.pipeIsReusable && !inner.ResponseHeaders.Exists("Connection"))
-                        //  inner.ResponseHeaders["Connection"] = "close";
+                        //    inner.ResponseHeaders["Connection"] = "close";
                         //NormalizeResponseLength(inner.RequestHeaders, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>());
                         await WriteHttpResponseAsync(clientTls, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
 
@@ -1387,7 +1390,7 @@ namespace Clearinet.CaptureEngine
             return requestPersistent && responsePersistent;
         }
 
-        // Perf: This probably allocates more often than it needs to.
+        // Perf: This allocates more often than it needs to.
         private static bool HasHeaderWithToken(IEnumerable<HTTPHeaderItem> headers, string headerName, string sought)
         {
             foreach (HTTPHeaderItem header in headers)
