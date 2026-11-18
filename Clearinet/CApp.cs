@@ -137,7 +137,7 @@ namespace Clearinet
 
             if (isAttached) return;
 
-            if (!CApp.Prefs.GetBoolPref("proxy.reed.enabled") &&
+            if (!CApp.Prefs.GetBoolPref("proxy.reed.enabled", true) &&
                  CApp.Prefs.GetBoolPref("proxy.ephemeral.show_nyi_dialog", true))
             {
                 CApp.DoNotifyUser("Sorry!\n\nThe built-in proxy engine is still experimental.\n\n" +
@@ -602,7 +602,7 @@ namespace Clearinet
         internal static bool EnsureCaptureEngineRunning()
         {
             if (CONFIG.isViewerMode) return false;
-            if (!Prefs.GetBoolPref("proxy.reed.enabled", false))    // TODO! change to TRUE
+            if (!Prefs.GetBoolPref("proxy.reed.enabled", true))
             {
                 Log.Log("! Reed proxy is disabled via `proxy.reed.enabled`, engine startup canceled.");
                 return false;
