@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0. LAST UPDATED for v0.1.0.0
+// This file will be updated before v1.0. LAST UPDATED for v0.1.0.1
 import System;
 import System.Windows.Forms;
 import Clearinet;
