@@ -15,9 +15,9 @@ namespace Clearinet.CaptureEngine
     internal sealed class CertEnrollCertificateProvider : ICertificateProvider
     {
         private const string RootName = "DO_NOT_TRUST_ClearinetRoot";
-        private const string RootFriendlyName = "Clearinet CertEnroll Root";
-        private const string LeafPrefix = "Clearinet CertEnroll Host: ";
-        private const string LeafKeyPrefix = "Clearinet CertEnroll Leaf Key: ";
+        private const string RootFriendlyName = "Clearinet Root CA";
+        private const string LeafPrefix = "Clearinet Site Cert from: ";
+        private const string LeafKeyPrefix = "Clearinet Site Cert Key: ";
         private const int UserContext = 1;
         private const int Base64Encoding = 1;
 
