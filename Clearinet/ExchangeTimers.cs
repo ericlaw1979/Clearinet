@@ -5,6 +5,8 @@ using System.Xml;
 
 namespace Clearinet
 {
+    // TODO: We probably should have a "ClearinetOverhead" timer to record the time
+    // spent finding/generating a TLS certificate for the target.
     public class ExchangeTimers
     {
         /// <summary>

@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Security.Authentication;
 using System.Text;
 using System.Windows.Forms;
 
@@ -25,6 +26,9 @@ namespace Clearinet
         internal static Color colorNoResultsFound = Color.Red;
         internal static Color COLOR_DEFAULT_EXCHANGE = Color.Blue;
         internal static string sRootRegistryKey = @"SOFTWARE\Clearinet\App\";
+
+        // TODO: Make this configurable.
+        internal static SslProtocols oAcceptedServerProtocols = SslProtocols.Tls12 | SslProtocols.Tls13;
 
         // This-instance-only override settings (set by command line)
         internal struct structOverrides

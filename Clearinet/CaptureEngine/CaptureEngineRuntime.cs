@@ -330,8 +330,8 @@ namespace Clearinet.CaptureEngine
 
         private async Task<bool> ForwardUsingServerPipeAsync(Exchange xc, ClientPipe clientPipe, CancellationToken token)
         {
-            if (!TryResolveRequestTarget(xc.RequestHeaders, out string host, out int port, out bool isTls))
-                throw new InvalidDataException("The request does not contain a valid HTTP server authority.");
+            if (!TryComputeDestination(xc.RequestHeaders, out string host, out int port, out bool isTls))
+                throw new InvalidDataException("The request does not refer to a valid HTTP(S) destination.");
 
             string processIdentity = clientPipe.ProcessIdentity;
             var key = new ServerConnectionKey(host, port, isTls);
@@ -346,7 +346,7 @@ namespace Clearinet.CaptureEngine
                 }
                 else
                 {
-                    serverPipe = await ConnectServerPipeAsync(host, port, isTls, processIdentity, clientPipe.Id,
+                    serverPipe = await ConnectServerPipeAsync(xc, host, port, isTls, processIdentity, clientPipe.Id,
                         CaptureEnginePrefs.GetServerPipeBindingPolicy()).ConfigureAwait(false);
                 }
 
@@ -397,7 +397,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static bool TryResolveRequestTarget(HTTPRequestHeaders headers, out string host, out int port, out bool isTls)
+        private static bool TryComputeDestination(HTTPRequestHeaders headers, out string host, out int port, out bool isTls)
         {
             host = null;
             port = 0;
@@ -422,13 +422,13 @@ namespace Clearinet.CaptureEngine
                 if (!Uri.TryCreate(scheme + "://" + authority + "/", UriKind.Absolute, out target)) return false;
             }
 
-            if (!target.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) &&
-                !target.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase)) return false;
-            if (string.IsNullOrWhiteSpace(target.Host) || target.UserInfo.Length != 0) return false;
+            if (!target.Scheme.OICEquals("http") &&
+                !target.Scheme.OICEquals("https")) return false;
+            if (string.IsNullOrWhiteSpace(target.Host) /*|| target.UserInfo.Length != 0*/) return false;
 
             host = target.DnsSafeHost;
             port = target.Port;
-            isTls = target.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase);
+            isTls = target.Scheme.OICEquals("https");
             headers.UriScheme = target.Scheme;
             headers["Host"] = target.Authority;
             if (string.IsNullOrEmpty(headers.RequestPath)) headers.RequestPath = "/";
@@ -623,20 +623,23 @@ namespace Clearinet.CaptureEngine
             */
         }
 
-        private async Task<ServerPipe> ConnectServerPipeAsync(string host, int port, bool isTls,
+        private async Task<ServerPipe> ConnectServerPipeAsync(Exchange xc, string host, int port, bool isTls,
             string processIdentity, Guid clientPipeId, ServerPipeBindingPolicy bindingPolicy)
         {
-            Socket socket = await ConnectSocketAsync(host, port).ConfigureAwait(false);
+            Socket socket = await ConnectSocketAsync(xc, host, port).ConfigureAwait(false);
             NetworkStream networkStream = new NetworkStream(socket, false);
             Stream serverStream = networkStream;
             try
             {
                 if (isTls)
                 {
+                    Stopwatch oSW = Stopwatch.StartNew();
                     var tls = new SslStream(networkStream, false,
                         (sender, certificate, chain, errors) => callbackValidateServerCertificate(host, sender, certificate, chain, errors));
                     serverStream = tls;
-                    await tls.AuthenticateAsClientAsync(host, null, SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                    await tls.AuthenticateAsClientAsync(host, null, CONFIG.oAcceptedServerProtocols, false).ConfigureAwait(false);
+                    oSW.Stop();
+                    xc.Timers.HTTPSHandshakeTime = (int)oSW.ElapsedMilliseconds;
                 }
                 return new ServerPipe(socket, serverStream, bindingPolicy, processIdentity, clientPipeId);
             }
@@ -648,11 +651,11 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static async Task HandleCaptureFailureAsync(Exchange exchange, Stream clientStream, Exception eX, CancellationToken token)
+        private static async Task HandleCaptureFailureAsync(Exchange xc, Stream clientStream, Exception eX, CancellationToken token)
         {
             CApp.Log.Log($"! CaptureEngine client handling error: {eX.GetType().Name}: {eX.Message}");
 
-            if (exchange == null)
+            if (xc == null)
             {
                 return;
             }
@@ -675,29 +678,29 @@ namespace Clearinet.CaptureEngine
                 statusText = "Upstream Connection Failed";
             }
 
-            exchange.ResponseHeaders = new HTTPResponseHeaders(statusCode, statusText, new[]
+            xc.ResponseHeaders = new HTTPResponseHeaders(statusCode, statusText, new[]
             {
                 "Content-Type: text/plain; charset=utf-8",
                 "Connection: close",
                 "X-CaptureEngine-Error: " + eX.GetType().Name
             });
-            exchange.utilSetResponseBody("Capture engine error: " + eX.Message);
-            exchange.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
+            xc.utilSetResponseBody($"At state {xc.state}, capture engine threw: {eX.Message}");
+            xc.BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
 
             try
             {
                 if (clientStream != null && clientStream.CanWrite)
                 {
-                    await WriteHttpResponseAsync(clientStream, exchange.ResponseHeaders, exchange.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+                    await WriteHttpResponseAsync(clientStream, xc.ResponseHeaders, xc.ResponseBody, token).ConfigureAwait(false);
                 }
             }
             catch
             {
-                // Best effort response generation.
+                // If we can't write to the client, that's okay.
             }
 
-            exchange.state = ExchangeState.Aborted;
-            UpdateUIForExchange(exchange);
+            xc.state = ExchangeState.Aborted;
+            UpdateUIForExchange(xc);
         }
 
         private static async Task<(HTTPRequestHeaders requestHeaders, byte[] requestBody)> ReadHttpRequestAsync(Stream stream, CancellationToken token)
@@ -1031,7 +1034,7 @@ namespace Clearinet.CaptureEngine
                 }
                 else
                 {
-                    upstreamPipe = await ConnectServerPipeAsync(host, port, true, processIdentity, clientPipeId,
+                    upstreamPipe = await ConnectServerPipeAsync(xc, host, port, true, processIdentity, clientPipeId,
                         CaptureEnginePrefs.GetServerPipeBindingPolicy()).ConfigureAwait(false);
                 }
 
@@ -1420,9 +1423,12 @@ namespace Clearinet.CaptureEngine
         //       bool readReady = socket.Poll(0, SelectMode.SelectRead);
         //       bool noData = socket.Available == 0;
 
-        private static async Task<Socket> ConnectSocketAsync(string host, int port)
+        private static async Task<Socket> ConnectSocketAsync(Exchange xc, string host, int port)
         {
+            Stopwatch oSW = Stopwatch.StartNew();
             IPAddress[] addresses = Dns.GetHostAddresses(host);
+            oSW.Stop();
+            xc.Timers.DNSTime = (int)oSW.ElapsedMilliseconds;
             Exception last = null;
             for (int i = 0; i < addresses.Length; i++)
             {
@@ -1430,10 +1436,13 @@ namespace Clearinet.CaptureEngine
                 try
                 {
                     socket = new Socket(addresses[i].AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    oSW = Stopwatch.StartNew();
                     await Task.Factory.FromAsync(
                         (callback, state) => socket.BeginConnect(addresses[i], port, callback, state),
                         socket.EndConnect,
                         null).ConfigureAwait(false);
+                    oSW.Stop();
+                    xc.Timers.TCPConnectTime = (int)oSW.ElapsedMilliseconds;
                     return socket;
                 }
                 catch (Exception eX)
