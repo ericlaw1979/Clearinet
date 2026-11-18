@@ -145,7 +145,7 @@ namespace Clearinet
                         CApp.ReportException(eX, "SAZ Read Failed");
                     }
 
-                    Exchange excNew;
+                    Exchange xcNew;
                     try
                     {
                         // DotNetZip has a bug: If an entry is encrypted but not compressed, ReadByte() won't
@@ -159,8 +159,8 @@ namespace Clearinet
                             strmContent = ms;
                             oldZIPStream.Dispose();
                         }
-                        excNew = CreateExchangeWithRequestFromStream(strmContent);
-                        if (CApp.Prefs.GetBoolPref("app.debugmode", false)) excNew["X-Saz-Filename"] = eRequest.FileName;
+                        xcNew = CreateExchangeWithRequestFromStream(strmContent);
+                        if (CApp.Prefs.GetBoolPref("app.debugmode", false)) xcNew["X-Saz-Filename"] = eRequest.FileName;
                         strmContent.Dispose();
                     }
                     catch
@@ -185,7 +185,7 @@ namespace Clearinet
                                 strmResponse = ms;
                                 oldZIPStream.Dispose();
                             }
-                            AddResponseFromStream(excNew, strmResponse);
+                            AddResponseFromStream(xcNew, strmResponse);
                             strmResponse.Close();
 
                         }
@@ -195,31 +195,31 @@ namespace Clearinet
 
                             if (0 == eResponse.CompressedSize + eResponse.UncompressedSize)
                             {
-                                excNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Had No Response", new[] { "Connection: close" });
-                                excNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a response file for this request.");
+                                xcNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Had No Response", new[] { "Connection: close" });
+                                xcNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a response file for this request.");
                             }
                             else
                             {
                                 if (CApp.Prefs.GetBoolPref("app.debugmode", false))
                                 {
-                                    excNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Response data corrupt", new[] { "Connection: close" });
-                                    excNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a readable response for this request. " + eX.Message);
+                                    xcNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Response data corrupt", new[] { "Connection: close" });
+                                    xcNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a readable response for this request. " + eX.Message);
                                 }
                                 else
                                 {
                                     try
                                     {
-                                        excNew.ResponseHeaders = new HTTPResponseHeaders(599, "DataCorrupt", new[] { "Connection: close", "Content-Type: application/octet-stream" });
-                                        excNew.ResponseHeaders["Encrypted"] = $"{eResponse.UsesEncryption}";
-                                        excNew.ResponseHeaders["Compression"] = $"{eResponse.CompressionMethod}";
-                                        excNew.ResponseHeaders["CompressedSize"] = $"{eResponse.CompressedSize:N0}";
-                                        excNew.ResponseHeaders["UncompressedSize"] = $"{eResponse.UncompressedSize:N0}";
+                                        xcNew.ResponseHeaders = new HTTPResponseHeaders(599, "DataCorrupt", new[] { "Connection: close", "Content-Type: application/octet-stream" });
+                                        xcNew.ResponseHeaders["Encrypted"] = $"{eResponse.UsesEncryption}";
+                                        xcNew.ResponseHeaders["Compression"] = $"{eResponse.CompressionMethod}";
+                                        xcNew.ResponseHeaders["CompressedSize"] = $"{eResponse.CompressedSize:N0}";
+                                        xcNew.ResponseHeaders["UncompressedSize"] = $"{eResponse.UncompressedSize:N0}";
 
                                         using (var ds = eResponse.OpenReader())
                                         using (var dms = new MemoryStream())
                                         {
                                             ds.CopyTo(dms);
-                                            excNew.ResponseBody = dms.ToArray();
+                                            xcNew.ResponseBody = dms.ToArray();
                                         }
                                     }
                                     catch { }
@@ -229,8 +229,8 @@ namespace Clearinet
                     }
                     else
                     {
-                        excNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Had No Response", new[] { "Connection: close" });
-                        excNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a response file for this request.");
+                        xcNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Had No Response", new[] { "Connection: close" });
+                        xcNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a response file for this request.");
                     }
 
                     ZipEntry eMetadata = zf[eRequest.FileName.TrimAfter("_") + "_m.xml"];
@@ -240,25 +240,25 @@ namespace Clearinet
                         {
                             using (strmContent = eMetadata.OpenReader())
                             {
-                                AddMetadataFromStream(excNew, strmContent);
+                                AddMetadataFromStream(xcNew, strmContent);
                             }
                         }
                         catch { Debug.Assert(false, $"Failed to read metadata from {eMetadata.FileName}"); }
                     }
 
                     // TODO: WebSocket data
-                    excNew.SetBitFlag(ExchangeFlags.LoadedFromSAZ);
-                    if (true == excNew.RequestHeaders?.UriScheme.OICEquals("https"))
+                    xcNew.SetBitFlag(ExchangeFlags.LoadedFromSAZ);
+                    if (true == xcNew.RequestHeaders?.UriScheme.OICEquals("https"))
                     {
-                        excNew.SetBitFlag(ExchangeFlags.IsHTTPS);
+                        xcNew.SetBitFlag(ExchangeFlags.IsHTTPS);
                     }
-                    sazFile.Exchanges.Add(excNew);
+                    sazFile.Exchanges.Add(xcNew);
                 }
             }
             return sazFile;
         }
 
-        private static void AddMetadataFromStream(Exchange exchNew, Stream strmContent)
+        private static void AddMetadataFromStream(Exchange xcNew, Stream strmContent)
         {
             ExchangeFlags sfInferredFlags = ExchangeFlags.None;
             string sOriginalID = null;
@@ -277,12 +277,12 @@ namespace Clearinet
                                 // Simplified null check using pattern matching
                                 if (oXML.GetAttribute("Aborted") is string)
                                 {
-                                    exchNew.state = ExchangeState.Aborted;
+                                    xcNew.state = ExchangeState.Aborted;
                                 }
 
                                 if (uint.TryParse(oXML.GetAttribute("BitFlags"), NumberStyles.HexNumber, null, out var bitFlags))
                                 {
-                                    exchNew.BitFlags = (ExchangeFlags)bitFlags;
+                                    xcNew.BitFlags = (ExchangeFlags)bitFlags;
                                 }
 
                                 if (oXML.GetAttribute("SID") is string sid)
@@ -292,11 +292,11 @@ namespace Clearinet
                                 break;
 
                             case "SessionFlag":
-                                exchNew.oFlags.TryAdd(oXML.GetAttribute("N"), oXML.GetAttribute("V"));
+                                xcNew.oFlags.TryAdd(oXML.GetAttribute("N"), oXML.GetAttribute("V"));
                                 break;
 
                             case "SessionTimers":
-                                exchNew.Timers.ClientConnected = XmlConvert.ToDateTime(oXML.GetAttribute("ClientConnected"), XmlDateTimeSerializationMode.RoundtripKind);
+                                xcNew.Timers.ClientConnected = XmlConvert.ToDateTime(oXML.GetAttribute("ClientConnected"), XmlDateTimeSerializationMode.RoundtripKind);
 
                                 // Local function to simplify repetitive attribute parsing
                                 void ParseAndSetDateTime(string attributeName, Action<DateTime> setter)
@@ -317,24 +317,24 @@ namespace Clearinet
                                     }
                                 }
 
-                                ParseAndSetDateTime("ClientBeginRequest", dt => exchNew.Timers.ClientBeginRequest = dt);
-                                ParseAndSetDateTime("GotRequestHeaders", dt => exchNew.Timers.ProxyGotRequestHeaders = dt);
-                                exchNew.Timers.ClientDoneRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ClientDoneRequest"), XmlDateTimeSerializationMode.RoundtripKind);
+                                ParseAndSetDateTime("ClientBeginRequest", dt => xcNew.Timers.ClientBeginRequest = dt);
+                                ParseAndSetDateTime("GotRequestHeaders", dt => xcNew.Timers.ProxyGotRequestHeaders = dt);
+                                xcNew.Timers.ClientDoneRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ClientDoneRequest"), XmlDateTimeSerializationMode.RoundtripKind);
 
-                                ParseAndSetInt("GatewayTime", val => exchNew.Timers.GatewayDeterminationTime = val);
-                                ParseAndSetInt("DNSTime", val => exchNew.Timers.DNSTime = val);
-                                ParseAndSetInt("TCPConnectTime", val => exchNew.Timers.TCPConnectTime = val);
-                                ParseAndSetInt("HTTPSHandshakeTime", val => exchNew.Timers.HTTPSHandshakeTime = val);
+                                ParseAndSetInt("GatewayTime", val => xcNew.Timers.GatewayDeterminationTime = val);
+                                ParseAndSetInt("DNSTime", val => xcNew.Timers.DNSTime = val);
+                                ParseAndSetInt("TCPConnectTime", val => xcNew.Timers.TCPConnectTime = val);
+                                ParseAndSetInt("HTTPSHandshakeTime", val => xcNew.Timers.HTTPSHandshakeTime = val);
 
-                                ParseAndSetDateTime("ServerConnected", dt => exchNew.Timers.ServerConnected = dt);
-                                ParseAndSetDateTime("FiddlerBeginRequest", dt => exchNew.Timers.ProxyBeginRequest = dt);
-                                exchNew.Timers.ProxyBeginRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ServerGotRequest"), XmlDateTimeSerializationMode.RoundtripKind);
-                                ParseAndSetDateTime("ServerBeginResponse", dt => exchNew.Timers.ServerBeginResponse = dt);
-                                ParseAndSetDateTime("GotResponseHeaders", dt => exchNew.Timers.ProxyGotResponseHeaders = dt);
+                                ParseAndSetDateTime("ServerConnected", dt => xcNew.Timers.ServerConnected = dt);
+                                ParseAndSetDateTime("FiddlerBeginRequest", dt => xcNew.Timers.ProxyBeginRequest = dt);
+                                xcNew.Timers.ProxyBeginRequest = XmlConvert.ToDateTime(oXML.GetAttribute("ServerGotRequest"), XmlDateTimeSerializationMode.RoundtripKind);
+                                ParseAndSetDateTime("ServerBeginResponse", dt => xcNew.Timers.ServerBeginResponse = dt);
+                                ParseAndSetDateTime("GotResponseHeaders", dt => xcNew.Timers.ProxyGotResponseHeaders = dt);
 
-                                exchNew.Timers.ServerDoneResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ServerDoneResponse"), XmlDateTimeSerializationMode.RoundtripKind);
-                                exchNew.Timers.ClientBeginResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ClientBeginResponse"), XmlDateTimeSerializationMode.RoundtripKind);
-                                exchNew.Timers.ClientDoneResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ClientDoneResponse"), XmlDateTimeSerializationMode.RoundtripKind);
+                                xcNew.Timers.ServerDoneResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ServerDoneResponse"), XmlDateTimeSerializationMode.RoundtripKind);
+                                xcNew.Timers.ClientBeginResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ClientBeginResponse"), XmlDateTimeSerializationMode.RoundtripKind);
+                                xcNew.Timers.ClientDoneResponse = XmlConvert.ToDateTime(oXML.GetAttribute("ClientDoneResponse"), XmlDateTimeSerializationMode.RoundtripKind);
                                 break;
 
                             case "TunnelInfo":
@@ -367,8 +367,8 @@ namespace Clearinet
                         }
                     }
 
-                    if (exchNew.BitFlags == ExchangeFlags.None) exchNew.BitFlags = sfInferredFlags;
-                    exchNew["X-Original-Session-ID"] = sOriginalID;
+                    if (xcNew.BitFlags == ExchangeFlags.None) xcNew.BitFlags = sfInferredFlags;
+                    xcNew["X-Original-Session-ID"] = sOriginalID;
                 }
             }
             catch (Exception eX)
@@ -404,9 +404,9 @@ namespace Clearinet
             return e;
         }
 
-        internal static bool SaveTo(string filePath, Exchange[] exchanges, string password = null, string comment = null, LongRunningOperation lro = null)
+        internal static bool SaveTo(string filePath, Exchange[] XCs, string password = null, string comment = null, LongRunningOperation lro = null)
         {
-            if (exchanges == null || exchanges.Length < 1) throw new ArgumentException("No Exchanges to save.");
+            if (XCs == null || XCs.Length < 1) throw new ArgumentException("No Exchanges to save.");
             Utilities.EnsurePathExists(filePath);
             ZipFile zf = new ZipFile
             {
@@ -449,17 +449,17 @@ namespace Clearinet
             // foreach (Exchange exchange in exchanges){
             //    write _c.txt, _s.txt, and _m.xml files for each exchange into the raw folder.
             // }
-            for (int iX = 0; iX < exchanges.Length; ++iX)
+            for (int iX = 0; iX < XCs.Length; ++iX)
             {
-                Exchange exch = exchanges[iX];
-                string sBaseName = $"raw/{exch.id}_";
+                Exchange xc = XCs[iX];
+                string sBaseName = $"raw/{xc.id}_";
                 // Write the client request
                 zf.AddEntry(sBaseName + "c.txt", (_, strm) =>
                 {
-                    exch.RequestHeaders.WriteToStream(strm, bWriteFullQualifiedURL: true);
-                    if (exch.RequestBody.HasData())
+                    xc.RequestHeaders.WriteToStream(strm, bWriteFullQualifiedURL: true);
+                    if (xc.RequestBody.HasData())
                     {
-                        strm.Write(exch.RequestBody, 0, exch.RequestBody.Length);
+                        strm.Write(xc.RequestBody, 0, xc.RequestBody.Length);
                     }
                 });
 
@@ -467,14 +467,14 @@ namespace Clearinet
                 // Write the server response
                 var ZE = zf.AddEntry(sBaseName + "s.txt", (_, strm) =>
                 {
-                    if (exch.ResponseHeaders != null)
+                    if (xc.ResponseHeaders != null)
                     {
-                        exch.ResponseHeaders.WriteToStream(strm);
+                        xc.ResponseHeaders.WriteToStream(strm);
 
-                        if (exch.ResponseBody.HasData())
+                        if (xc.ResponseBody.HasData())
                         {
                             bWroteResponseBody = true;
-                            strm.Write(exch.ResponseBody, 0, exch.ResponseBody.Length);
+                            strm.Write(xc.ResponseBody, 0, xc.ResponseBody.Length);
                         }
                     }
                 });
@@ -484,9 +484,9 @@ namespace Clearinet
                 // TODO: MediaTypeShouldStream is not a perfect heuristic for
                 // "is this file type compressed", but it's decent.
                 if (bWroteResponseBody && bSkipRecompressing &&
-                    (exch.ResponseHeaders.Exists("Content-Encoding") ||
-                     exch.MediaType.OICStartsWithAny("image/", "font/") ||
-                     Utilities.MediaTypeShouldStream(exch.MediaType)))
+                    (xc.ResponseHeaders.Exists("Content-Encoding") ||
+                     xc.MediaType.OICStartsWithAny("image/", "font/") ||
+                     Utilities.MediaTypeShouldStream(xc.MediaType)))
                 {
                     ZE.CompressionMethod = CompressionMethod.None;
                     ZE.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
@@ -495,16 +495,13 @@ namespace Clearinet
                 // Write the metadata
                 zf.AddEntry(sBaseName + "m.xml", (_, strm) =>
                 {
-                    exch.WriteMetadataToStream(strm);
+                    xc.WriteMetadataToStream(strm);
                 });
-                lro?.UpdateProgress((iX * 20) / exchanges.Length);
+                lro?.UpdateProgress((iX * 20) / XCs.Length);
             }
             #endregion
 
-            if (CApp.UI != null)
-            {
-                WriteLegacyIndexFile(zf, exchanges);
-            }
+            WriteLegacyIndexFile(zf, XCs);
 
             zf.SaveProgress += (sender, e) =>
             {
@@ -521,6 +518,10 @@ namespace Clearinet
 
         private static void WriteLegacyIndexFile(ZipFile zf, Exchange[] exchanges)
         {
+            // Don't write the legacy index file if we're running in a non-UI context.
+            // TODO: We should write an index file with base info in it. But we don't need this yet.
+            if (null == CApp.UI) return;
+
             zf.AddEntry("_index.htm", (_, strm) =>
             {
                 TextWriter tw = new StreamWriter(strm, Encoding.UTF8);
