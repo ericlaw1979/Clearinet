@@ -376,9 +376,22 @@ namespace Clearinet
 
                 if ("!dns" == sCmd)
                 {
+                    if (arrParams.Length == 1)
+                    {
+                        UI.actActivateTab("Log");
+                        CApp.Log.Log($"DNS Cache\n---------\n{DnsCache.ListCacheContents()}");
+                        return true;
+                    }
                     if (arrParams.Length != 2 || string.IsNullOrWhiteSpace(arrParams[1]))
                     {
-                        CApp.DoNotifyUser(CApp.UI, "Usage: !dns <hostname>", "Invalid Parameters", MessageBoxIcon.Error);
+                        CApp.DoNotifyUser(CApp.UI, "Usage: !dns <flush|hostnameToResolve>", "Invalid Parameters", MessageBoxIcon.Error);
+                        return true;
+                    }
+
+                    if (arrParams[1].OICEquals("flush") || arrParams[1].OICEquals("clear"))
+                    {
+                        DnsCache.ClearAll();
+                        CApp.UI.SetStatusText($"Cleared DNS cache");
                         return true;
                     }
 
@@ -519,6 +532,8 @@ namespace Clearinet
         private static async Task LookupDnsAsync(string hostname)
         {
             Log.Log($"Looking up {hostname} in DNS...");
+            // TODO: Should this go through the DnsCache? It would be nice to see if the cache
+            // is working, but it could be confusing if an extension overrides...
             try
             {
                 IPHostEntry entry = await Dns.GetHostEntryAsync(hostname);

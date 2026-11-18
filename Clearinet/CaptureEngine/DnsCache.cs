@@ -33,18 +33,23 @@ namespace Clearinet
 
         public static event DnsLookupHandler OnLookup;
 
-        public static async Task<IPAddress[]> LookupAsync(string host)
+        /// <summary>
+        /// Return the list of IP Addresses for the target hostname
+        /// </summary>
+        /// <param name="host"></param>
+        /// <returns></returns>
+        public static async Task<IPAddress[]> LookupAsync(string hostname)
         {
-            string normalizedHost = NormalizeHost(host);
+            string normalizedHost = NormalizeHost(hostname);
 
             if (TryLookupFromExtension(normalizedHost, out IPAddress[] overrideAddresses))
             {
-                return ApplyAddressFamilyPreference(overrideAddresses);
+                return RemoveIPv6IfDisabled(overrideAddresses);
             }
 
             if (TryGetCached(normalizedHost, out IPAddress[] cachedAddresses))
             {
-                return ApplyAddressFamilyPreference(cachedAddresses);
+                return RemoveIPv6IfDisabled(cachedAddresses);
             }
 
             Task<IPAddress[]> createdTask = null;
@@ -58,12 +63,16 @@ namespace Clearinet
             return await AwaitLookupAndReleaseAsync(normalizedHost, lookupTask, ownsInFlightEntry).ConfigureAwait(false);
         }
 
-        public static string Dump()
+        public static string ListCacheContents()
         {
             PurgeExpiredEntries();
             var snapshot = _cache.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase).ToArray();
             var sb = new StringBuilder();
-            sb.AppendLine("Host\tExpiresUtc\tTTLms\tAddresses");
+            const int HostColumnWidth = 50;
+            const int TtlColumnWidth = 6;
+
+            sb.AppendLine($" {"Hostname".PadRight(HostColumnWidth)} | {"TTLms".PadLeft(TtlColumnWidth)} | Addresses");
+            sb.AppendLine($"-{new string('-', HostColumnWidth)}-|-{new string('-', TtlColumnWidth)}-|-{new string('-', 30)}");
 
             DateTime nowUtc = DateTime.UtcNow;
             if (snapshot.Length == 0)
@@ -76,10 +85,11 @@ namespace Clearinet
             {
                 long ttlMs = Math.Max(0, (long)(item.Value.ExpiresUtc - nowUtc).TotalMilliseconds);
                 string addressList = string.Join(", ", item.Value.Addresses.Select(ip => ip.ToString()));
-                sb.Append(item.Key)
-                  .Append('\t').Append(item.Value.ExpiresUtc.ToString("O"))
-                  .Append('\t').Append(ttlMs)
-                  .Append('\t').AppendLine(addressList);
+                string hostDisplay = item.Key.Ellipsize(HostColumnWidth);
+
+                sb.Append(" ").Append(hostDisplay.PadRight(HostColumnWidth))
+                  .Append(" | ").Append(ttlMs.ToString().PadLeft(TtlColumnWidth))
+                  .Append(" | ").AppendLine(addressList);
             }
 
             return sb.ToString().TrimEnd();
@@ -101,7 +111,7 @@ namespace Clearinet
             try
             {
                 IPAddress[] addresses = await lookupTask.ConfigureAwait(false);
-                return ApplyAddressFamilyPreference(addresses);
+                return RemoveIPv6IfDisabled(addresses);
             }
             finally
             {
@@ -199,7 +209,7 @@ namespace Clearinet
             return clone;
         }
 
-        private static IPAddress[] ApplyAddressFamilyPreference(IPAddress[] addresses)
+        private static IPAddress[] RemoveIPv6IfDisabled(IPAddress[] addresses)
         {
             IPAddress[] cloned = CloneAddresses(addresses);
             if (CaptureEnginePrefs.IsIPv6Enabled()) return cloned;
