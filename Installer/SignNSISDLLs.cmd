@@ -2,3 +2,5 @@
 @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /d "NSIS Helper" /du "https://nsis.sourceforge.io/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 C:\src\NSIS\Plugins\x86-unicode\UserInfo.dll"
 @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /d "NSIS Helper" /du "https://nsis.sourceforge.io/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 C:\src\NSIS\Plugins\x86-unicode\System.dll"
 @"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /d "NSIS Helper" /du "https://nsis.sourceforge.io/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 C:\src\NSIS\Plugins\x86-unicode\nsDialogs.dll"
+@"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign /d "NSIS Helper" /du "https://nsis.sourceforge.io/" /n "Eric Lawrence" /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 C:\src\NSIS\Plugins\x86-unicode\nsExec.dll"
+
