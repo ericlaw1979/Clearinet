@@ -11,6 +11,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
 using System.Windows.Forms;
@@ -1162,6 +1163,118 @@ namespace Clearinet
             _lock.EnterWriteLock();
             try { _innerSet.Clear(); }
             finally { _lock.ExitWriteLock(); }
+        }
+    }
+
+    // TODO: Lots of opportunities to improve performance here, but this is not likely to be a very hot path.
+    public sealed class HostList
+    {
+        private const string LocalToken = "<local>";
+        private readonly List<HostRule> _rules = new List<HostRule>();
+
+        public HostList(string hostRules)
+            : this(SplitRules(hostRules))
+        {
+        }
+
+        public HostList(IEnumerable<string> hostRules)
+        {
+            if (hostRules == null) return;
+
+            foreach (string rawRule in hostRules)
+            {
+                if (string.IsNullOrWhiteSpace(rawRule)) continue;
+
+                string rule = NormalizeHost(rawRule);
+                if (rule.Length < 1) continue;
+
+                if (rule.OICEquals(LocalToken))
+                {
+                    _rules.Add(HostRule.LocalRule);
+                    continue;
+                }
+
+                if (rule.IndexOf('*') > -1)
+                {
+                    _rules.Add(new HostRule(BuildWildcardRegex(rule)));
+                    continue;
+                }
+
+                _rules.Add(new HostRule(rule));
+            }
+        }
+
+        public bool Contains(string target)
+        {
+            // Often, the list will be empty.
+            if (_rules.Count < 1) return false;
+
+            string normalizedTarget = NormalizeHost(target);
+            if (normalizedTarget.Length < 1) return false;
+
+            for (int i = 0; i < _rules.Count; i++)
+            {
+                if (_rules[i].IsMatch(normalizedTarget)) return true;
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<string> SplitRules(string hostRules)
+        {
+            if (string.IsNullOrWhiteSpace(hostRules)) return Array.Empty<string>();
+            return hostRules.Split(';');
+        }
+
+        private static string NormalizeHost(string host)
+        {
+            if (string.IsNullOrWhiteSpace(host)) return string.Empty;
+            return host.Trim().TrimEnd('.');
+        }
+
+        private static Regex BuildWildcardRegex(string wildcardRule)
+        {
+            string pattern = "^" + Regex.Escape(wildcardRule).Replace("\\*", ".*") + "$";
+            return new Regex(pattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        }
+
+        private sealed class HostRule
+        {
+            private readonly string _exact;
+            private readonly Regex _wildcard;
+            private readonly bool _isLocalRule;
+
+            public static readonly HostRule LocalRule = new HostRule(isLocalRule: true);
+
+            private HostRule(bool isLocalRule)
+            {
+                _isLocalRule = isLocalRule;
+            }
+
+            public HostRule(string exact)
+            {
+                _exact = exact;
+            }
+
+            public HostRule(Regex wildcard)
+            {
+                _wildcard = wildcard;
+            }
+
+            public bool IsMatch(string target)
+            {
+                if (_isLocalRule)
+                {
+                    return target.IndexOf('.') < 0;
+                }
+
+                if (_exact != null)
+                {
+                    return target.OICEquals(_exact);
+                }
+
+                return _wildcard != null && _wildcard.IsMatch(target);
+            }
         }
     }
 }

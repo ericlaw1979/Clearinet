@@ -15,6 +15,12 @@ using System.Threading.Tasks;
 
 namespace Clearinet.CaptureEngine
 {
+    // CaptureEngineRuntime owns the capture engine lifecycle used by the app.
+    // It creates/starts/stops a listener implementation and exposes a simple
+    // runtime surface to the rest of Clearinet.
+    //
+    // By default, this runtime composes TcpCaptureEngineListener, which contains
+    // the concrete TCP proxy/listening and per-connection processing logic.
     internal sealed class CaptureEngineRuntime : IDisposable
     {
         private readonly object _syncRoot = new object();
@@ -82,6 +88,13 @@ namespace Clearinet.CaptureEngine
         }
     }
 
+    // TcpCaptureEngineListener is the default low-level listener used by
+    // CaptureEngineRuntime. It binds a TcpListener, accepts client sockets,
+    // maps connections to processes, and drives HTTP/HTTPS tunneling/decryption
+    // behavior for each connection.
+    //
+    // CaptureEngineRuntime manages this class as a dependency (create/start/stop/dispose),
+    // while this class performs the actual network capture work.
     internal sealed class TcpCaptureEngineListener : ICaptureEngineListener
     {
         private const int MaxHeaderBytes = 64 * 1024;                   // TODO: Configurable max.
@@ -95,6 +108,7 @@ namespace Clearinet.CaptureEngine
         private readonly ConcurrentDictionary<Guid, ClientPipe> _clientPipeReuseQueue =
             new ConcurrentDictionary<Guid, ClientPipe>();
         private readonly object _syncRoot = new object();
+        private readonly HostList _hlSkipDecryptFor;        // TODO: i'm not convinced this belongs here.
         private GigWorker.gig _socketPoolJanitorGig;
         private CancellationTokenSource _cts;
         private TcpListener _listener;
@@ -104,6 +118,7 @@ namespace Clearinet.CaptureEngine
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _hlSkipDecryptFor = new HostList(CApp.Prefs.GetStringPref("proxy.skip_decryption_list", String.Empty));
             _certificateProvider = new CertEnrollCertificateProvider();
             _socketPool = new SocketPool(
                 TimeSpan.FromMilliseconds(CaptureEnginePrefs.GetSocketPoolIdleMs()),
@@ -267,10 +282,14 @@ namespace Clearinet.CaptureEngine
                                 Stream tunnelStream = clientPipe.Reader.DetachUnreadStream();
                                 if (ShouldDecryptTunnel(xc))
                                 {
+                                    xc.AdjustBitFlag(ExchangeFlags.IsDecryptingTunnel, true);
+                                    xc.AdjustBitFlag(ExchangeFlags.IsBlindTunnel, false);
                                     await HandleMitmConnectTunnelAsync(xc, client, tunnelStream, clientPipe, token).ConfigureAwait(false);
                                 }
                                 else
                                 {
+                                    xc.AdjustBitFlag(ExchangeFlags.IsDecryptingTunnel, false);
+                                    xc.AdjustBitFlag(ExchangeFlags.IsBlindTunnel, true);
                                     await HandleBlindConnectTunnelAsync(xc, client, tunnelStream, token).ConfigureAwait(false);
                                 }
                                 return;
@@ -464,23 +483,9 @@ namespace Clearinet.CaptureEngine
             if (CApp.isClosing) return;
 
             // If it's a CONNECT, see if we should decrypt it based on the Process Name or Hostname.
-            if (xc.HTTPMethodIs("CONNECT") && xc["x-no-decrypt"] == null)
-            {
-                var commonBrowserProcesses = CApp.Prefs.GetStringPref("lists.common_browser_processes",
-                    DEFAULTS.sPopularBrowserProcessNames);
-                if (!IsBrowserProcessName(xc.LocalProcess, commonBrowserProcesses))
-                {
-                    xc["x-no-decrypt"] = "Rules > NonBrowserProcess";
-                }
-
-                // TODO: If the user has configured a list of hostnames to decrypt, then we will only decrypt those.
-            }
-
-            // Toolbar's ProcessFilter
-
-
             if (xc.HTTPMethodIs("CONNECT"))
             {
+
                 // Should we hide the tunnel?
                 if (CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects"))
                 {
@@ -488,9 +493,24 @@ namespace Clearinet.CaptureEngine
                 }
 
                 // Should we decrypt the tunnel?
+                if (xc["x-no-decrypt"] == null)
+                {
+                    var commonBrowserProcesses = CApp.Prefs.GetStringPref("lists.common_browser_processes",
+                        DEFAULTS.sPopularBrowserProcessNames);
+                    if (!IsBrowserProcessName(xc.LocalProcess, commonBrowserProcesses))
+                    {
+                        xc["x-no-decrypt"] = "Rules > NonBrowserProcess";
+                    }
 
-
+                    // If the user has configured a list of hostnames to skip, we won't decrypt those.
+                    if (_hlSkipDecryptFor.Contains(xc.hostname))
+                    {
+                        xc["x-no-decrypt"] = "Options > HTTPS > SkipDecryptionFor";
+                    }
+                }
             }
+
+            // Toolbar's ProcessFilter        
 
             if (CApp.Prefs.GetBoolPref("app.ui.rules.hide_images") &&
                 xc.url.OICEndsWithAny(".svg", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".ico"))
@@ -933,13 +953,6 @@ namespace Clearinet.CaptureEngine
                 xc["x-processinfo"] = context.LocalProcessDescriptor;
             }
 
-            // By default a connect tunnel will be blind, but we might decide
-            // to enable TLS decryption later.
-            if (method.OICEquals("CONNECT"))
-            {
-                xc.SetBitFlag(ExchangeFlags.IsBlindTunnel);
-            }
-
             xc.state = ExchangeState.ReadingRequestBody;
             return xc;
         }
@@ -1049,7 +1062,6 @@ namespace Clearinet.CaptureEngine
 
                         var innerContext = new CaptureConnectionContext(client.Client) { LocalProcessDescriptor = processIdentity };
                         Exchange inner = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
-                        // inner.SetBitFlag(ExchangeFlags.IsDecryptingTunnel);
                         inner.SetBitFlag(ExchangeFlags.IsHTTPS);
                         inner.state = ExchangeState.AutoTamperRequestBefore;
 

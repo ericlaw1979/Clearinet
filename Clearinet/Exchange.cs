@@ -29,9 +29,11 @@ namespace Clearinet
         private static Int64 __cTotalExchanges;
 
         private ExchangeState _state;
+
+        // TODO: Remove this!
         private bool _isCaptureFacade;  // Is this Exchange a "facade" for a FiddlerCore session running in a proxy extension?
 
-        // Having an "ID" is important to the user and simply indicate ordering, but they cause
+        // Having an "ID" is important to the user and simply communicate request order, but they cause
         // lots of problems because they are basically unstable-- loading a SAZ file or importing
         // exchanges from another tool will change the displayed ID.
         private Int64 _id;
@@ -524,13 +526,13 @@ namespace Clearinet
                                 {
                                     await new HTTPClientBridge().SendAndReceiveRawAsync(this);
                                 }
-                                else
+                                /*else
                                 {
                                     ResponseHeaders = new HTTPResponseHeaders(501, "Capture Engine Transport Required",
                                         new[] { "Content-Type: text/plain; charset=utf-8" });
                                     utilSetResponseBody("The legacy HttpClientBridge transport is disabled. Use the capture engine transport path.");
                                     BitFlags |= ExchangeFlags.ResponseGeneratedByClearinet;
-                                }
+                                }*/
                                 ++state;
                             });
                         }
@@ -553,8 +555,6 @@ namespace Clearinet
                             bBufferResponse = false;
                         }
                         CApp.oExtensions.CallPeekAtResponseHeaders(this);
-
-
 
                         // If we already have the response, keep going.
                         if (this.bHasResponse) ++state;
@@ -701,6 +701,7 @@ namespace Clearinet
         }
         internal void SetBitFlag(ExchangeFlags flagsToAdjust)
         {
+            if (flagsToAdjust == ExchangeFlags.ResponseGeneratedByClearinet) Debug.Assert(false);
             BitFlags = (_bitFlags | flagsToAdjust);
         }
         // TODO? ClearBitFlag

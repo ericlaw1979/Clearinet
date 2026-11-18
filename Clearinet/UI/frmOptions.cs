@@ -51,6 +51,7 @@ namespace Clearinet
             txtToolDiff.Text = CONFIG.GetPath("Tools.Diff");
             txtToolDiffArgs.Text = CApp.Prefs.GetStringPref("app.tools.diff.args", "--diff %1 %2");
             txtProxyBypass.Text = CApp.Prefs.GetStringPref("proxy.bypass_list", "<-loopback>");
+            txtDecryptHosts.Text = CApp.Prefs.GetStringPref("proxy.skip_decryption_list", String.Empty);
 
             if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
@@ -76,6 +77,7 @@ namespace Clearinet
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.dark_mode", cbDarkMode.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.minimize_to_tray", cbMinimizeToTray.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.bypass_list", txtProxyBypass.Text, "<-loopback>");
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.skip_decryption_list", txtDecryptHosts.Text.Trim(), String.Empty);
 
             if (txtToolTextEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.text", txtToolTextEditor.Text.HasText() ? txtToolTextEditor.Text : null);
             if (txtToolScriptEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.code", txtToolScriptEditor.Text.HasText() ? txtToolScriptEditor.Text : null);

@@ -28,6 +28,7 @@ namespace Clearinet
     {
         internal static frmViewer _frmMain;
         internal readonly static SimpleLog _Log = new SimpleLog();
+
         public static SimpleLog Log
         {
             get { return _Log; }

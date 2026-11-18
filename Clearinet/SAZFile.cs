@@ -462,6 +462,8 @@ namespace Clearinet
                         strm.Write(exch.RequestBody, 0, exch.RequestBody.Length);
                     }
                 });
+
+                var bWroteResponseBody = false;
                 // Write the server response
                 var ZE = zf.AddEntry(sBaseName + "s.txt", (_, strm) =>
                 {
@@ -471,6 +473,7 @@ namespace Clearinet
 
                         if (exch.ResponseBody.HasData())
                         {
+                            bWroteResponseBody = true;
                             strm.Write(exch.ResponseBody, 0, exch.ResponseBody.Length);
                         }
                     }
@@ -480,7 +483,7 @@ namespace Clearinet
                 //
                 // TODO: MediaTypeShouldStream is not a perfect heuristic for
                 // "is this file type compressed", but it's decent.
-                if (bSkipRecompressing &&
+                if (bWroteResponseBody && bSkipRecompressing &&
                     (exch.ResponseHeaders.Exists("Content-Encoding") ||
                      exch.MediaType.OICStartsWithAny("image/", "font/") ||
                      Utilities.MediaTypeShouldStream(exch.MediaType)))
