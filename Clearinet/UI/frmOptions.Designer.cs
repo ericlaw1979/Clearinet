@@ -48,6 +48,10 @@
             this.cbChainToGateway = new System.Windows.Forms.CheckBox();
             this.pageHTTPS = new System.Windows.Forms.TabPage();
             this.btnHTTPSActions = new System.Windows.Forms.Button();
+            this.mnuHTTPSActions = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miClearLeafCerts = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.miHTTPSResetAllCerts = new System.Windows.Forms.ToolStripMenuItem();
             this.lnkHostDecryptionMode = new System.Windows.Forms.LinkLabel();
             this.txtDecryptHosts = new System.Windows.Forms.TextBox();
             this.cbIgnoreUpstreamCertErrors = new System.Windows.Forms.CheckBox();
@@ -89,10 +93,6 @@
             this.btnOk = new System.Windows.Forms.Button();
             this.lblUsageNote = new System.Windows.Forms.Label();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
-            this.mnuHTTPSActions = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.miClearLeafCerts = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.miHTTPSResetAllCerts = new System.Windows.Forms.ToolStripMenuItem();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -100,6 +100,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.udListenPort)).BeginInit();
             this.pageGateway.SuspendLayout();
             this.pageHTTPS.SuspendLayout();
+            this.mnuHTTPSActions.SuspendLayout();
             this.pageAppearance.SuspendLayout();
             this.pageExtensions.SuspendLayout();
             this.pnlExtFooter.SuspendLayout();
@@ -107,7 +108,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             this.pagePaths.SuspendLayout();
             this.pnlFooter.SuspendLayout();
-            this.mnuHTTPSActions.SuspendLayout();
             this.SuspendLayout();
             // 
             // tcOptions
@@ -332,17 +332,45 @@
             this.btnHTTPSActions.UseVisualStyleBackColor = true;
             this.btnHTTPSActions.Click += new System.EventHandler(this.btnHTTPSActions_Click);
             // 
+            // mnuHTTPSActions
+            // 
+            this.mnuHTTPSActions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miClearLeafCerts,
+            this.toolStripMenuItem1,
+            this.miHTTPSResetAllCerts});
+            this.mnuHTTPSActions.Name = "mnuHTTPSActions";
+            this.mnuHTTPSActions.Size = new System.Drawing.Size(253, 54);
+            // 
+            // miClearLeafCerts
+            // 
+            this.miClearLeafCerts.Name = "miClearLeafCerts";
+            this.miClearLeafCerts.Size = new System.Drawing.Size(252, 22);
+            this.miClearLeafCerts.Text = "&Clear leaf certs from Windows";
+            this.miClearLeafCerts.Click += new System.EventHandler(this.miClearLeafCerts_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(249, 6);
+            // 
+            // miHTTPSResetAllCerts
+            // 
+            this.miHTTPSResetAllCerts.Name = "miHTTPSResetAllCerts";
+            this.miHTTPSResetAllCerts.Size = new System.Drawing.Size(252, 22);
+            this.miHTTPSResetAllCerts.Text = "&Reset All Certificates";
+            this.miHTTPSResetAllCerts.Click += new System.EventHandler(this.miHTTPSResetAllCerts_Click);
+            // 
             // lnkHostDecryptionMode
             // 
             this.lnkHostDecryptionMode.AutoSize = true;
             this.lnkHostDecryptionMode.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.lnkHostDecryptionMode.Location = new System.Drawing.Point(28, 119);
             this.lnkHostDecryptionMode.Name = "lnkHostDecryptionMode";
-            this.lnkHostDecryptionMode.Size = new System.Drawing.Size(131, 17);
+            this.lnkHostDecryptionMode.Size = new System.Drawing.Size(200, 17);
             this.lnkHostDecryptionMode.TabIndex = 5;
             this.lnkHostDecryptionMode.TabStop = true;
-            this.lnkHostDecryptionMode.Text = "Skip Decryption for:";
-            this.lnkHostDecryptionMode.Click += new System.EventHandler(this.lnkHostDecryptionMode_Click);
+            this.lnkHostDecryptionMode.Text = "Skip dec&ryption for hostnames:";
+            this.lnkHostDecryptionMode.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHostDecryptionMode_LinkClicked);
             // 
             // txtDecryptHosts
             // 
@@ -814,34 +842,6 @@
             this.lnkHelp.Text = "&Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
-            // mnuHTTPSActions
-            // 
-            this.mnuHTTPSActions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miClearLeafCerts,
-            this.toolStripMenuItem1,
-            this.miHTTPSResetAllCerts});
-            this.mnuHTTPSActions.Name = "mnuHTTPSActions";
-            this.mnuHTTPSActions.Size = new System.Drawing.Size(253, 54);
-            // 
-            // miClearLeafCerts
-            // 
-            this.miClearLeafCerts.Name = "miClearLeafCerts";
-            this.miClearLeafCerts.Size = new System.Drawing.Size(252, 22);
-            this.miClearLeafCerts.Text = "&Clear leaf certs from Windows";
-            this.miClearLeafCerts.Click += new System.EventHandler(this.miClearLeafCerts_Click);
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(249, 6);
-            // 
-            // miHTTPSResetAllCerts
-            // 
-            this.miHTTPSResetAllCerts.Name = "miHTTPSResetAllCerts";
-            this.miHTTPSResetAllCerts.Size = new System.Drawing.Size(252, 22);
-            this.miHTTPSResetAllCerts.Text = "&Reset All Certificates";
-            this.miHTTPSResetAllCerts.Click += new System.EventHandler(this.miHTTPSResetAllCerts_Click);
-            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
@@ -872,6 +872,7 @@
             this.pageGateway.PerformLayout();
             this.pageHTTPS.ResumeLayout(false);
             this.pageHTTPS.PerformLayout();
+            this.mnuHTTPSActions.ResumeLayout(false);
             this.pageAppearance.ResumeLayout(false);
             this.pageAppearance.PerformLayout();
             this.pageExtensions.ResumeLayout(false);
@@ -885,7 +886,6 @@
             this.pagePaths.PerformLayout();
             this.pnlFooter.ResumeLayout(false);
             this.pnlFooter.PerformLayout();
-            this.mnuHTTPSActions.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -51,7 +52,16 @@ namespace Clearinet
             txtToolDiff.Text = CONFIG.GetPath("Tools.Diff");
             txtToolDiffArgs.Text = CApp.Prefs.GetStringPref("app.tools.diff.args", "--diff %1 %2");
             txtProxyBypass.Text = CApp.Prefs.GetStringPref("proxy.bypass_list", "<-loopback>");
-            txtDecryptHosts.Text = CApp.Prefs.GetStringPref("proxy.skip_decryption_list", String.Empty);
+            txtDecryptHosts.Text = CApp.Prefs.GetStringPref("proxy.https.decryption_list", String.Empty);
+
+            if (CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true))
+            {
+                lnkHostDecryptionMode.Text = "Skip dec&ryption for hostnames:";
+            }
+            else
+            {
+                lnkHostDecryptionMode.Text = "Only dec&rypt for hostnames:";
+            }
 
             if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
@@ -77,7 +87,8 @@ namespace Clearinet
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.dark_mode", cbDarkMode.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.minimize_to_tray", cbMinimizeToTray.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.bypass_list", txtProxyBypass.Text, "<-loopback>");
-            CApp.Prefs.AssignOrRemoveIfDefault("proxy.skip_decryption_list", txtDecryptHosts.Text.Trim(), String.Empty);
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.https.decryption_list", PrepareHostlist(txtDecryptHosts.Text), String.Empty);
+            CApp.RefreshDecryptionHosts();  // TODO: Do only if modified
 
             if (txtToolTextEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.text", txtToolTextEditor.Text.HasText() ? txtToolTextEditor.Text : null);
             if (txtToolScriptEditor.Modified) CApp.Prefs.SetStringPref("user.paths.editors.code", txtToolScriptEditor.Text.HasText() ? txtToolScriptEditor.Text : null);
@@ -106,6 +117,35 @@ namespace Clearinet
             {
                 CApp.Prefs.SetBoolPref("app.updater.check_on_startup", false);
             }
+        }
+
+        private string PrepareHostlist(string text)
+        {
+            if (String.IsNullOrWhiteSpace(text)) return String.Empty;
+
+            var hosts = new List<string>();
+            var seenHosts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int tokenStart = -1;
+
+            for (int i = 0; i <= text.Length; i++)
+            {
+                bool isSeparator = i == text.Length || Char.IsWhiteSpace(text[i]) || text[i] == ',' || text[i] == ';';
+                if (isSeparator)
+                {
+                    if (tokenStart >= 0)
+                    {
+                        string host = text.Substring(tokenStart, i - tokenStart);
+                        if (seenHosts.Add(host)) hosts.Add(host);
+                        tokenStart = -1;
+                    }
+                }
+                else if (tokenStart < 0)
+                {
+                    tokenStart = i;
+                }
+            }
+
+            return String.Join(";", hosts);
         }
 
         private void tcOptions_Selecting(object sender, TabControlCancelEventArgs e)
@@ -209,17 +249,25 @@ namespace Clearinet
             CApp.alert("nyi: reset all Certs");
         }
 
-        private void lnkHostDecryptionMode_Click(object sender, EventArgs e)
-        {
-            // TODO: Implement.
-            CApp.alert("nyi: swap from 'skip decrypting' to 'only decrypt'");
-        }
-
-
         private void btnHTTPSActions_Click(object sender, EventArgs e)
         {
             Point pvOrigin = btnHTTPSActions.PointToScreen(new Point(0, btnHTTPSActions.Height));
             mnuHTTPSActions.Show(pvOrigin, ToolStripDropDownDirection.BelowRight);
+        }
+
+        private void lnkHostDecryptionMode_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            bool bSkipMode = CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true);
+            bSkipMode = !bSkipMode;
+            CApp.Prefs.SetBoolPref("proxy.https.decryption_list.is_skip_mode", bSkipMode);
+            if (bSkipMode)
+            {
+                lnkHostDecryptionMode.Text = "Skip dec&ryption for hostnames:";
+            }
+            else
+            {
+                lnkHostDecryptionMode.Text = "Only dec&rypt for hostnames:";
+            }
         }
     }
 }

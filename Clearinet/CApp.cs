@@ -38,6 +38,20 @@ namespace Clearinet
         internal static GigWorker gwHoneyDew = new GigWorker();
         internal static CaptureEngineRuntime _captureEngineRuntime;
 
+        internal static bool ShouldDecryptHost(string hostname)
+        {
+            bool bInList = _DecryptionHosts.Contains(hostname);
+            if (bInList && CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true)) return false;
+            return bInList;
+        }
+        internal static void RefreshDecryptionHosts()
+        {
+            _DecryptionHosts = new HostList(CApp.Prefs.GetStringPref("proxy.https.decryption_list", string.Empty));
+        }
+        internal static HostList _DecryptionHosts = new HostList("");
+
+        internal static bool DecryptionHostListIsSkipMode { get { return CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true); } }
+
         public static bool isTracing { get; internal set; } = false;
 
         public static Extensions oExtensions;

@@ -1167,6 +1167,8 @@ namespace Clearinet
     }
 
     // TODO: Lots of opportunities to improve performance here, but this is not likely to be a very hot path.
+    //  IMMUTABLE: Once constructed, the list of rules is not modified. The rules themselves are immutable.
+    // If we want to change that, we need to introduce thread-safety locks.
     public sealed class HostList
     {
         private const string LocalToken = "<local>";

@@ -116,7 +116,6 @@ namespace Clearinet.CaptureEngine
         private readonly ConcurrentDictionary<Guid, ClientPipe> _clientPipeReuseQueue =
             new ConcurrentDictionary<Guid, ClientPipe>();
         private readonly object _syncRoot = new object();
-        private readonly HostList _hlSkipDecryptFor;        // TODO: i'm not convinced this belongs here.
         private GigWorker.gig _socketPoolJanitorGig;
         private CancellationTokenSource _cts;
         private TcpListener _listener;
@@ -126,7 +125,6 @@ namespace Clearinet.CaptureEngine
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _hlSkipDecryptFor = new HostList(CApp.Prefs.GetStringPref("proxy.skip_decryption_list", String.Empty));
             _certificateProvider = new CertEnrollCertificateProvider();
             _socketPool = new SocketPool(
                 TimeSpan.FromMilliseconds(CaptureEnginePrefs.GetSocketPoolIdleMs()),
@@ -517,10 +515,10 @@ namespace Clearinet.CaptureEngine
                         xc["x-no-decrypt"] = "Rules > NonBrowserProcess";
                     }
 
-                    // If the user has configured a list of hostnames to skip, we won't decrypt those.
-                    if (_hlSkipDecryptFor.Contains(xc.hostname))
+                    // If the user has configured a list of hostnames, respect that
+                    if (!CApp.ShouldDecryptHost(xc.hostname))
                     {
-                        xc["x-no-decrypt"] = "Options > HTTPS > SkipDecryptionFor";
+                        xc["x-no-decrypt"] = "Options > HTTPS > DecryptionList";
                     }
                 }
             }
