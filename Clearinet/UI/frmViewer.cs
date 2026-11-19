@@ -1180,6 +1180,8 @@ namespace Clearinet
                 using (LongRunningOperation lro = new LongRunningOperation($"Saving {arrExchanges.Length:N0} Exchanges...", true))
                 {
                     Stopwatch oSW = Stopwatch.StartNew();
+                    CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypting" : "Saving")} {arrExchanges.Length:N0} Exchanges...");
+
                     SAZFile.SaveTo(sFilename, arrExchanges, sPassword, lro: lro);
                     oSW.Stop();
                     CApp.UI.mruRecents.PushFile(sFilename);
@@ -2521,7 +2523,7 @@ namespace Clearinet
             }
         }
 
-        internal Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
+        public Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
         {
             Exchange exchange = CreateFauxExchange(sRequestPath, sContentType, arrBody);
             addExchange(exchange);

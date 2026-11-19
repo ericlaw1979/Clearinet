@@ -92,7 +92,7 @@ namespace Clearinet
 
         // Technically, UInt32 would be the right type, but
         // .NET doesn't do that.
-        private int _LocalProcessID;
+        private int _LocalProcessID;  //TODO: set this
         /// <summary>
         /// LEGACY API: Returns the process ID of the client that initiated this
         /// exchange. If the client is remote, this will be 0.

@@ -18,7 +18,7 @@ namespace Extensions
         public override string TabTitle => "Images";
         public override void AddToTab(TabPage o)
         {
-            oView = new ImageView();
+            oView = new ImageView(this);
             o.Controls.Add(oView);
             oView.Dock = DockStyle.Fill;
             oView.txtMetadata.BackColor = oView.pbImage.BackColor = CONFIG.colorDisabledEdit;
@@ -26,7 +26,7 @@ namespace Extensions
             oView.pbImage.MouseUp += PbImage_MouseUp;
         }
 
-        private void DumpImageToDesktop()
+        internal void DumpImageToDesktop()
         {
             // TODO: Keep original format
             oView.txtMetadata.BackColor = Color.Cyan;  // Flash background
@@ -146,5 +146,57 @@ namespace Extensions
         }
 
         public override int GetOrder() => 200;
+
+        private static ImageCodecInfo GetEncoder(ImageFormat format)
+        {
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+            foreach (ImageCodecInfo codec in codecs)
+            {
+                if (codec.FormatID == format.Guid)
+                {
+                    return codec;
+                }
+            }
+            return null;
+        }
+
+        internal void ConvertToJpegExchange()
+        {
+            try
+            {
+                var oMS = new MemoryStream();
+                imageRendered.Save(oMS, ImageFormat.Png);
+                byte[] arrBody = oMS.ToArray();
+                using (MemoryStream inputStream = new MemoryStream(arrBody))
+                using (Bitmap bitmap = new Bitmap(inputStream))
+                using (MemoryStream outputStream = new MemoryStream())
+                {
+                    ImageCodecInfo encoder = GetEncoder(ImageFormat.Jpeg) ?? throw new InvalidOperationException("Unable to find a JPEG encoder.");
+                    EncoderParameters parameters = new EncoderParameters(1);
+                    parameters.Param[0] = new EncoderParameter(Encoder.Quality, 90L); /* TODO: Make configurable. Note you must pass as a LONG. Lame. */
+                    bitmap.Save(outputStream, encoder, parameters);
+
+                    CApp.UI.AddFauxExchange($"CONVERTED_{DateTime.Now:H-mm-ss}.jpg", "image/jpeg", outputStream.ToArray());
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Unable to convert image to JPEG.");
+            }
+
+        }
+
+        internal void CopyAsDataUrl()
+        {
+            var oMS = new MemoryStream();
+            imageRendered.Save(oMS, ImageFormat.Png);
+            byte[] arrBody = oMS.ToArray();
+            PlatformAPI.WriteToClipboard($"data:image/png;base64,{Convert.ToBase64String(arrBody)}");
+        }
+
+        internal void CopyAsImage()
+        {
+            PlatformAPI.WriteToClipboard(imageRendered);
+        }
     }
 }
