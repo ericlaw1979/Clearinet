@@ -1802,7 +1802,7 @@ namespace Clearinet
                 PromptText = "Enter a name for this viewer:",
                 DefaultValue = tsmiNameViewer.Text,
                 ReturnNullOnCancel = true,
-                Kind = frmPrompt.PromptKind.Password
+                Kind = frmPrompt.PromptKind.Default
             });
             if (sNewName.HasText()) tsmiNameViewer.Text = sNewName;
         }
