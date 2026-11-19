@@ -10,6 +10,7 @@ namespace Clearinet.CaptureEngine
         bool IsRunning { get; }
         void Start();
         void Stop();
+        void ClearWindowsLeafCerts();
     }
 
     internal interface ICaptureRequestProcessor
@@ -30,6 +31,8 @@ namespace Clearinet.CaptureEngine
         X509Certificate2 GetCertificateForHost(string hostname);
         bool EnsureRootTrust();
         void ClearCache(bool clearRoot);
+
+        void ClearWindowsLeafCerts();
     }
 
     internal sealed class CaptureEngineOptions

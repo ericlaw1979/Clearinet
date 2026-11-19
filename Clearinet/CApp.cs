@@ -36,7 +36,7 @@ namespace Clearinet
 
         internal static HiddenExecActionTargetWindow messagingWindow = null;
         internal static GigWorker gwHoneyDew = new GigWorker();
-        private static CaptureEngineRuntime _captureEngineRuntime;
+        internal static CaptureEngineRuntime _captureEngineRuntime;
 
         public static bool isTracing { get; internal set; } = false;
 

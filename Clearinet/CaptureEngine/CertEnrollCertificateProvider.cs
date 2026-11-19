@@ -26,11 +26,13 @@ namespace Clearinet.CaptureEngine
         private static readonly object LeafKeySync = new object();
         // Store cleanup deletes private keys, so it must wait for all in-flight operations.
         private static readonly ReaderWriterLockSlim CertificateCleanupLock = new ReaderWriterLockSlim();
+        // Per-instance cache: valid host certificates are returned from memory before the Windows store is queried.
         private readonly ConcurrentDictionary<string, HostCertificate> _hosts =
             new ConcurrentDictionary<string, HostCertificate>(StringComparer.OrdinalIgnoreCase);
         private readonly Func<X509Certificate2> _findRootCertificate;
         private readonly Func<string, X509Certificate2, X509Certificate2> _generateCertificate;
         private readonly Func<bool> _useWildcards;
+        // Per-instance root cache; when absent or invalid, the provider searches the Windows store.
         private volatile X509Certificate2 _root;
 
         internal CertEnrollCertificateProvider()
@@ -114,6 +116,7 @@ namespace Clearinet.CaptureEngine
                         return host.Certificate;
                     }
 
+                    // On a cache miss, reuse a matching certificate from CurrentUser\My before generating one.
                     X509Certificate2 cert = FindLeafCertificate(normalized, root) ?? _generateCertificate(normalized, root);
                     host.Certificate = cert;
                     host.Issuer = root;
@@ -179,6 +182,8 @@ namespace Clearinet.CaptureEngine
             }
         }
 
+        // Clears the in-memory host cache and deletes matching certificates/private keys from CurrentUser\My.
+        // When clearRoot is true, it also removes the root certificate from the stores and memory cache.
         public void ClearCache(bool clearRoot)
         {
             CertificateCleanupLock.EnterWriteLock();
@@ -190,7 +195,8 @@ namespace Clearinet.CaptureEngine
                     foreach (var certificate in store.Certificates.Cast<X509Certificate2>().ToArray())
                     {
                         bool isRoot = certificate.FriendlyName == RootFriendlyName;
-                        bool isLeaf = certificate.FriendlyName.StartsWith(LeafPrefix, StringComparison.Ordinal);
+                        bool isLeaf = !isRoot && certificate.Issuer == $"CN={RootName}";
+
                         if (isRoot)
                         {
                             string leafKeyName = LeafKeyPrefix + certificate.Thumbprint;
@@ -198,6 +204,13 @@ namespace Clearinet.CaptureEngine
                                 keyNames.Add(leafKeyName);
                         }
                         if (!isLeaf && !(clearRoot && isRoot)) continue;
+
+                        if (isLeaf)
+                        {
+                            // Leaf certificates share the key named from their root above; do not open each certificate key.
+                            store.Remove(certificate);
+                            continue;
+                        }
 
                         using (RSA key = certificate.GetRSAPrivateKey())
                         {
@@ -438,6 +451,11 @@ namespace Clearinet.CaptureEngine
                     }
                 }
             }
+        }
+
+        void ICertificateProvider.ClearWindowsLeafCerts()
+        {
+            ClearCache(false);
         }
 
         private sealed class EnrollmentObjects : IDisposable

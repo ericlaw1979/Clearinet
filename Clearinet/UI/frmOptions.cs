@@ -197,5 +197,29 @@ namespace Clearinet
             var sNew = Utilities.ObtainOpenFilename("Select Diff Tool", "Executable Files|*.exe|All Files|*.*", txtToolDiff.Text);
             if (sNew.HasText()) { txtToolDiff.Text = sNew; txtToolDiff.Modified = true; }
         }
+
+        private void miClearLeafCerts_Click(object sender, EventArgs e)
+        {
+            CApp._captureEngineRuntime?.ClearWindowsLeafCerts();
+        }
+
+        private void miHTTPSResetAllCerts_Click(object sender, EventArgs e)
+        {
+            // TODO: Implement.
+            CApp.alert("nyi: reset all Certs");
+        }
+
+        private void lnkHostDecryptionMode_Click(object sender, EventArgs e)
+        {
+            // TODO: Implement.
+            CApp.alert("nyi: swap from 'skip decrypting' to 'only decrypt'");
+        }
+
+
+        private void btnHTTPSActions_Click(object sender, EventArgs e)
+        {
+            Point pvOrigin = btnHTTPSActions.PointToScreen(new Point(0, btnHTTPSActions.Height));
+            mnuHTTPSActions.Show(pvOrigin, ToolStripDropDownDirection.BelowRight);
+        }
     }
 }

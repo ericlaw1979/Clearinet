@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmOptions));
             this.tcOptions = new System.Windows.Forms.TabControl();
             this.pageGeneral = new System.Windows.Forms.TabPage();
@@ -46,6 +47,8 @@
             this.pageGateway = new System.Windows.Forms.TabPage();
             this.cbChainToGateway = new System.Windows.Forms.CheckBox();
             this.pageHTTPS = new System.Windows.Forms.TabPage();
+            this.btnHTTPSActions = new System.Windows.Forms.Button();
+            this.lnkHostDecryptionMode = new System.Windows.Forms.LinkLabel();
             this.txtDecryptHosts = new System.Windows.Forms.TextBox();
             this.cbIgnoreUpstreamCertErrors = new System.Windows.Forms.CheckBox();
             this.cbxDecryptFor = new System.Windows.Forms.ComboBox();
@@ -86,6 +89,10 @@
             this.btnOk = new System.Windows.Forms.Button();
             this.lblUsageNote = new System.Windows.Forms.Label();
             this.lnkHelp = new System.Windows.Forms.LinkLabel();
+            this.mnuHTTPSActions = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miClearLeafCerts = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.miHTTPSResetAllCerts = new System.Windows.Forms.ToolStripMenuItem();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -100,6 +107,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             this.pagePaths.SuspendLayout();
             this.pnlFooter.SuspendLayout();
+            this.mnuHTTPSActions.SuspendLayout();
             this.SuspendLayout();
             // 
             // tcOptions
@@ -117,7 +125,7 @@
             this.tcOptions.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tcOptions.Name = "tcOptions";
             this.tcOptions.SelectedIndex = 0;
-            this.tcOptions.Size = new System.Drawing.Size(678, 346);
+            this.tcOptions.Size = new System.Drawing.Size(678, 347);
             this.tcOptions.TabIndex = 1;
             this.tcOptions.Selecting += new System.Windows.Forms.TabControlCancelEventHandler(this.tcOptions_Selecting);
             // 
@@ -129,7 +137,7 @@
             this.pageGeneral.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pageGeneral.Name = "pageGeneral";
             this.pageGeneral.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.pageGeneral.Size = new System.Drawing.Size(670, 316);
+            this.pageGeneral.Size = new System.Drawing.Size(670, 317);
             this.pageGeneral.TabIndex = 0;
             this.pageGeneral.Text = "General";
             this.pageGeneral.UseVisualStyleBackColor = true;
@@ -192,7 +200,7 @@
             this.pageNetworking.Location = new System.Drawing.Point(4, 26);
             this.pageNetworking.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pageNetworking.Name = "pageNetworking";
-            this.pageNetworking.Size = new System.Drawing.Size(670, 316);
+            this.pageNetworking.Size = new System.Drawing.Size(670, 317);
             this.pageNetworking.TabIndex = 2;
             this.pageNetworking.Text = "Networking";
             this.pageNetworking.UseVisualStyleBackColor = true;
@@ -279,7 +287,7 @@
             this.pageGateway.Location = new System.Drawing.Point(4, 26);
             this.pageGateway.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pageGateway.Name = "pageGateway";
-            this.pageGateway.Size = new System.Drawing.Size(670, 316);
+            this.pageGateway.Size = new System.Drawing.Size(670, 317);
             this.pageGateway.TabIndex = 3;
             this.pageGateway.Text = "Gateway";
             this.pageGateway.UseVisualStyleBackColor = true;
@@ -296,6 +304,8 @@
             // 
             // pageHTTPS
             // 
+            this.pageHTTPS.Controls.Add(this.btnHTTPSActions);
+            this.pageHTTPS.Controls.Add(this.lnkHostDecryptionMode);
             this.pageHTTPS.Controls.Add(this.txtDecryptHosts);
             this.pageHTTPS.Controls.Add(this.cbIgnoreUpstreamCertErrors);
             this.pageHTTPS.Controls.Add(this.cbxDecryptFor);
@@ -305,30 +315,55 @@
             this.pageHTTPS.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pageHTTPS.Name = "pageHTTPS";
             this.pageHTTPS.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.pageHTTPS.Size = new System.Drawing.Size(670, 316);
+            this.pageHTTPS.Size = new System.Drawing.Size(670, 317);
             this.pageHTTPS.TabIndex = 1;
             this.pageHTTPS.Text = "HTTPS";
             this.pageHTTPS.UseVisualStyleBackColor = true;
+            // 
+            // btnHTTPSActions
+            // 
+            this.btnHTTPSActions.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnHTTPSActions.ContextMenuStrip = this.mnuHTTPSActions;
+            this.btnHTTPSActions.Location = new System.Drawing.Point(574, 7);
+            this.btnHTTPSActions.Name = "btnHTTPSActions";
+            this.btnHTTPSActions.Size = new System.Drawing.Size(88, 35);
+            this.btnHTTPSActions.TabIndex = 6;
+            this.btnHTTPSActions.Text = "&Actions";
+            this.btnHTTPSActions.UseVisualStyleBackColor = true;
+            this.btnHTTPSActions.Click += new System.EventHandler(this.btnHTTPSActions_Click);
+            // 
+            // lnkHostDecryptionMode
+            // 
+            this.lnkHostDecryptionMode.AutoSize = true;
+            this.lnkHostDecryptionMode.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.lnkHostDecryptionMode.Location = new System.Drawing.Point(28, 119);
+            this.lnkHostDecryptionMode.Name = "lnkHostDecryptionMode";
+            this.lnkHostDecryptionMode.Size = new System.Drawing.Size(131, 17);
+            this.lnkHostDecryptionMode.TabIndex = 5;
+            this.lnkHostDecryptionMode.TabStop = true;
+            this.lnkHostDecryptionMode.Text = "Skip Decryption for:";
+            this.lnkHostDecryptionMode.Click += new System.EventHandler(this.lnkHostDecryptionMode_Click);
             // 
             // txtDecryptHosts
             // 
             this.txtDecryptHosts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDecryptHosts.Location = new System.Drawing.Point(54, 209);
+            this.txtDecryptHosts.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtDecryptHosts.Location = new System.Drawing.Point(31, 139);
             this.txtDecryptHosts.Multiline = true;
             this.txtDecryptHosts.Name = "txtDecryptHosts";
-            this.txtDecryptHosts.Size = new System.Drawing.Size(581, 0);
+            this.txtDecryptHosts.Size = new System.Drawing.Size(631, 171);
             this.txtDecryptHosts.TabIndex = 4;
             // 
             // cbIgnoreUpstreamCertErrors
             // 
             this.cbIgnoreUpstreamCertErrors.AutoSize = true;
-            this.cbIgnoreUpstreamCertErrors.Location = new System.Drawing.Point(54, 140);
+            this.cbIgnoreUpstreamCertErrors.Location = new System.Drawing.Point(286, 79);
             this.cbIgnoreUpstreamCertErrors.Name = "cbIgnoreUpstreamCertErrors";
-            this.cbIgnoreUpstreamCertErrors.Size = new System.Drawing.Size(265, 21);
+            this.cbIgnoreUpstreamCertErrors.Size = new System.Drawing.Size(231, 21);
             this.cbIgnoreUpstreamCertErrors.TabIndex = 3;
-            this.cbIgnoreUpstreamCertErrors.Text = "&Ignore server certificate errors (unsafe)";
+            this.cbIgnoreUpstreamCertErrors.Text = "&Ignore server cert errors (unsafe)";
             this.cbIgnoreUpstreamCertErrors.UseVisualStyleBackColor = true;
             this.cbIgnoreUpstreamCertErrors.CheckedChanged += new System.EventHandler(this.cbIgnoreUpstreamCertErrors_CheckedChanged);
             // 
@@ -341,7 +376,7 @@
             "...from browsers",
             "...from non-browsers",
             "...only from remote clients"});
-            this.cbxDecryptFor.Location = new System.Drawing.Point(54, 91);
+            this.cbxDecryptFor.Location = new System.Drawing.Point(31, 75);
             this.cbxDecryptFor.Name = "cbxDecryptFor";
             this.cbxDecryptFor.Size = new System.Drawing.Size(225, 25);
             this.cbxDecryptFor.TabIndex = 2;
@@ -377,7 +412,7 @@
             this.pageAppearance.Location = new System.Drawing.Point(4, 26);
             this.pageAppearance.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pageAppearance.Name = "pageAppearance";
-            this.pageAppearance.Size = new System.Drawing.Size(670, 316);
+            this.pageAppearance.Size = new System.Drawing.Size(670, 317);
             this.pageAppearance.TabIndex = 4;
             this.pageAppearance.Text = "Appearance";
             this.pageAppearance.UseVisualStyleBackColor = true;
@@ -460,7 +495,7 @@
             this.pageExtensions.Location = new System.Drawing.Point(4, 26);
             this.pageExtensions.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pageExtensions.Name = "pageExtensions";
-            this.pageExtensions.Size = new System.Drawing.Size(670, 316);
+            this.pageExtensions.Size = new System.Drawing.Size(670, 317);
             this.pageExtensions.TabIndex = 5;
             this.pageExtensions.Text = "Extensions";
             this.pageExtensions.UseVisualStyleBackColor = true;
@@ -473,14 +508,14 @@
             this.txtExtensionsList.Multiline = true;
             this.txtExtensionsList.Name = "txtExtensionsList";
             this.txtExtensionsList.ReadOnly = true;
-            this.txtExtensionsList.Size = new System.Drawing.Size(670, 291);
+            this.txtExtensionsList.Size = new System.Drawing.Size(670, 292);
             this.txtExtensionsList.TabIndex = 0;
             // 
             // pnlExtFooter
             // 
             this.pnlExtFooter.Controls.Add(this.lnkGetExtensions);
             this.pnlExtFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlExtFooter.Location = new System.Drawing.Point(0, 291);
+            this.pnlExtFooter.Location = new System.Drawing.Point(0, 292);
             this.pnlExtFooter.Name = "pnlExtFooter";
             this.pnlExtFooter.Size = new System.Drawing.Size(670, 25);
             this.pnlExtFooter.TabIndex = 1;
@@ -509,7 +544,7 @@
             this.pagePerformance.Location = new System.Drawing.Point(4, 26);
             this.pagePerformance.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pagePerformance.Name = "pagePerformance";
-            this.pagePerformance.Size = new System.Drawing.Size(670, 316);
+            this.pagePerformance.Size = new System.Drawing.Size(670, 317);
             this.pagePerformance.TabIndex = 6;
             this.pagePerformance.Text = "Performance";
             this.pagePerformance.UseVisualStyleBackColor = true;
@@ -597,7 +632,7 @@
             this.pagePaths.Location = new System.Drawing.Point(4, 26);
             this.pagePaths.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pagePaths.Name = "pagePaths";
-            this.pagePaths.Size = new System.Drawing.Size(670, 316);
+            this.pagePaths.Size = new System.Drawing.Size(670, 317);
             this.pagePaths.TabIndex = 7;
             this.pagePaths.Text = "Paths";
             this.pagePaths.UseVisualStyleBackColor = true;
@@ -724,7 +759,7 @@
             this.pnlFooter.Controls.Add(this.lblUsageNote);
             this.pnlFooter.Controls.Add(this.lnkHelp);
             this.pnlFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlFooter.Location = new System.Drawing.Point(0, 346);
+            this.pnlFooter.Location = new System.Drawing.Point(0, 347);
             this.pnlFooter.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pnlFooter.Name = "pnlFooter";
             this.pnlFooter.Size = new System.Drawing.Size(678, 64);
@@ -779,20 +814,48 @@
             this.lnkHelp.Text = "&Help...";
             this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
             // 
+            // mnuHTTPSActions
+            // 
+            this.mnuHTTPSActions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miClearLeafCerts,
+            this.toolStripMenuItem1,
+            this.miHTTPSResetAllCerts});
+            this.mnuHTTPSActions.Name = "mnuHTTPSActions";
+            this.mnuHTTPSActions.Size = new System.Drawing.Size(253, 54);
+            // 
+            // miClearLeafCerts
+            // 
+            this.miClearLeafCerts.Name = "miClearLeafCerts";
+            this.miClearLeafCerts.Size = new System.Drawing.Size(252, 22);
+            this.miClearLeafCerts.Text = "&Clear leaf certs from Windows";
+            this.miClearLeafCerts.Click += new System.EventHandler(this.miClearLeafCerts_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(249, 6);
+            // 
+            // miHTTPSResetAllCerts
+            // 
+            this.miHTTPSResetAllCerts.Name = "miHTTPSResetAllCerts";
+            this.miHTTPSResetAllCerts.Size = new System.Drawing.Size(252, 22);
+            this.miHTTPSResetAllCerts.Text = "&Reset All Certificates";
+            this.miHTTPSResetAllCerts.Click += new System.EventHandler(this.miHTTPSResetAllCerts_Click);
+            // 
             // frmOptions
             // 
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(678, 410);
+            this.ClientSize = new System.Drawing.Size(678, 411);
             this.Controls.Add(this.tcOptions);
             this.Controls.Add(this.pnlFooter);
             this.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.MinimumSize = new System.Drawing.Size(600, 400);
+            this.MinimumSize = new System.Drawing.Size(650, 450);
             this.Name = "frmOptions";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Clearinet Options";
@@ -822,6 +885,7 @@
             this.pagePaths.PerformLayout();
             this.pnlFooter.ResumeLayout(false);
             this.pnlFooter.PerformLayout();
+            this.mnuHTTPSActions.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -885,5 +949,11 @@
         private System.Windows.Forms.CheckBox cbProxyFTP;
         private System.Windows.Forms.Label lblBypassList;
         private System.Windows.Forms.TextBox txtProxyBypass;
+        private System.Windows.Forms.Button btnHTTPSActions;
+        private System.Windows.Forms.LinkLabel lnkHostDecryptionMode;
+        private System.Windows.Forms.ContextMenuStrip mnuHTTPSActions;
+        private System.Windows.Forms.ToolStripMenuItem miClearLeafCerts;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem miHTTPSResetAllCerts;
     }
 }

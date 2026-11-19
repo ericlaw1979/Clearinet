@@ -41,6 +41,14 @@ namespace Clearinet.CaptureEngine
 
         public bool IsRunning { get; private set; }
 
+        public void ClearWindowsLeafCerts()
+        {
+            lock (_syncRoot)
+            {
+                _listener?.ClearWindowsLeafCerts();
+            }
+        }
+
         public void Start()
         {
             lock (_syncRoot)
@@ -103,7 +111,7 @@ namespace Clearinet.CaptureEngine
 
         private readonly CaptureEngineOptions _options;
         private readonly MapSocketToProcess _mapper;
-        private readonly ICertificateProvider _certificateProvider;
+        internal readonly ICertificateProvider _certificateProvider;
         private readonly ISocketPool _socketPool;
         private readonly ConcurrentDictionary<Guid, ClientPipe> _clientPipeReuseQueue =
             new ConcurrentDictionary<Guid, ClientPipe>();
@@ -148,6 +156,11 @@ namespace Clearinet.CaptureEngine
                 IsRunning = true;
                 _acceptLoop = Task.Run(() => AcceptLoopAsync(_cts.Token));
             }
+        }
+
+        public void ClearWindowsLeafCerts()
+        {
+            _certificateProvider.ClearWindowsLeafCerts();
         }
 
         public void Stop()

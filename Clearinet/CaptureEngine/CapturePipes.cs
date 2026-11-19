@@ -246,7 +246,7 @@ namespace Clearinet.CaptureEngine
                                         headers.Exists("Content-Length") &&
                                         !headers.ExistsAndContains("Content-Length", "0");
                     /* TODO: Track any TE/unexpectedCL as HTTP Protocol violation. */
-                    Debug.Assert(false, "Content is unexpected on this response!");
+                    Debug.Assert(!illegalLength, "Content is unexpected on this response!");
                     return (headers, Array.Empty<byte>(),
                         statusCode != 101        // Cannot reuse the socket if it's gonna be piping WebSocket messages
                         && !illegalLength        // Don't reuse the socket if there's possibly an illegal body

@@ -39,10 +39,26 @@ namespace CaptureEngine.Tests
             Assert.AreEqual(1, listener.DisposeCount);
         }
 
+        [TestMethod]
+        public void Runtime_ClearWindowsLeafCerts_ForwardsToItsListener()
+        {
+            var listener = new FakeCaptureEngineListener();
+            var runtime = new CaptureEngineRuntime(
+                new CaptureEngineOptions(IPAddress.Loopback, 8888),
+                () => listener);
+
+            runtime.Start();
+            runtime.ClearWindowsLeafCerts();
+
+            Assert.AreEqual(1, listener.ClearWindowsLeafCertsCount);
+            runtime.Dispose();
+        }
+
         private sealed class FakeCaptureEngineListener : ICaptureEngineListener
         {
             public int StartCount { get; private set; }
             public int StopCount { get; private set; }
+            public int ClearWindowsLeafCertsCount { get; private set; }
             public int DisposeCount { get; private set; }
             public bool IsRunning { get; private set; }
 
@@ -56,6 +72,11 @@ namespace CaptureEngine.Tests
             {
                 StopCount++;
                 IsRunning = false;
+            }
+
+            public void ClearWindowsLeafCerts()
+            {
+                ClearWindowsLeafCertsCount++;
             }
 
             public void Dispose()
