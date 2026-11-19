@@ -107,7 +107,7 @@ namespace Clearinet.CaptureEngine
     internal static class CaptureEnginePrefs
     {
         internal const string PrefCaptureConnect = "proxy.capture_connect";
-        internal const string PrefDecryptHttps = "proxy.decrypt_https";
+        //internal const string PrefDecryptHttps = "proxy.decrypt_https";
         internal const string PrefListenPort = "proxy.listen_port";
         internal const string PrefAllowRemoteConnections = "proxy.allow_remote_connections";
         internal const string PrefEnableIPv6 = "proxy.enable_ipv6";
@@ -131,11 +131,6 @@ namespace Clearinet.CaptureEngine
         internal static bool ShouldCaptureConnect()
         {
             return CApp.Prefs.GetBoolPref(PrefCaptureConnect, true);
-        }
-
-        internal static bool ShouldDecryptHttps()
-        {
-            return CApp.Prefs.GetBoolPref(PrefDecryptHttps, false);
         }
 
         internal static bool IsCaptureTracingEnabled()

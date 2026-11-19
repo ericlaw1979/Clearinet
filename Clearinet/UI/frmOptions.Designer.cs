@@ -363,13 +363,15 @@
             // lnkHostDecryptionMode
             // 
             this.lnkHostDecryptionMode.AutoSize = true;
+            this.lnkHostDecryptionMode.LinkArea = new System.Windows.Forms.LinkArea(0, 16);
             this.lnkHostDecryptionMode.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkHostDecryptionMode.Location = new System.Drawing.Point(28, 119);
+            this.lnkHostDecryptionMode.Location = new System.Drawing.Point(28, 116);
             this.lnkHostDecryptionMode.Name = "lnkHostDecryptionMode";
-            this.lnkHostDecryptionMode.Size = new System.Drawing.Size(200, 17);
-            this.lnkHostDecryptionMode.TabIndex = 5;
+            this.lnkHostDecryptionMode.Size = new System.Drawing.Size(197, 22);
+            this.lnkHostDecryptionMode.TabIndex = 4;
             this.lnkHostDecryptionMode.TabStop = true;
             this.lnkHostDecryptionMode.Text = "Skip dec&ryption for hostnames:";
+            this.lnkHostDecryptionMode.UseCompatibleTextRendering = true;
             this.lnkHostDecryptionMode.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHostDecryptionMode_LinkClicked);
             // 
             // txtDecryptHosts
@@ -382,7 +384,7 @@
             this.txtDecryptHosts.Multiline = true;
             this.txtDecryptHosts.Name = "txtDecryptHosts";
             this.txtDecryptHosts.Size = new System.Drawing.Size(631, 171);
-            this.txtDecryptHosts.TabIndex = 4;
+            this.txtDecryptHosts.TabIndex = 5;
             // 
             // cbIgnoreUpstreamCertErrors
             // 
@@ -428,6 +430,7 @@
             this.cbDecryptHTTPS.TabIndex = 1;
             this.cbDecryptHTTPS.Text = "&Decrypt HTTPS exchanges";
             this.cbDecryptHTTPS.UseVisualStyleBackColor = true;
+            this.cbDecryptHTTPS.Click += new System.EventHandler(this.cbDecryptHTTPS_Click);
             // 
             // pageAppearance
             // 

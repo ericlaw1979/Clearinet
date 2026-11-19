@@ -506,21 +506,7 @@ namespace Clearinet.CaptureEngine
                 }
 
                 // Should we decrypt the tunnel?
-                if (xc["x-no-decrypt"] == null)
-                {
-                    var commonBrowserProcesses = CApp.Prefs.GetStringPref("lists.common_browser_processes",
-                        DEFAULTS.sPopularBrowserProcessNames);
-                    if (!IsBrowserProcessName(xc.LocalProcess, commonBrowserProcesses))
-                    {
-                        xc["x-no-decrypt"] = "Rules > NonBrowserProcess";
-                    }
-
-                    // If the user has configured a list of hostnames, respect that
-                    if (!CApp.ShouldDecryptHost(xc.hostname))
-                    {
-                        xc["x-no-decrypt"] = "Options > HTTPS > DecryptionList";
-                    }
-                }
+                SetNoDecryptIfAppropriate(xc);
             }
 
             // Toolbar's ProcessFilter        
@@ -566,14 +552,54 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static bool IsBrowserProcessName(string processIdentity, string browserProcessList)
+        private static void SetNoDecryptIfAppropriate(Exchange xc)
+        {
+            // If the user has already set x-no-decrypt, then respect that.
+            if (xc.oFlags.ContainsKey("x-no-decrypt")) return;
+
+            // If decryption is disabled, then don't decrypt.
+            if (!CApp.Prefs.GetBoolPref("proxy.decrypt_https", false))
+            {
+                xc["x-no-decrypt"] = "Tools > Options > HTTPS > Decrypt HTTPS is disabled.";
+                return;
+            }
+
+            CONFIG.ProcessFilter pfMode = (CONFIG.ProcessFilter)CApp.Prefs.GetInt32Pref("proxy.https.decrypt_process_filter", (int)CONFIG.ProcessFilter.All);
+            if (pfMode != CONFIG.ProcessFilter.All)
+            {
+                if (pfMode == CONFIG.ProcessFilter.Remote)
+                {
+                    xc["x-no-decrypt"] = "Tools > Options > HTTPS > only from remote";
+                    return;
+                }
+                if (pfMode == CONFIG.ProcessFilter.Browsers && !IsBrowserProcessName(xc.LocalProcess))
+                {
+                    xc["x-no-decrypt"] = "Tools > Options > HTTPS > only browsers";
+                    return;
+                }
+                else if (pfMode == CONFIG.ProcessFilter.NonBrowser && IsBrowserProcessName(xc.LocalProcess))
+                {
+                    xc["x-no-decrypt"] = "Tools > Options > HTTPS > only non-browsers";
+                    return;
+                }
+            }
+
+            // If the user has configured a list of hostnames, respect that
+            if (!CApp.ShouldDecryptHost(xc.hostname))
+            {
+                xc["x-no-decrypt"] = "Tools > Options > HTTPS > DecryptionList";
+                return;
+            }
+        }
+
+        private static bool IsBrowserProcessName(string processIdentity)
         {
             string normalizedProcessName = processIdentity.TrimAfter(":");
             if (!normalizedProcessName.HasText()) return false;
-            if (!browserProcessList.HasText()) return false;
 
             // TODO: Cache this somewhere
-            string[] processList = browserProcessList.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] processList = CApp.Prefs.GetStringPref("lists.common_browser_processes",
+                DEFAULTS.sPopularBrowserProcessNames).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < processList.Length; i++)
             {
                 string candidate = processList[i];
@@ -998,10 +1024,10 @@ namespace Clearinet.CaptureEngine
                 "localhost.fiddler", "ipv4.fiddler", "ipv6.fiddler");
         }
 
+        // TODO: This probably ought not work like this; we should insteaad look at the CONNECT BitFlags alone?
         private static bool ShouldDecryptTunnel(Exchange xc)
         {
             if (xc.BitFlags.HasFlag(ExchangeFlags.Ignored)) return false;
-            if (!CaptureEnginePrefs.ShouldDecryptHttps()) return false;
             if (xc["x-no-decrypt"] != null) return false;
             return true;
         }
@@ -1177,12 +1203,18 @@ namespace Clearinet.CaptureEngine
                     "Connection: keep-alive"
                 });
 
+                // If we're not decrypting due to a flag, note that here.
+                if (xc.oFlags.ContainsKey("x-no-decrypt"))
+                {
+                    xc.ResponseHeaders.Add("X-Clearinet-Info",
+                        $"Tunnel not decrypted because Exchange.oFlags[\"x-no-decrypt\"]= \"{xc.oFlags["x-no-decrypt"]}\".");
+                }
+
                 xc.Timers.ClientBeginResponse = DateTime.Now;
                 await clientStream.WriteAsync(xc.ResponseHeaders.ToByteArray(), 0, xc.ResponseHeaders.ToByteArray().Length, token).ConfigureAwait(false);
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
 
                 // TODO: Set the State properly.
-
                 UpdateUIForExchange(xc);
 
                 using (NetworkStream upstreamStream = upstream.GetStream())
@@ -1212,7 +1244,9 @@ namespace Clearinet.CaptureEngine
                                 if (!clientHelloParsed && clientToServerSniffLength >= TunnelSniffInitialParseThresholdBytes &&
                                     TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string summaryOfHandshake, out string sniffedSNI))
                                 {
-                                    xc.RequestBody = Encoding.UTF8.GetBytes(summaryOfHandshake);
+                                    xc.RequestBody = Encoding.UTF8.GetBytes("This is a CONNECT tunnel, through which unprocessed network traffic flows.\r\n"
+                                        + (xc.oFlags.ContainsKey("x-no-decrypt") ? $"\r\nThis tunnel was not decrypted because Exchange.oFlags[\"x-no-decrypt\"]= \"{xc.oFlags["x-no-decrypt"]}\".\r\n\r\n" : string.Empty)
+                                        + summaryOfHandshake);
                                     if (sniffedSNI.HasText()) xc["HTTPS-Client-SNIHostname"] = sniffedSNI;
                                     clientHelloParsed = true;
                                 }

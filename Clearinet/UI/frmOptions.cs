@@ -53,17 +53,26 @@ namespace Clearinet
             txtToolDiffArgs.Text = CApp.Prefs.GetStringPref("app.tools.diff.args", "--diff %1 %2");
             txtProxyBypass.Text = CApp.Prefs.GetStringPref("proxy.bypass_list", "<-loopback>");
             txtDecryptHosts.Text = CApp.Prefs.GetStringPref("proxy.https.decryption_list", String.Empty);
+            cbxDecryptFor.SelectedIndex = CApp.Prefs.GetInt32Pref("proxy.https.decrypt_process_filter", (int)CONFIG.ProcessFilter.All);
 
-            if (CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true))
+            UpdateDecryptionLabel();
+
+            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
+        }
+
+        private void UpdateDecryptionLabel()
+        {
+            bool bSkipMode = CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true);
+            if (bSkipMode)
             {
                 lnkHostDecryptionMode.Text = "Skip dec&ryption for hostnames:";
+                lnkHostDecryptionMode.LinkArea = new LinkArea(0, 1 + "Skip decryption".Length);
             }
             else
             {
                 lnkHostDecryptionMode.Text = "Only dec&rypt for hostnames:";
+                lnkHostDecryptionMode.LinkArea = new LinkArea(0, 1 + "Only decrypt".Length);
             }
-
-            if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
         }
 
         private void lnkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -87,6 +96,7 @@ namespace Clearinet
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.dark_mode", cbDarkMode.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("app.ui.minimize_to_tray", cbMinimizeToTray.Checked, false);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.bypass_list", txtProxyBypass.Text, "<-loopback>");
+            CApp.Prefs.AssignOrRemoveIfDefault("proxy.https.decrypt_process_filter", cbxDecryptFor.SelectedIndex, (int)CONFIG.ProcessFilter.All);
             CApp.Prefs.AssignOrRemoveIfDefault("proxy.https.decryption_list", PrepareHostlist(txtDecryptHosts.Text), String.Empty);
             CApp.RefreshDecryptionHosts();  // TODO: Do only if modified
 
@@ -260,14 +270,13 @@ namespace Clearinet
             bool bSkipMode = CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true);
             bSkipMode = !bSkipMode;
             CApp.Prefs.SetBoolPref("proxy.https.decryption_list.is_skip_mode", bSkipMode);
-            if (bSkipMode)
-            {
-                lnkHostDecryptionMode.Text = "Skip dec&ryption for hostnames:";
-            }
-            else
-            {
-                lnkHostDecryptionMode.Text = "Only dec&rypt for hostnames:";
-            }
+            UpdateDecryptionLabel();
+        }
+
+        private void cbDecryptHTTPS_Click(object sender, EventArgs e)
+        {
+            // TODO: Check if the cert exists, if not, create and trust it.
+            if (cbDecryptHTTPS.Checked) CApp.alert("You will be prompted to trust the root cert on first use.");
         }
     }
 }

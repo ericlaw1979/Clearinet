@@ -20,6 +20,14 @@ namespace Clearinet
     /// </summary>
     public static class CONFIG
     {
+        public enum ProcessFilter
+        {
+            All = 0,
+            Browsers = 1,
+            NonBrowser = 2,
+            Remote = 3
+        }
+
         internal static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
         internal static readonly Color COLOR_DARK_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#0A252C");
         internal static Color COLOR_DATA_RESPONSE = Color.DeepSkyBlue; // Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");

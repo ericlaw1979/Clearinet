@@ -125,7 +125,7 @@ namespace Clearinet
 
 
         /// <summary>
-        /// Asynchronously invoke on App's thread unless closing.
+        /// Asynchronously invoke on App's thread, unless closing.
         /// </summary>
         internal static void UIInvokeAsync(Delegate oDel, object[] args)
         {
@@ -159,7 +159,7 @@ namespace Clearinet
                     "Not Yet Implemented", MessageBoxIcon.Information);
             }
 
-            // TODO: Move this into the CaptureEngine
+            // TODO: Consider moving responsibility for setting the proxy into the CaptureEngine?
             CApp.Prefs.SetStringPref("proxy.prior_proxy", WinINETInterop.CaptureCurrentProxySettings());
             WinINETInterop.SetProxyForClearinet($"127.0.0.1:{CONFIG.ListenPort}",   // TODO: Allow pref to control hostname
                                                 CApp.Prefs.GetStringPref("proxy.bypass_list", "<-loopback>"));
@@ -172,7 +172,7 @@ namespace Clearinet
         {
             isAttached = false;
 
-            // TODO: Move this into the CaptureEngine
+            // TODO: Consider moving responsibility for resetting the proxy into the CaptureEngine?
             WinINETInterop.RestoreProxySettings(CApp.Prefs.GetStringPref("proxy.prior_proxy", string.Empty));
             OnProxyDetach();
             // --------------------------------------
@@ -646,7 +646,7 @@ namespace Clearinet
                 _captureEngineRuntime.Start();
                 if (CaptureEnginePrefs.IsCaptureTracingEnabled())
                 {
-                    Log.Log($"Capture tracing enabled. DecryptHTTPS={CaptureEnginePrefs.ShouldDecryptHttps()}, CaptureCONNECT={CaptureEnginePrefs.ShouldCaptureConnect()}, SocketPoolIdleMs={CaptureEnginePrefs.GetSocketPoolIdleMs()}, SocketPoolMaxAgeMs={CaptureEnginePrefs.GetSocketPoolMaxAgeMs()}");
+                    Log.Log($"Capture tracing enabled. CaptureCONNECT={CaptureEnginePrefs.ShouldCaptureConnect()}, SocketPoolIdleMs={CaptureEnginePrefs.GetSocketPoolIdleMs()}, SocketPoolMaxAgeMs={CaptureEnginePrefs.GetSocketPoolMaxAgeMs()}");
                 }
             }
             catch (Exception eX)
