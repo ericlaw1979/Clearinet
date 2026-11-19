@@ -94,6 +94,7 @@ listed build directory with the single-test command above.
 | `BatchExchangeInsertion` | `Clearinet\bin\Release` | Bulk insertion, ascending/descending sorting, comparison-count threshold, duplicate insertion, partial enumeration failure, file insertion. |
 | `CurlExport` | `Clearinet\bin\Release` | CMD/PowerShell quoting, body boundaries, chunk decoding, clipboard export. Invokes CMD for quoting checks but does not execute cURL or send HTTP requests. |
 | `CopyAsCode` | `Clearinet\bin\Release` | Copy as PowerShell and Copy as JavaScript fetch(): quoting, repeated and connection-level headers, Base64 and chunked bodies, GET body omission, clipboard export, and PowerShell parameter binding via a stand-in `Invoke-WebRequest`. Sends no HTTP requests. |
+| `CustomColumnTypes` | `Clearinet\bin\Release` | `@timers.` and `@calc.` column values (timestamps, durations, sizes, gzip savings, decoded-body hash, security headers, recalculation for a new body, undecodable bodies), sort types, QuickExec `cols save`/`cols add`, the Add columns dialog's Timers/Calculated lists, and saved column definitions. Creates viewer and dialog windows. |
 | `ExchangeHeaderMenu` | `Clearinet\bin\Release` | Native header right-clicks, reordered/scrolled columns, full bold title, search prompt and cancellation, duplicate marking, hide/show widths, customization notification, unchanged row menu, disposal. |
 | `SuggestedFilename` | `Clearinet\bin\Release` | Content-Disposition precedence/decoding, URL and media-type fallbacks, Windows filename validity and exact length boundaries. No UI or network access. |
 | `UserColumnPersistence` | `Clearinet\bin\Release` | Saving and restoring user-added Exchange list columns: QuickExec `cols add`/`cols remove`, escaping of awkward titles and fields, width and position, script columns not saved or duplicated, malformed saved values. Creates viewer windows. |
@@ -162,7 +163,7 @@ first failure; it is not a parallel runner.
 ```powershell
 $groups = [ordered]@{
     Clearinet = @(
-        'BatchExchangeInsertion', 'CopyAsCode', 'CurlExport', 'ExchangeHeaderMenu',
+        'BatchExchangeInsertion', 'CopyAsCode', 'CurlExport', 'CustomColumnTypes', 'ExchangeHeaderMenu',
         'HiddenExecActionTargetWindow', 'MapSocketToProcess',
         'MinimizeToTray', 'QuickExecHistory', 'ScriptColumnReload', 'SuggestedFilename',
         'UserColumnPersistence'

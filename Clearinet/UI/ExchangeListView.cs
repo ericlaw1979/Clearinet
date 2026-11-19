@@ -787,11 +787,11 @@ namespace Clearinet
                 return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x.ResponseHeaders?[sName]);
 
             }
-            //   else if (sBoundDataField.OICStartsWith("@calc."))  // TODO: also @timers.
-            //   {
-            //              var sName = sBoundDataField.TrimBefore('.');
-            //            return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) =>  /* tokens */;
-            //   }
+            else if (ExchangeColumnSources.Find(sBoundDataField) is ExchangeColumnSources.Source source)
+            {
+                // @timers.Name or @calc.Name
+                return AddBoundColumn(sTitle, iWidth, source.SortType, source.Provider);
+            }
             return AddBoundColumn(sTitle, iWidth, ColumnSortType.Text, (x) => x[sBoundDataField]);
         }
 
@@ -809,8 +809,8 @@ namespace Clearinet
         }
 
         /// <summary>
-        /// Serializes user-added columns as "title,width,field" entries separated by ";", with each part escaped
-        /// (Uri.EscapeDataString escapes both delimiters). Column order is kept separately by GetColumnLayout.
+        /// Serializes user-added columns as "title~field" entries separated by "§".
+        /// Column order and width are kept separately by GetColumnLayout.
         /// </summary>
         internal string GetUserColumns()
         {
