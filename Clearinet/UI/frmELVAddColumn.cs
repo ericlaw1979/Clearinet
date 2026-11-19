@@ -11,7 +11,7 @@ namespace Clearinet
         public frmELVAddColumn()
         {
             InitializeComponent();
-            Win32UI.SetCueText(txtName, "title of the column");
+            Win32UI.SetCueText(txtName, "flag or header name");
             Win32UI.SetCueText(txtTitle, "title of the column");
 
             var sPopularRequestHeaders = CApp.Prefs.GetStringPref("lists.common_request_headers", DEFAULTS.sPopularRequestHeaders);
