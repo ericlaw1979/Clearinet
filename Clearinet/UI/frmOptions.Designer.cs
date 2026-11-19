@@ -221,9 +221,9 @@
             this.lblBypassList.AutoSize = true;
             this.lblBypassList.Location = new System.Drawing.Point(342, 13);
             this.lblBypassList.Name = "lblBypassList";
-            this.lblBypassList.Size = new System.Drawing.Size(170, 17);
+            this.lblBypassList.Size = new System.Drawing.Size(204, 17);
             this.lblBypassList.TabIndex = 5;
-            this.lblBypassList.Text = "Bypass Clear&inet for hosts:";
+            this.lblBypassList.Text = "Bypass Clear&inet for hostnames:";
             // 
             // txtProxyBypass
             // 
@@ -232,11 +232,12 @@
             this.txtProxyBypass.Location = new System.Drawing.Point(345, 33);
             this.txtProxyBypass.Multiline = true;
             this.txtProxyBypass.Name = "txtProxyBypass";
-            this.txtProxyBypass.Size = new System.Drawing.Size(317, 124);
+            this.txtProxyBypass.Size = new System.Drawing.Size(317, 160);
             this.txtProxyBypass.TabIndex = 6;
             // 
             // udListenPort
             // 
+            this.udListenPort.AutoSize = true;
             this.udListenPort.Location = new System.Drawing.Point(101, 22);
             this.udListenPort.Maximum = new decimal(new int[] {
             65535,
@@ -244,7 +245,7 @@
             0,
             0});
             this.udListenPort.Name = "udListenPort";
-            this.udListenPort.Size = new System.Drawing.Size(65, 24);
+            this.udListenPort.Size = new System.Drawing.Size(73, 24);
             this.udListenPort.TabIndex = 1;
             this.udListenPort.Value = new decimal(new int[] {
             8888,
@@ -280,6 +281,7 @@
             this.lblListenOn.Size = new System.Drawing.Size(78, 17);
             this.lblListenOn.TabIndex = 0;
             this.lblListenOn.Text = "Listen Port:";
+            this.lblListenOn.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // pageGateway
             // 
