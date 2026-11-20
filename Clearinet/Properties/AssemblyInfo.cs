@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("0.1.1.0")]
 
 // Selected Release Version History
-// v0.1.1.0 - API Improvements
+// v0.1.1.0 - Nov-20-2026 - Run rules on HTTPS requests inside tunnels.
 // v0.1.0.3 - Nov-19-2026 - "Oops" - fix the check for SkipDecryptionHostnames
 // v0.1.0.2 - Nov-19-2026 - Add DnsCache. Switch to DPI scaling instead of Font scaling. Add decryption-by-processfilter controls. Context menu commands for Image inspector. Various bugfixes.
 // v0.1.0.1 - Nov-18-2026 - Add "Reed" Capture Engine. Improve breakpoint debugging experience. Many new Rules. Lots of Autocomplete. New CopyAs features.

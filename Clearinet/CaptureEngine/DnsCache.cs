@@ -34,9 +34,9 @@ namespace Clearinet
         public static event DnsLookupHandler OnLookup;
 
         /// <summary>
-        /// Return the list of IP Addresses for the target hostname
+        /// Returns the IP addresses for the target hostname. Empty DNS results are not cached.
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="hostname">The hostname to resolve.</param>
         /// <returns></returns>
         public static async Task<IPAddress[]> LookupAsync(string hostname)
         {
@@ -131,6 +131,7 @@ namespace Clearinet
         {
             IPAddress[] addresses = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
             IPAddress[] cloned = CloneAddresses(addresses);
+            if (cloned.Length == 0) return cloned;
 
             int lifetimeMs = CaptureEnginePrefs.GetDnsCacheLifetimeMs();
             if (lifetimeMs > 0)
