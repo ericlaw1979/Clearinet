@@ -58,22 +58,38 @@ namespace Clearinet
         /// </summary>
         public static event EventHandler<ReadSAZEventArgs> OnLoadSAZ;
 
+
+        /// <summary>
+        /// Notify extensions if we're about to write a SAZ archive.
+        /// </summary>
+        public static event EventHandler<WriteSAZEventArgs> OnSaveSAZ;
+
         public delegate void ExchangeStateHandler(Exchange xc);
 
         public static event ExchangeStateHandler AfterExchangeComplete;
 
         public class ReadSAZEventArgs : EventArgs
         {
-            public string sFilename { get; private set; }
+            public string SAZFilename { get; private set; }
             public Exchange[] arrExchanges { get; private set; }
             public string sContext { get; private set; }
 
             // Unclear that this needs to be public.
-            public ReadSAZEventArgs(string _sFilename, Exchange[] _arrExchanges, string _sLoadContext)
+            public ReadSAZEventArgs(string _SAZFilename, Exchange[] _arrExchanges, string _sLoadContext)
             {
-                sFilename = _sFilename;
+                SAZFilename = _SAZFilename;
                 arrExchanges = _arrExchanges;
                 sContext = _sLoadContext;
+            }
+        }
+        public class WriteSAZEventArgs : CancelEventArgs
+        {
+            public string SAZFilename { get; set; }
+            public Exchange[] arrExchanges { get; set; }
+            public WriteSAZEventArgs(string _SAZFilename, Exchange[] _arrXC)
+            {
+                SAZFilename = _SAZFilename;
+                arrExchanges = _arrXC;
             }
         }
 
@@ -92,6 +108,18 @@ namespace Clearinet
             {
                 CApp.ReportException(eX, "Error in OnLoadSAZ event handler");
             }
+        }
+
+        internal static bool NotifyBeforeSaveSAZ(string sFilename, Exchange[] arrXC)
+        {
+            EventHandler<WriteSAZEventArgs> oEH = CApp.OnSaveSAZ;
+            if (null != oEH)
+            {
+                WriteSAZEventArgs wsea = new WriteSAZEventArgs(sFilename, arrXC);
+                oEH.Invoke(CApp.UI, wsea);
+                return !wsea.Cancel;
+            }
+            return true;
         }
 
         public static event CancelEventHandler BeforeInspectExchange;

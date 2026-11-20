@@ -1177,6 +1177,11 @@ namespace Clearinet
                     }
                 }
 
+                if (!CApp.NotifyBeforeSaveSAZ(sFilename, arrExchanges))
+                {
+                    return false;
+                }
+
                 using (LongRunningOperation lro = new LongRunningOperation($"Saving {arrExchanges.Length:N0} Exchanges...", true))
                 {
                     Stopwatch oSW = Stopwatch.StartNew();
@@ -1451,9 +1456,6 @@ namespace Clearinet
         {
             updateLVI(xc);
         }
-
-        // TODO: CLEANUP updateLVI and addExchangeToListView ************************************
-        // **************************************************************************************
 
         private void addExchanges(IEnumerable<Exchange> exchanges)
         {

@@ -97,6 +97,7 @@ namespace Clearinet
             return listRequests;
         }
 
+        // Note: Caller should notify the event handler
         internal static SAZFile LoadFrom(string filePath, string sPassword = null)
         {
             SAZFile sazFile = new SAZFile
