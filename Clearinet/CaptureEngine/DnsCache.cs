@@ -47,6 +47,11 @@ namespace Clearinet
                 return RemoveIPv6IfDisabled(overrideAddresses);
             }
 
+            // This is ReplaceVirtualHostnames in the App. TODO: Offer a preference to disable built-in hostnames.
+            //if (hostname.OICEquals("localhost.fiddler")) return new IPAddress[] { IPAddress.IPv6Loopback, IPAddress.Loopback };
+            //if (hostname.OICEquals("ipv4.fiddler")) return new IPAddress[] { IPAddress.Loopback };
+            //if (hostname.OICEquals("ipv6.fiddler")) return new IPAddress[] { IPAddress.IPv6Loopback };
+
             if (TryGetCached(normalizedHost, out IPAddress[] cachedAddresses))
             {
                 return RemoveIPv6IfDisabled(cachedAddresses);

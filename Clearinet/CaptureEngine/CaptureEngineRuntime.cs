@@ -490,10 +490,12 @@ namespace Clearinet.CaptureEngine
             */
         }
 
-        // Clearinet includes some built-in rules. We will run those at the appropriate time.
+        // Clearinet includes some built-in rules. We will run those at the appropriate time. TODO: WHEN?
         private async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
         {
             if (CApp.isClosing) return;
+
+            ReplaceAnyVirtualHostname(xc);
 
             // If it's a CONNECT, see if we should decrypt it based on the Process Name or Hostname.
             if (xc.HTTPMethodIs("CONNECT"))
@@ -550,6 +552,35 @@ namespace Clearinet.CaptureEngine
             {
                 xc.utilDecodeRequest();
             }
+        }
+
+        private void ReplaceAnyVirtualHostname(Exchange xc)
+        {
+            // TODO: Offer a preference to disable this.
+
+            if (!xc.hostname.OICEndsWithAny(".clearinet", ".fiddler")) return;
+
+            var sOriginalHostname = xc.hostname;
+
+            if (xc.hostname.OICEqualsAny("localhost.clearinet", "localhost.fiddler"))
+            {
+                xc.hostname = "localhost";
+            }
+            else if (xc.hostname.OICEqualsAny("ipv4.clearinet", "ipv4.fiddler"))
+            {
+                xc.hostname = "127.0.0.1";
+            }
+            else if (xc.hostname.OICEqualsAny("ipv6.clearinet", "ipv6.fiddler"))
+            {
+                xc.hostname = "::1";
+            }
+            else
+            {
+                return; // unsupported label before our suffixes
+            }
+
+            xc["x-UsedVirtualHost"] = sOriginalHostname;
+            // TODO: Fixup CONNECT tunnels?
         }
 
         private static void SetNoDecryptIfAppropriate(Exchange xc)
@@ -1015,10 +1046,11 @@ namespace Clearinet.CaptureEngine
         private static bool ExchangeTargetsReflector(Exchange xc)
         {
             if (xc == null) return false;
-            if (xc.port == CONFIG.ListenPort)
-            {
-                if (xc.hostname.OICEqualsAny("localhost", "127.0.0.1", "::1")) return true;
-            }
+            if (xc.port != CONFIG.ListenPort) return false;
+
+            if (xc.hostname.OICEqualsAny("localhost", "127.0.0.1", "::1")) return true;
+
+            // TODO: can we get here?
             return xc.hostname.OICEqualsAny(
                 "localhost.clearinet", "ipv4.clearinet", "iv6.clearinet",
                 "localhost.fiddler", "ipv4.fiddler", "ipv6.fiddler");
