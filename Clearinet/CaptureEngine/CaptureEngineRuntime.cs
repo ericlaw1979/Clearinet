@@ -711,7 +711,7 @@ namespace Clearinet.CaptureEngine
                 {
                     Stopwatch oSW = Stopwatch.StartNew();
                     var tls = new SslStream(networkStream, false,
-                        (sender, certificate, chain, errors) => callbackValidateServerCertificate(host, sender, certificate, chain, errors));
+                        (sender, certificate, chain, errors) => callbackValidateServerCertificate(xc, host, sender, certificate, chain, errors));
                     serverStream = tls;
                     await tls.AuthenticateAsClientAsync(host, null, CONFIG.oAcceptedServerProtocols, false).ConfigureAwait(false);
                     oSW.Stop();
@@ -741,7 +741,7 @@ namespace Clearinet.CaptureEngine
             if (eX is AuthenticationException)
             {
                 statusCode = 525;
-                statusText = "TLS Handshake Failed";
+                statusText = "TLS Handshake Failed";                // TODO: Where on earth did this come from??
             }
             else if (eX is InvalidDataException || eX is FormatException)
             {
@@ -1093,10 +1093,10 @@ namespace Clearinet.CaptureEngine
                 return;
             }
 
+            #region GetCertificateForServerHello
             _certificateProvider.EnsureRootTrust();     // ISSUE: This should not live here.
 
             var sHostForCertificate = host;
-
             if (xc["x-OverrideCertCN"] is string overrideCN && overrideCN.HasText())
             {
                 sHostForCertificate = overrideCN;
@@ -1104,6 +1104,7 @@ namespace Clearinet.CaptureEngine
             // TODO: support CApp.Prefs.GetBoolPref("network.https.SetCNFromSNI") to pull from xc["https-Client-SNIHostname"]
 
             X509Certificate2 certServer = _certificateProvider.GetCertificateForHost(sHostForCertificate);
+            #endregion GetCertificateForServerHello
 
             Guid clientPipeId = clientPipe.Id;
             string processIdentity = clientPipe.ProcessIdentity;
@@ -1202,17 +1203,17 @@ namespace Clearinet.CaptureEngine
             UpdateUIForExchange(xc);
         }
 
-        private bool callbackValidateServerCertificate(string targetHost, object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private bool callbackValidateServerCertificate(Exchange xc, string targetHost, object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             // https://github.com/microsoft/referencesource/blob/main/System/net/System/Net/SecureProtocols/_SslState.cs
-
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
-            if (CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors"))
+
+            if (xc.oFlags.ContainsKey("X-IgnoreCertErrors") || CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors"))
             {
-                CApp.Log.Log($"! Ignoring SSL validation error for connection to {targetHost}: {sslPolicyErrors}");
+                CApp.Log.Log($"! Ignoring TLS validation error for connection to {targetHost}: {sslPolicyErrors}");
                 return true;
             }
-            CApp.Log.Log($"Blocking connection to {targetHost} due to SSL validation error: {sslPolicyErrors}");
+            CApp.Log.Log($"Blocking Exchange {xc.id}'s connection to {targetHost} due to TLS validation error: {sslPolicyErrors}");
             return false;
         }
 
