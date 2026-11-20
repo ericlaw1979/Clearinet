@@ -626,6 +626,8 @@ namespace Clearinet
                             CApp.UI?.UpdateViewItem(this);
                         });
 
+                        CApp.NotifyAfterExchangeComplete(this);
+
                         if (oFlags.ContainsKey("log-drop-response-body"))
                         {
                             this.BitFlags |= ExchangeFlags.ResponseBodyDropped;

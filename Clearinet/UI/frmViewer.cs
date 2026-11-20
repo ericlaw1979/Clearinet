@@ -1262,12 +1262,12 @@ namespace Clearinet
                 this.Invoke((MethodInvoker)actInspectExchange);
                 return;
             }
-            Exchange exch = GetFirstSelectedExchange();
-            if (null == exch) return;
+            Exchange xc = GetFirstSelectedExchange();
+            if (null == xc) return;
 
-            /* todo: Call anyone syncing the DoBeforeInspect event.*/
-            SelectBestInspector(tabsRequest, exch);
-            SelectBestInspector(tabsResponse, exch);
+            if (!CApp.NotifyBeforeExchangeInspect(xc)) return;
+            SelectBestInspector(tabsRequest, xc);
+            SelectBestInspector(tabsResponse, xc);
 
             tabsViews.SelectedTab = this.pageInspectors;
         }
@@ -1434,6 +1434,8 @@ namespace Clearinet
                         }
 
                         addExchanges(sazFile.Exchanges);
+                        CApp.NotifyAfterLoadSAZ("WebExchangesList", sPath, sazFile.Exchanges.ToArray());
+
                     }
                     return true;
                 }

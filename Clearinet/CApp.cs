@@ -52,6 +52,81 @@ namespace Clearinet
 
         internal static bool DecryptionHostListIsSkipMode { get { return CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true); } }
 
+        /// <summary>
+        /// This event will fire immediately after a SAZ file is loaded to
+        /// allow extensions to inspect the loaded exchanges and perform any additional processing.
+        /// </summary>
+        public static event EventHandler<ReadSAZEventArgs> OnLoadSAZ;
+
+        public delegate void ExchangeStateHandler(Exchange xc);
+
+        public static event ExchangeStateHandler AfterExchangeComplete;
+
+        public class ReadSAZEventArgs : EventArgs
+        {
+            public string sFilename { get; private set; }
+            public Exchange[] arrExchanges { get; private set; }
+            public string sContext { get; private set; }
+
+            // Unclear that this needs to be public.
+            public ReadSAZEventArgs(string _sFilename, Exchange[] _arrExchanges, string _sLoadContext)
+            {
+                sFilename = _sFilename;
+                arrExchanges = _arrExchanges;
+                sContext = _sLoadContext;
+            }
+        }
+
+        internal static void NotifyAfterLoadSAZ(string sContext, string sFilename, Exchange[] arrNewExchanges)
+        {
+            try
+            {
+                EventHandler<ReadSAZEventArgs> ehLoad = CApp.OnLoadSAZ;
+                if (null != ehLoad)
+                {
+                    ReadSAZEventArgs rsea = new ReadSAZEventArgs(sFilename, arrNewExchanges, sContext);
+                    ehLoad.Invoke(CApp.UI, rsea);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Error in OnLoadSAZ event handler");
+            }
+        }
+
+        public static event CancelEventHandler BeforeInspectExchange;
+
+        internal static bool NotifyBeforeExchangeInspect(Exchange xc)
+        {
+            // Bail if nobody cares.
+            if (null == BeforeInspectExchange) return true;
+
+            CancelEventArgs cea = new CancelEventArgs();
+            try
+            {
+                BeforeInspectExchange(xc, cea);
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "BeforeInspect handler threw.");
+            }
+            return !cea.Cancel;
+        }
+
+        internal static void NotifyAfterExchangeComplete(Exchange xc)
+        {
+            if (xc.isFlagSet(ExchangeFlags.Ignored)) return;
+
+            Debug.Assert(xc.state >= ExchangeState.Done);
+
+            if (null != AfterExchangeComplete)
+            {
+                AfterExchangeComplete(xc);
+            }
+
+            CApp.scriptRules?.RunOnExchangeCompleted(xc);
+        }
+
         public static bool isTracing { get; internal set; } = false;
 
         public static Extensions oExtensions;
@@ -127,12 +202,12 @@ namespace Clearinet
         /// <summary>
         /// Asynchronously invoke on App's thread, unless closing.
         /// </summary>
-        internal static void UIInvokeAsync(Delegate oDel, object[] args)
+        public static void UIInvokeAsync(Delegate oDel, object[] args)
         {
             if (isClosing) return;
             _frmMain.BeginInvoke(oDel, args);
         }
-        internal static void UIInvokeAsync(Action oDel)
+        public static void UIInvokeAsync(Action oDel)
         {
             if (isClosing) return;
             _frmMain?.BeginInvoke(oDel);

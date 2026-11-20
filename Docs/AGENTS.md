@@ -29,6 +29,7 @@ Porting extensions from the legacy Fiddler extension API to the new Clearinet ex
 - Remove `SessionTimers.EnableHighResolutionTimers` (the app now checks CApp.Prefs.GetBoolPref("app.high_resolution_clock", true) at boot time)
 - IHandleExecAction is not yet implemented.
 - `IAutoTamper2` and `IAutoTamper3` were merged into the `IAutoTamper` interface. Implementers should leave the Peek methods unimplemented if they aren't needed.
+- The tool no longer uses a standalone Be.Hexedit control, instead using \Extensions\Controls\HttpHexBox.cs
 
 - In Fiddler, each Inspector inherited from Inspector2 (an abstract base class) AND then implemented either 
   IRequestInspector2 or IResponseInspector2 to add an accessor for the proper type of Headers. In Clearinet,
