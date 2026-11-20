@@ -343,7 +343,7 @@ namespace Clearinet.CaptureEngine
 
         private async Task<bool> ForwardUsingServerPipeAsync(Exchange xc, ClientPipe clientPipe, CancellationToken token)
         {
-            if (!TryComputeDestination(xc.RequestHeaders, out string host, out int port, out bool isTls))
+            if (!TryComputeDestination(xc, out string host, out int port, out bool isTls))
                 throw new InvalidDataException("The request does not refer to a valid HTTP(S) destination.");
 
             string processIdentity = clientPipe.ProcessIdentity;
@@ -410,15 +410,31 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static bool TryComputeDestination(HTTPRequestHeaders headers, out string host, out int port, out bool isTls)
+        private static bool TryComputeDestination(Exchange xc, out string host, out int port, out bool isTls)
         {
             host = null;
             port = 0;
             isTls = false;
-            if (headers == null) return false;
 
-            string scheme = headers.UriScheme;
-            string path = headers.RequestPath ?? string.Empty;
+            if (xc.oFlags.ContainsKey("x-overrideHost"))
+            {
+                isTls = xc.isFlagSet(ExchangeFlags.IsHTTPS);
+                port = (isTls ? 443 : 80);
+                Parser.CrackHost(xc.oFlags["x-overrideHost"], out host, ref port);
+                return true;
+            }
+            if (xc.oFlags.ContainsKey("x-overrideHostname"))
+            {
+                isTls = xc.isFlagSet(ExchangeFlags.IsHTTPS);
+                int iThrowaway = 0;
+                Parser.CrackHost(xc.oFlags["x-overrideHostname"], out host, ref iThrowaway);
+                return true;
+            }
+
+            if (xc.RequestHeaders == null) return false;
+
+            string scheme = xc.RequestHeaders.UriScheme;
+            string path = xc.RequestHeaders.RequestPath ?? string.Empty;
             Uri target;
             bool absoluteForm = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
@@ -426,12 +442,12 @@ namespace Clearinet.CaptureEngine
             {
                 if (!Uri.TryCreate(path, UriKind.Absolute, out target)) return false;
                 scheme = target.Scheme;
-                headers.RequestPath = string.IsNullOrEmpty(target.PathAndQuery) ? "/" : target.PathAndQuery;
+                xc.RequestHeaders.RequestPath = string.IsNullOrEmpty(target.PathAndQuery) ? "/" : target.PathAndQuery;
             }
             else
             {
                 if (path.Contains("://")) return false;
-                string authority = headers["Host"];
+                string authority = xc.RequestHeaders["Host"];
                 if (!Uri.TryCreate(scheme + "://" + authority + "/", UriKind.Absolute, out target)) return false;
             }
 
@@ -442,10 +458,66 @@ namespace Clearinet.CaptureEngine
             host = target.DnsSafeHost;
             port = target.Port;
             isTls = target.Scheme.OICEquals("https");
-            headers.UriScheme = target.Scheme;
-            headers["Host"] = target.Authority;
-            if (string.IsNullOrEmpty(headers.RequestPath)) headers.RequestPath = "/";
+            // xc.RequestHeaders.UriScheme = target.Scheme;
+            // xc.RequestHeaders["Host"] = target.Authority;
+            // if (string.IsNullOrEmpty(xc.RequestHeaders.RequestPath)) xc.RequestHeaders.RequestPath = "/";
             return port > 0 && port <= IPEndPoint.MaxPort;
+        }
+        private static bool TryComputeCONNECTDestination(Exchange xc, out string host, out int port)
+        {
+            host = null;
+            port = 443;
+
+            if (xc.oFlags.ContainsKey("x-overrideHost"))
+            {
+                port = xc.port;
+                Parser.CrackHost(xc.oFlags["x-overrideHost"], out host, ref port);
+                return true;
+            }
+            if (xc.oFlags.ContainsKey("x-overrideHostname"))
+            {
+                int iThrowaway = 0;
+                Parser.CrackHost(xc.oFlags["x-overrideHostname"], out host, ref iThrowaway);
+                return true;
+            }
+
+            string target = xc.RequestHeaders?.RequestPath ?? string.Empty;
+            if (!target.HasText())
+            {
+                target = xc.RequestHeaders?["Host"] ?? string.Empty;
+            }
+
+            target = target.Trim();
+            if (!target.HasText()) return false;
+
+            if (target.StartsWith("[", StringComparison.Ordinal))
+            {
+                int end = target.IndexOf(']');
+                if (end <= 1) return false;
+
+                host = target.Substring(1, end - 1);
+                if (end + 1 < target.Length)
+                {
+                    if (target[end + 1] != ':') return false;
+                    if (!int.TryParse(target.Substring(end + 2), NumberStyles.Integer, CultureInfo.InvariantCulture, out port)) return false;
+                }
+                return true;
+            }
+
+            int ixColon = target.LastIndexOf(':');
+            if (ixColon < 0)
+            {
+                host = target;
+                return true;
+            }
+
+            host = target.Substring(0, ixColon);
+            if (!int.TryParse(target.Substring(ixColon + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out port))
+            {
+                return false;
+            }
+
+            return host.HasText();
         }
 
         /// <summary>
@@ -1078,7 +1150,7 @@ namespace Clearinet.CaptureEngine
             if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
 
             // Validate that we got a valid CONNECT request.
-            if (!TryGetConnectTarget(xc, out string host, out int port))
+            if (!TryComputeCONNECTDestination(xc, out string host, out int port))
             {
                 xc.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
                 {
@@ -1229,7 +1301,7 @@ namespace Clearinet.CaptureEngine
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
 
-            if (!TryGetConnectTarget(xc, out string host, out int port))
+            if (!TryComputeCONNECTDestination(xc, out string host, out int port))
             {
                 xc.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
                 {
@@ -1553,50 +1625,6 @@ namespace Clearinet.CaptureEngine
             }
 
             throw new SocketException((int)SocketError.HostUnreachable);
-        }
-
-        private static bool TryGetConnectTarget(Exchange exchange, out string host, out int port)
-        {
-            host = null;
-            port = 443;
-
-            string target = exchange?.RequestHeaders?.RequestPath ?? string.Empty;
-            if (!target.HasText())
-            {
-                target = exchange?.RequestHeaders?["Host"] ?? string.Empty;
-            }
-
-            target = target.Trim();
-            if (!target.HasText()) return false;
-
-            if (target.StartsWith("[", StringComparison.Ordinal))
-            {
-                int end = target.IndexOf(']');
-                if (end <= 1) return false;
-
-                host = target.Substring(1, end - 1);
-                if (end + 1 < target.Length)
-                {
-                    if (target[end + 1] != ':') return false;
-                    if (!int.TryParse(target.Substring(end + 2), NumberStyles.Integer, CultureInfo.InvariantCulture, out port)) return false;
-                }
-                return true;
-            }
-
-            int ixColon = target.LastIndexOf(':');
-            if (ixColon < 0)
-            {
-                host = target;
-                return true;
-            }
-
-            host = target.Substring(0, ixColon);
-            if (!int.TryParse(target.Substring(ixColon + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out port))
-            {
-                return false;
-            }
-
-            return host.HasText();
         }
 
         private static async Task<long> PumpStreamAsync(Stream source, Stream destination, CancellationToken token, Action<byte[], int, long> onBytesPumped = null)
