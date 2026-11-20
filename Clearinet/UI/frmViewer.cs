@@ -1425,7 +1425,7 @@ namespace Clearinet
             {
                 using (var lro = new LongRunningOperation($"Loading {PlatformAPI.CompactPath(sPath, 32)}...", false))
                 {
-                    using (SAZFile sazFile = SAZFile.LoadFrom(sPath))
+                    using (SAZFile sazFile = SAZFile.LoadFrom(sPath, lro: lro))
                     {
                         CApp.Log.Log($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}. {sazFile.sComment}");
                         SetStatusText($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}");
