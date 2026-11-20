@@ -41,7 +41,7 @@ namespace Clearinet
         internal static bool ShouldDecryptHost(string hostname)
         {
             bool bInList = _DecryptionHosts.Contains(hostname);
-            if (bInList && CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true)) return false;
+            if (CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true)) return !bInList;
             return bInList;
         }
         internal static void RefreshDecryptionHosts()

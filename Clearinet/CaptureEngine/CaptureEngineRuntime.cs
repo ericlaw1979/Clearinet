@@ -560,7 +560,7 @@ namespace Clearinet.CaptureEngine
             // If decryption is disabled, then don't decrypt.
             if (!CApp.Prefs.GetBoolPref("proxy.decrypt_https", false))
             {
-                xc["x-no-decrypt"] = "Tools > Options > HTTPS > Decrypt HTTPS is disabled.";
+                xc["x-no-decrypt"] = "Tools > Options > HTTPS > 'Decrypt HTTPS' is unticked";
                 return;
             }
 

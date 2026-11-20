@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDelaySign(false)]
 [assembly: InternalsVisibleTo("CaptureEngine.Tests")]
 
-[assembly: AssemblyVersion("0.1.0.2")]
+[assembly: AssemblyVersion("0.1.0.3")]
 
 // Selected Release Version History
 // v0.1.0.2 - Nov-19-2026 - Add DnsCache. Switch to DPI scaling instead of Font scaling. Add decryption-by-processfilter controls. Context menu commands for Image inspector. Various bugfixes.
