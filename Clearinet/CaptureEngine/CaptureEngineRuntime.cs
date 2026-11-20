@@ -556,7 +556,7 @@ namespace Clearinet.CaptureEngine
 
         private void ReplaceAnyVirtualHostname(Exchange xc)
         {
-            // TODO: Offer a preference to disable this.
+            // TODO: Offer a preference to disable this replacement.
 
             if (!xc.hostname.OICEndsWithAny(".clearinet", ".fiddler")) return;
 
@@ -580,7 +580,13 @@ namespace Clearinet.CaptureEngine
             }
 
             xc["x-UsedVirtualHost"] = sOriginalHostname;
-            // TODO: Fixup CONNECT tunnels?
+
+            // We need to return the original hostname to the client in our ServerHello,
+            // otherwise the client will complain about a cert mismatch.
+            if (xc.HTTPMethodIs("CONNECT"))
+            {
+                xc["x-OverrideCertCN"] = sOriginalHostname;
+            }
         }
 
         private static void SetNoDecryptIfAppropriate(Exchange xc)
@@ -1089,7 +1095,15 @@ namespace Clearinet.CaptureEngine
 
             _certificateProvider.EnsureRootTrust();     // ISSUE: This should not live here.
 
-            X509Certificate2 leaf = _certificateProvider.GetCertificateForHost(host);
+            var sHostForCertificate = host;
+
+            if (xc["x-OverrideCertCN"] is string overrideCN && overrideCN.HasText())
+            {
+                sHostForCertificate = overrideCN;
+            }
+            // TODO: support CApp.Prefs.GetBoolPref("network.https.SetCNFromSNI") to pull from xc["https-Client-SNIHostname"]
+
+            X509Certificate2 certServer = _certificateProvider.GetCertificateForHost(sHostForCertificate);
 
             Guid clientPipeId = clientPipe.Id;
             string processIdentity = clientPipe.ProcessIdentity;
@@ -1121,7 +1135,7 @@ namespace Clearinet.CaptureEngine
                 UpdateUIForExchange(xc);
 
                 var clientTls = new SslStream(clientStream, false);
-                clientTls.AuthenticateAsServer(leaf, false, CONFIG.oAcceptedClientProtocols, false);
+                clientTls.AuthenticateAsServer(certServer, false, CONFIG.oAcceptedClientProtocols, false);
                 clientPipe.SetStream(clientTls);
                 {
                     var clientReader = clientPipe.Reader;
