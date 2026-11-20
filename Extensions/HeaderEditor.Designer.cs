@@ -32,7 +32,7 @@
             this.btnSave = new System.Windows.Forms.Button();
             this.txtName = new System.Windows.Forms.TextBox();
             this.txtValue = new System.Windows.Forms.TextBox();
-            this.lnkHeaderLookup = new System.Windows.Forms.LinkLabel();
+            this.lnkHeaderLookup = new Clearinet.BetterLinkLabel();
             this.btnTemplates = new System.Windows.Forms.Button();
             this.lblName = new System.Windows.Forms.Label();
             this.lblValue = new System.Windows.Forms.Label();
@@ -196,7 +196,7 @@
 
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnSave;
-        private System.Windows.Forms.LinkLabel lnkHeaderLookup;
+        private Clearinet.BetterLinkLabel lnkHeaderLookup;
         private System.Windows.Forms.Button btnTemplates;
         private System.Windows.Forms.Label lblName;
         private System.Windows.Forms.Label lblValue;

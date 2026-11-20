@@ -42,7 +42,7 @@
     <Compile Update="UI\ComposerView.cs" SubType="UserControl" />
     <Compile Update="UI\ComposerView.Designer.cs" DependentUpon="ComposerView.cs" />
     <Compile Update="UI\CheckedComboBox.cs" SubType="Component" />
-    <Compile Update="UI\ExchangeListView.cs" SubType="Component" />
+    <Compile Update="UI\ExchangeListView.cs" />
     <Compile Update="UI\frmELVAddColumn.cs" SubType="Form" />
     <Compile Update="UI\frmELVAddColumn.Designer.cs" DependentUpon="frmELVAddColumn.cs" />
     <Compile Update="UI\HiddenExecActionTargetWindow.cs" SubType="Component" />

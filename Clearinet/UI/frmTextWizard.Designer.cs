@@ -34,7 +34,7 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.cbxOutputTo = new System.Windows.Forms.ComboBox();
             this.btnSetInputFromOutput = new System.Windows.Forms.Button();
-            this.lnkEncodings = new System.Windows.Forms.LinkLabel();
+            this.lnkEncodings = new BetterLinkLabel();
             this.cbViewBytes = new System.Windows.Forms.CheckBox();
             this.cbxTransforms = new System.Windows.Forms.ComboBox();
             this.lblExplain = new System.Windows.Forms.Label();
@@ -248,7 +248,7 @@
         private System.Windows.Forms.TextBox txtOutput;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Button btnSetInputFromOutput;
-        private System.Windows.Forms.LinkLabel lnkEncodings;
+        private BetterLinkLabel lnkEncodings;
         private System.Windows.Forms.CheckBox cbViewBytes;
         private System.Windows.Forms.ComboBox cbxTransforms;
         private System.Windows.Forms.TextBox txtInput;

@@ -32,9 +32,9 @@
             this.colPrefName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colPrefValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnlTop = new System.Windows.Forms.Panel();
-            this.lnkTearoff = new System.Windows.Forms.LinkLabel();
+            this.lnkTearoff = new BetterLinkLabel();
             this.lblInstructions = new System.Windows.Forms.Label();
-            this.lnkPrefHelp = new System.Windows.Forms.LinkLabel();
+            this.lnkPrefHelp = new BetterLinkLabel();
             this.txtSearch = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPrefs)).BeginInit();
             this.pnlTop.SuspendLayout();
@@ -162,11 +162,11 @@
 
         private System.Windows.Forms.DataGridView dgvPrefs;
         private System.Windows.Forms.Panel pnlTop;
-        private System.Windows.Forms.LinkLabel lnkPrefHelp;
+        private BetterLinkLabel lnkPrefHelp;
         private System.Windows.Forms.Label lblInstructions;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrefValue;
-        private System.Windows.Forms.LinkLabel lnkTearoff;
+        private BetterLinkLabel lnkTearoff;
         private System.Windows.Forms.TextBox txtSearch;
     }
 }

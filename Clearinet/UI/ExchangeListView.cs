@@ -24,6 +24,23 @@ namespace Clearinet
         public string UserDataField;
     }
 
+
+    public class BetterLinkLabel : LinkLabel
+    {
+        protected override void WndProc(ref Message m)
+        {
+            // Treat rapid second click as a normal single click (WM_LBUTTONDOWN)
+            // Otherwise, double-clicking a link will copy the link's text to the clipboard
+            // because some dork checked that change into the static label control for Windows Vista
+            // and left the company before anybody noticed.
+            if (m.Msg == 0x0203) // WM_LBUTTONDBLCLK
+            {
+                m.Msg = 0x0201;
+            }
+
+            base.WndProc(ref m);
+        }
+    }
     /// <summary>
     /// This is a specialization of the ListView for the primary list of Exchanges at the left of the main UI.
     /// It is highly optimized for performance (including asynchronous batched updates), and it has a number

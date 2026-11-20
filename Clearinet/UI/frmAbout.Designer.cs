@@ -31,7 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAbout));
             this.txtAbout = new System.Windows.Forms.TextBox();
             this.pbIcon = new System.Windows.Forms.PictureBox();
-            this.lnkWebsite = new System.Windows.Forms.LinkLabel();
+            this.lnkWebsite = new BetterLinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pbIcon)).BeginInit();
             this.SuspendLayout();
             // 
@@ -100,6 +100,6 @@
         #endregion
         private System.Windows.Forms.TextBox txtAbout;
         private System.Windows.Forms.PictureBox pbIcon;
-        private System.Windows.Forms.LinkLabel lnkWebsite;
+        private BetterLinkLabel lnkWebsite;
     }
 }

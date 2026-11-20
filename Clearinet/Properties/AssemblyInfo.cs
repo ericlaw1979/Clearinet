@@ -17,9 +17,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDelaySign(false)]
 [assembly: InternalsVisibleTo("CaptureEngine.Tests")]
 
-[assembly: AssemblyVersion("0.1.0.3")]
+[assembly: AssemblyVersion("0.1.0.4")]
 
 // Selected Release Version History
+// v0.1.0.3 - Nov-19-2026 - "Oops" - fix the check for SkipDecryptionHostnames
 // v0.1.0.2 - Nov-19-2026 - Add DnsCache. Switch to DPI scaling instead of Font scaling. Add decryption-by-processfilter controls. Context menu commands for Image inspector. Various bugfixes.
 // v0.1.0.1 - Nov-18-2026 - Add "Reed" Capture Engine. Improve breakpoint debugging experience. Many new Rules. Lots of Autocomplete. New CopyAs features.
 // v0.0.3.0 - Nov-01-2026 - Add "Add Column..." to Exchange List header context menu. AddBoundColumn for simple columns (use "cols" in QuickExec), BindPref hooked up for boolean/string fields, BindUIButton can create toolbar toggles for boolean fields; Editing for Raw, Hex, and Header inspectors, Add JXL plumbing, AuthView (Basic,Digest,Moar JWT), about:config highlights changes.

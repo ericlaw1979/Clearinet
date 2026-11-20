@@ -32,7 +32,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.lnkHelp = new System.Windows.Forms.LinkLabel();
+            this.lnkHelp = new BetterLinkLabel();
             this.cbxSource = new System.Windows.Forms.ComboBox();
             this.txtName = new System.Windows.Forms.TextBox();
             this.txtTitle = new System.Windows.Forms.TextBox();
@@ -195,7 +195,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.LinkLabel lnkHelp;
+        private BetterLinkLabel lnkHelp;
         private System.Windows.Forms.ComboBox cbxSource;
         private System.Windows.Forms.TextBox txtName;
         private System.Windows.Forms.TextBox txtTitle;

@@ -52,7 +52,7 @@
             this.miClearLeafCerts = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.miHTTPSResetAllCerts = new System.Windows.Forms.ToolStripMenuItem();
-            this.lnkHostDecryptionMode = new System.Windows.Forms.LinkLabel();
+            this.lnkHostDecryptionMode = new BetterLinkLabel();
             this.txtDecryptHosts = new System.Windows.Forms.TextBox();
             this.cbIgnoreUpstreamCertErrors = new System.Windows.Forms.CheckBox();
             this.cbxDecryptFor = new System.Windows.Forms.ComboBox();
@@ -68,7 +68,7 @@
             this.pageExtensions = new System.Windows.Forms.TabPage();
             this.txtExtensionsList = new System.Windows.Forms.TextBox();
             this.pnlExtFooter = new System.Windows.Forms.Panel();
-            this.lnkGetExtensions = new System.Windows.Forms.LinkLabel();
+            this.lnkGetExtensions = new BetterLinkLabel();
             this.pagePerformance = new System.Windows.Forms.TabPage();
             this.cbAutoStream = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -92,7 +92,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lblUsageNote = new System.Windows.Forms.Label();
-            this.lnkHelp = new System.Windows.Forms.LinkLabel();
+            this.lnkHelp = new BetterLinkLabel();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
@@ -907,7 +907,7 @@
         private System.Windows.Forms.TabPage pagePerformance;
         private System.Windows.Forms.TabPage pagePaths;
         private System.Windows.Forms.Panel pnlFooter;
-        private System.Windows.Forms.LinkLabel lnkHelp;
+        private BetterLinkLabel lnkHelp;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOk;
         private System.Windows.Forms.CheckBox cbAttachOnStartup;
@@ -927,7 +927,7 @@
         private System.Windows.Forms.CheckBox cbDarkMode;
         private System.Windows.Forms.Label lblUsageNote;
         private System.Windows.Forms.Panel pnlExtFooter;
-        private System.Windows.Forms.LinkLabel lnkGetExtensions;
+        private BetterLinkLabel lnkGetExtensions;
         private System.Windows.Forms.CheckBox cbEnableIPv6;
         private System.Windows.Forms.CheckBox cbAllowRemoteConnections;
         private System.Windows.Forms.Label lblListenOn;
@@ -955,7 +955,7 @@
         private System.Windows.Forms.Label lblBypassList;
         private System.Windows.Forms.TextBox txtProxyBypass;
         private System.Windows.Forms.Button btnHTTPSActions;
-        private System.Windows.Forms.LinkLabel lnkHostDecryptionMode;
+        private BetterLinkLabel lnkHostDecryptionMode;
         private System.Windows.Forms.ContextMenuStrip mnuHTTPSActions;
         private System.Windows.Forms.ToolStripMenuItem miClearLeafCerts;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
