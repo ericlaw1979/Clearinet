@@ -361,6 +361,10 @@ namespace Clearinet
                 case ".gif": return "image/gif";
                 case ".bmp": return "image/bmp";
                 case ".webp": return "image/webp";
+                case ".avif": return "image/avif";
+                case ".jxl": return "image/jxl";
+                case ".tif":
+                case ".tiff": return "image/tiff";
                 case ".svg": return "image/svg+xml";
                 case ".ico": return "image/x-icon";
 

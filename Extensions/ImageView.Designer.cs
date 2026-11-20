@@ -30,20 +30,21 @@
         {
             this.components = new System.ComponentModel.Container();
             this.pbImage = new System.Windows.Forms.PictureBox();
+            this.mnuImage = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miCopyBitmap = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyAsDataURL = new System.Windows.Forms.ToolStripMenuItem();
+            this.miSaveOnDesktop = new System.Windows.Forms.ToolStripMenuItem();
+            this.miShowFullscreen = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.miTools = new System.Windows.Forms.ToolStripMenuItem();
+            this.miToolsConvertToJPEG = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLeft = new System.Windows.Forms.Panel();
             this.txtMetadata = new System.Windows.Forms.TextBox();
             this.cbxSizing = new System.Windows.Forms.ComboBox();
             this.splitter1 = new System.Windows.Forms.Splitter();
-            this.mnuImage = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.miCopyBitmap = new System.Windows.Forms.ToolStripMenuItem();
-            this.miConvert = new System.Windows.Forms.ToolStripMenuItem();
-            this.copyAsDataURL = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.miSaveOnDesktop = new System.Windows.Forms.ToolStripMenuItem();
-            this.miShowFullscreen = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pbImage)).BeginInit();
-            this.pnlLeft.SuspendLayout();
             this.mnuImage.SuspendLayout();
+            this.pnlLeft.SuspendLayout();
             this.SuspendLayout();
             // 
             // pbImage
@@ -58,6 +59,67 @@
             this.pbImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbImage.TabIndex = 0;
             this.pbImage.TabStop = false;
+            // 
+            // mnuImage
+            // 
+            this.mnuImage.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miCopyBitmap,
+            this.copyAsDataURL,
+            this.miSaveOnDesktop,
+            this.miShowFullscreen,
+            this.toolStripMenuItem1,
+            this.miTools});
+            this.mnuImage.Name = "mnuImage";
+            this.mnuImage.Size = new System.Drawing.Size(181, 142);
+            this.mnuImage.Opening += new System.ComponentModel.CancelEventHandler(this.mnuImage_Opening);
+            // 
+            // miCopyBitmap
+            // 
+            this.miCopyBitmap.Name = "miCopyBitmap";
+            this.miCopyBitmap.Size = new System.Drawing.Size(180, 22);
+            this.miCopyBitmap.Text = "&Copy Image";
+            this.miCopyBitmap.Click += new System.EventHandler(this.miCopyBitmap_Click);
+            // 
+            // copyAsDataURL
+            // 
+            this.copyAsDataURL.Name = "copyAsDataURL";
+            this.copyAsDataURL.Size = new System.Drawing.Size(180, 22);
+            this.copyAsDataURL.Text = "Copy as &DataURL";
+            this.copyAsDataURL.Click += new System.EventHandler(this.copyAsDataURL_Click);
+            // 
+            // miSaveOnDesktop
+            // 
+            this.miSaveOnDesktop.Name = "miSaveOnDesktop";
+            this.miSaveOnDesktop.Size = new System.Drawing.Size(180, 22);
+            this.miSaveOnDesktop.Text = "Save on Des&ktop";
+            this.miSaveOnDesktop.Click += new System.EventHandler(this.miSaveOnDesktop_Click);
+            // 
+            // miShowFullscreen
+            // 
+            this.miShowFullscreen.Name = "miShowFullscreen";
+            this.miShowFullscreen.Size = new System.Drawing.Size(180, 22);
+            this.miShowFullscreen.Text = "Show &Fullscreen";
+            this.miShowFullscreen.Click += new System.EventHandler(this.miShowFullscreen_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
+            // 
+            // miTools
+            // 
+            this.miTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miToolsConvertToJPEG});
+            this.miTools.Name = "miTools";
+            this.miTools.Size = new System.Drawing.Size(180, 22);
+            this.miTools.Text = "&Tools";
+            // 
+            // miToolsConvertToJPEG
+            // 
+            this.miToolsConvertToJPEG.Name = "miToolsConvertToJPEG";
+            this.miToolsConvertToJPEG.Size = new System.Drawing.Size(180, 22);
+            this.miToolsConvertToJPEG.Text = "Convert to &JPEG";
+            this.miToolsConvertToJPEG.Click += new System.EventHandler(this.miConvertToJPEG_Click);
             // 
             // pnlLeft
             // 
@@ -106,59 +168,6 @@
             this.splitter1.TabIndex = 2;
             this.splitter1.TabStop = false;
             // 
-            // mnuImage
-            // 
-            this.mnuImage.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miCopyBitmap,
-            this.copyAsDataURL,
-            this.miSaveOnDesktop,
-            this.miShowFullscreen,
-            this.toolStripMenuItem1,
-            this.miConvert});
-            this.mnuImage.Name = "mnuImage";
-            this.mnuImage.Size = new System.Drawing.Size(181, 142);
-            this.mnuImage.Opening += new System.ComponentModel.CancelEventHandler(this.mnuImage_Opening);
-            // 
-            // miCopyBitmap
-            // 
-            this.miCopyBitmap.Name = "miCopyBitmap";
-            this.miCopyBitmap.Size = new System.Drawing.Size(180, 22);
-            this.miCopyBitmap.Text = "&Copy Image";
-            this.miCopyBitmap.Click += new System.EventHandler(this.miCopyBitmap_Click);
-            // 
-            // miConvert
-            // 
-            this.miConvert.Name = "miConvert";
-            this.miConvert.Size = new System.Drawing.Size(180, 22);
-            this.miConvert.Text = "Convert to &Jpeg";
-            this.miConvert.Click += new System.EventHandler(this.miConvert_Click);
-            // 
-            // copyAsDataURL
-            // 
-            this.copyAsDataURL.Name = "copyAsDataURL";
-            this.copyAsDataURL.Size = new System.Drawing.Size(180, 22);
-            this.copyAsDataURL.Text = "Copy as &DataURL";
-            this.copyAsDataURL.Click += new System.EventHandler(this.copyAsDataURL_Click);
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
-            // 
-            // miSaveOnDesktop
-            // 
-            this.miSaveOnDesktop.Name = "miSaveOnDesktop";
-            this.miSaveOnDesktop.Size = new System.Drawing.Size(180, 22);
-            this.miSaveOnDesktop.Text = "Save on Des&ktop";
-            this.miSaveOnDesktop.Click += new System.EventHandler(this.miSaveOnDesktop_Click);
-            // 
-            // miShowFullscreen
-            // 
-            this.miShowFullscreen.Name = "miShowFullscreen";
-            this.miShowFullscreen.Size = new System.Drawing.Size(180, 22);
-            this.miShowFullscreen.Text = "Show &Fullscreen";
-            this.miShowFullscreen.Click += new System.EventHandler(this.miShowFullscreen_Click);
-            // 
             // ImageView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -171,9 +180,9 @@
             this.Name = "ImageView";
             this.Size = new System.Drawing.Size(485, 442);
             ((System.ComponentModel.ISupportInitialize)(this.pbImage)).EndInit();
+            this.mnuImage.ResumeLayout(false);
             this.pnlLeft.ResumeLayout(false);
             this.pnlLeft.PerformLayout();
-            this.mnuImage.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -186,10 +195,11 @@
         private System.Windows.Forms.ComboBox cbxSizing;
         private System.Windows.Forms.ContextMenuStrip mnuImage;
         private System.Windows.Forms.ToolStripMenuItem miCopyBitmap;
-        private System.Windows.Forms.ToolStripMenuItem miConvert;
         private System.Windows.Forms.ToolStripMenuItem copyAsDataURL;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem miSaveOnDesktop;
         private System.Windows.Forms.ToolStripMenuItem miShowFullscreen;
+        private System.Windows.Forms.ToolStripMenuItem miToolsConvertToJPEG;
+        internal System.Windows.Forms.ToolStripMenuItem miTools;
     }
 }

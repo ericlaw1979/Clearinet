@@ -62,7 +62,7 @@ namespace Extensions
             _owner.CopyAsDataUrl();
         }
 
-        private void miConvert_Click(object sender, EventArgs e)
+        private void miConvertToJPEG_Click(object sender, EventArgs e)
         {
             _owner.ConvertToJpegExchange();
         }
@@ -70,6 +70,7 @@ namespace Extensions
         private void mnuImage_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
             mnuImage.Enabled = (pbImage.Image != null);
+            _owner.PopulateToolsMenu(miTools);
         }
 
         private void miSaveOnDesktop_Click(object sender, EventArgs e)
