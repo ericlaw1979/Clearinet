@@ -230,6 +230,7 @@ namespace Clearinet
             {
                 if (null == RequestHeaders) return string.Empty;
                 if (RequestHeaders.UriScheme.OICEquals("data")) return "data:" + RequestHeaders.RequestPath;
+                if (RequestMethod == "CONNECT") return $"{RequestHeaders.RequestPath}";  // TODO: Should it be the host header?
                 return $"{RequestHeaders["Host"]}{RequestHeaders.RequestPath}";
             }
             set
