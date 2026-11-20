@@ -355,7 +355,6 @@ namespace Clearinet.CaptureEngine
                 if (_socketPool.TryRent(key, processIdentity, clientPipe.Id, out serverPipe))
                 {
                     xc.BitFlags |= ExchangeFlags.ServerPipeReused;
-                    //xc["x-serverpool-reused"] = "true";
                 }
                 else
                 {
@@ -365,7 +364,6 @@ namespace Clearinet.CaptureEngine
 
                 xc.Timers.ServerConnected = DateTime.Now;
                 HTTPRequestHeaders upstreamRequest = xc.RequestHeaders.Clone();
-                //await RunBuiltInRulesBeforeRequest(xc, clientPipe.Stream, token).ConfigureAwait(false);
 
                 PrepareRequestForServer(upstreamRequest, xc.RequestBody ?? Array.Empty<byte>());
                 await WriteHttpRequestAsync(serverPipe.Stream, upstreamRequest,
@@ -379,12 +377,10 @@ namespace Clearinet.CaptureEngine
                 xc.Timers.ServerDoneResponse = DateTime.Now;
 
                 returnServerPipe = response.pipeIsReusable && ShouldKeepAlive(upstreamRequest, response.responseHeaders) && serverPipe.IsConnected;
-                //if (!response.reusable && !xc.ResponseHeaders.Exists("Connection"))
-                //    xc.ResponseHeaders["Connection"] = "close";
 
                 xc.state = ExchangeState.AutoTamperResponseBefore;
                 byte[] clientBody = xc.ResponseBody ?? Array.Empty<byte>();
-                //NormalizeResponseLength(xc.RequestHeaders, xc.ResponseHeaders, clientBody);
+
                 xc.Timers.ClientBeginResponse = DateTime.Now;
                 await WriteHttpResponseAsync(clientPipe.Stream, xc.ResponseHeaders,
                     clientBody, token).ConfigureAwait(false);
@@ -410,6 +406,10 @@ namespace Clearinet.CaptureEngine
             }
         }
 
+        /// <summary>
+        /// Compute the target of the request based on the Headers, unless X-OverrideHost or X-OverrideHostname
+        /// is set.
+        /// </summary>
         private static bool TryComputeDestination(Exchange xc, out string host, out int port, out bool isTls)
         {
             host = null;
@@ -463,6 +463,10 @@ namespace Clearinet.CaptureEngine
             // if (string.IsNullOrEmpty(xc.RequestHeaders.RequestPath)) xc.RequestHeaders.RequestPath = "/";
             return port > 0 && port <= IPEndPoint.MaxPort;
         }
+
+        // A CONNNECT request specifies its target as the RequestPath (e.g. "CONNECT www.example.com:443 HTTP/1.1").
+        // This method extracts the host and port from that path unless X-OverrideHost or X-OverrideHostname is set,
+        // in which case the specified override is used instead.
         private static bool TryComputeCONNECTDestination(Exchange xc, out string host, out int port)
         {
             host = null;
@@ -565,6 +569,7 @@ namespace Clearinet.CaptureEngine
         // Clearinet includes some built-in rules. We will run those at the appropriate time. TODO: WHEN?
         private async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
         {
+            // CApp.Log.Log($"RunBuiltInRulesBeforeRequest for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
             if (CApp.isClosing) return;
 
             ReplaceAnyVirtualHostname(xc);
@@ -583,7 +588,7 @@ namespace Clearinet.CaptureEngine
                 SetNoDecryptIfAppropriate(xc);
             }
 
-            // Toolbar's ProcessFilter        
+            // todo: Toolbar's ProcessFilter ?       
 
             if (CApp.Prefs.GetBoolPref("app.ui.rules.hide_images") &&
                 xc.url.OICEndsWithAny(".svg", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".ico"))
@@ -1217,38 +1222,39 @@ namespace Clearinet.CaptureEngine
                         var tunneledRequest = await clientReader.ReadRequestAsync(token).ConfigureAwait(false);
                         if (tunneledRequest.requestHeaders == null) break;
 
-                        tunneledRequest.requestHeaders.UriScheme = "https";
-                        //if (!tunneledRequest.requestHeaders.Exists("Host"))
-                        //    tunneledRequest.requestHeaders["Host"] = port == 443 ? host : host + ":" + port;
+                        tunneledRequest.requestHeaders.UriScheme = "https";  // TODO: We should validate and assert.                       
 
                         var innerContext = new CaptureConnectionContext(client.Client) { LocalProcessDescriptor = processIdentity };
-                        Exchange inner = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
-                        inner.SetBitFlag(ExchangeFlags.IsHTTPS);
-                        inner.state = ExchangeState.AutoTamperRequestBefore;
+                        Exchange xcTunneled = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
+                        xcTunneled.SetBitFlag(ExchangeFlags.IsHTTPS);
 
-                        HTTPRequestHeaders upstreamRequest = inner.RequestHeaders.Clone();
+                        await RunBuiltInRulesBeforeRequest(xcTunneled, clientPipe.Stream, token).ConfigureAwait(false);
 
-                        PrepareRequestForServer(upstreamRequest, inner.RequestBody ?? Array.Empty<byte>());
+                        xcTunneled.state = ExchangeState.AutoTamperRequestBefore;
+
+                        HTTPRequestHeaders upstreamRequest = xcTunneled.RequestHeaders.Clone();
+
+                        PrepareRequestForServer(upstreamRequest, xcTunneled.RequestBody ?? Array.Empty<byte>());
                         await WriteHttpRequestAsync(upstreamPipe.Stream, upstreamRequest,
-                            inner.RequestBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+                            xcTunneled.RequestBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
 
                         var upstreamResponse = await upstreamPipe.Reader.ReadResponseAsync(upstreamRequest.HTTPMethod, token).ConfigureAwait(false);
                         if (upstreamResponse.responseHeaders == null) break;
 
-                        inner.ResponseHeaders = upstreamResponse.responseHeaders;
-                        inner.ResponseBody = upstreamResponse.responseBody;
-                        inner.state = ExchangeState.AutoTamperResponseBefore;
+                        xcTunneled.ResponseHeaders = upstreamResponse.responseHeaders;
+                        xcTunneled.ResponseBody = upstreamResponse.responseBody;
+                        xcTunneled.state = ExchangeState.AutoTamperResponseBefore;
                         //if (!upstreamResponse.pipeIsReusable && !inner.ResponseHeaders.Exists("Connection"))
                         //    inner.ResponseHeaders["Connection"] = "close";
                         //NormalizeResponseLength(inner.RequestHeaders, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>());
-                        await WriteHttpResponseAsync(clientTls, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+                        await WriteHttpResponseAsync(clientTls, xcTunneled.ResponseHeaders, xcTunneled.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
 
-                        inner.Timers.ClientDoneResponse = DateTime.Now;
-                        inner.state = ExchangeState.Done;
-                        UpdateUIForExchange(inner);
+                        xcTunneled.Timers.ClientDoneResponse = DateTime.Now;
+                        xcTunneled.state = ExchangeState.Done;
+                        UpdateUIForExchange(xcTunneled);
                         keepAliveAllowed = upstreamResponse.pipeIsReusable &&
-                            ShouldKeepAlive(upstreamRequest, inner.ResponseHeaders) && upstreamPipe.IsConnected;
-                        if (!keepAliveAllowed || !ShouldKeepAlive(inner.RequestHeaders, inner.ResponseHeaders)) break;
+                            ShouldKeepAlive(upstreamRequest, xcTunneled.ResponseHeaders) && upstreamPipe.IsConnected;
+                        if (!keepAliveAllowed || !ShouldKeepAlive(xcTunneled.RequestHeaders, xcTunneled.ResponseHeaders)) break;
                     }
                 }
 
