@@ -378,6 +378,8 @@ namespace Clearinet.CaptureEngine
 
                 returnServerPipe = response.pipeIsReusable && ShouldKeepAlive(upstreamRequest, response.responseHeaders) && serverPipe.IsConnected;
 
+                await RunBuiltInRulesBeforeResponse(xc, token).ConfigureAwait(false);
+
                 xc.state = ExchangeState.AutoTamperResponseBefore;
                 byte[] clientBody = xc.ResponseBody ?? Array.Empty<byte>();
 
@@ -628,6 +630,26 @@ namespace Clearinet.CaptureEngine
                 !xc.BitFlags.HasFlag(ExchangeFlags.RequestStreamed) && !xc.BitFlags.HasFlag(ExchangeFlags.IsRPCTunnel))
             {
                 xc.utilDecodeRequest();
+            }
+        }
+
+        private async Task RunBuiltInRulesBeforeResponse(Exchange xc, CancellationToken token)
+        {
+            CApp.Log.Log($"RunBuiltInRulesBeforeResponse for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
+            if (CApp.isClosing) return;
+
+            if (!xc.oFlags.ContainsKey("ui-hide") &&
+                CApp.Prefs.GetBoolPref("app.ui.rules.hide_images") &&
+                xc.MediaType.StartsWith("image/"))
+            {
+                xc["ui-hide"] = "Rules > HideImages (Content-Type)";
+            }
+
+            // Should we skip this if the Exchange is hidden/ignored?
+            if (CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress") &&
+                !xc.BitFlags.HasFlag(ExchangeFlags.IsRPCTunnel))
+            {
+                xc.utilDecodeResponse();
             }
         }
 
@@ -1210,7 +1232,12 @@ namespace Clearinet.CaptureEngine
                 byte[] established = xc.ResponseHeaders.ToByteArray();
                 await clientStream.WriteAsync(established, 0, established.Length, token).ConfigureAwait(false);
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
+                xc.Timers.ClientDoneResponse = DateTime.Now;
+
                 UpdateUIForExchange(xc);
+
+                // At this point, we have sent the HTTP/200 Connected to the client, and we are ready
+                // to start decrypting the tunnel in response to a ClientHello from the client.
 
                 var clientTls = new SslStream(clientStream, false);
                 clientTls.AuthenticateAsServer(certServer, false, CONFIG.oAcceptedClientProtocols, false);
@@ -1243,6 +1270,9 @@ namespace Clearinet.CaptureEngine
 
                         xcTunneled.ResponseHeaders = upstreamResponse.responseHeaders;
                         xcTunneled.ResponseBody = upstreamResponse.responseBody;
+
+                        await RunBuiltInRulesBeforeResponse(xcTunneled, token).ConfigureAwait(false);
+
                         xcTunneled.state = ExchangeState.AutoTamperResponseBefore;
                         //if (!upstreamResponse.pipeIsReusable && !inner.ResponseHeaders.Exists("Connection"))
                         //    inner.ResponseHeaders["Connection"] = "close";

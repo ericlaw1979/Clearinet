@@ -205,7 +205,7 @@ namespace Clearinet
         public bool utilDecodeResponse(bool bQuiet = true)
         {
             if (null == ResponseHeaders) return false;
-            if (!ResponseBody.HasData()) return true;
+            if (!ResponseBody.HasData()) return true;  // TODO: Should we strip the headers if there's no body? E.g. on a 304?
             if (!ResponseHeaders.ExistsAny("Content-Encoding", "Transfer-Encoding")) return true;
             try
             {
