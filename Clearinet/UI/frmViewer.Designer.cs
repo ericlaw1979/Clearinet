@@ -1870,8 +1870,9 @@ namespace Clearinet
                 commitAnyRequestChanges(null, null);
                 commitAnyResponseChanges(null, null);
 
-                // Remove the flag AFTER asking to commit.
+                // Remove the flag AFTER telling the Inspector to commit its changes.
                 xc.oFlags.TryRemove("x-Unlocked", out _);
+                updateLVI(xc);
             }
             else {
                 xc["x-Unlocked"] = "menu";

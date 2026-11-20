@@ -9,7 +9,21 @@ namespace Extensions
     {
         InspectorBase _owner;
         bool _readonly = true;
-        internal bool HasChanges { get; set; }
+
+        bool _hasChanges = false;
+        internal bool HasChanges
+        {
+            get
+            {
+                _hasChanges = _hasChanges || txtFirstLine.Modified;
+                return _hasChanges;
+            }
+            private set
+            {
+                _hasChanges = value;
+                if (!value) txtFirstLine.Modified = false;
+            }
+        }
 
         internal enum HeaderViewMode
         {
@@ -39,7 +53,6 @@ namespace Extensions
             InitializeComponent();
             tvNVP.BackColor = txtFirstLine.BackColor = CONFIG.colorDisabledEdit;
             tvNVP.ForeColor = txtFirstLine.ForeColor = CONFIG.colorDisabledEditForeColor;
-            txtFirstLine.TextChanged += (sender, e) => HasChanges = true;
             if (Mode == HeaderViewMode.Request)
             {
                 txtFirstLine.Enter += txtFirstLine_Enter;
