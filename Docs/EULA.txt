@@ -1,4 +1,4 @@
-﻿NOTE: This is Alpha Code. Use with caution.
+﻿NOTE: This is pre-1.0 code. Please use with caution and report bugs at https://github.com/ericlaw1979/Clearinet/issues.
 
 Code for Clearinet is available from https://github.com/ericlaw1979/clearinet and is released under the MIT License.
 
@@ -10,3 +10,35 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+=====================================
+
+Clearinet includes several Third-Party Dependencies. Those projects and their licenses are:
+
+HexBox
+   - Homepage: https://github.com/bernharde/hexbox
+   - License: MIT License
+
+BrotliSharpLib
+   - Homepage: https://github.com/master131/BrotliSharpLib
+   - License: MIT License
+
+ZstdSharp.Port
+   - Homepage: https://github.com/oleg-st/ZstdSharp
+   - License: MIT License (wraps BSD/GPLv2 dual-licensed Zstandard)
+   - License Link: https://github.com/oleg-st/ZstdSharp/blob/master/LICENSE
+
+DotNetZip.Reduced
+   - Homepage: https://www.nuget.org/packages/DotNetZip.Reduced
+   - License: Microsoft Public License (Ms-PL)
+   - License Link: https://www.nuget.org/packages/DotNetZip.Reduced/1.9.1.8/License
+
+SVG.NET
+   - Homepage: https://github.com/svg-net/SVG
+   - License: Microsoft Public License (Ms-PL)
+   - License Link: https://github.com/svg-net/SVG/blob/master/license.txt
+
+dwebp.exe (libwebp)
+   - Homepage: https://developers.google.com/speed/webp/download
+   - License: 3-Clause BSD License
+   - License Link: https://chromium.googlesource.com/webm/libwebp/+/refs/heads/main/COPYING
