@@ -1208,9 +1208,15 @@ namespace Clearinet.CaptureEngine
             // https://github.com/microsoft/referencesource/blob/main/System/net/System/Net/SecureProtocols/_SslState.cs
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
 
+            if (xc.oFlags.ContainsKey("X-IgnoreCertCNMismatch") && SslPolicyErrors.RemoteCertificateNameMismatch == sslPolicyErrors)
+            {
+                CApp.Log.Log($"! Ignoring TLS Certificate CN error for {xc.id}'s connection to {targetHost}: {sslPolicyErrors}");
+                return true;
+            }
+
             if (xc.oFlags.ContainsKey("X-IgnoreCertErrors") || CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors"))
             {
-                CApp.Log.Log($"! Ignoring TLS validation error for connection to {targetHost}: {sslPolicyErrors}");
+                CApp.Log.Log($"! Ignoring TLS validation error for {xc.id}'s connection to {targetHost}: {sslPolicyErrors}");
                 return true;
             }
             CApp.Log.Log($"Blocking Exchange {xc.id}'s connection to {targetHost} due to TLS validation error: {sslPolicyErrors}");
