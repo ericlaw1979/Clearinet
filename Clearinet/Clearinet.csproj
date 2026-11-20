@@ -4,7 +4,6 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net481</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>Clearinet</RootNamespace>
     <AssemblyName>Clearinet</AssemblyName>
@@ -27,7 +26,6 @@
     <PackageReference Include="System.Buffers" Version="4.6.1" />
     <PackageReference Include="System.Memory" Version="4.6.3" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
-    <PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="ZstdSharp.Port" Version="0.8.8" />
@@ -54,43 +52,29 @@
     <Compile Update="UI\FindPanel.Designer.cs" DependentUpon="FindPanel.cs" />
     <Compile Update="UI\PrefView.cs" SubType="UserControl" />
     <Compile Update="UI\PrefView.Designer.cs" DependentUpon="PrefView.cs" />
-    <Compile Update="UI\frmAbout.cs;UI\frmOptions.cs;UI\frmPrompt.cs;UI\frmSplashScreen.cs;UI\frmTextWizard.cs;UI\frmViewer.cs"
-             SubType="Form" />
+    <Compile Update="UI\frmAbout.cs;UI\frmOptions.cs;UI\frmPrompt.cs;UI\frmSplashScreen.cs;UI\frmTextWizard.cs;UI\frmViewer.cs" SubType="Form" />
     <Compile Update="UI\frmAbout.Designer.cs" DependentUpon="frmAbout.cs" />
     <Compile Update="UI\frmOptions.Designer.cs" DependentUpon="frmOptions.cs" />
     <Compile Update="UI\frmPrompt.Designer.cs" DependentUpon="frmPrompt.cs" />
     <Compile Update="UI\frmSplashScreen.Designer.cs" DependentUpon="frmSplashScreen.cs" />
     <Compile Update="UI\frmTextWizard.Designer.cs" DependentUpon="frmTextWizard.cs" />
     <Compile Update="UI\frmViewer.Designer.cs" DependentUpon="frmViewer.cs" />
-    <EmbeddedResource Update="UI\ComposerView.resx" LogicalName="Clearinet.ComposerView.resources"
-                      DependentUpon="ComposerView.cs" SubType="Designer" />
-    <EmbeddedResource Update="UI\*.resx" LogicalName="Clearinet.%(Filename).resources"
-                      DependentUpon="%(Filename).cs" />
-    <EmbeddedResource Update="UI\frmELVAddColumn.resx" LogicalName="Clearinet.frmELVAddColumn.resources"
-                      DependentUpon="frmELVAddColumn.cs" />
-    <EmbeddedResource Update="UI\FindPanel.resx" LogicalName="Clearinet.UI.FindPanel.resources"
-                      DependentUpon="FindPanel.cs" />
-    <EmbeddedResource Update="UI\frmInspect.resx" LogicalName="Clearinet.UI.frmInspect.resources"
-                      DependentUpon="frmInspect.cs" />
-    <EmbeddedResource Update="UI\PrefView.resx" LogicalName="Clearinet.UI.PrefView.resources"
-                      DependentUpon="PrefView.cs" />
+    <EmbeddedResource Update="UI\ComposerView.resx" LogicalName="Clearinet.ComposerView.resources" DependentUpon="ComposerView.cs" SubType="Designer" />
+    <EmbeddedResource Update="UI\*.resx" LogicalName="Clearinet.%(Filename).resources" DependentUpon="%(Filename).cs" />
+    <EmbeddedResource Update="UI\frmELVAddColumn.resx" LogicalName="Clearinet.frmELVAddColumn.resources" DependentUpon="frmELVAddColumn.cs" />
+    <EmbeddedResource Update="UI\FindPanel.resx" LogicalName="Clearinet.UI.FindPanel.resources" DependentUpon="FindPanel.cs" />
+    <EmbeddedResource Update="UI\frmInspect.resx" LogicalName="Clearinet.UI.frmInspect.resources" DependentUpon="frmInspect.cs" />
+    <EmbeddedResource Update="UI\PrefView.resx" LogicalName="Clearinet.UI.PrefView.resources" DependentUpon="PrefView.cs" />
     <EmbeddedResource Update="UI\frmSplashScreen.resx" SubType="Designer" />
-    <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator"
-                      LastGenOutput="Resources.Designer.cs" />
-    <Compile Update="Properties\Resources.Designer.cs" DependentUpon="Resources.resx"
-             AutoGen="True" DesignTime="True" />
-    <None Update="Properties\Settings.settings" Generator="SettingsSingleFileGenerator"
-          LastGenOutput="Settings.Designer.cs" />
-    <Compile Update="Properties\Settings.Designer.cs" DependentUpon="Settings.settings"
-             AutoGen="True" DesignTimeSharedInput="True" />
+    <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
+    <Compile Update="Properties\Resources.Designer.cs" DependentUpon="Resources.resx" AutoGen="True" DesignTime="True" />
+    <None Update="Properties\Settings.settings" Generator="SettingsSingleFileGenerator" LastGenOutput="Settings.Designer.cs" />
+    <Compile Update="Properties\Settings.Designer.cs" DependentUpon="Settings.settings" AutoGen="True" DesignTimeSharedInput="True" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\Content\Bundled\CallExecAction.ps1" Link="Tools\CallExecAction.ps1"
-             CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\Content\Bundled\dwebp.exe" Link="Tools\dwebp.exe"
-             CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\Content\Bundled\SampleRulesAlpha.js"
-             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Content\Bundled\CallExecAction.ps1" Link="Tools\CallExecAction.ps1" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Content\Bundled\dwebp.exe" Link="Tools\dwebp.exe" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Content\Bundled\SampleRulesAlpha.js" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="GenerateAssemblyBuiltDate" BeforeTargets="CoreCompile">
     <PropertyGroup>
