@@ -53,14 +53,14 @@ namespace Clearinet
         internal static bool DecryptionHostListIsSkipMode { get { return CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true); } }
 
         /// <summary>
-        /// This event will fire immediately after a SAZ file is loaded to
+        /// This event will fire immediately AFTER a SAZ file is loaded to
         /// allow extensions to inspect the loaded exchanges and perform any additional processing.
         /// </summary>
         public static event EventHandler<ReadSAZEventArgs> OnLoadSAZ;
 
 
         /// <summary>
-        /// Notify extensions if we're about to write a SAZ archive.
+        /// Notify extensions BEFORE we're about to write a SAZ archive.
         /// </summary>
         public static event EventHandler<WriteSAZEventArgs> OnSaveSAZ;
 
@@ -427,11 +427,20 @@ namespace Clearinet
                     return true;
                 }
 
-                /*if ("!spew" == sCmd)
+                if ("!spew" == sCmd)    // Enable noisy trace output.
                 {
-                    Prefs.SetBoolPref("app.debug.ephemeral.spew". true);
-                }*/
-
+                    CApp.Prefs.SetBoolPref("app.debug.ephemeral.spew", true);
+                    CApp.isTracing = true;
+                    CApp.UI.SetStatusText("DebugSpew enabled. Use !unspew to disable.");
+                    return true;
+                }
+                if ("!unspew" == sCmd)
+                {
+                    CApp.Prefs.SetBoolPref("app.debug.ephemeral.spew", false);
+                    CApp.isTracing = false;
+                    CApp.UI.SetStatusText("DebugSpew disabled. Use !spew to enable.");
+                    return true;
+                }
                 if ("cls" == sCmd)
                 {
                     UI.lvExchanges.ClearExchanges();

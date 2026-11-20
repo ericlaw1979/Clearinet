@@ -571,7 +571,7 @@ namespace Clearinet.CaptureEngine
         // Clearinet includes some built-in rules. We will run those at the appropriate time. TODO: WHEN?
         private async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
         {
-            // CApp.Log.Log($"RunBuiltInRulesBeforeRequest for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
+            if (CApp.isTracing) Trace.WriteLine($"RunBuiltInRulesBeforeRequest for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
             if (CApp.isClosing) return;
 
             ReplaceAnyVirtualHostname(xc);
@@ -635,7 +635,7 @@ namespace Clearinet.CaptureEngine
 
         private async Task RunBuiltInRulesBeforeResponse(Exchange xc, CancellationToken token)
         {
-            CApp.Log.Log($"RunBuiltInRulesBeforeResponse for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
+            if (CApp.isTracing) Trace.WriteLine($"RunBuiltInRulesBeforeResponse for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
             if (CApp.isClosing) return;
 
             if (!xc.oFlags.ContainsKey("ui-hide") &&
