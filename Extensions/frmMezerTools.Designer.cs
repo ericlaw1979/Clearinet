@@ -73,7 +73,7 @@
             this.gbClipboard.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.gbClipboard.Name = "gbClipboard";
             this.gbClipboard.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.gbClipboard.Size = new System.Drawing.Size(616, 189);
+            this.gbClipboard.Size = new System.Drawing.Size(572, 152);
             this.gbClipboard.TabIndex = 1;
             this.gbClipboard.TabStop = false;
             this.gbClipboard.Text = "Clipboard";
@@ -81,9 +81,9 @@
             // lblCurrentClipboard
             // 
             this.lblCurrentClipboard.AutoSize = true;
-            this.lblCurrentClipboard.Location = new System.Drawing.Point(21, 147);
+            this.lblCurrentClipboard.Location = new System.Drawing.Point(14, 119);
             this.lblCurrentClipboard.Name = "lblCurrentClipboard";
-            this.lblCurrentClipboard.Size = new System.Drawing.Size(253, 21);
+            this.lblCurrentClipboard.Size = new System.Drawing.Size(209, 17);
             this.lblCurrentClipboard.TabIndex = 7;
             this.lblCurrentClipboard.Text = "The clipboard is currently empty.";
             this.lblCurrentClipboard.MouseMove += new System.Windows.Forms.MouseEventHandler(this.lblCurrentClipboard_MouseMove);
@@ -91,33 +91,33 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(403, 55);
+            this.label1.Location = new System.Drawing.Point(401, 44);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(145, 21);
+            this.label1.Size = new System.Drawing.Size(115, 17);
             this.label1.TabIndex = 6;
             this.label1.Text = "filled with the text";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(417, 102);
+            this.label2.Location = new System.Drawing.Point(417, 82);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(131, 21);
+            this.label2.Size = new System.Drawing.Size(108, 17);
             this.label2.TabIndex = 5;
             this.label2.Text = "to the clipboard.";
             // 
             // lblAStringOf
             // 
             this.lblAStringOf.AutoSize = true;
-            this.lblAStringOf.Location = new System.Drawing.Point(158, 55);
+            this.lblAStringOf.Location = new System.Drawing.Point(157, 44);
             this.lblAStringOf.Name = "lblAStringOf";
-            this.lblAStringOf.Size = new System.Drawing.Size(137, 21);
+            this.lblAStringOf.Size = new System.Drawing.Size(113, 17);
             this.lblAStringOf.TabIndex = 4;
             this.lblAStringOf.Text = "a String of length";
             // 
             // udStringLength
             // 
-            this.udStringLength.Location = new System.Drawing.Point(301, 53);
+            this.udStringLength.Location = new System.Drawing.Point(293, 42);
             this.udStringLength.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.udStringLength.Maximum = new decimal(new int[] {
             10000000,
@@ -130,7 +130,7 @@
             0,
             0});
             this.udStringLength.Name = "udStringLength";
-            this.udStringLength.Size = new System.Drawing.Size(86, 28);
+            this.udStringLength.Size = new System.Drawing.Size(86, 24);
             this.udStringLength.TabIndex = 3;
             this.udStringLength.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.udStringLength.ThousandsSeparator = true;
@@ -142,10 +142,10 @@
             // 
             // btnCopyText
             // 
-            this.btnCopyText.Location = new System.Drawing.Point(17, 38);
+            this.btnCopyText.Location = new System.Drawing.Point(16, 33);
             this.btnCopyText.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnCopyText.Name = "btnCopyText";
-            this.btnCopyText.Size = new System.Drawing.Size(135, 54);
+            this.btnCopyText.Size = new System.Drawing.Size(135, 39);
             this.btnCopyText.TabIndex = 2;
             this.btnCopyText.Text = "Copy";
             this.btnCopyText.UseVisualStyleBackColor = true;
@@ -154,10 +154,10 @@
             // txtPattern
             // 
             this.txtPattern.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtPattern.Location = new System.Drawing.Point(17, 102);
+            this.txtPattern.Location = new System.Drawing.Point(17, 80);
             this.txtPattern.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtPattern.Name = "txtPattern";
-            this.txtPattern.Size = new System.Drawing.Size(394, 28);
+            this.txtPattern.Size = new System.Drawing.Size(394, 24);
             this.txtPattern.TabIndex = 1;
             this.txtPattern.Text = "Codito Ergo Sum";
             this.txtPattern.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtPattern_KeyPress);
@@ -173,11 +173,11 @@
             this.gbColor.Controls.Add(this.pbColorPick);
             this.gbColor.Controls.Add(this.btnColorPicker);
             this.gbColor.Controls.Add(this.txtColorRGB);
-            this.gbColor.Location = new System.Drawing.Point(12, 210);
+            this.gbColor.Location = new System.Drawing.Point(12, 173);
             this.gbColor.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.gbColor.Name = "gbColor";
             this.gbColor.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.gbColor.Size = new System.Drawing.Size(616, 160);
+            this.gbColor.Size = new System.Drawing.Size(572, 139);
             this.gbColor.TabIndex = 4;
             this.gbColor.TabStop = false;
             this.gbColor.Text = "Colors";
@@ -189,7 +189,7 @@
             this.lblProcessInfo.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
             this.lblProcessInfo.Location = new System.Drawing.Point(417, 86);
             this.lblProcessInfo.Name = "lblProcessInfo";
-            this.lblProcessInfo.Size = new System.Drawing.Size(164, 28);
+            this.lblProcessInfo.Size = new System.Drawing.Size(135, 28);
             this.lblProcessInfo.TabIndex = 8;
             this.lblProcessInfo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
@@ -197,7 +197,7 @@
             // 
             this.lblColors.Location = new System.Drawing.Point(13, 30);
             this.lblColors.Name = "lblColors";
-            this.lblColors.Size = new System.Drawing.Size(567, 47);
+            this.lblColors.Size = new System.Drawing.Size(539, 47);
             this.lblColors.TabIndex = 7;
             this.lblColors.Text = "Drag the dropper to sample a screen pixel, or edit a hex color, or click the butt" +
     "on to choose from a picker.";
@@ -208,7 +208,7 @@
             this.txtColorHex.Location = new System.Drawing.Point(57, 87);
             this.txtColorHex.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtColorHex.Name = "txtColorHex";
-            this.txtColorHex.Size = new System.Drawing.Size(148, 28);
+            this.txtColorHex.Size = new System.Drawing.Size(148, 24);
             this.txtColorHex.TabIndex = 6;
             // 
             // pbColorPick
@@ -243,7 +243,7 @@
             this.txtColorRGB.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtColorRGB.Name = "txtColorRGB";
             this.txtColorRGB.ReadOnly = true;
-            this.txtColorRGB.Size = new System.Drawing.Size(148, 28);
+            this.txtColorRGB.Size = new System.Drawing.Size(148, 24);
             this.txtColorRGB.TabIndex = 1;
             // 
             // gbHexer
@@ -256,11 +256,11 @@
             this.gbHexer.Controls.Add(this.txtHex);
             this.gbHexer.Controls.Add(this.btnUnicode);
             this.gbHexer.Controls.Add(this.txtDecimal);
-            this.gbHexer.Location = new System.Drawing.Point(12, 378);
+            this.gbHexer.Location = new System.Drawing.Point(12, 320);
             this.gbHexer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.gbHexer.Name = "gbHexer";
             this.gbHexer.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.gbHexer.Size = new System.Drawing.Size(616, 125);
+            this.gbHexer.Size = new System.Drawing.Size(572, 118);
             this.gbHexer.TabIndex = 9;
             this.gbHexer.TabStop = false;
             this.gbHexer.Text = "Hexer";
@@ -271,7 +271,7 @@
             this.label4.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold);
             this.label4.Location = new System.Drawing.Point(289, 79);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(21, 23);
+            this.label4.Size = new System.Drawing.Size(18, 19);
             this.label4.TabIndex = 9;
             this.label4.Text = "=";
             // 
@@ -281,7 +281,7 @@
             this.label3.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold);
             this.label3.Location = new System.Drawing.Point(102, 77);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(32, 23);
+            this.label3.Size = new System.Drawing.Size(27, 19);
             this.label3.TabIndex = 8;
             this.label3.Text = "0x";
             // 
@@ -291,7 +291,7 @@
             this.txtHex.Location = new System.Drawing.Point(135, 77);
             this.txtHex.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtHex.Name = "txtHex";
-            this.txtHex.Size = new System.Drawing.Size(148, 28);
+            this.txtHex.Size = new System.Drawing.Size(148, 24);
             this.txtHex.TabIndex = 6;
             // 
             // btnUnicode
@@ -311,23 +311,25 @@
             this.txtDecimal.Location = new System.Drawing.Point(316, 76);
             this.txtDecimal.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtDecimal.Name = "txtDecimal";
-            this.txtDecimal.Size = new System.Drawing.Size(148, 28);
+            this.txtDecimal.Size = new System.Drawing.Size(148, 24);
             this.txtDecimal.TabIndex = 1;
             // 
             // label5
             // 
-            this.label5.Location = new System.Drawing.Point(21, 26);
+            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label5.Location = new System.Drawing.Point(13, 26);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(567, 47);
-            this.label5.TabIndex = 10;
+            this.label5.Size = new System.Drawing.Size(542, 47);
+            this.label5.TabIndex = 11;
             this.label5.Text = "Convert between hex and decimal, or use the button to lookup a Unicode codepoint." +
     "";
             // 
             // frmMezerTools
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(640, 519);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(596, 455);
             this.Controls.Add(this.gbHexer);
             this.Controls.Add(this.gbColor);
             this.Controls.Add(this.gbClipboard);
