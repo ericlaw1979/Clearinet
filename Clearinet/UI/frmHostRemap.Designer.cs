@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             this.txtRules = new System.Windows.Forms.TextBox();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.cbEnableRemap = new System.Windows.Forms.CheckBox();
             this.lnkHelp = new BetterLinkLabel();
             this.lblExplain = new System.Windows.Forms.Label();
@@ -53,11 +52,6 @@
             this.txtRules.TabIndex = 1;
             this.txtRules.ModifiedChanged += new System.EventHandler(this.txtRules_ModifiedChanged);
             this.txtRules.EnabledChanged += new System.EventHandler(this.txtRules_EnabledChanged);
-            // 
-            // contextMenuStrip1
-            // 
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
             // 
             // cbEnableRemap
             // 
@@ -86,6 +80,7 @@
             // lblExplain
             // 
             this.lblExplain.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lblExplain.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblExplain.Location = new System.Drawing.Point(12, 384);
             this.lblExplain.Name = "lblExplain";
             this.lblExplain.Size = new System.Drawing.Size(275, 57);
@@ -155,7 +150,6 @@
         #endregion
 
         private System.Windows.Forms.TextBox txtRules;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.CheckBox cbEnableRemap;
         private Clearinet.BetterLinkLabel lnkHelp;
         private System.Windows.Forms.Label lblExplain;
