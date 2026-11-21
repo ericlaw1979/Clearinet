@@ -269,7 +269,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold);
-            this.label4.Location = new System.Drawing.Point(289, 79);
+            this.label4.Location = new System.Drawing.Point(252, 74);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(18, 19);
             this.label4.TabIndex = 9;
@@ -279,7 +279,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold);
-            this.label3.Location = new System.Drawing.Point(102, 77);
+            this.label3.Location = new System.Drawing.Point(65, 74);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(27, 19);
             this.label3.TabIndex = 8;
@@ -288,7 +288,7 @@
             // txtHex
             // 
             this.txtHex.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtHex.Location = new System.Drawing.Point(135, 77);
+            this.txtHex.Location = new System.Drawing.Point(98, 69);
             this.txtHex.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtHex.Name = "txtHex";
             this.txtHex.Size = new System.Drawing.Size(148, 24);
@@ -296,7 +296,7 @@
             // 
             // btnUnicode
             // 
-            this.btnUnicode.Location = new System.Drawing.Point(470, 74);
+            this.btnUnicode.Location = new System.Drawing.Point(430, 64);
             this.btnUnicode.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnUnicode.Name = "btnUnicode";
             this.btnUnicode.Size = new System.Drawing.Size(46, 30);
@@ -308,7 +308,7 @@
             // txtDecimal
             // 
             this.txtDecimal.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtDecimal.Location = new System.Drawing.Point(316, 76);
+            this.txtDecimal.Location = new System.Drawing.Point(276, 69);
             this.txtDecimal.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtDecimal.Name = "txtDecimal";
             this.txtDecimal.Size = new System.Drawing.Size(148, 24);
@@ -320,7 +320,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label5.Location = new System.Drawing.Point(13, 26);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(542, 47);
+            this.label5.Size = new System.Drawing.Size(542, 39);
             this.label5.TabIndex = 11;
             this.label5.Text = "Convert between hex and decimal, or use the button to lookup a Unicode codepoint." +
     "";
