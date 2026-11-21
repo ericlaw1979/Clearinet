@@ -229,7 +229,7 @@ namespace Extensions
                     if (outputPath != null)
                     {
                         byte[] result = File.ReadAllBytes(outputPath);
-                        CApp.UI.AddFauxExchange(Path.GetFileName(outputPath), Utilities.MediaTypeFromFilename(outputPath), result);
+                        CApp.UI.AddFauxExchange("/" + Path.GetFileName(outputPath), Utilities.MediaTypeFromFilename(outputPath), result);
                     }
                     if (captureOutput || captureError) CApp.DoNotifyUser(text, name);
                 }
@@ -306,7 +306,7 @@ namespace Extensions
                     parameters.Param[0] = new EncoderParameter(Encoder.Quality, 90L); /* TODO: Make configurable. Note you must pass as a LONG. Lame. */
                     bitmap.Save(outputStream, encoder, parameters);
 
-                    CApp.UI.AddFauxExchange($"CONVERTED_{DateTime.Now:H-mm-ss}.jpg", "image/jpeg", outputStream.ToArray());
+                    CApp.UI.AddFauxExchange($"/CONVERTED_{DateTime.Now:H-mm-ss}.jpg", "image/jpeg", outputStream.ToArray());
                 }
             }
             catch (Exception eX)
