@@ -3600,5 +3600,9 @@ namespace Clearinet
             CApp.Prefs.SetBoolPref("app.ui.help.troubleshoot_filters", miHelpTroubleshootFilters.Checked);
         }
 
+        private void miRulesHosts_Click(object sender, EventArgs e)
+        {
+            frmHostRemap.ConfigureHOSTS();
+        }
     }
 }

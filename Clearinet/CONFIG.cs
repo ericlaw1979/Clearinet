@@ -221,6 +221,8 @@ namespace Clearinet
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/ExtensionGallery.md";
                 case "Help":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HELP.md";
+                case "HelpHostRemap":
+                    return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HOSTREMAP.md";
                 case "HelpPrefs":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/PREFERENCES.md";
                 case "HelpReverseProxy":

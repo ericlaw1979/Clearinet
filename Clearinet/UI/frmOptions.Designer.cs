@@ -52,7 +52,7 @@
             this.miClearLeafCerts = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.miHTTPSResetAllCerts = new System.Windows.Forms.ToolStripMenuItem();
-            this.lnkHostDecryptionMode = new BetterLinkLabel();
+            this.lnkHostDecryptionMode = new Clearinet.BetterLinkLabel();
             this.txtDecryptHosts = new System.Windows.Forms.TextBox();
             this.cbIgnoreUpstreamCertErrors = new System.Windows.Forms.CheckBox();
             this.cbxDecryptFor = new System.Windows.Forms.ComboBox();
@@ -68,7 +68,7 @@
             this.pageExtensions = new System.Windows.Forms.TabPage();
             this.txtExtensionsList = new System.Windows.Forms.TextBox();
             this.pnlExtFooter = new System.Windows.Forms.Panel();
-            this.lnkGetExtensions = new BetterLinkLabel();
+            this.lnkGetExtensions = new Clearinet.BetterLinkLabel();
             this.pagePerformance = new System.Windows.Forms.TabPage();
             this.cbAutoStream = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -92,7 +92,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.lblUsageNote = new System.Windows.Forms.Label();
-            this.lnkHelp = new BetterLinkLabel();
+            this.lnkHelp = new Clearinet.BetterLinkLabel();
             this.tcOptions.SuspendLayout();
             this.pageGeneral.SuspendLayout();
             this.gbWebServices.SuspendLayout();
