@@ -363,9 +363,12 @@ namespace Clearinet.CaptureEngine
             {
                 Trace.WriteLine($"Request for {xc.id} will go to {host}:{port} isTls:{isTls}");
             }
+
             string processIdentity = clientPipe.ProcessIdentity;
             var key = new ServerConnectionKey(host, port, isTls);
             ServerPipe serverPipe = null;
+
+            // Should the server pipe be returned to the pool when we're done with it?
             bool returnServerPipe = false;
             try
             {
@@ -406,7 +409,9 @@ namespace Clearinet.CaptureEngine
                 xc.Timers.ClientDoneResponse = DateTime.Now;
                 xc.state = ExchangeState.Done;
                 UpdateUIForExchange(xc);
-                if (response.responseHeaders.StatusCode == 101 && xc.ResponseHeaders.StatusCode == 101)
+
+                // Check for a WebSocket upgrade. If we see one, we need to relay the connection until the client or server closes it.
+                if (xc.ResponseHeaders.StatusCode == 101)
                 {
                     returnServerPipe = false;
                     if (HasHeaderWithToken(xc.ResponseHeaders, "Upgrade", "websocket"))
@@ -422,11 +427,12 @@ namespace Clearinet.CaptureEngine
                 {
                     if (returnServerPipe)
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Returning server pipe for {xc.id} to pool: {host}:{port} isTls:{isTls}");
                         _socketPool.Return(key, serverPipe, DateTime.UtcNow);
-                        //xc["x-serverpool-returned"] = "true";
                     }
                     else
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Disposing server pipe for {xc.id}: {host}:{port} isTls:{isTls}");
                         serverPipe.Dispose();
                     }
                 }
@@ -1318,7 +1324,7 @@ namespace Clearinet.CaptureEngine
                 UpdateUIForExchange(xc);
 
                 // At this point, we have sent the HTTP/200 Connected to the client, and we are ready
-                // to start decrypting the tunnel in response to a ClientHello from the client.
+                // to start TLS handshaking with the client using our generated interception certificate.
 
                 var clientTls = new SslStream(clientStream, false);
                 clientTls.AuthenticateAsServer(certServer, false, CONFIG.oAcceptedClientProtocols, false);
@@ -1330,7 +1336,9 @@ namespace Clearinet.CaptureEngine
                         var tunneledRequest = await clientReader.ReadRequestAsync(token).ConfigureAwait(false);
                         if (tunneledRequest.requestHeaders == null) break;
 
-                        tunneledRequest.requestHeaders.UriScheme = "https";  // TODO: We should validate and assert.                       
+                        // TODO: If there's any conflicting information in the request headers,
+                        // we should consider how to respond to that here. 
+                        tunneledRequest.requestHeaders.UriScheme = "https";
 
                         var innerContext = new CaptureConnectionContext(client.Client) { LocalProcessDescriptor = processIdentity };
                         Exchange xcTunneled = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
@@ -1355,15 +1363,14 @@ namespace Clearinet.CaptureEngine
                         await RunBuiltInRulesBeforeResponse(xcTunneled, token).ConfigureAwait(false);
 
                         xcTunneled.state = ExchangeState.AutoTamperResponseBefore;
-                        //if (!upstreamResponse.pipeIsReusable && !inner.ResponseHeaders.Exists("Connection"))
-                        //    inner.ResponseHeaders["Connection"] = "close";
-                        //NormalizeResponseLength(inner.RequestHeaders, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>());
                         await WriteHttpResponseAsync(clientTls, xcTunneled.ResponseHeaders, xcTunneled.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
 
                         xcTunneled.Timers.ClientDoneResponse = DateTime.Now;
                         xcTunneled.state = ExchangeState.Done;
                         UpdateUIForExchange(xcTunneled);
-                        if (upstreamResponse.responseHeaders.StatusCode == 101 && xcTunneled.ResponseHeaders.StatusCode == 101)
+
+                        // Check for a WebSocket upgrade. If we see one, we need to relay the connection until the client or server closes it.
+                        if (xcTunneled.ResponseHeaders.StatusCode == 101)
                         {
                             keepAliveAllowed = false;
                             if (HasHeaderWithToken(xcTunneled.ResponseHeaders, "Upgrade", "websocket"))
@@ -1385,11 +1392,12 @@ namespace Clearinet.CaptureEngine
                 {
                     if (returnUpstreamPipe)
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Returning server pipe for {xc.id} to pool: {host}:{port}");
                         _socketPool.Return(upstreamKey, upstreamPipe, DateTime.UtcNow);
-                        xc["x-serverpool-returned"] = "true";
                     }
                     else
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Disposing server pipe for {xc.id}: {host}:{port}");
                         upstreamPipe.Dispose();
                     }
                 }
