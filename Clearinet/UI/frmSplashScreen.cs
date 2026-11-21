@@ -10,6 +10,19 @@ namespace Clearinet
     {
         private static frmSplashScreen _Instance;
 
+        // Getting a Window Handle has to happen on the UI thread? Weird.
+        internal static IntPtr GetWindowHandleIfExists()
+        {
+            if (_Instance == null) return IntPtr.Zero;
+            if (_Instance.InvokeRequired)
+            {
+                return (IntPtr)_Instance.Invoke(
+                    new Func<IntPtr>(GetWindowHandleIfExists)
+                    );
+            }
+            return _Instance.Handle;
+        }
+
         internal frmSplashScreen()
         {
             InitializeComponent();

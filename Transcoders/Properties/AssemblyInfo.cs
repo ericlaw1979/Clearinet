@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion("0.1.0.4")]
+[assembly: AssemblyVersion("0.1.1.0")]
 
 // Specify that we're an extension assembly, and require a minimum version of Clearinet to load us.
-[assembly: Clearinet.RequiredVersion("0.1.0.4")]
+[assembly: Clearinet.RequiredVersion("0.1.1.0")]

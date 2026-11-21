@@ -818,17 +818,47 @@ namespace Clearinet
 
         public static void alert(string sMessage)
         {
-            DoNotifyUser(null, sMessage, "Script Alert", MessageBoxIcon.Information);
+            DoNotifyUser(CApp.GetBestParentUIHandle(), sMessage, "Script Alert", MessageBoxIcon.Information);
+        }
+
+        private sealed class Win32WindowWrapper : IWin32Window
+        {
+            public Win32WindowWrapper(IntPtr handle)
+            {
+                Handle = handle;
+            }
+
+            public IntPtr Handle { get; }
+        }
+
+        // Returns the "best" UI handle to parent alert/notifications to.
+        // During startup, this is the Splashscreen. After that, it's the main UI window.
+        // If neither exists, returns null.
+        private static IWin32Window GetBestParentUIHandle()
+        {
+            IntPtr hwndSplash = frmSplashScreen.GetWindowHandleIfExists();
+            if (IntPtr.Zero != hwndSplash)
+            {
+                return new Win32WindowWrapper(hwndSplash);
+            }
+            if (null != CApp.UI)
+            {
+                return CApp.UI;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static void DoNotifyUser(string sMessage, string sTitle)
         {
-            DoNotifyUser(null, sMessage, sTitle, MessageBoxIcon.None);
+            DoNotifyUser(CApp.GetBestParentUIHandle(), sMessage, sTitle, MessageBoxIcon.None);
         }
 
         public static void DoNotifyUser(string sMessage, string sTitle, MessageBoxIcon oIcon)
         {
-            DoNotifyUser(null, sMessage, sTitle, oIcon);
+            DoNotifyUser(CApp.GetBestParentUIHandle(), sMessage, sTitle, oIcon);
         }
 
         public static void DoNotifyUser(IWin32Window hwndOwner, string sMessage, string sTitle, MessageBoxIcon oIcon)
