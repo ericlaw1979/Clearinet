@@ -275,8 +275,19 @@ namespace Clearinet
 
         private void cbDecryptHTTPS_Click(object sender, EventArgs e)
         {
-            // TODO: Check if the cert exists, if not, create and trust it.
-            if (cbDecryptHTTPS.Checked) CApp.alert("You will be prompted to trust the root cert on first use.");
+            if (!cbDecryptHTTPS.Checked || CONFIG.isViewerMode) return;
+
+            try
+            {
+                var certificateProvider = new CaptureEngine.CertEnrollCertificateProvider();
+                if (!certificateProvider.EnsureRootTrust())
+                    throw new InvalidOperationException("The Clearinet root certificate could not be trusted.");
+            }
+            catch (Exception eX)
+            {
+                cbDecryptHTTPS.Checked = false;
+                CApp.ReportException(eX, "HTTPS Decryption", "Failed to create or trust the Clearinet root certificate.");
+            }
         }
     }
 }

@@ -1268,8 +1268,6 @@ namespace Clearinet.CaptureEngine
             }
 
             #region GetCertificateForServerHello
-            _certificateProvider.EnsureRootTrust();     // ISSUE: This should not live here.
-
             var sHostForCertificate = host;
             if (xc["x-OverrideCertCN"] is string overrideCN && overrideCN.HasText())
             {
