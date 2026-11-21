@@ -42,7 +42,7 @@
             this.pbSplash.Image = ((System.Drawing.Image)(resources.GetObject("pbSplash.Image")));
             this.pbSplash.Location = new System.Drawing.Point(0, 0);
             this.pbSplash.Name = "pbSplash";
-            this.pbSplash.Size = new System.Drawing.Size(500, 234);
+            this.pbSplash.Size = new System.Drawing.Size(500, 279);
             this.pbSplash.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbSplash.TabIndex = 0;
             this.pbSplash.TabStop = false;
@@ -76,7 +76,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(30)))), ((int)(((byte)(52)))));
-            this.ClientSize = new System.Drawing.Size(500, 279);
+            this.ClientSize = new System.Drawing.Size(500, 324);
             this.Controls.Add(this.pbSplash);
             this.Controls.Add(this.panel1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F);
