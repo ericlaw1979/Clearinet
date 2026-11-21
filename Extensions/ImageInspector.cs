@@ -20,6 +20,7 @@ namespace Extensions
         Image imageRendered;
         byte[] imageBody;
         string imageMediaType;
+        string sSuggestedImageFilename;
 
         public override string TabTitle => "Images";
         public override void AddToTab(TabPage o)
@@ -40,8 +41,9 @@ namespace Extensions
 
             var oMS = new MemoryStream();
             imageRendered.Save(oMS, ImageFormat.Png);
-            string sFilename = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + Path.DirectorySeparatorChar +
-                $"{DateTime.Now:H-mm-ss}.png";
+            var sFilename = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + Path.DirectorySeparatorChar
+                + (string.IsNullOrWhiteSpace(sSuggestedImageFilename) ? $"{DateTime.Now:H-mm-ss}.png" : Path.GetFileNameWithoutExtension(sSuggestedImageFilename) + ".png");
+
             File.WriteAllBytes(sFilename, oMS.ToArray());
             oView.txtMetadata.BackColor = CONFIG.colorDisabledEdit; // Unflash background
             oView.txtMetadata.Refresh();
@@ -53,8 +55,15 @@ namespace Extensions
             if (e.Button == MouseButtons.Middle) { DumpImageToDesktop(); return; }
         }
 
+        public override void AssignExchange(Exchange oX)
+        {
+            this.Assign(oX.ResponseHeaders, oX.ResponseBody, true);
+            sSuggestedImageFilename = $"{oX.id}-{oX.SuggestedFilename}";
+        }
+
         public override void Assign(HTTPResponseHeaders headers, byte[] arrBody, bool bReadOnly)
         {
+            sSuggestedImageFilename = string.Empty; // We could pull a candidate from the request URL, but in most cases we will set it in our caller.
             if (null == headers || !arrBody.HasData()) { Clear(); return; }
             var sContentType = headers["Content-Type"];
             bool bHasEncoding = headers.ExistsAny("Content-Encoding", "Transfer-Encoding");
@@ -191,14 +200,14 @@ namespace Extensions
             try
             {
                 if (imageBody == null) throw new InvalidOperationException("No image is selected.");
-                inputPath = Path.Combine(Path.GetTempPath(), "Clearinet-Image-" + Guid.NewGuid().ToString("N") + Utilities.FileExtensionForMediaType(imageMediaType));
+                inputPath = Path.Combine(Path.GetTempPath(), "Clearinet-" + Guid.NewGuid().ToString("N").Substring(0, 8) + Utilities.FileExtensionForMediaType(imageMediaType));
                 File.WriteAllBytes(inputPath, imageBody);
                 var output = Regex.Match(parameters, @"\{out(?::([^{}]*))?\}");
                 if (output.Success)
                 {
                     string extension = output.Groups[1].Success ? "." + output.Groups[1].Value : ".tmp";
                     if (!Regex.IsMatch(extension, @"^\.[A-Za-z0-9]+$")) throw new FormatException("Invalid {out:extension} filename extension.");
-                    outputPath = Path.Combine(Path.GetTempPath(), "Clearinet-Image-" + Guid.NewGuid().ToString("N") + extension);
+                    outputPath = Path.Combine(Path.GetTempPath(), "Clearinet-" + Guid.NewGuid().ToString("N").Substring(0, 8) + extension);
                     parameters = parameters.Replace(output.Value, outputPath);
                 }
                 if (parameters.Contains("{out")) throw new FormatException("Use one output filename token: {out} or {out:extension}.");
@@ -229,7 +238,10 @@ namespace Extensions
                     if (outputPath != null)
                     {
                         byte[] result = File.ReadAllBytes(outputPath);
-                        CApp.UI.AddFauxExchange("/" + Path.GetFileName(outputPath), Utilities.MediaTypeFromFilename(outputPath), result);
+
+                        var sFakePath = (sSuggestedImageFilename.HasText()) ? sSuggestedImageFilename : $"{DateTime.Now:H-mm-ss}.png";
+                        sFakePath = Path.ChangeExtension(sFakePath, Path.GetExtension(outputPath));
+                        CApp.UI.AddFauxExchange("/" + sFakePath, Utilities.MediaTypeFromFilename(outputPath), result);
                     }
                     if (captureOutput || captureError) CApp.DoNotifyUser(text, name);
                 }
@@ -306,7 +318,8 @@ namespace Extensions
                     parameters.Param[0] = new EncoderParameter(Encoder.Quality, 90L); /* TODO: Make configurable. Note you must pass as a LONG. Lame. */
                     bitmap.Save(outputStream, encoder, parameters);
 
-                    CApp.UI.AddFauxExchange($"/CONVERTED_{DateTime.Now:H-mm-ss}.jpg", "image/jpeg", outputStream.ToArray());
+                    var sFilename = string.IsNullOrWhiteSpace(sSuggestedImageFilename) ? $"CONVERTED_{DateTime.Now:H-mm-ss}.jpg" : Path.GetFileNameWithoutExtension(sSuggestedImageFilename) + ".jpg";
+                    CApp.UI.AddFauxExchange($"/{sFilename}", "image/jpeg", outputStream.ToArray());
                 }
             }
             catch (Exception eX)
