@@ -181,12 +181,12 @@ transport remains available for compatibility and diagnostics through the
 ephemeral `proxy.ephemeral.use_httpclientbridge_transport` preference, but is
 not selected by default by the Exchange state machine.
 
-In a future implementation, Clearinet will detect when a client is attempting
-to construct a connection to be used for WebSocket traffic and will handle
-these connections by processing the WebSocket messages and exposing them
-to the user via UI and extensions via APIs. For now, Clearinet will simply
-proxy the bytes on a WebSocket connection blindly from client to server without
-attempting to interpret them.
+After an HTTP 101 Switching Protocols response, Clearinet relays upgraded
+traffic blindly in both directions, including WebSocket upgrades inside decrypted
+CONNECT tunnels. Bytes buffered after the HTTP handshake are preserved. When
+either side closes or capture is cancelled, both connections are closed; neither
+pipe is returned to a reuse pool. WebSocket messages are not yet parsed or exposed
+through the UI or extension APIs.
 
 ## Sample Exchange Flow
 

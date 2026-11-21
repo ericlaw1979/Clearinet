@@ -406,6 +406,14 @@ namespace Clearinet.CaptureEngine
                 xc.Timers.ClientDoneResponse = DateTime.Now;
                 xc.state = ExchangeState.Done;
                 UpdateUIForExchange(xc);
+                if (response.responseHeaders.StatusCode == 101 && xc.ResponseHeaders.StatusCode == 101)
+                {
+                    returnServerPipe = false;
+                    if (HasHeaderWithToken(xc.ResponseHeaders, "Upgrade", "websocket"))
+                        xc.SetBitFlag(ExchangeFlags.IsWebSocketTunnel);
+                    await RelayUpgradedConnectionAsync(clientPipe, serverPipe, token).ConfigureAwait(false);
+                    return false;
+                }
                 return response.pipeIsReusable && ShouldKeepAlive(xc.RequestHeaders, xc.ResponseHeaders) && clientPipe.IsConnected;
             }
             finally
@@ -1355,6 +1363,14 @@ namespace Clearinet.CaptureEngine
                         xcTunneled.Timers.ClientDoneResponse = DateTime.Now;
                         xcTunneled.state = ExchangeState.Done;
                         UpdateUIForExchange(xcTunneled);
+                        if (upstreamResponse.responseHeaders.StatusCode == 101 && xcTunneled.ResponseHeaders.StatusCode == 101)
+                        {
+                            keepAliveAllowed = false;
+                            if (HasHeaderWithToken(xcTunneled.ResponseHeaders, "Upgrade", "websocket"))
+                                xcTunneled.SetBitFlag(ExchangeFlags.IsWebSocketTunnel);
+                            await RelayUpgradedConnectionAsync(clientPipe, upstreamPipe, token).ConfigureAwait(false);
+                            break;
+                        }
                         keepAliveAllowed = upstreamResponse.pipeIsReusable &&
                             ShouldKeepAlive(headersToSend, xcTunneled.ResponseHeaders) && upstreamPipe.IsConnected;
                         if (!keepAliveAllowed || !ShouldKeepAlive(xcTunneled.RequestHeaders, xcTunneled.ResponseHeaders)) break;
@@ -1736,6 +1752,46 @@ namespace Clearinet.CaptureEngine
             }
 
             throw new SocketException((int)SocketError.HostUnreachable);
+        }
+
+        internal static async Task RelayUpgradedConnectionAsync(ClientPipe clientPipe, ServerPipe serverPipe, CancellationToken token)
+        {
+            Stream clientStream = clientPipe.Reader.DetachUnreadStream();
+            Stream serverStream = serverPipe.Reader.DetachUnreadStream();
+            using (var relayCts = CancellationTokenSource.CreateLinkedTokenSource(token))
+            using (relayCts.Token.Register(() =>
+            {
+                try { clientPipe.Dispose(); } finally { serverPipe.Dispose(); }
+            }))
+            {
+                Task fromClient = CopyUpgradedStreamAsync(clientStream, serverStream, relayCts.Token);
+                Task fromServer = CopyUpgradedStreamAsync(serverStream, clientStream, relayCts.Token);
+                try
+                {
+                    await Task.WhenAny(fromClient, fromServer).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // Framework stream reads may ignore cancellation until their sockets are closed.
+                    relayCts.Cancel();
+                    await Task.WhenAll(fromClient, fromServer).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task CopyUpgradedStreamAsync(Stream source, Stream destination, CancellationToken token)
+        {
+            try
+            {
+                await source.CopyToAsync(destination, 8192, token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+            catch (ObjectDisposedException) when (token.IsCancellationRequested) { }
+            catch (IOException eX)
+            {
+                if (!token.IsCancellationRequested)
+                    CApp.Log.Log($"! Upgraded tunnel relay failed: {eX.Message}");
+            }
         }
 
         private static async Task<long> PumpStreamAsync(Stream source, Stream destination, CancellationToken token, Action<byte[], int, long> onBytesPumped = null)

@@ -46,6 +46,54 @@ namespace CaptureEngine.Tests
         }
 
         [TestMethod]
+        public async Task ReadResponseAsync_UpgradePreservesBufferedFramesAndDisablesReuse()
+        {
+            byte[] headers = Encoding.ASCII.GetBytes(
+                "HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n");
+            byte[] frame = { 0x82, 0x04, 0x00, 0xFF, 0x0D, 0x0A };
+            using (var stream = new MemoryStream())
+            {
+                stream.Write(headers, 0, headers.Length);
+                stream.Write(frame, 0, frame.Length);
+                stream.Position = 0;
+                var reader = new HttpStreamReader(stream);
+
+                var response = await reader.ReadResponseAsync("GET", CancellationToken.None);
+                Assert.AreEqual(101, response.responseHeaders.StatusCode);
+                Assert.AreEqual(0, response.responseBody.Length);
+                Assert.IsFalse(response.pipeIsReusable);
+                using (var received = new MemoryStream())
+                {
+                    await reader.DetachUnreadStream().CopyToAsync(received);
+                    CollectionAssert.AreEqual(frame, received.ToArray());
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task ReadRequestAsync_UpgradePreservesBufferedClientFrames()
+        {
+            byte[] request = Encoding.ASCII.GetBytes(
+                "GET /socket HTTP/1.1\r\nHost: example.test\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n");
+            byte[] frame = { 0x82, 0x84, 0x01, 0x02, 0x03, 0x04, 0xFF, 0x00, 0x0D, 0x0A };
+            using (var stream = new MemoryStream())
+            {
+                stream.Write(request, 0, request.Length);
+                stream.Write(frame, 0, frame.Length);
+                stream.Position = 0;
+                var reader = new HttpStreamReader(stream);
+                var parsed = await reader.ReadRequestAsync(CancellationToken.None);
+                Assert.AreEqual("/socket", parsed.requestHeaders.RequestPath);
+                Assert.AreEqual(0, parsed.requestBody.Length);
+                using (var received = new MemoryStream())
+                {
+                    await reader.DetachUnreadStream().CopyToAsync(received);
+                    CollectionAssert.AreEqual(frame, received.ToArray());
+                }
+            }
+        }
+
+        [TestMethod]
         public async Task ReadRequestAsync_RejectsConflictingFramingHeaders()
         {
             const string request =
