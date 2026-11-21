@@ -891,7 +891,7 @@ namespace Clearinet
             {
                 while (item.SubItems.Count < Columns.Count) item.SubItems.Add(string.Empty);
                 item.SubItems[newCol.Index].Text = item.Tag is Exchange exchange
-                    ? PopulateColumn(newCol.Index, exchange) : string.Empty;
+                    ? ComputeColumn(newCol.Index, exchange) : string.Empty;
             }
             return newCol;
         }
@@ -942,7 +942,7 @@ namespace Clearinet
         }
         #endregion
 
-        internal string PopulateColumn(int i, Exchange x)
+        internal string ComputeColumn(int i, Exchange x)
         {
             try
             {
@@ -953,7 +953,7 @@ namespace Clearinet
             }
             catch (Exception eX)
             {
-                CApp.Log.LogFormat($"Failed to populate column {i} for Exchange {x.id} due to {eX.Message}");
+                CApp.Log.LogFormat($"Failed to compute column {i} data for Exchange {x.id} due to {eX.Message}");
             }
             return string.Empty;
         }

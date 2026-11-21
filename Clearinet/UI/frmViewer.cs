@@ -1521,12 +1521,11 @@ namespace Clearinet
                     xc["ui-comments"] ?? String.Empty
                 });
 
-            // TODO: Should we cache a set of empty columns?
+            // TODO: Should we cache a set of empty columns and addRange on them?
             for (int i = 10; i < lvExchanges.Columns.Count; ++i)
             {
-                lvi.SubItems.Add(lvExchanges.PopulateColumn(i, xc));
+                lvi.SubItems.Add(lvExchanges.ComputeColumn(i, xc));
             }
-
 
             AddFormatting(lvi, xc);
             lvExchanges.EnqueueItem(lvi);
@@ -1575,7 +1574,7 @@ namespace Clearinet
             // Populate the custom columns (if any)
             for (int i = 10; i < lvExchanges.Columns.Count; ++i)
             {
-                SetLviSubItemText(lvi, i, lvExchanges.PopulateColumn(i, xc));
+                SetLviSubItemText(lvi, i, lvExchanges.ComputeColumn(i, xc));
             }
 
             AddFormatting(lvi, xc);
