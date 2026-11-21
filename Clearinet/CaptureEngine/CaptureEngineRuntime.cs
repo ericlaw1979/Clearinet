@@ -569,10 +569,15 @@ namespace Clearinet.CaptureEngine
         }
 
         // Clearinet includes some built-in rules. We will run those at the appropriate time. TODO: WHEN?
-        private async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
+        internal async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
         {
             if (CApp.isTracing) Trace.WriteLine($"RunBuiltInRulesBeforeRequest for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
             if (CApp.isClosing) return;
+
+            if (CApp.Prefs.GetBoolPref("app.host_remapping.enabled", false))
+            {
+                ApplyHostRemapping(xc, CApp.Prefs.GetStringPref("app.host_remapping.rules", string.Empty));
+            }
 
             ReplaceAnyVirtualHostname(xc);
 
@@ -630,6 +635,36 @@ namespace Clearinet.CaptureEngine
                 !xc.BitFlags.HasFlag(ExchangeFlags.RequestStreamed) && !xc.BitFlags.HasFlag(ExchangeFlags.IsRPCTunnel))
             {
                 xc.utilDecodeRequest();
+            }
+        }
+
+        // TODO: PERF: Re-parsing this whole thing every time is ridiculous and wasteful.
+        // But we can cache the parsed rules in memory and only re-parse when the preference changes later.
+        internal static void ApplyHostRemapping(Exchange xc, string rules)
+        {
+            string hostname = xc.hostname;
+            using (var reader = new StringReader(rules))
+            {
+                string line;
+                int lineNumber = 0;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    lineNumber++;
+                    line = line.Trim();
+                    if (line.Length == 0 || line[0] == '#') continue;
+                    string[] tokens = line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                    if (tokens.Length < 2)
+                    {
+                        CApp.Log.Log($"! Invalid host remapping rule on line {lineNumber}: expected a target and hostname.");
+                        continue;
+                    }
+                    if (hostname.OICEquals(tokens[1]))
+                    {
+                        xc["x-overridehost"] = tokens[0];
+                        xc["X-IgnoreCertCNMismatch"] = "true"; // TODO: we could tighten this up.
+                        return;
+                    }
+                }
             }
         }
 

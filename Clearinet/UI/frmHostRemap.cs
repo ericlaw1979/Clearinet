@@ -29,7 +29,6 @@ namespace Clearinet.UI
                     bool bEnabled = frmInstance.cbEnableRemap.Checked;
                     CApp.Prefs.AssignOrRemoveIfDefault("app.host_remapping.enabled", bEnabled, false);
                     CApp.Prefs.AssignOrRemoveIfDefault("app.host_remapping.rules", frmInstance.txtRules.Text.Trim(), string.Empty);
-                    CApp.alert("Remapping is not yet implemented. Coming soon.");
                 }
             }
             frmInstance = null;
