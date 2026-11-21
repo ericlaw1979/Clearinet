@@ -1465,20 +1465,15 @@ namespace Clearinet
                 return;
             }
 
-            foreach (Exchange exchange in exchanges) addExchange(exchange);
+            foreach (Exchange exchange in exchanges) addExchangeLVI(exchange);
         }
 
-        public void addExchange(Exchange xc)
+        public void addExchangeLVI(Exchange xc)
         {
-            if (lvExchanges.InvokeRequired)
-            {
-                lvExchanges.Invoke((Action<Exchange>)addExchange, xc);
-                return;
-            }
-
             // Already created.
             if (xc.ViewItem != null) return;
 
+            // If the item should be hidden, we will skip creating it except in troubleshooter mode.
             if (!xc.BitFlags.HasFlag(ExchangeFlags.ImportedFromOtherTool) &&
                 !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&
                 xc.ShouldHide())
@@ -1491,13 +1486,25 @@ namespace Clearinet
                 }
                 else
                 {
+                    if (CApp.isTracing) Trace.WriteLine($"Skipping creation of ListViewItem for #{xc.id} because it is hidden by rules.");
                     return; // skip creation.
                 }
-
             }
-            _materializeExchange(xc, false);
+
+            if (lvExchanges.InvokeRequired)
+            {
+                lvExchanges.Invoke((Action<Exchange, bool>)_materializeExchange, xc, false);
+            }
+            else
+            {
+                _materializeExchange(xc, false);
+            }
         }
 
+        // Called on the UI thread, this creates the ListViewItem and queues it for addition
+        // to the Exchanges ListView.
+        //
+        // TODO: bFinishedAlready is not yet used.
         private void _materializeExchange(Exchange xc, bool bFinishedAlready)
         {
             ListViewItem lvi = new ListViewItem(xc.id.ToString())
@@ -1506,7 +1513,7 @@ namespace Clearinet
             };
             xc.ViewItem = lvi;
 
-            // Fill the columns.
+            // Fill the built-in columns.
             lvi.SubItems.AddRange(
                 new string[]
                 {
@@ -1535,15 +1542,17 @@ namespace Clearinet
         {
             if (CApp.isClosing) return;
 
+            // If the ViewItem doesn't exist yet, then we're
+            // adding, not updating. Go do that.
             if (null == xc.ViewItem)
             {
-                addExchange(xc);
+                addExchangeLVI(xc);
                 return;
             }
 
-
+            // If the item should be hidden based on rules. 
             if (!xc.BitFlags.HasFlag(ExchangeFlags.ImportedFromOtherTool) &&
-                !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&
+                !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&  /* TODO: AND DOES NOT have HTTPErrors we need to show */
                 xc.ShouldHide())
             {
                 if (CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true))
@@ -1554,12 +1563,14 @@ namespace Clearinet
                 }
                 else
                 {
-                    return; // skip creation.
+                    xc.ViewItem.Remove();
+                    xc.ViewItem = null;     // I bet this breaks somebody. ::grimace::
+                    return; // skip the update.
                 }
 
             }
 
-
+            // Otherwise, update the columns.
             ListViewItem lvi = xc.ViewItem;
             SetLviSubItemText(lvi, 1, xc.bHasResponse ? xc.responseCode.ToString() : "-");
             SetLviSubItemText(lvi, 2, xc.RequestHeaders.HTTPMethod);
@@ -1571,17 +1582,19 @@ namespace Clearinet
             SetLviSubItemText(lvi, 8, xc["x-processinfo"] ?? String.Empty);
             SetLviSubItemText(lvi, 9, xc["ui-comments"] ?? String.Empty);
 
-            // Populate the custom columns (if any)
-            for (int i = 10; i < lvExchanges.Columns.Count; ++i)
+            // Populate the custom columns (if any).
+            for (int i = 10; i < lvi.SubItems.Count; ++i)
             {
                 SetLviSubItemText(lvi, i, lvExchanges.ComputeColumn(i, xc));
             }
+            Debug.Assert(lvi.SubItems.Count == lvExchanges.Columns.Count, "WAT? The LVI doesn't have the required number of subitems!");
 
             AddFormatting(lvi, xc);
         }
 
         // Speculative fix to try to reduce wndproc overhead when updating the ListView.
-        // Unclear if this is actually any better, but Copilot suggested it and it doesn't seem crazy.
+        // Unclear if this is actually any better, but Copilot suggested it (and Gemini confirms)
+        // and it doesn't seem crazy.
         private static void SetLviSubItemText(ListViewItem lvi, int subItemIndex, string value)
         {
             var subItem = lvi.SubItems[subItemIndex];
@@ -1619,7 +1632,11 @@ namespace Clearinet
                     lvi.ForeColor = CONFIG.GetExchangeColor(xc);
                 }
             }
+
+            // TODO: Should we allow multiple styles to be applied at once? Currently, the last one wins.
+            // Also, should we be caching the Font objects instead of creating a new one each time? Probably.
             if (xc["ui-strikeout"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
+            if (xc["ui-italic"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Italic);
             if (xc["ui-bold"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Bold);
         }
 
@@ -1654,9 +1671,11 @@ namespace Clearinet
                 CONFIG.RemoveCleanupRegistryKey();
             }
 
+
+            // Freeze/skip any work else we can. TODO: Any more?
             timerReportUpdater.Stop();
             CApp.gwHoneyDew.Dispose();
-            // TODO: Freeze anything else we can.
+
 
             CApp.Prefs.SetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
             CApp.Prefs.SetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
@@ -1668,7 +1687,7 @@ namespace Clearinet
             CApp.OnAppShutdown();
         }
 
-        // Called if Form Closure was done due to Windows shutdown.
+        // Called if Form Closure occurred due to Windows shutdown.
         private void HandleWindowsShutdown()
         {
             if (_didHandleWindowsShutdown) return;
@@ -2530,7 +2549,7 @@ namespace Clearinet
         public Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
         {
             Exchange exchange = CreateFauxExchange(sRequestPath, sContentType, arrBody);
-            addExchange(exchange);
+            addExchangeLVI(exchange);
             return exchange;
         }
 
@@ -2584,7 +2603,7 @@ namespace Clearinet
                 exchNew.EnsureID();
                 exchNew.Timers.AssignNowToAll();
                 exchNew.state = ExchangeState.Done;
-                addExchange(exchNew);
+                addExchangeLVI(exchNew);
                 return true;
             }
             catch (Exception eX)

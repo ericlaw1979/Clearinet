@@ -403,7 +403,7 @@ namespace Clearinet
                         DateTime dt = DateTime.Now;
                         Exchange XC = frmViewer.CreateFauxExchange($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes("Spam Exchange"));
                         XC.oFlags["ui-backcolor"] = "WhiteSmoke";
-                        CApp.UI.addExchange(XC);
+                        CApp.UI.addExchangeLVI(XC);
 
                     }, uiInterval);
                     return true;
