@@ -3069,7 +3069,7 @@ namespace Clearinet
             var ix = 0;
             for (; ix < arrExch.Length; ++ix)
             {
-                sbAllURIs.AppendLine(arrExch[ix].ResponseBodyAsDataURL());
+                sbAllURIs.AppendLine(arrExch[ix].GetResponseBodyAsDataURL());
             }
             if (1 == ix) sbAllURIs.Length -= Environment.NewLine.Length; // Remove trailing newline if only one exchange
             PlatformAPI.WriteToClipboard(sbAllURIs.ToString());

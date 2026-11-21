@@ -16,7 +16,7 @@ using System.Xml;
 namespace Clearinet
 {
     /// <summary>
-    /// The Exchange class represents a single HTTP exchange: the request, response, and metadata.
+    /// The Exchange class represents a single HTTP(S) exchange: the request, response, and metadata.
     /// </summary>
     [DebuggerDisplay("Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]")]
     public class Exchange
@@ -48,8 +48,8 @@ namespace Clearinet
         #endregion 'id' property
 
         /// <summary>
-        /// Should the bytes of the response body be streamed to the cleint as 
-        /// it is read from the server.
+        /// Should the bytes of the response body be streamed to the client as 
+        /// the response is read from the server?
         /// 
         /// For this setting to have any effect, set it in or before 
         /// PeekAtResponseHeaders.
@@ -59,15 +59,6 @@ namespace Clearinet
         public override string ToString()
         {
             return $"Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]";
-        }
-
-        public string ResponseBodyAsDataURL()
-        {
-            if (!ResponseBody.HasData()) return "data:application/octet-stream;";
-            string sMime = this.MediaType;
-            if (!sMime.HasText()) sMime = "application/octet-stream";
-            string sBase64 = Convert.ToBase64String(GetResponseBodyAsDecodedBytes());
-            return $"data:{sMime};base64,{sBase64}";
         }
 
         public string ToLongString()
@@ -736,6 +727,15 @@ namespace Clearinet
         {
             byte[] decompressed = DecodeBodyFromHeaders(ResponseHeaders, ResponseBody);
             return Encoding.UTF8.GetString(decompressed); // TODO: Use the charset from the Content-Type header if present.
+        }
+
+        public string GetResponseBodyAsDataURL()
+        {
+            if (!ResponseBody.HasData()) return "data:application/octet-stream;";
+            string sMime = this.MediaType;
+            if (!sMime.HasText()) sMime = "application/octet-stream";
+            string sBase64 = Convert.ToBase64String(GetResponseBodyAsDecodedBytes());
+            return $"data:{sMime};base64,{sBase64}";
         }
 
         public byte[] GetRequestBodyAsDecodedBytes()
