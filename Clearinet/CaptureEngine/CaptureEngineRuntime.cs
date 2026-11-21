@@ -651,8 +651,8 @@ namespace Clearinet.CaptureEngine
                 {
                     lineNumber++;
                     line = line.Trim();
-                    if (line.Length == 0 || line[0] == '#') continue;
-                    string[] tokens = line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                    if (line.Length == 0 || line[0] == '#') continue; // Skip empty lines and comments.
+                    string[] tokens = line.Split((char[])null, 3, StringSplitOptions.RemoveEmptyEntries);
                     if (tokens.Length < 2)
                     {
                         CApp.Log.Log($"! Invalid host remapping rule on line {lineNumber}: expected a target and hostname.");
@@ -660,8 +660,25 @@ namespace Clearinet.CaptureEngine
                     }
                     if (hostname.OICEquals(tokens[1]))
                     {
-                        xc["x-overridehost"] = tokens[0];
-                        xc["X-IgnoreCertCNMismatch"] = "true"; // TODO: we could tighten this up.
+                        if (CApp.isTracing) Trace.WriteLine($"!!! Host remapping rule matched for {hostname}: #{xc.id} will target {tokens[0]} instead.");
+
+                        if (tokens.Length == 3 && tokens[2].OICEquals("rewrite"))
+                        {
+                            xc.host = tokens[0];
+                        }
+                        else
+                        {
+                            // The first token is the new target IP/Host.
+                            xc["x-overridehost"] = tokens[0];
+
+                            // If it's a CONNECT, we need to make sure that we don't complain that the server's
+                            // cert doesn't match the client's original hostname.
+                            if (xc.HTTPMethodIs("CONNECT"))
+                            {
+                                // TODO: We could tighten this up with a new flag that specifies the /expected/ CN?
+                                xc["X-IgnoreCertCNMismatch"] = "true";
+                            }
+                        }
                         return;
                     }
                 }
@@ -1686,6 +1703,7 @@ namespace Clearinet.CaptureEngine
                         null).ConfigureAwait(false);
                     oSW.Stop();
                     xc.Timers.TCPConnectTime = (int)oSW.ElapsedMilliseconds;
+                    xc["x-hostIP"] = addresses[i].ToString();
                     return socket;
                 }
                 catch (Exception eX)
