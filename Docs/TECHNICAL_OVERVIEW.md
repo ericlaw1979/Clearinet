@@ -116,7 +116,9 @@ the server.
 Pools are keyed by destination hostname, port, and whether the upstream
 connection uses TLS. The idle and maximum-age defaults are both five minutes and
 are configurable with `proxy.socketpool.idle_ms` and
-`proxy.socketpool.max_age_ms`.
+`proxy.socketpool.max_age_ms`. Pressing Ctrl+X in the Web Exchanges list clears
+its entries and closes idle server connections in the pool. Connections currently
+in use are not interrupted and may be pooled when their exchanges finish.
 
 ### TLS Decryption
 TLS decryption is provided by a "man-in-the-middle" approach where Clearinet

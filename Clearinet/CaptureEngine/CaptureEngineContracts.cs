@@ -11,6 +11,7 @@ namespace Clearinet.CaptureEngine
         void Start();
         void Stop();
         void ClearWindowsLeafCerts();
+        void ClearServerSocketPool();
     }
 
     internal interface ICaptureRequestProcessor
@@ -23,6 +24,7 @@ namespace Clearinet.CaptureEngine
         bool TryRent(ServerConnectionKey key, string processIdentity, Guid clientPipeId, out ServerPipe pipe);
         void Return(ServerConnectionKey key, ServerPipe pipe, DateTime idleSinceUtc);
         void PurgeExpired(DateTime nowUtc);
+        void Clear();
     }
 
     internal interface ICertificateProvider

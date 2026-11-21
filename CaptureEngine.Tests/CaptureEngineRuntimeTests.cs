@@ -54,11 +54,28 @@ namespace CaptureEngine.Tests
             runtime.Dispose();
         }
 
+        [TestMethod]
+        public void Runtime_ClearServerSocketPool_ForwardsToItsListener()
+        {
+            var listener = new FakeCaptureEngineListener();
+            var runtime = new CaptureEngineRuntime(
+                new CaptureEngineOptions(IPAddress.Loopback, 8888),
+                () => listener);
+
+            runtime.ClearServerSocketPool();
+            Assert.AreEqual(0, listener.ClearServerSocketPoolCount);
+            runtime.Start();
+            runtime.ClearServerSocketPool();
+            Assert.AreEqual(1, listener.ClearServerSocketPoolCount);
+            runtime.Dispose();
+        }
+
         private sealed class FakeCaptureEngineListener : ICaptureEngineListener
         {
             public int StartCount { get; private set; }
             public int StopCount { get; private set; }
             public int ClearWindowsLeafCertsCount { get; private set; }
+            public int ClearServerSocketPoolCount { get; private set; }
             public int DisposeCount { get; private set; }
             public bool IsRunning { get; private set; }
 
@@ -77,6 +94,11 @@ namespace CaptureEngine.Tests
             public void ClearWindowsLeafCerts()
             {
                 ClearWindowsLeafCertsCount++;
+            }
+
+            public void ClearServerSocketPool()
+            {
+                ClearServerSocketPoolCount++;
             }
 
             public void Dispose()

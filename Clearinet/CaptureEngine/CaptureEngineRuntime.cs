@@ -49,6 +49,14 @@ namespace Clearinet.CaptureEngine
             }
         }
 
+        public void ClearServerSocketPool()
+        {
+            lock (_syncRoot)
+            {
+                _listener?.ClearServerSocketPool();
+            }
+        }
+
         public void Start()
         {
             lock (_syncRoot)
@@ -159,6 +167,11 @@ namespace Clearinet.CaptureEngine
         public void ClearWindowsLeafCerts()
         {
             _certificateProvider.ClearWindowsLeafCerts();
+        }
+
+        public void ClearServerSocketPool()
+        {
+            _socketPool.Clear();
         }
 
         public void Stop()
@@ -346,6 +359,10 @@ namespace Clearinet.CaptureEngine
             if (!TryComputeDestination(xc, out string host, out int port, out bool isTls))
                 throw new InvalidDataException("The request does not refer to a valid HTTP(S) destination.");
 
+            if (CApp.isTracing)
+            {
+                Trace.WriteLine($"Request for {xc.id} will go to {host}:{port} isTls:{isTls}");
+            }
             string processIdentity = clientPipe.ProcessIdentity;
             var key = new ServerConnectionKey(host, port, isTls);
             ServerPipe serverPipe = null;
@@ -652,7 +669,7 @@ namespace Clearinet.CaptureEngine
                     lineNumber++;
                     line = line.Trim();
                     if (line.Length == 0 || line[0] == '#') continue; // Skip empty lines and comments.
-                    string[] tokens = line.Split((char[])null, 3, StringSplitOptions.RemoveEmptyEntries);
+                    string[] tokens = line.Split((char[])null /*split on any whitespace*/, 3, StringSplitOptions.RemoveEmptyEntries);
                     if (tokens.Length < 2)
                     {
                         CApp.Log.Log($"! Invalid host remapping rule on line {lineNumber}: expected a target and hostname.");
@@ -664,6 +681,12 @@ namespace Clearinet.CaptureEngine
 
                         if (tokens.Length == 3 && tokens[2].OICEquals("rewrite"))
                         {
+                            // TODO: if this is a CONNECT, do we also need to change the request path?
+                            if (xc.HTTPMethodIs("CONNECT"))
+                            {
+                                xc.RequestHeaders.RequestPath = tokens[0] + ":" + xc.port.ToString(CultureInfo.InvariantCulture);
+                            }
+                            // Ensure we do this *after* to avoid corrupting the port.
                             xc.host = tokens[0];
                         }
                         else
@@ -1311,13 +1334,13 @@ namespace Clearinet.CaptureEngine
 
                         xcTunneled.state = ExchangeState.AutoTamperRequestBefore;
 
-                        HTTPRequestHeaders upstreamRequest = xcTunneled.RequestHeaders.Clone();
+                        HTTPRequestHeaders headersToSend = xcTunneled.RequestHeaders.Clone();
 
-                        PrepareRequestForServer(upstreamRequest, xcTunneled.RequestBody ?? Array.Empty<byte>());
-                        await WriteHttpRequestAsync(upstreamPipe.Stream, upstreamRequest,
+                        PrepareRequestForServer(headersToSend, xcTunneled.RequestBody ?? Array.Empty<byte>());
+                        await WriteHttpRequestAsync(upstreamPipe.Stream, headersToSend,
                             xcTunneled.RequestBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
 
-                        var upstreamResponse = await upstreamPipe.Reader.ReadResponseAsync(upstreamRequest.HTTPMethod, token).ConfigureAwait(false);
+                        var upstreamResponse = await upstreamPipe.Reader.ReadResponseAsync(headersToSend.HTTPMethod, token).ConfigureAwait(false);
                         if (upstreamResponse.responseHeaders == null) break;
 
                         xcTunneled.ResponseHeaders = upstreamResponse.responseHeaders;
@@ -1335,7 +1358,7 @@ namespace Clearinet.CaptureEngine
                         xcTunneled.state = ExchangeState.Done;
                         UpdateUIForExchange(xcTunneled);
                         keepAliveAllowed = upstreamResponse.pipeIsReusable &&
-                            ShouldKeepAlive(upstreamRequest, xcTunneled.ResponseHeaders) && upstreamPipe.IsConnected;
+                            ShouldKeepAlive(headersToSend, xcTunneled.ResponseHeaders) && upstreamPipe.IsConnected;
                         if (!keepAliveAllowed || !ShouldKeepAlive(xcTunneled.RequestHeaders, xcTunneled.ResponseHeaders)) break;
                     }
                 }
@@ -1540,6 +1563,7 @@ namespace Clearinet.CaptureEngine
 
         private static async Task WriteHttpRequestAsync(Stream stream, HTTPRequestHeaders headers, byte[] body, CancellationToken token)
         {
+            if (CApp.isTracing) Trace.WriteLine("Sending request to server:\r\n" + headers.ToString() + "\r\n\r\n" + (body != null ? Utilities.ByteArrayToHexView(body, 0, 16, 1024, true) : string.Empty));
             byte[] headerBytes = headers.ToByteArray(false);
             // TODO: Set the correct timer.
             await stream.WriteAsync(headerBytes, 0, headerBytes.Length, token).ConfigureAwait(false);

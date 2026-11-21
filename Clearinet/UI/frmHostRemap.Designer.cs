@@ -52,6 +52,7 @@
             this.txtRules.TabIndex = 1;
             this.txtRules.ModifiedChanged += new System.EventHandler(this.txtRules_ModifiedChanged);
             this.txtRules.EnabledChanged += new System.EventHandler(this.txtRules_EnabledChanged);
+            this.txtRules.AcceptsTab = true;
             // 
             // cbEnableRemap
             // 

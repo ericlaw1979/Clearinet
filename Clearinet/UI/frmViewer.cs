@@ -2268,6 +2268,7 @@ namespace Clearinet
 
                     case Keys.X:
                         lvExchanges.ClearExchanges();
+                        CApp._captureEngineRuntime?.ClearServerSocketPool();
                         e.SuppressKeyPress = e.Handled = true;
                         break;
 
