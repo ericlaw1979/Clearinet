@@ -689,7 +689,21 @@ namespace Clearinet.CaptureEngine
                         CApp.Log.Log($"! Invalid host remapping rule on line {lineNumber}: expected a target and hostname.");
                         continue;
                     }
-                    if (hostname.OICEquals(tokens[1]))
+
+                    bool bIsMatch = false;
+                    var sRuleHost = tokens[1];
+
+                    if (sRuleHost.StartsWith("*"))
+                    {
+                        sRuleHost = sRuleHost.Substring(1);
+                        bIsMatch = hostname.OICEndsWith(sRuleHost);
+                    }
+                    else
+                    {
+                        bIsMatch = hostname.OICEquals(sRuleHost);
+                    }
+
+                    if (bIsMatch)
                     {
                         if (CApp.isTracing) Trace.WriteLine($"!!! Host remapping rule matched for {hostname}: #{xc.id} will target {tokens[0]} instead.");
 
@@ -699,24 +713,27 @@ namespace Clearinet.CaptureEngine
                             if (xc.HTTPMethodIs("CONNECT"))
                             {
                                 xc.RequestHeaders.RequestPath = tokens[0] + ":" + xc.port.ToString(CultureInfo.InvariantCulture);
+                                xc["X-OverrideCertCN"] = hostname;
                             }
+                            xc["ui-backcolor"] = "AliceBlue"; // TODO: Make this a preference.
+
                             // Ensure we do this *after* to avoid corrupting the port.
                             xc.host = tokens[0];
+                            return;
                         }
-                        else
-                        {
-                            // The first token is the new target IP/Host.
-                            xc["x-overridehost"] = tokens[0];
 
-                            // If it's a CONNECT, we need to make sure that we don't complain that the server's
-                            // cert doesn't match the client's original hostname.
-                            if (xc.HTTPMethodIs("CONNECT"))
-                            {
-                                // TODO: We could tighten this up with a new flag that specifies the /expected/ CN?
-                                xc["X-IgnoreCertCNMismatch"] = "true";
-                            }
+                        // The first token is the new target IP/Host.
+                        xc["x-overridehost"] = tokens[0];
+
+                        // If it's a CONNECT, we need to make sure that we don't complain that the server's
+                        // cert doesn't match the client's original hostname.
+                        if (xc.HTTPMethodIs("CONNECT"))
+                        {
+                            // TODO: We could tighten this up with a new flag that specifies the /expected/ CN?
+                            xc["X-IgnoreCertCNMismatch"] = "true";
                         }
-                        return;
+                        xc["ui-backcolor"] = "AliceBlue"; // TODO: Make this a preference.
+
                     }
                 }
             }

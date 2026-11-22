@@ -222,21 +222,22 @@ namespace Clearinet.CaptureEngine
 
                 bool bHasConnectionClose = headers.ExistsAndContains("Connection", "close");
 
-                // RFC 7230 Section 3.3.3: "All 1xx (Informational), 204 (No Content), and 304 (Not Modified) responses do not include a message body."
-                if (statusCode >= 100 && statusCode < 200 && statusCode != 101)
+                // Handle HTTP/1.xx informational responses (100-199), except for 101 Switching Protocols which is handled below.
+                if (statusCode.InRange(100, 199) && statusCode != 101)
                 {
+                    // RFC 7230 Section 3.3.3: "All 1xx (Informational), 204 (No Content), and 304 (Not Modified) responses do not include a message body."
                     if (headers.Exists("Content-Length") && !headers.ExistsAndContains("Content-Length", "0"))
                     {
                         Debug.Assert(false, "Content is unexpected on a HTTP/1.xx");
                     }
 
-                    // NYI: TODO: Squirrel away the informational header block for later storage, and read the next header block.
+                    // TODO:
+                    //   Store the intermediate headers xc.InformationalResponseHeaders.add(headers);
                     continue; // Read the next header block.
                 }
 
                 bool bodyIsForbidden = requestMethod.OICEquals("HEAD") ||
-                    (statusCode >= 100 && statusCode < 200) ||
-                    statusCode == 204 || statusCode == 304;
+                    statusCode.InRange(100, 199) || statusCode == 204 || statusCode == 304;
 
                 // If a message body is forbidden, then we are done reading.
                 if (bodyIsForbidden)
