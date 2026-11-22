@@ -106,12 +106,12 @@ namespace Clearinet
         public string SummarizeResponse()
         {
             if (null == ResponseHeaders) return "(No response)";
-            if (responseCode >= 300 && responseCode < 400 && responseCode != 304)
+            if (responseCode.InRange(300, 399) && responseCode != 304)
             {
                 return $"{responseCode} to {ResponseHeaders["Location"]}";
             }
             if (ResponseBody.HasData() &&
-                responseCode >= 200 && responseCode < 300 && responseCode != 304 &&
+                responseCode.InRange(200, 299) &&
                 ResponseHeaders.Exists("Content-Type"))
             {
                 return $"{responseCode} with {ResponseBody.Length:N0} bytes of '{this.MediaType}'";

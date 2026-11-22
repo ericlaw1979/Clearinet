@@ -1139,7 +1139,13 @@ namespace Clearinet
 
         public static string DescribeException(Exception eX)
         {
-            return $"{eX.GetType().Name}: {eX.Message}\n{eX.StackTrace}\n";
+            StringBuilder sbEx = new StringBuilder();
+            sbEx.Append($"{eX.GetType().Name}: {eX.Message}\n{eX.StackTrace}\n");
+            if (null != eX.InnerException)
+            {
+                sbEx.Append($"INNER EXCEPTION\n\"{{eX.GetType().Name}}: {{eX.Message}}");
+            }
+            return sbEx.ToString();
         }
     }
 
