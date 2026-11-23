@@ -273,7 +273,6 @@ namespace Clearinet
             }
         }
 
-
         private static void _FireOnload(IAppExtension iae)
         {
             try
