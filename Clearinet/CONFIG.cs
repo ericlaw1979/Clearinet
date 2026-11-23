@@ -229,7 +229,10 @@ namespace Clearinet
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/ReverseProxy.md";
                 case "HelpColumns":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/CustomColumns.md";
+                case "ReleaseNotes":
+                    return "https://github.com/ericlaw1979/Clearinet/releases";
             }
+            Debug.Assert(false, "Missing URL in CONFIG");
             Trace.WriteLine($"Failed to find URL `{sWhich}`.");
             return $"https://clearinet.app/?missing_GetURL_code={sWhich}";
         }
