@@ -31,7 +31,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAbout));
             this.txtAbout = new System.Windows.Forms.TextBox();
             this.pbIcon = new System.Windows.Forms.PictureBox();
-            this.lnkWebsite = new BetterLinkLabel();
+            this.lnkReleaseNotes = new Clearinet.BetterLinkLabel();
+            this.lnkWebsite = new Clearinet.BetterLinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pbIcon)).BeginInit();
             this.SuspendLayout();
             // 
@@ -47,7 +48,7 @@
             this.txtAbout.Multiline = true;
             this.txtAbout.Name = "txtAbout";
             this.txtAbout.ReadOnly = true;
-            this.txtAbout.Size = new System.Drawing.Size(354, 197);
+            this.txtAbout.Size = new System.Drawing.Size(354, 212);
             this.txtAbout.TabIndex = 1;
             // 
             // pbIcon
@@ -61,17 +62,29 @@
             this.pbIcon.TabIndex = 2;
             this.pbIcon.TabStop = false;
             // 
+            // lnkReleaseNotes
+            // 
+            this.lnkReleaseNotes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.lnkReleaseNotes.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.lnkReleaseNotes.Location = new System.Drawing.Point(250, 228);
+            this.lnkReleaseNotes.Name = "lnkReleaseNotes";
+            this.lnkReleaseNotes.Size = new System.Drawing.Size(230, 17);
+            this.lnkReleaseNotes.TabIndex = 4;
+            this.lnkReleaseNotes.TabStop = true;
+            this.lnkReleaseNotes.Text = "Release Notes";
+            this.lnkReleaseNotes.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.lnkReleaseNotes.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkReleaseNotes_LinkClicked);
+            // 
             // lnkWebsite
             // 
-            this.lnkWebsite.AutoSize = true;
-            this.lnkWebsite.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.lnkWebsite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lnkWebsite.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkWebsite.Location = new System.Drawing.Point(0, 229);
+            this.lnkWebsite.Location = new System.Drawing.Point(0, 228);
             this.lnkWebsite.Name = "lnkWebsite";
-            this.lnkWebsite.Size = new System.Drawing.Size(134, 17);
+            this.lnkWebsite.Size = new System.Drawing.Size(224, 17);
             this.lnkWebsite.TabIndex = 3;
             this.lnkWebsite.TabStop = true;
-            this.lnkWebsite.Text = "https://Clearinet.app";
+            this.lnkWebsite.Text = "Project Website";
             this.lnkWebsite.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkWebsite_LinkClicked);
             // 
             // frmAbout
@@ -79,6 +92,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(480, 246);
+            this.Controls.Add(this.lnkReleaseNotes);
             this.Controls.Add(this.lnkWebsite);
             this.Controls.Add(this.pbIcon);
             this.Controls.Add(this.txtAbout);
@@ -101,5 +115,6 @@
         private System.Windows.Forms.TextBox txtAbout;
         private System.Windows.Forms.PictureBox pbIcon;
         private BetterLinkLabel lnkWebsite;
+        private BetterLinkLabel lnkReleaseNotes;
     }
 }
