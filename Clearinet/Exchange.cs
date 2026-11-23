@@ -226,7 +226,6 @@ namespace Clearinet
         }
 
         // TODO: Add a convenience handler that tries to get a .NET URL from the string?
-
         // For silly historical reasons, this is the schemeless-url.
         public string url
         {
@@ -292,7 +291,6 @@ namespace Clearinet
             }
         }
 
-
         public string hostname
         {
             get
@@ -337,9 +335,6 @@ namespace Clearinet
             oFlags["x-clientip"] = ipepClient.Address.ToString();
             oFlags["x-clientport"] = ipepClient.Port.ToString(CultureInfo.InvariantCulture);
         }
-
-        // exchange["x-hostIP"] = item.ServerIP;
-        //exchange["x-clientport"] = item.Client
 
         internal IPEndPoint _ipepClient;
         public string clientIP { get { return _ipepClient?.Address.ToString() ?? oFlags["x-clientip"]; } }
@@ -463,7 +458,7 @@ namespace Clearinet
 
         internal void Abort()
         {
-            // TODO: Kill everything.
+            // TODO: Kill everything, including RST'ing the pipes.
             state = ExchangeState.Aborted;
         }
 
@@ -494,7 +489,6 @@ namespace Clearinet
                 /* TODO: Full state machine goes in here!!! We need to rewrite this to ASYNC */
                 switch (_state)
                 {
-
                     case ExchangeState.AutoTamperRequestBefore:
                         Timers.ClientDoneRequest = DateTime.Now;
 
@@ -581,12 +575,6 @@ namespace Clearinet
                     case ExchangeState.AutoTamperResponseBefore:
                         Timers.ServerDoneResponse = DateTime.Now;
 
-                        if (oFlags.ContainsKey("log-drop-request-body"))
-                        {
-                            this.BitFlags |= ExchangeFlags.RequestBodyDropped;
-                            this.RequestBody = Array.Empty<byte>();
-                        }
-
                         if (null != this["X-ReplyWithFile"])
                         {
                             doReplaceResponseWithFile();
@@ -646,10 +634,18 @@ namespace Clearinet
 
                         CApp.NotifyAfterExchangeComplete(this);
 
-                        if (oFlags.ContainsKey("log-drop-response-body"))
+                        if (!this.isAnyFlagSet(ExchangeFlags.LoadedFromSAZ | ExchangeFlags.ImportedFromOtherTool))
                         {
-                            this.BitFlags |= ExchangeFlags.ResponseBodyDropped;
-                            this.ResponseBody = Array.Empty<byte>();
+                            if (oFlags.ContainsKey("log-drop-request-body"))
+                            {
+                                this.BitFlags |= ExchangeFlags.RequestBodyDropped;
+                                this.RequestBody = Array.Empty<byte>();
+                            }
+                            if (oFlags.ContainsKey("log-drop-response-body"))
+                            {
+                                this.BitFlags |= ExchangeFlags.ResponseBodyDropped;
+                                this.ResponseBody = Array.Empty<byte>();
+                            }
                         }
                         break;
                 }
