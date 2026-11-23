@@ -28,18 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.txtRules = new System.Windows.Forms.TextBox();
             this.cbEnableRemap = new System.Windows.Forms.CheckBox();
-            this.lnkHelp = new BetterLinkLabel();
             this.lblExplain = new System.Windows.Forms.Label();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.lnkImportHOSTS = new BetterLinkLabel();
+            this.lnkImportHOSTS = new Clearinet.BetterLinkLabel();
+            this.lnkHelp = new Clearinet.BetterLinkLabel();
             this.SuspendLayout();
             // 
             // txtRules
             // 
+            this.txtRules.AcceptsTab = true;
             this.txtRules.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -48,11 +48,10 @@
             this.txtRules.Location = new System.Drawing.Point(12, 39);
             this.txtRules.Multiline = true;
             this.txtRules.Name = "txtRules";
-            this.txtRules.Size = new System.Drawing.Size(776, 342);
+            this.txtRules.Size = new System.Drawing.Size(610, 203);
             this.txtRules.TabIndex = 1;
             this.txtRules.ModifiedChanged += new System.EventHandler(this.txtRules_ModifiedChanged);
             this.txtRules.EnabledChanged += new System.EventHandler(this.txtRules_EnabledChanged);
-            this.txtRules.AcceptsTab = true;
             // 
             // cbEnableRemap
             // 
@@ -65,24 +64,11 @@
             this.cbEnableRemap.UseVisualStyleBackColor = true;
             this.cbEnableRemap.CheckedChanged += new System.EventHandler(this.cbEnableRemap_CheckedChanged);
             // 
-            // lnkHelp
-            // 
-            this.lnkHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lnkHelp.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkHelp.Location = new System.Drawing.Point(709, -1);
-            this.lnkHelp.Name = "lnkHelp";
-            this.lnkHelp.Size = new System.Drawing.Size(79, 37);
-            this.lnkHelp.TabIndex = 6;
-            this.lnkHelp.TabStop = true;
-            this.lnkHelp.Text = "Help...";
-            this.lnkHelp.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
-            // 
             // lblExplain
             // 
-            this.lblExplain.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
             this.lblExplain.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.lblExplain.Location = new System.Drawing.Point(12, 384);
+            this.lblExplain.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lblExplain.Location = new System.Drawing.Point(12, 245);
             this.lblExplain.Name = "lblExplain";
             this.lblExplain.Size = new System.Drawing.Size(275, 57);
             this.lblExplain.TabIndex = 5;
@@ -94,7 +80,7 @@
             this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSave.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnSave.Enabled = false;
-            this.btnSave.Location = new System.Drawing.Point(591, 394);
+            this.btnSave.Location = new System.Drawing.Point(425, 255);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(93, 37);
             this.btnSave.TabIndex = 2;
@@ -105,7 +91,7 @@
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(690, 394);
+            this.btnCancel.Location = new System.Drawing.Point(524, 255);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(98, 37);
             this.btnCancel.TabIndex = 3;
@@ -117,7 +103,7 @@
             this.lnkImportHOSTS.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lnkImportHOSTS.AutoSize = true;
             this.lnkImportHOSTS.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkImportHOSTS.Location = new System.Drawing.Point(406, 404);
+            this.lnkImportHOSTS.Location = new System.Drawing.Point(240, 265);
             this.lnkImportHOSTS.Name = "lnkImportHOSTS";
             this.lnkImportHOSTS.Size = new System.Drawing.Size(179, 17);
             this.lnkImportHOSTS.TabIndex = 4;
@@ -125,11 +111,24 @@
             this.lnkImportHOSTS.Text = "Import Windows\' HOSTS file";
             this.lnkImportHOSTS.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkImportHOSTS_LinkClicked);
             // 
+            // lnkHelp
+            // 
+            this.lnkHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lnkHelp.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.lnkHelp.Location = new System.Drawing.Point(543, -1);
+            this.lnkHelp.Name = "lnkHelp";
+            this.lnkHelp.Size = new System.Drawing.Size(79, 37);
+            this.lnkHelp.TabIndex = 6;
+            this.lnkHelp.TabStop = true;
+            this.lnkHelp.Text = "Help...";
+            this.lnkHelp.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.lnkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHelp_LinkClicked);
+            // 
             // frmHostRemap
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(634, 311);
             this.ControlBox = false;
             this.Controls.Add(this.lnkImportHOSTS);
             this.Controls.Add(this.btnCancel);
@@ -140,6 +139,7 @@
             this.Controls.Add(this.txtRules);
             this.Font = new System.Drawing.Font("Tahoma", 10F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.MinimumSize = new System.Drawing.Size(650, 300);
             this.Name = "frmHostRemap";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Host Remapper";
