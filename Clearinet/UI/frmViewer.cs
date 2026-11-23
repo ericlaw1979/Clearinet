@@ -1200,6 +1200,10 @@ namespace Clearinet
 
         private void lvExchanges_DragEnter(object sender, DragEventArgs e)
         {
+            if (lvExchanges.IsDraggingExchanges)
+            {
+                e.Effect = DragDropEffects.None; return;
+            }
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 e.Effect = DragDropEffects.Link | DragDropEffects.Copy; return;
@@ -1210,6 +1214,7 @@ namespace Clearinet
 
         private void lvExchanges_DragDrop(object sender, DragEventArgs e)
         {
+            if (lvExchanges.IsDraggingExchanges) return;
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] arrFiles = (string[])e.Data.GetData("FileDrop", false);
@@ -2082,6 +2087,18 @@ namespace Clearinet
                 }
                 return;
             }
+            if (tabsViews.SelectedTab == pageEncore)
+            {
+                // Delay-load the encore UI
+                if (0 == pageEncore.Controls.Count)
+                {
+                    CApp.oEncore = new EncoreView();
+                    pageEncore.Controls.Add(CApp.oEncore);
+                    CApp.oEncore.Dock = DockStyle.Fill;
+                }
+                return;
+            }
+
             if (tabsViews.SelectedTab?.Tag is BindUITab bindtab)
             {
                 bindtab.RunDelegate(lvExchanges.GetSelectedExchanges());

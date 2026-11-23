@@ -165,6 +165,7 @@ namespace Clearinet
         public static JScriptEngine scriptRules;
 
         internal static ComposerView oComposer;
+        internal static EncoreView oEncore;
         internal static FindPanel oFindPanel;
         public static bool isBooted { get; private set; } = false;
         public static bool isClosing { get; private set; } = false;

@@ -106,6 +106,7 @@ namespace Clearinet
             this.miRulesHideCONNECTs = new System.Windows.Forms.ToolStripMenuItem();
             this.miRulesHideImages = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiRulesSplit2 = new System.Windows.Forms.ToolStripSeparator();
+            this.miRulesHosts = new System.Windows.Forms.ToolStripMenuItem();
             this.miTools = new System.Windows.Forms.ToolStripMenuItem();
             this.miToolsOptions = new System.Windows.Forms.ToolStripMenuItem();
             this.miTextWizard = new System.Windows.Forms.ToolStripMenuItem();
@@ -204,15 +205,13 @@ namespace Clearinet
             this.btnRunToComplete = new System.Windows.Forms.Button();
             this.splitRequestResponse = new System.Windows.Forms.Splitter();
             this.tabsRequest = new System.Windows.Forms.TabControl();
-            this.pageAutoResponder = new System.Windows.Forms.TabPage();
-            this.label1 = new System.Windows.Forms.Label();
+            this.pageEncore = new System.Windows.Forms.TabPage();
             this.pageComposer = new System.Windows.Forms.TabPage();
             this.pageLog = new System.Windows.Forms.TabPage();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.miRulesHosts = new System.Windows.Forms.ToolStripMenuItem();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -241,7 +240,6 @@ namespace Clearinet
             this.pageInspectors.SuspendLayout();
             this.mnuInspectors.SuspendLayout();
             this.pnlTamper.SuspendLayout();
-            this.pageAutoResponder.SuspendLayout();
             this.pageLog.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -811,6 +809,13 @@ namespace Clearinet
             // 
             this.tsmiRulesSplit2.Name = "tsmiRulesSplit2";
             this.tsmiRulesSplit2.Size = new System.Drawing.Size(243, 6);
+            // 
+            // miRulesHosts
+            // 
+            this.miRulesHosts.Name = "miRulesHosts";
+            this.miRulesHosts.Size = new System.Drawing.Size(246, 22);
+            this.miRulesHosts.Text = "&HOSTS...";
+            this.miRulesHosts.Click += new System.EventHandler(this.miRulesHosts_Click);
             // 
             // miTools
             // 
@@ -1564,7 +1569,7 @@ namespace Clearinet
             this.tabsViews.AllowDrop = true;
             this.tabsViews.Controls.Add(this.pageStatistics);
             this.tabsViews.Controls.Add(this.pageInspectors);
-            this.tabsViews.Controls.Add(this.pageAutoResponder);
+            this.tabsViews.Controls.Add(this.pageEncore);
             this.tabsViews.Controls.Add(this.pageComposer);
             this.tabsViews.Controls.Add(this.pageLog);
             this.tabsViews.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -1724,27 +1729,15 @@ namespace Clearinet
             this.tabsRequest.TabIndex = 0;
             this.tabsRequest.SelectedIndexChanged += new System.EventHandler(this.tabsRequest_SelectedIndexChanged);
             // 
-            // pageAutoResponder
+            // pageEncore
             // 
-            this.pageAutoResponder.Controls.Add(this.label1);
-            this.pageAutoResponder.Location = new System.Drawing.Point(4, 25);
-            this.pageAutoResponder.Margin = new System.Windows.Forms.Padding(4);
-            this.pageAutoResponder.Name = "pageAutoResponder";
-            this.pageAutoResponder.Size = new System.Drawing.Size(678, 489);
-            this.pageAutoResponder.TabIndex = 2;
-            this.pageAutoResponder.Text = "AutoResponder";
-            this.pageAutoResponder.UseVisualStyleBackColor = true;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Tahoma", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.Red;
-            this.label1.Location = new System.Drawing.Point(163, 154);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(389, 33);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "This tab is not yet implemented";
+            this.pageEncore.Location = new System.Drawing.Point(4, 25);
+            this.pageEncore.Margin = new System.Windows.Forms.Padding(4);
+            this.pageEncore.Name = "pageEncore";
+            this.pageEncore.Size = new System.Drawing.Size(678, 489);
+            this.pageEncore.TabIndex = 2;
+            this.pageEncore.Text = "Encore";
+            this.pageEncore.UseVisualStyleBackColor = true;
             // 
             // pageComposer
             // 
@@ -1812,13 +1805,6 @@ namespace Clearinet
             this.splitterMain.TabStop = false;
             this.splitterMain.DoubleClick += new System.EventHandler(this.splitterMain_DoubleClick);
             // 
-            // miRulesHosts
-            // 
-            this.miRulesHosts.Name = "miRulesHosts";
-            this.miRulesHosts.Size = new System.Drawing.Size(246, 22);
-            this.miRulesHosts.Text = "&HOSTS...";
-            this.miRulesHosts.Click += new System.EventHandler(this.miRulesHosts_Click);
-            // 
             // frmViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1859,8 +1845,6 @@ namespace Clearinet
             this.pageInspectors.ResumeLayout(false);
             this.mnuInspectors.ResumeLayout(false);
             this.pnlTamper.ResumeLayout(false);
-            this.pageAutoResponder.ResumeLayout(false);
-            this.pageAutoResponder.PerformLayout();
             this.pageLog.ResumeLayout(false);
             this.pageLog.PerformLayout();
             this.ResumeLayout(false);
@@ -1965,7 +1949,7 @@ namespace Clearinet
         private System.Windows.Forms.Splitter splitterMain;
         private System.Windows.Forms.TabPage pageStatistics;
         private System.Windows.Forms.TabPage pageInspectors;
-        private System.Windows.Forms.TabPage pageAutoResponder;
+        private System.Windows.Forms.TabPage pageEncore;
         private System.Windows.Forms.TabPage pageComposer;
         private System.Windows.Forms.TabPage pageLog;
         private System.Windows.Forms.RichTextBox rtbLog;
@@ -1994,7 +1978,6 @@ namespace Clearinet
         public System.Windows.Forms.TabControl tabsViews;
         public ExchangeListView lvExchanges;
         private RichTextBoxV5 rtbStatistics;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveRequest;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveRequestFull;
         private System.Windows.Forms.ToolStripMenuItem miFileSaveRequestBody;
