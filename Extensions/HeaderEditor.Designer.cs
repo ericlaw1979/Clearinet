@@ -37,8 +37,6 @@
             this.lblName = new System.Windows.Forms.Label();
             this.lblValue = new System.Windows.Forms.Label();
             this.mnuTemplates = new System.Windows.Forms.ContextMenuStrip();
-            this.tsmiSecurity = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiTemplateSecurityCSP = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuTemplates.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -140,28 +138,11 @@
             // 
             // mnuTemplates
             // 
-            this.mnuTemplates.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmiSecurity});
             this.mnuTemplates.Location = new System.Drawing.Point(0, 0);
             this.mnuTemplates.Name = "mnuTemplates";
             this.mnuTemplates.Size = new System.Drawing.Size(617, 25);
             this.mnuTemplates.TabIndex = 8;
             this.mnuTemplates.Text = "menuStrip1";
-            // 
-            // tsmiSecurity
-            // 
-            this.tsmiSecurity.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmiTemplateSecurityCSP});
-            this.tsmiSecurity.Name = "tsmiSecurity";
-            this.tsmiSecurity.Size = new System.Drawing.Size(65, 21);
-            this.tsmiSecurity.Text = "&Security";
-            // 
-            // tsmiTemplateSecurityCSP
-            // 
-            this.tsmiTemplateSecurityCSP.Name = "tsmiTemplateSecurityCSP";
-            this.tsmiTemplateSecurityCSP.Size = new System.Drawing.Size(209, 22);
-            this.tsmiTemplateSecurityCSP.Text = "Content-Security-Policy";
-            this.tsmiTemplateSecurityCSP.Click += new System.EventHandler(this.tsmiTemplateSecurityCSP_Click);
             // 
             // HeaderEditor
             // 
@@ -203,7 +184,5 @@
         public System.Windows.Forms.TextBox txtName;
         public System.Windows.Forms.TextBox txtValue;
         private System.Windows.Forms.ContextMenuStrip mnuTemplates;
-        private System.Windows.Forms.ToolStripMenuItem tsmiSecurity;
-        private System.Windows.Forms.ToolStripMenuItem tsmiTemplateSecurityCSP;
     }
 }

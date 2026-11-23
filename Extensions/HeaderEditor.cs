@@ -10,6 +10,7 @@ namespace Extensions
         internal HeaderEditor(HeaderViewMode mode)
         {
             InitializeComponent();
+            InitializeHeaderTemplates();
             txtValue.Focus();
             txtName.AutoCompleteMode = AutoCompleteMode.Append;
             txtName.AutoCompleteSource = AutoCompleteSource.CustomSource;
@@ -83,12 +84,65 @@ namespace Extensions
             mnuTemplates.Show(pvOrigin, ToolStripDropDownDirection.BelowRight);
         }
 
-        // TODO: We should have examples for all of the common things, and select based on whether this is the request or the response
-        private void tsmiTemplateSecurityCSP_Click(object sender, System.EventArgs e)
+        private void InitializeHeaderTemplates()
         {
-            txtName.Text = "Content-Security-Policy";
-            txtValue.Text = "default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'self';base-uri 'self';form-action 'self'" +
-                                ";frame-ancestors 'self';manifest-src 'self';media-src 'self';object-src 'none';worker-src 'self'";
+            AddTemplateCategory("&Caching",
+                new[] { "If-Modified-Since", "Wed, 21 Oct 2015 07:28:00 GMT" },
+                new[] { "If-None-Match", "*" },
+                new[] { "Expires", "Wed, 21 Oct 2015 07:28:00 GMT" },
+                new[] { "Cache-Control", "no-cache" },
+                new[] { "Cache-Control", "max-age=86400" });
+
+            AddTemplateCategory("&Cookies",
+                new[] { "Cookie", "sessionId=abc123; preferences=compact" },
+                new[] { "Set-Cookie", "sessionId=abc123; Path=/; HttpOnly; Secure; SameSite=Strict" },
+                new[] { "Set-Cookie", "sessionId=abc123; Max-Age=3600; Path=/" },
+                new[] { "Set-Cookie", "preferences=compact; Path=/; SameSite=Lax" },
+                new[] { "Set-Cookie", "sessionId=abc123; Domain=example.com; Path=/" });
+
+            AddTemplateCategory("&Auth",
+                new[] { "Authorization", "Bearer <access-token>" },
+                new[] { "Authorization", "Basic <base64-credentials>" },
+                new[] { "WWW-Authenticate", "Bearer realm=\\\"api\\\"" },
+                new[] { "Proxy-Authorization", "Basic <base64-credentials>" },
+                new[] { "Authentication-Info", "nextnonce=\\\"<nonce>\\\"" });
+
+            AddTemplateCategory("&Security",
+                new[] { "Content-Security-Policy", "default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; media-src 'self'; object-src 'none'; worker-src 'self'" },
+                new[] { "X-Content-Type-Options", "nosniff" },
+                new[] { "Strict-Transport-Security", "max-age=31536000; includeSubDomains" },
+                new[] { "X-Frame-Options", "DENY" },
+                new[] { "Referrer-Policy", "strict-origin-when-cross-origin" });
+
+            AddTemplateCategory("&Misc",
+                new[] { "Content-Type", "application/json; charset=utf-8" },
+                new[] { "Accept", "application/json" },
+                new[] { "User-Agent", "ExampleClient/1.0" },
+                new[] { "X-Request-ID", "<request-id>" },
+                new[] { "Location", "https://example.com/resource" });
+        }
+
+        private void AddTemplateCategory(string categoryName, params string[][] templates)
+        {
+            var category = new ToolStripMenuItem(categoryName);
+            foreach (var template in templates)
+            {
+                var valuePreview = template[1].Length > 24 ? template[1].Substring(0, 21) + "..." : template[1];
+                var item = new ToolStripMenuItem(template[0] + " (" + valuePreview + ")")
+                {
+                    Tag = template
+                };
+                item.Click += tsmiTemplate_Click;
+                category.DropDownItems.Add(item);
+            }
+            mnuTemplates.Items.Add(category);
+        }
+
+        private void tsmiTemplate_Click(object sender, System.EventArgs e)
+        {
+            var template = (string[])((ToolStripMenuItem)sender).Tag;
+            txtName.Text = template[0];
+            txtValue.Text = template[1];
         }
     }
 }
