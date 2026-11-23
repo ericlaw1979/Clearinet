@@ -292,6 +292,7 @@ namespace Clearinet.CaptureEngine
                                 LocalProcessDescriptor = processIdentity
                             };
                             xc = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
+                            xc.RecordClientEndpoint(client.Client.RemoteEndPoint as IPEndPoint);
                             context.Exchange = xc;
                             await RunBuiltInRulesBeforeRequest(xc, clientPipe.Stream, token).ConfigureAwait(false);
 
@@ -1361,6 +1362,9 @@ namespace Clearinet.CaptureEngine
                         Exchange xcTunneled = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
                         xcTunneled.SetBitFlag(ExchangeFlags.IsHTTPS);
 
+                        // Propagate the client info.
+                        xcTunneled.RecordClientEndpoint(xc._ipepClient);
+
                         await RunBuiltInRulesBeforeRequest(xcTunneled, clientPipe.Stream, token).ConfigureAwait(false);
 
                         xcTunneled.state = ExchangeState.AutoTamperRequestBefore;
@@ -1962,8 +1966,9 @@ namespace Clearinet.CaptureEngine
             // /ECHO to echo back the request body as the response body with no modifications?
             // Each of these has interesting security implications.
 
-            sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />Originating Process: {xc.LocalProcess}<br />");
-
+            sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />");
+            sbResponse.AppendLine($"Source Address: <code>{xc.clientIP}:{xc.clientPort}</code><br />");
+            sbResponse.AppendLine($"Originating Process: <code>{xc.LocalProcess}</code><br />");
             sbResponse.AppendLine("<hr /><ul><li>To configure Clearinet as a reverse proxy (instead of this service), see " +
                 $"<a href='{CONFIG.GetURL("HelpReverseProxy")}'>Reverse Proxy</a>");
             sbResponse.AppendLine("<li>You can also download the <a href='ClearinetRoot.cer'>Clearinet Root Certificate</a>");
@@ -1972,12 +1977,12 @@ namespace Clearinet.CaptureEngine
             sbResponse.AppendLine("</body></html>");
 
             xc.ResponseBody = Encoding.UTF8.GetBytes(sbResponse.ToString());
-            string sBody = sbResponse.ToString();
 
             xc.ResponseHeaders = new HTTPResponseHeaders(iStatusCode, "Generated", new[]
             {
                 "Connection: close",
                 "Content-Type: text/html; charset=utf-8",
+                "Cache-Control: no-cache, no-store, must-revalidate",
                 $"Content-Length: {xc.ResponseBody.Length}"
             });
 
@@ -1995,6 +2000,7 @@ namespace Clearinet.CaptureEngine
             xc.state = ExchangeState.Done;
         }
 
+        // TODO: Expose this!
         private static void AbortWithRst(TcpClient client)
         {
             if (client == null) return;
