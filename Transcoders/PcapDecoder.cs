@@ -13,6 +13,7 @@ namespace TestExtensions
         internal int ClientPort, ServerPort;
         internal byte[] RequestBody, ResponseBody;
         internal bool RequestIncomplete, ResponseIncomplete;
+        internal int[] PacketIds;
         internal DateTime RequestStart, RequestHeadersTime, RequestEnd, ResponseStart, ResponseHeadersTime, ResponseEnd;
     }
 
@@ -35,7 +36,7 @@ namespace TestExtensions
             internal long Start;
             internal byte[] Data;
             internal DateTime Time;
-            internal int Order;
+            internal int Order, PacketId;
         }
 
         private sealed class Direction
@@ -77,6 +78,15 @@ namespace TestExtensions
                     if (value != DateTime.MinValue && (result == DateTime.MinValue || (first ? value < result : value > result))) result = value;
                 }
                 return result;
+            }
+
+            internal void AddPacketIds(int start, int end, SortedSet<int> packetIds)
+            {
+                for (int i = 0; i < Spans.Count; i++)
+                {
+                    Segment span = Spans[i];
+                    if (span.Start < end && span.Start + span.Data.Length > start) packetIds.Add(span.PacketId);
+                }
             }
         }
 
@@ -136,7 +146,7 @@ namespace TestExtensions
             if ((++work & 1023) == 0) Progress(80, "Processing captured TCP/HTTP bytes.");
         }
 
-        private void Packet(byte[] data, uint link, DateTime time, int scope, bool truncated)
+        private void Packet(byte[] data, uint link, DateTime time, int scope, bool truncated, int packetId)
         {
             CheckWork();
             int ip = 0, end = data.Length;
@@ -154,6 +164,22 @@ namespace TestExtensions
                 }
                 if (protocol != 0x0800 && protocol != 0x86dd) { Warn("Non-IP Ethernet traffic skipped"); return; }
                 if (ip >= end || data[ip] >> 4 != (protocol == 0x0800 ? 4 : 6)) { Warn("Invalid Ethernet IP version"); return; }
+            }
+            else if (link == 0 || link == 108)
+            {
+                if (end < 5) { Warn("Truncated loopback family header"); return; }
+                uint family = PcapReader.U32(data, 0, link == 0);
+                if (link == 0 && family != 2 && family != 10 && family != 23 && family != 24)
+                    family = PcapReader.U32(data, 0, false);
+                int loopbackVersion = data[4] >> 4;
+                bool ipv4 = family == 2;
+                bool ipv6 = family == 10 || family == 23 || family == 24;
+                if ((loopbackVersion != 4 || !ipv4) && (loopbackVersion != 6 || !ipv6))
+                {
+                    Warn("Invalid loopback address family");
+                    return;
+                }
+                ip = 4;
             }
             else if (link == 105)
             {
@@ -267,7 +293,7 @@ namespace TestExtensions
                     throw new InvalidDataException("TCP payload or segment resource limit exceeded.");
                 byte[] bytes = new byte[payloadLength];
                 Buffer.BlockCopy(data, payloadStart, bytes, 0, bytes.Length);
-                direction.Segments.Add(new Segment { Start = position, Data = bytes, Time = time, Order = segments });
+                direction.Segments.Add(new Segment { Start = position, Data = bytes, Time = time, Order = segments, PacketId = packetId });
             }
             if ((flags & 1) != 0)
             {
@@ -325,7 +351,7 @@ namespace TestExtensions
                         // Store only newly accepted ranges; retransmissions cannot change the original timing or bytes.
                         byte[] accepted = new byte[count];
                         Buffer.BlockCopy(segment.Data, overlap, accepted, 0, count);
-                        stream.Spans.Add(new Segment { Start = cursor - origin, Data = accepted, Time = segment.Time });
+                        stream.Spans.Add(new Segment { Start = cursor - origin, Data = accepted, Time = segment.Time, PacketId = segment.PacketId });
                         bytes.Write(accepted, 0, count);
                         cursor += count;
                     }
@@ -362,6 +388,7 @@ namespace TestExtensions
                 if (request == null) { Warn("Incomplete HTTP request headers; remaining stream skipped"); break; }
                 Message response = null;
                 StringBuilder informational = new StringBuilder();
+                int responseStart = responseOffset;
                 int interims = 0;
                 while (responseOffset < responses.Data.Length)
                 {
@@ -394,7 +421,8 @@ namespace TestExtensions
                     ResponseStart = response == null ? DateTime.MinValue : responses.Time(response.Start, response.BodyStart, true),
                     ResponseHeadersTime = response == null ? DateTime.MinValue : responses.Time(response.Start, response.BodyStart, false),
                     ResponseEnd = response == null ? DateTime.MinValue : responses.Time(response.Start, response.End, false),
-                    Informationals = informational.ToString()
+                    Informationals = informational.ToString(),
+                    PacketIds = PacketIds(requests, request.Start, request.End, responses, responseStart, response == null ? responseOffset : response.End)
                 };
                 exchanges.Add(exchange);
                 if (exchange.RequestIncomplete) Warn("Incomplete HTTP request body imported with dropped flag");
@@ -411,6 +439,22 @@ namespace TestExtensions
                 if (response == null) responseOffset = responses.Data.Length;
             }
             if (responseOffset < responses.Data.Length) Warn("Unpaired server bytes skipped");
+        }
+
+        private static int[] PacketIds(TcpStream requests, int requestStart, int requestEnd, TcpStream responses, int responseStart, int responseEnd)
+        {
+            SortedSet<int> packetIds = new SortedSet<int>();
+            requests.AddPacketIds(requestStart, requestEnd, packetIds);
+            responses.AddPacketIds(responseStart, responseEnd, packetIds);
+            int count = Math.Min(50, packetIds.Count);
+            int[] result = new int[count];
+            int index = 0;
+            foreach (int packetId in packetIds)
+            {
+                if (index == count) break;
+                result[index++] = packetId;
+            }
+            return result;
         }
 
         private Message ParseMessage(TcpStream stream, int offset, bool request, string requestMethod)
