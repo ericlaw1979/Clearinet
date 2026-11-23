@@ -484,13 +484,37 @@ namespace Clearinet
             return Win32UI.IsScrolledToBottom(this);
         }
 
+        internal bool IsDraggingExchanges { get; private set; }
+
         private void ExchangeListView_ItemDrag(object sender, ItemDragEventArgs e)
         {
             var XC = GetSelectedExchanges();
-            DataObject dragData = new DataObject("Clearinet.Exchange[]", XC);
+            DataObject dragData;
+            try
+            {
+                dragData = ExchangeFileDrop.CreateDataObject(XC, System.IO.Path.GetTempPath());
+            }
+            catch (Exception ex)
+            {
+                CApp.ReportException(ex, "Preparing response files for drag failed");
+                dragData = new DataObject("Clearinet.Exchange[]", XC);
+            }
 
-            // Initiate drag
-            DoDragDrop(dragData, DragDropEffects.Copy);
+            RunExchangeDrag(() => DoDragDrop(dragData, DragDropEffects.Copy));
+        }
+
+        internal void RunExchangeDrag(Action drag)
+        {
+            bool wasDragging = IsDraggingExchanges;
+            IsDraggingExchanges = true;
+            try
+            {
+                drag();
+            }
+            finally
+            {
+                IsDraggingExchanges = wasDragging;
+            }
         }
 
         #region ColumnSorting
