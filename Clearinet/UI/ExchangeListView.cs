@@ -492,7 +492,8 @@ namespace Clearinet
             DataObject dragData;
             try
             {
-                dragData = ExchangeFileDrop.CreateDataObject(XC, System.IO.Path.GetTempPath());
+                dragData = ExchangeFileDrop.CreateDataObject(XC, System.IO.Path.GetTempPath(),
+                    ex => CApp.ReportException(ex, "Preparing response files for drop failed"));
             }
             catch (Exception ex)
             {

@@ -6,14 +6,53 @@ using System.Windows.Forms;
 namespace Clearinet
 {
     /// <summary>
-    /// Adds ordinary Windows file-drop data to the Exchange drag payload by staging decoded
-    /// HTTP/200 response bodies as temporary files. Internal targets can still use the Exchanges.
+    /// Adds delayed Windows file-drop data to the Exchange drag payload by staging decoded
+    /// HTTP/200 response bodies on demand. Internal targets can still use the Exchanges.
     /// </summary>
     internal static class ExchangeFileDrop
     {
-        internal static DataObject CreateDataObject(Exchange[] exchanges, string tempRoot)
+        internal static DataObject CreateDataObject(Exchange[] exchanges, string tempRoot, Action<Exception> reportError = null)
         {
-            var data = new DataObject("Clearinet.Exchange[]", exchanges);
+            return new DeferredFileDataObject(exchanges, tempRoot, reportError);
+        }
+
+        private sealed class DeferredFileDataObject : DataObject
+        {
+            private readonly Lazy<string[]> files;
+
+            internal DeferredFileDataObject(Exchange[] exchanges, string tempRoot, Action<Exception> reportError)
+                : base("Clearinet.Exchange[]", exchanges)
+            {
+                foreach (Exchange exchange in exchanges)
+                {
+                    if (exchange.responseCode != 200) continue;
+                    SetData(DataFormats.FileDrop, Array.Empty<string>());
+                    files = new Lazy<string[]>(() =>
+                    {
+                        try
+                        {
+                            return StageFiles(exchanges, tempRoot);
+                        }
+                        catch (Exception ex)
+                        {
+                            reportError?.Invoke(ex);
+                            throw;
+                        }
+                    });
+                    break;
+                }
+            }
+
+            public override object GetData(string format, bool autoConvert)
+            {
+                // OLE uses this overload too; format queries must not materialize the files.
+                if (format == DataFormats.FileDrop && files != null) return files.Value;
+                return base.GetData(format, autoConvert);
+            }
+        }
+
+        private static string[] StageFiles(Exchange[] exchanges, string tempRoot)
+        {
             var files = new List<string>();
             var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string directory = null;
@@ -67,9 +106,7 @@ namespace Clearinet
                     }
                 }
 
-                // FileDrop contains paths to real files; do not advertise it for an empty selection.
-                if (files.Count > 0) data.SetData(DataFormats.FileDrop, files.ToArray());
-                return data;
+                return files.ToArray();
             }
             catch (Exception ex)
             {

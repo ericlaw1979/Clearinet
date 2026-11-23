@@ -69,7 +69,14 @@ namespace CaptureEngine.Tests
                 };
                 var data = ExchangeFileDrop.CreateDataObject(exchanges, root);
                 Assert.AreSame(exchanges, data.GetData("Clearinet.Exchange[]"));
+                Assert.IsTrue(data.GetDataPresent(DataFormats.FileDrop));
+                Assert.IsTrue(data.GetDataPresent(DataFormats.FileDrop, false));
+                CollectionAssert.Contains(data.GetFormats(), DataFormats.FileDrop);
+                CollectionAssert.Contains(data.GetFormats(false), DataFormats.FileDrop);
+                Assert.AreEqual(0, Directory.GetFileSystemEntries(root).Length);
                 var paths = (string[])data.GetData(DataFormats.FileDrop);
+                Assert.AreSame(paths, data.GetData(DataFormats.FileDrop, false));
+                Assert.AreEqual(1, Directory.GetDirectories(root).Length);
                 Assert.AreEqual(3, paths.Length);
                 Assert.AreEqual("file.txt", Path.GetFileName(paths[0]));
                 Assert.AreEqual("FILE (2).txt", Path.GetFileName(paths[1]));
@@ -157,12 +164,75 @@ namespace CaptureEngine.Tests
                     CreateExchange(200, "/ok.txt", new byte[] { 1 }),
                     CreateExchange(200, "/bad.txt", new byte[] { 2 }, "Content-Encoding: unsupported")
                 };
-                Assert.ThrowsException<InvalidDataException>(() => ExchangeFileDrop.CreateDataObject(exchanges, root));
+                int errors = 0;
+                var data = ExchangeFileDrop.CreateDataObject(exchanges, root, ex =>
+                {
+                    Assert.IsInstanceOfType<InvalidDataException>(ex);
+                    errors++;
+                });
                 Assert.AreEqual(0, Directory.GetFileSystemEntries(root).Length);
+                Assert.ThrowsException<InvalidDataException>(() => data.GetData(DataFormats.FileDrop));
+                Assert.AreEqual(0, Directory.GetFileSystemEntries(root).Length);
+                Assert.ThrowsException<InvalidDataException>(() => data.GetData(DataFormats.FileDrop));
+                Assert.AreEqual(0, Directory.GetFileSystemEntries(root).Length);
+                Assert.AreEqual(1, errors);
+                Assert.AreSame(exchanges, data.GetData("Clearinet.Exchange[]"));
             }
             finally
             {
                 Directory.Delete(root, true);
+            }
+        }
+
+        [TestMethod]
+        public void CreateDataObject_OleQueriesDoNotStageUntilGetData()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "Clearinet-FileDropTest-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var data = ExchangeFileDrop.CreateDataObject(new[]
+                {
+                    CreateExchange(200, "/response.txt", new byte[] { 1, 2, 3 })
+                }, root);
+                var oleData = (System.Runtime.InteropServices.ComTypes.IDataObject)data;
+                var format = new FORMATETC
+                {
+                    cfFormat = (short)DataFormats.GetFormat(DataFormats.FileDrop).Id,
+                    dwAspect = DVASPECT.DVASPECT_CONTENT,
+                    lindex = -1,
+                    tymed = TYMED.TYMED_HGLOBAL
+                };
+                Assert.AreEqual(0, oleData.QueryGetData(ref format));
+                var formats = new FORMATETC[1];
+                var enumerator = oleData.EnumFormatEtc(DATADIR.DATADIR_GET);
+                bool found = false;
+                while (enumerator.Next(1, formats, null) == 0)
+                {
+                    if (formats[0].cfFormat == format.cfFormat) found = true;
+                }
+                Assert.IsTrue(found);
+                Assert.IsFalse(Directory.Exists(root));
+
+                oleData.GetData(ref format, out STGMEDIUM medium);
+                try
+                {
+                    Assert.AreEqual(TYMED.TYMED_HGLOBAL, medium.tymed);
+                    Assert.AreEqual(1u, DragQueryFile(medium.unionmember, uint.MaxValue, null, 0));
+                    var path = new StringBuilder(1024);
+                    Assert.IsTrue(DragQueryFile(medium.unionmember, 0, path, (uint)path.Capacity) > 0);
+                    CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, File.ReadAllBytes(path.ToString()));
+                    var paths = (string[])data.GetData(DataFormats.FileDrop);
+                    Assert.AreEqual(path.ToString(), paths[0]);
+                    Assert.AreEqual(1, Directory.GetDirectories(root).Length);
+                }
+                finally
+                {
+                    ReleaseStgMedium(ref medium);
+                }
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
             }
         }
 
