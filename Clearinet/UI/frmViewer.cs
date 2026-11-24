@@ -3228,22 +3228,43 @@ namespace Clearinet
 
         private void tsmiRemoveDuplicateResponseBodies_Click(object sender, EventArgs e)
         {
+            actRemoveDuplicateBodies();
+        }
+
+        // Remove any Exchanges that have duplicated response body bytes. Note that this code can
+        // fail "open" -- if the body is compressed or chunked, the bytes will be different even
+        // if the decompressed content is identical. That's generally going to be okay for our
+        // primary scenario ("Give me at least one copy of each asset, but avoid having a ton of dupes").
+        private void actRemoveDuplicateBodies()
+        {
             CApp.PauseReporting = true;
             lvExchanges.BeginUpdate();
             lvExchanges.SelectedItems.Clear();
             var hasherMD5 = MD5.Create();
-            HashSet<string> setHashes = new HashSet<string>();
+            Dictionary<int, byte[]> firstBodies = new Dictionary<int, byte[]>();
+            Dictionary<int, HashSet<string>> hashesByLength = new Dictionary<int, HashSet<string>>();
             Exchange[] arrXC = GetAllExchanges();
-            // For each exchange, if there's a response body, calculate its MD5 hash (collision is wildly implausible and
-            // basically harmless) and store it in a HashSet. If we see it again, then we found a duplicate and we
-            // should select it for removal.
+            // Defer hashing the first body of each length until another body has the same length.
             foreach (Exchange exch in arrXC)
             {
-                if (exch.ResponseBody?.Length > 0)
+                byte[] body = exch.ResponseBody;
+                if (body?.Length > 0)
                 {
-                    byte[] hash = hasherMD5.ComputeHash(exch.ResponseBody);
-                    string hashString = Convert.ToBase64String(hash);
+                    if (!hashesByLength.TryGetValue(body.Length, out HashSet<string> setHashes))
+                    {
+                        if (!firstBodies.TryGetValue(body.Length, out byte[] firstBody))
+                        {
+                            firstBodies.Add(body.Length, body);
+                            continue;
+                        }
 
+                        setHashes = new HashSet<string>();
+                        setHashes.Add(Convert.ToBase64String(hasherMD5.ComputeHash(firstBody)));
+                        hashesByLength.Add(body.Length, setHashes);
+                        firstBodies.Remove(body.Length);
+                    }
+
+                    string hashString = Convert.ToBase64String(hasherMD5.ComputeHash(body));
                     if (!setHashes.Add(hashString))
                     {
                         ListViewItem lvi = exch.ViewItem;
