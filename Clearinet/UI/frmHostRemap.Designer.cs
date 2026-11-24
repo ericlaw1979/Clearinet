@@ -130,7 +130,6 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(634, 311);
             this.ControlBox = false;
             this.Controls.Add(this.lnkImportHOSTS);
             this.Controls.Add(this.btnCancel);
@@ -145,6 +144,7 @@
             this.Name = "frmHostRemap";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Host Remapper";
+            this.ClientSize = new System.Drawing.Size(634, 311);
             this.ResumeLayout(false);
             this.PerformLayout();
 
