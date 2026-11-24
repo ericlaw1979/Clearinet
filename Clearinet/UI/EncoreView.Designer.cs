@@ -38,14 +38,14 @@
             this.cbAcceptAllConnects = new System.Windows.Forms.CheckBox();
             this.cbUnmatchedContinue = new System.Windows.Forms.CheckBox();
             this.cbEnableLatency = new System.Windows.Forms.CheckBox();
-            this.lvRules = new System.Windows.Forms.ListView();
+            this.btnAddRule = new System.Windows.Forms.Button();
+            this.btnImportForPlayback = new System.Windows.Forms.Button();
+            this.btnGroup = new System.Windows.Forms.Button();
+            this.lvRules = new Clearinet.BetterListView();
             this.colCondition = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colAction = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colLatency = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colComments = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.btnAddRule = new System.Windows.Forms.Button();
-            this.btnImportForPlayback = new System.Windows.Forms.Button();
-            this.btnGroup = new System.Windows.Forms.Button();
             this.gbRuleEditor.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -131,6 +131,7 @@
             this.cbEnableEncore.TabIndex = 0;
             this.cbEnableEncore.Text = "Enable rules";
             this.cbEnableEncore.UseVisualStyleBackColor = true;
+            this.cbEnableEncore.CheckedChanged += new System.EventHandler(this.cbEnableEncore_CheckedChanged);
             // 
             // cbAcceptAllConnects
             // 
@@ -164,9 +165,42 @@
             this.cbEnableLatency.TabIndex = 3;
             this.cbEnableLatency.Text = "Apply latency";
             this.cbEnableLatency.UseVisualStyleBackColor = true;
+            this.cbEnableLatency.CheckedChanged += new System.EventHandler(this.cbEnableLatency_CheckedChanged);
+            // 
+            // btnAddRule
+            // 
+            this.btnAddRule.Location = new System.Drawing.Point(3, 32);
+            this.btnAddRule.Name = "btnAddRule";
+            this.btnAddRule.Size = new System.Drawing.Size(130, 28);
+            this.btnAddRule.TabIndex = 4;
+            this.btnAddRule.Text = "Add Rule";
+            this.btnAddRule.UseVisualStyleBackColor = true;
+            this.btnAddRule.Click += new System.EventHandler(this.btnAddRule_Click);
+            // 
+            // btnImportForPlayback
+            // 
+            this.btnImportForPlayback.Location = new System.Drawing.Point(139, 32);
+            this.btnImportForPlayback.Name = "btnImportForPlayback";
+            this.btnImportForPlayback.Size = new System.Drawing.Size(130, 28);
+            this.btnImportForPlayback.TabIndex = 5;
+            this.btnImportForPlayback.Text = "Import...";
+            this.btnImportForPlayback.UseVisualStyleBackColor = true;
+            this.btnImportForPlayback.Click += new System.EventHandler(this.btnImportForPlayback_Click);
+            // 
+            // btnGroup
+            // 
+            this.btnGroup.Location = new System.Drawing.Point(275, 32);
+            this.btnGroup.Name = "btnGroup";
+            this.btnGroup.Size = new System.Drawing.Size(130, 28);
+            this.btnGroup.TabIndex = 6;
+            this.btnGroup.Text = "Group";
+            this.btnGroup.UseVisualStyleBackColor = true;
+            this.btnGroup.Visible = false;
+            this.btnGroup.Click += new System.EventHandler(this.btnGroup_Click);
             // 
             // lvRules
             // 
+            this.lvRules.AllowDrop = true;
             this.lvRules.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -175,6 +209,8 @@
             this.colAction,
             this.colLatency,
             this.colComments});
+            this.lvRules.EmptyText = null;
+            this.lvRules.FullRowSelect = true;
             this.lvRules.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.lvRules.HideSelection = false;
             this.lvRules.Location = new System.Drawing.Point(4, 169);
@@ -184,6 +220,10 @@
             this.lvRules.TabIndex = 8;
             this.lvRules.UseCompatibleStateImageBehavior = false;
             this.lvRules.View = System.Windows.Forms.View.Details;
+            this.lvRules.SelectedIndexChanged += new System.EventHandler(this.lvRules_SelectedIndexChanged);
+            this.lvRules.DragDrop += new System.Windows.Forms.DragEventHandler(this.lvRules_DragDrop);
+            this.lvRules.DragEnter += new System.Windows.Forms.DragEventHandler(this.lvRules_DragEnter);
+            this.lvRules.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvRules_KeyDown);
             // 
             // colCondition
             // 
@@ -204,33 +244,6 @@
             // 
             this.colComments.Text = "Comments";
             this.colComments.Width = 100;
-            // 
-            // btnAddRule
-            // 
-            this.btnAddRule.Location = new System.Drawing.Point(3, 32);
-            this.btnAddRule.Name = "btnAddRule";
-            this.btnAddRule.Size = new System.Drawing.Size(130, 28);
-            this.btnAddRule.TabIndex = 4;
-            this.btnAddRule.Text = "Add Rule";
-            this.btnAddRule.UseVisualStyleBackColor = true;
-            // 
-            // btnImportForPlayback
-            // 
-            this.btnImportForPlayback.Location = new System.Drawing.Point(139, 32);
-            this.btnImportForPlayback.Name = "btnImportForPlayback";
-            this.btnImportForPlayback.Size = new System.Drawing.Size(130, 28);
-            this.btnImportForPlayback.TabIndex = 5;
-            this.btnImportForPlayback.Text = "Import...";
-            this.btnImportForPlayback.UseVisualStyleBackColor = true;
-            // 
-            // btnGroup
-            // 
-            this.btnGroup.Location = new System.Drawing.Point(275, 32);
-            this.btnGroup.Name = "btnGroup";
-            this.btnGroup.Size = new System.Drawing.Size(130, 28);
-            this.btnGroup.TabIndex = 6;
-            this.btnGroup.Text = "Group";
-            this.btnGroup.UseVisualStyleBackColor = true;
             // 
             // EncoreView
             // 
@@ -264,7 +277,7 @@
         private System.Windows.Forms.CheckBox cbAcceptAllConnects;
         private System.Windows.Forms.CheckBox cbUnmatchedContinue;
         private System.Windows.Forms.CheckBox cbEnableLatency;
-        private System.Windows.Forms.ListView lvRules;
+        private Clearinet.BetterListView lvRules;
         private System.Windows.Forms.ComboBox cbxResponseAction;
         private System.Windows.Forms.ComboBox cbxMatchCondition;
         private System.Windows.Forms.LinkLabel lnkTest;

@@ -59,11 +59,11 @@ namespace Clearinet
 
             try
             {
-                foreach (Exchange exchange in exchanges)
+                foreach (Exchange xc in exchanges)
                 {
-                    if (exchange.responseCode != 200) continue;
+                    if (xc.responseCode != 200) continue;
 
-                    byte[] body = exchange.GetResponseBodyAsDecodedBytes();
+                    byte[] body = xc.GetResponseBodyAsDecodedBytes();
                     if (directory == null)
                     {
                         // Create the folder only when there is a file to offer. Keep it until exit
@@ -76,7 +76,7 @@ namespace Clearinet
                         Utilities.CleanupOnExit(directory);
                     }
 
-                    string suggested = exchange.SuggestedFilename;
+                    string suggested = xc.SuggestedFilename;
                     string name = suggested;
                     string extension = Path.GetExtension(suggested);
                     string stem = suggested.Substring(0, suggested.Length - extension.Length);
@@ -115,6 +115,7 @@ namespace Clearinet
                     try
                     {
                         // Remove only files created by this drag, and remove the folder only if empty.
+                        // TODO: We should probably wipe the whole folder without deleting individual files.
                         foreach (string file in files) File.Delete(file);
                         Directory.Delete(directory);
                     }
