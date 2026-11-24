@@ -244,10 +244,10 @@ namespace Extensions
                     // Compute the compression effectiveness.
                     int iDeliverySize = body?.Length ?? 0;
                     var bodyOriginal = Exchange.DecodeBodyFromHeaders(headers, body);
-                    sCompressionRatio = $"Compressed to {100 * iDeliverySize / (bodyOriginal?.Length > 0 ? bodyOriginal.Length : 1f):N2}% of the original ({iDeliverySize:N0}/{bodyOriginal.Length:N0})";
+                    sCompressionRatio = $"Compressed to {100 * iDeliverySize / (bodyOriginal?.Length > 0 ? bodyOriginal.Length : 1f):N2}% of original ({iDeliverySize:N0}/{bodyOriginal.Length:N0})";
                 }
 
-                return (compressed ? "Compressed: " : "Content-Encoding (unrecognized): ") + encoding + $". {sCompressionRatio}";
+                return (compressed ? "using " : "Content-Encoding (unrecognized): ") + encoding + $". {sCompressionRatio}";
             }
             string contentType = headers["Content-Type"].TrimAfter(';').Trim();
             bool compressible = contentType.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ||
@@ -255,10 +255,11 @@ namespace Extensions
                 contentType.OICEquals("application/xml") || contentType.OICEquals("image/svg+xml") ||
                 contentType.EndsWith("+json", StringComparison.OrdinalIgnoreCase) || contentType.EndsWith("+xml", StringComparison.OrdinalIgnoreCase);
             return "None (no content encoding)." + (compressible && body?.Length >= 1024
-                ? " WARNING: uncompressed text-like body >= 1 KiB; consider compression if the client accepts it."
+                ? " WARNING: uncompressed text-like body >= 1 KiB; consider compression."
                 : " Small or already-compressed formats may not benefit from compression.");
         }
 
+        // TODO: This should
         private static string DescribeTiming(DateTime start, DateTime end, double warningMilliseconds)
         {
             if (start == DateTime.MinValue || end == DateTime.MinValue)
