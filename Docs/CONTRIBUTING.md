@@ -42,12 +42,12 @@ why this project exists at all.
 ## Getting started
 
 1. Fork the repository and clone your fork.
-2. Install the [.NET SDK](https://dotnet.microsoft.com/download) matching
-   the version in `global.json` (once one exists) or the current .NET LTS.
-3. `dotnet build` from the repository root should succeed with no
-   warnings-as-errors on Windows and macOS; CI checks both.
-4. Run the standalone regression scripts described in [Running the tests](TESTING.md).
-   These scripts are not discovered by `dotnet test`.
+2. On Windows, install Visual Studio with the .NET desktop development workload
+   and the .NET Framework 4.8.1 targeting pack.
+3. Build with Visual Studio or .NET Framework MSBuild as described below. The
+   projects use classic resource generation, which `dotnet build` cannot perform.
+4. Run the tests described in [Running the tests](TESTING.md). The standalone
+   regression scripts are not discovered by `dotnet test`.
 
 ### Building Transcoders on Windows
 

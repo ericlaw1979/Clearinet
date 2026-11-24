@@ -1,9 +1,11 @@
 # Running the regression tests
 
-The regression tests live in `Test`. They are standalone PowerShell scripts,
+The standalone regression tests live in `Test`. They are PowerShell scripts,
 not Test Explorer projects: run the scripts rather than `dotnet test`. The
 `.Tests.cs` files are compiled by their matching `.Tests.ps1` wrappers; do not
-run them separately.
+run them separately. The `CaptureEngine.Tests` project contains separate MSTest
+tests, including performance inspector tests that compile the corresponding
+Extensions source as a linked file rather than referencing the Extensions project.
 
 All commands below assume the repository root is the current directory.
 
@@ -38,6 +40,12 @@ Building the solution builds Clearinet, Extensions, and Transcoders. The
 extension/transcoder post-build steps also copy outputs into
 `Documents\Clearinet\Extensions` and `Documents\Clearinet\ImportExport`.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for individual-project build details.
+
+Clearinet and Extensions use classic .NET Framework resource generation, which
+requires Visual Studio or .NET Framework MSBuild rather than `dotnet build`.
+After a successful build, run the MSTest project in Test Explorer or use
+`dotnet test .\CaptureEngine.Tests\CaptureEngine.Tests.csproj --no-build -c Release`.
+Rebuild before testing changes to avoid running stale binaries.
 
 ## Run one test
 
