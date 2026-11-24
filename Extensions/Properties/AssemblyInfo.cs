@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("0.1.2.0")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("CaptureEngine.Tests")]
 
 // Specify that we're an extension assembly, and require a minimum version of Clearinet to load us.
 [assembly: Clearinet.RequiredVersion("0.1.2.0")]

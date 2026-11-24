@@ -794,16 +794,17 @@ namespace Clearinet
             splitterMain.SplitPosition = CApp.Prefs.GetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
             // Trace.WriteLine($"[Clearinet] Initialized UI from prefs: splitterMain.SplitPosition={splitterMain.SplitPosition}, splitRequestResponse.SplitPosition={splitRequestResponse.SplitPosition}");
 
+            /
             miRulesRequireAuth.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
             miRulesAutoDecode.Checked = tsbDecompress.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress");
             miRulesHideCONNECTs.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects");
             miRulesHideImages.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_images");
+            miRulesHosts.Checked = CApp.Prefs.GetBoolPref("app.host_remapping.enabled", false);
 
             miHelpTroubleshootFilters.Checked = CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true);
 
             txtQuickExec.BackColor = CONFIG.GetColor("app.ui.colors.quickexec", txtQuickExec.BackColor);
             txtQuickExec.ForeColor = CONFIG.GetColor("app.ui.colors.quickexectext", txtQuickExec.ForeColor);
-
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
@@ -888,6 +889,16 @@ namespace Clearinet
             miHelp.DropDownItems.Insert(3, miHelpTroubleshootFilters);
             miHelpTroubleshootFilters.CheckOnClick = true;
             miHelpTroubleshootFilters.CheckedChanged += miHelpTroubleshootFilters_CheckedChanged;
+
+            miRules.DropDownOpening += (s1, e1) =>
+            {
+                miRulesRequireAuth.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
+                miRulesAutoDecode.Checked = tsbDecompress.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress");
+                miRulesHideCONNECTs.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects");
+                miRulesHideImages.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_images");
+                miRulesHosts.Checked = CApp.Prefs.GetBoolPref("app.host_remapping.enabled", false);
+
+            };
 
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();

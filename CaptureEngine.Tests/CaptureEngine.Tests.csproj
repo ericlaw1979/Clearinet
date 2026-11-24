@@ -14,5 +14,6 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Windows.Forms" />
     <ProjectReference Include="..\Clearinet\Clearinet.csproj" />
+    <ProjectReference Include="..\Extensions\Extensions.csproj" />
   </ItemGroup>
 </Project>
