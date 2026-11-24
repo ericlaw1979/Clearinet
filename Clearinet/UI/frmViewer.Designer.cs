@@ -95,6 +95,7 @@ namespace Clearinet
             this.miEditMarkStrikeout = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditMarkRed = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditMarkBlue = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditMarkGreen = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditMarkGold = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditMarkUnmark = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditFind = new System.Windows.Forms.ToolStripMenuItem();
@@ -212,7 +213,6 @@ namespace Clearinet
             this.txtLogSearch = new System.Windows.Forms.TextBox();
             this.imglistIcons = new System.Windows.Forms.ImageList(this.components);
             this.splitterMain = new System.Windows.Forms.Splitter();
-            this.miEditMarkGreen = new System.Windows.Forms.ToolStripMenuItem();
             miViewSplitter3 = new System.Windows.Forms.ToolStripSeparator();
             miViewSplitter2 = new System.Windows.Forms.ToolStripSeparator();
             miFileSplit1 = new System.Windows.Forms.ToolStripSeparator();
@@ -277,7 +277,7 @@ namespace Clearinet
             // miEditMarkSplit1
             // 
             miEditMarkSplit1.Name = "miEditMarkSplit1";
-            miEditMarkSplit1.Size = new System.Drawing.Size(177, 6);
+            miEditMarkSplit1.Size = new System.Drawing.Size(124, 6);
             // 
             // miEditSplitter2
             // 
@@ -707,35 +707,42 @@ namespace Clearinet
             // miEditMarkStrikeout
             // 
             this.miEditMarkStrikeout.Name = "miEditMarkStrikeout";
-            this.miEditMarkStrikeout.Size = new System.Drawing.Size(180, 22);
+            this.miEditMarkStrikeout.Size = new System.Drawing.Size(127, 22);
             this.miEditMarkStrikeout.Text = "&Strikeout";
             this.miEditMarkStrikeout.Click += new System.EventHandler(this.miEditMarkStrikeout_Click);
             // 
             // miEditMarkRed
             // 
             this.miEditMarkRed.Name = "miEditMarkRed";
-            this.miEditMarkRed.Size = new System.Drawing.Size(180, 22);
+            this.miEditMarkRed.Size = new System.Drawing.Size(127, 22);
             this.miEditMarkRed.Text = "&Red";
             this.miEditMarkRed.Click += new System.EventHandler(this.miEditMarkRed_Click);
             // 
             // miEditMarkBlue
             // 
             this.miEditMarkBlue.Name = "miEditMarkBlue";
-            this.miEditMarkBlue.Size = new System.Drawing.Size(180, 22);
+            this.miEditMarkBlue.Size = new System.Drawing.Size(127, 22);
             this.miEditMarkBlue.Text = "&Blue";
             this.miEditMarkBlue.Click += new System.EventHandler(this.miEditMarkBlue_Click);
+            // 
+            // miEditMarkGreen
+            // 
+            this.miEditMarkGreen.Name = "miEditMarkGreen";
+            this.miEditMarkGreen.Size = new System.Drawing.Size(127, 22);
+            this.miEditMarkGreen.Text = "&Green";
+            this.miEditMarkGreen.Click += new System.EventHandler(this.miEditMarkGreen_Click);
             // 
             // miEditMarkGold
             // 
             this.miEditMarkGold.Name = "miEditMarkGold";
-            this.miEditMarkGold.Size = new System.Drawing.Size(180, 22);
+            this.miEditMarkGold.Size = new System.Drawing.Size(127, 22);
             this.miEditMarkGold.Text = "Gol&d";
             this.miEditMarkGold.Click += new System.EventHandler(this.miEditMarkGold_Click);
             // 
             // miEditMarkUnmark
             // 
             this.miEditMarkUnmark.Name = "miEditMarkUnmark";
-            this.miEditMarkUnmark.Size = new System.Drawing.Size(180, 22);
+            this.miEditMarkUnmark.Size = new System.Drawing.Size(127, 22);
             this.miEditMarkUnmark.Text = "&Unmark";
             this.miEditMarkUnmark.Click += new System.EventHandler(this.miEditMarkUnmark_Click);
             // 
@@ -1806,13 +1813,6 @@ namespace Clearinet
             this.splitterMain.TabIndex = 8;
             this.splitterMain.TabStop = false;
             this.splitterMain.DoubleClick += new System.EventHandler(this.splitterMain_DoubleClick);
-            // 
-            // miEditMarkGreen
-            // 
-            this.miEditMarkGreen.Name = "miEditMarkGreen";
-            this.miEditMarkGreen.Size = new System.Drawing.Size(180, 22);
-            this.miEditMarkGreen.Text = "&Green";
-            this.miEditMarkGreen.Click += new System.EventHandler(this.miEditMarkGreen_Click);
             // 
             // frmViewer
             // 

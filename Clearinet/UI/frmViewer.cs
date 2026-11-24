@@ -3015,7 +3015,14 @@ namespace Clearinet
                 {
                     Exchange xc = arrExchanges[iX];
                     if (!xc.bHasResponse) continue;
-                    string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", "Any file|*.*", null, xc.SuggestedFilename).sFilename;
+
+                    var sFilters = "Any file|*.*";
+                    var sExt = Path.GetExtension(xc.SuggestedFilename).TrimStart('.');
+                    if (sExt.HasText())
+                    {
+                        sFilters = $"{sExt.ToUpper()} files (*.{sExt})|*.{sExt}|{sFilters}";
+                    }
+                    string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", sFilters, null, xc.SuggestedFilename).sFilename;
                     if (!sFilename.HasText()) return;
                     byte[] arrBody = xc.ResponseBody;
                     // TODO: Should we warn if the response body is non-200 (specifically, a HTTP/206 partial response?)
