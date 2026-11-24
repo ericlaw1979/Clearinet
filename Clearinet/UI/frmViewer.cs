@@ -2246,10 +2246,10 @@ namespace Clearinet
                 e.Handled = e.SuppressKeyPress = true;
                 return;
             }
-            if (e.KeyCode == Keys.D1 && e.Modifiers == Keys.Control)
+            if (e.KeyData == Keys.OemMinus)
             {
-                MarkExchanges(lvExchanges.GetSelectedExchanges());
-                e.SuppressKeyPress = e.Handled = true;
+                actMarkStrikeSelected();
+                e.Handled = e.SuppressKeyPress = true;
                 return;
             }
             if (e.KeyData == Keys.Enter)
@@ -2293,6 +2293,23 @@ namespace Clearinet
             {
                 switch (e.KeyCode)
                 {
+                    case Keys.D1:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Red");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+                    case Keys.D2:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Blue");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+                    case Keys.D3:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Green");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+                    case Keys.D4:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Gold");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+
                     case Keys.A:
                         actSelectAll();
                         e.SuppressKeyPress = e.Handled = true;
@@ -2467,12 +2484,12 @@ namespace Clearinet
             }
         }
 
-        internal void MarkExchanges(Exchange[] exchanges)
+        internal void MarkExchanges(Exchange[] exchanges, string color)
         {
             foreach (var xc in exchanges)
             {
-                xc.oFlags["ui-bold"] = "marked";
-                xc.oFlags["ui-color"] = "blue";
+                xc.oFlags["ui-bold"] = "Marked";
+                xc.oFlags["ui-color"] = color;
                 updateLVI(xc);
             }
         }
@@ -3240,7 +3257,9 @@ namespace Clearinet
             CApp.PauseReporting = true;
             lvExchanges.BeginUpdate();
             lvExchanges.SelectedItems.Clear();
-            var hasherMD5 = MD5.Create();
+            Stopwatch oSW = Stopwatch.StartNew();
+            var iDupes = 0;
+            var hasher = SHA256.Create();
             Dictionary<int, byte[]> firstBodies = new Dictionary<int, byte[]>();
             Dictionary<int, HashSet<string>> hashesByLength = new Dictionary<int, HashSet<string>>();
             Exchange[] arrXC = GetAllExchanges();
@@ -3248,28 +3267,29 @@ namespace Clearinet
             foreach (Exchange exch in arrXC)
             {
                 byte[] body = exch.ResponseBody;
-                if (body?.Length > 0)
+                if (body?.Length < 1) continue;
+                if (!hashesByLength.TryGetValue(body.Length, out HashSet<string> setHashes))
                 {
-                    if (!hashesByLength.TryGetValue(body.Length, out HashSet<string> setHashes))
+                    if (!firstBodies.TryGetValue(body.Length, out byte[] firstBody))
                     {
-                        if (!firstBodies.TryGetValue(body.Length, out byte[] firstBody))
-                        {
-                            firstBodies.Add(body.Length, body);
-                            continue;
-                        }
-
-                        setHashes = new HashSet<string>();
-                        setHashes.Add(Convert.ToBase64String(hasherMD5.ComputeHash(firstBody)));
-                        hashesByLength.Add(body.Length, setHashes);
-                        firstBodies.Remove(body.Length);
+                        firstBodies.Add(body.Length, body);
+                        continue;
                     }
 
-                    string hashString = Convert.ToBase64String(hasherMD5.ComputeHash(body));
-                    if (!setHashes.Add(hashString))
+                    setHashes = new HashSet<string>
                     {
-                        ListViewItem lvi = exch.ViewItem;
-                        if (null != lvi) lvi.Selected = true;
-                    }
+                        Convert.ToBase64String(hasher.ComputeHash(firstBody))
+                    };
+                    hashesByLength.Add(body.Length, setHashes);
+                    firstBodies.Remove(body.Length);
+                }
+
+                string hashString = Convert.ToBase64String(hasher.ComputeHash(body));
+                if (!setHashes.Add(hashString))
+                {
+                    ListViewItem lvi = exch.ViewItem;
+                    if (null != lvi) lvi.Selected = true;
+                    ++iDupes;
                 }
             }
 
@@ -3277,28 +3297,31 @@ namespace Clearinet
             lvExchanges.EndUpdate();
             CApp.PauseReporting = false;
             actUpdateInspector(true, true);
-            CApp.Log.Log("Removed Exchanges with duplicate response bodies.");
+            CApp.UI.SetStatusText($"Removed {iDupes} duplicate response bodies in {oSW.ElapsedMilliseconds}ms.");
         }
 
         private void tsmiRemoveImages_Click(object sender, EventArgs e)
         {
             actSelectExchangesMatchingCriteria((exch) => exch.MediaType.OICStartsWith("image/"));
+            var icount = lvExchanges.SelectedCount;
             lvExchanges.RemoveSelected();
-            CApp.Log.Log("Removed Exchanges with image responses.");
+            CApp.Log.Log($"Removed {icount} image responses.");
         }
 
         private void tsmiNon200Response_Click(object sender, EventArgs e)
         {
             actSelectExchangesMatchingCriteria((exch) => exch.responseCode != 200);
+            var icount = lvExchanges.SelectedCount;
             lvExchanges.RemoveSelected();
-            CApp.Log.Log("Removed Exchanges with non-HTTP/200 responses.");
+            CApp.Log.Log($"Removed {icount} non-HTTP/200 responses.");
         }
 
         private void tsmiRemoveConnects_Click(object sender, EventArgs e)
         {
             actSelectExchangesMatchingCriteria((exch) => exch.RequestHeaders?.HTTPMethod.OICEquals("CONNECT"));
+            var icount = lvExchanges.SelectedCount;
             lvExchanges.RemoveSelected();
-            CApp.Log.Log("Removed Exchanges with HTTP CONNECT requests.");
+            CApp.Log.Log($"Removed {icount} HTTP CONNECT requests.");
         }
 
         private void miEditCopyCurl_Click(object sender, EventArgs e)
@@ -3318,27 +3341,50 @@ namespace Clearinet
 
         private void miEditMarkStrikeout_Click(object sender, EventArgs e)
         {
+            actMarkStrikeSelected();
+        }
 
+        private void actMarkStrikeSelected()
+        {
+            var toMark = GetSelectedExchanges();
+            foreach (var exch in toMark)
+            {
+                exch["ui-strikeout"] = "Edit > Mark > Strikeout";
+                updateLVI(exch);
+            }
         }
 
         private void miEditMarkRed_Click(object sender, EventArgs e)
         {
-            MarkExchanges(GetSelectedExchanges()); // TODO:Color
+            MarkExchanges(GetSelectedExchanges(), "Red");
         }
 
         private void miEditMarkBlue_Click(object sender, EventArgs e)
         {
-            MarkExchanges(GetSelectedExchanges());
+            MarkExchanges(GetSelectedExchanges(), "Blue");
+        }
+
+        private void miEditMarkGreen_Click(object sender, EventArgs e)
+        {
+            MarkExchanges(GetSelectedExchanges(), "Green");
         }
 
         private void miEditMarkGold_Click(object sender, EventArgs e)
         {
-            MarkExchanges(GetSelectedExchanges()); // TODO:Color
+            MarkExchanges(GetSelectedExchanges(), "Gold");
         }
 
         private void miEditMarkUnmark_Click(object sender, EventArgs e)
         {
-            // TODO: MarkExchanges(GetSelectedExchanges());
+            var toUnmark = GetSelectedExchanges();
+            foreach (var exch in toUnmark)
+            {
+                exch.oFlags.TryRemove("ui-strikeout", out _);
+                exch.oFlags.TryRemove("ui-bold", out _);
+                exch.oFlags.TryRemove("ui-color", out _);
+                // anything else?
+                updateLVI(exch);
+            }
         }
 
         private void tabsViews_DragOver(object sender, DragEventArgs e)
@@ -3673,5 +3719,7 @@ namespace Clearinet
         {
             frmHostRemap.ConfigureHOSTS();
         }
+
+
     }
 }

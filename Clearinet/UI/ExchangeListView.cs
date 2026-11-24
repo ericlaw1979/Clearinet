@@ -340,7 +340,7 @@ namespace Clearinet
                 if (item.SubItems.Count > index && counts[item.SubItems[index].Text] > 1 && item.Tag is Exchange exchange)
                     duplicates.Add(exchange);
             }
-            CApp.UI.MarkExchanges(duplicates.ToArray());
+            CApp.UI.MarkExchanges(duplicates.ToArray(), "Orange");
             CApp.UI.SetStatusText($"Flagged {duplicates.Count} Exchanges with duplicate '{column.Text}' values.");
         }
 
