@@ -3013,33 +3013,38 @@ namespace Clearinet
                 if (arrExchanges.Length < 1) { CApp.DoNotifyUser("No Exchanges were selected.", "Nothing to Export"); return; }
                 for (int iX = 0; iX < arrExchanges.Length; ++iX)
                 {
-                    Exchange xc = arrExchanges[iX];
-                    if (!xc.bHasResponse) continue;
-
-                    var sFilters = "Any file|*.*";
-                    var sExt = Path.GetExtension(xc.SuggestedFilename).TrimStart('.');
-                    if (sExt.HasText())
-                    {
-                        sFilters = $"{sExt.ToUpper()} files (*.{sExt})|*.{sExt}|{sFilters}";
-                    }
-                    string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", sFilters, null, xc.SuggestedFilename).sFilename;
-                    if (!sFilename.HasText()) return;
-                    byte[] arrBody = xc.ResponseBody;
-                    // TODO: Should we warn if the response body is non-200 (specifically, a HTTP/206 partial response?)
-                    if (xc.ResponseHeaders?.ExistsAny("Content-Encoding", "Transfer-Encoding") ?? false)
-                    {
-                        if (DialogResult.Yes == MessageBox.Show(CApp.UI, "Do you want to decode the response body before saving?", "Decode first?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question))
-                        {
-                            arrBody = Exchange.DecodeBodyFromHeaders(xc.ResponseHeaders, arrBody);
-                        }
-                    }
-                    File.WriteAllBytes(sFilename, arrBody);
+                    SaveExchangeResponseBody(arrExchanges[iX]);
                 }
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Response dumping failed");
             }
+        }
+
+        private bool SaveExchangeResponseBody(Exchange xc)
+        {
+            if (!xc.bHasResponse) return false;
+
+            var sFilters = "Any file|*.*";
+            var sExt = Path.GetExtension(xc.SuggestedFilename).TrimStart('.');
+            if (sExt.HasText())
+            {
+                sFilters = $"{sExt.ToUpper()} files (*.{sExt})|*.{sExt}|{sFilters}";
+            }
+            string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", sFilters, null, xc.SuggestedFilename).sFilename;
+            if (!sFilename.HasText()) return false;
+            byte[] arrBody = xc.ResponseBody;
+            // TODO: Should we warn if the response body is non-200 (specifically, a HTTP/206 partial response?)
+            if (xc.ResponseHeaders?.ExistsAny("Content-Encoding", "Transfer-Encoding") ?? false)
+            {
+                if (DialogResult.Yes == MessageBox.Show(CApp.UI, "Do you want to decode the response body before saving?", "Decode first?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question))
+                {
+                    arrBody = Exchange.DecodeBodyFromHeaders(xc.ResponseHeaders, arrBody);
+                }
+            }
+            File.WriteAllBytes(sFilename, arrBody);
+            return true;
         }
 
         private void miEditUndelete_Click(object sender, EventArgs e)

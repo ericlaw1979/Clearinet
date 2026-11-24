@@ -703,6 +703,38 @@ namespace Clearinet
             return retVal;
         }
 
+        /// <summary>
+        /// Add a custom place to the dialog, ensuring that the specified path exists.
+        /// </summary>
+        private static void AddCustomPlace(FileDialog dialog, string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                dialog.CustomPlaces.Add(path);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to add custom place '{path}' to file dialog: {Utilities.DescribeException(ex)}");
+            }
+        }
+
+        // "app.ui.open_dialog.places_list"
+        // "app.ui.save_dialog.places_list"
+        private static void AddCustomPlacesFromPref(FileDialog dialog, string prefName)
+        {
+            var sPlaces = CApp.Prefs.GetStringPref(prefName, null);
+            if (!sPlaces.HasText()) return;
+            var customPlaces = sPlaces.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            if (customPlaces != null)
+            {
+                foreach (string place in customPlaces)
+                {
+                    AddCustomPlace(dialog, place);
+                }
+            }
+        }
+
         public static string ObtainSaveFilename(string sDialogTitle, string sFilter, string sInitialDirectory = null)
         {
             return ObtainSaveFilenameAndType(sDialogTitle, sFilter, sInitialDirectory).sFilename;
@@ -713,10 +745,14 @@ namespace Clearinet
             string sFilename = null;
             int iChosenType = -1;
 
-            using (FileDialog oFileDialog = new SaveFileDialog())
+            using (SaveFileDialog oFileDialog = new SaveFileDialog())
             {
                 oFileDialog.Title = sDialogTitle;
                 oFileDialog.Filter = sFilter;
+
+                AddCustomPlace(oFileDialog, CONFIG.GetPath("Captures"));
+                AddCustomPlacesFromPref(oFileDialog, "app.ui.save_dialog.places_list");
+
                 if (!String.IsNullOrEmpty(sInitialDirectory))
                 {
                     oFileDialog.InitialDirectory = sInitialDirectory;
@@ -753,6 +789,10 @@ namespace Clearinet
                 oFileDialog.Filter = sFilter;
                 oFileDialog.CheckFileExists = true;
                 oFileDialog.Multiselect = !bSingle;
+
+                AddCustomPlace(oFileDialog, CONFIG.GetPath("Captures"));
+                AddCustomPlacesFromPref(oFileDialog, "app.ui.open_dialog.places_list");
+
                 if (!String.IsNullOrEmpty(sInitialDirectory))
                 {
                     oFileDialog.InitialDirectory = sInitialDirectory;
