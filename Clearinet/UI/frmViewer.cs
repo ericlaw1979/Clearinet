@@ -794,7 +794,8 @@ namespace Clearinet
             splitterMain.SplitPosition = CApp.Prefs.GetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
             // Trace.WriteLine($"[Clearinet] Initialized UI from prefs: splitterMain.SplitPosition={splitterMain.SplitPosition}, splitRequestResponse.SplitPosition={splitRequestResponse.SplitPosition}");
 
-            /
+            // Set current state of RULES menu items. 
+            // ISSUE: Do we need this? We could do it in the DROPDOWN opening event?
             miRulesRequireAuth.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
             miRulesAutoDecode.Checked = tsbDecompress.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress");
             miRulesHideCONNECTs.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects");

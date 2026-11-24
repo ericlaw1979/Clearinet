@@ -237,8 +237,17 @@ namespace Extensions
             {
                 bool compressed = encodings.Any(value => value.OICEquals("gzip") || value.OICEquals("br") ||
                     value.OICEquals("deflate") || value.OICEquals("zstd"));
-                return (compressed ? "Compressed: " : "Content-Encoding (not a recognized compression): ") + encoding +
-                    ". Compression ratio is not inferred from headers.";
+
+                var sCompressionRatio = string.Empty;
+                if (compressed)
+                {
+                    // Compute the compression effectiveness.
+                    int iDeliverySize = body?.Length ?? 0;
+                    var bodyOriginal = Exchange.DecodeBodyFromHeaders(headers, body);
+                    sCompressionRatio = $"Compressed to {100 * iDeliverySize / (bodyOriginal?.Length > 0 ? bodyOriginal.Length : 1f):N2}% of the original ({iDeliverySize:N0}/{bodyOriginal.Length:N0})";
+                }
+
+                return (compressed ? "Compressed: " : "Content-Encoding (unrecognized): ") + encoding + $". {sCompressionRatio}";
             }
             string contentType = headers["Content-Type"].TrimAfter(';').Trim();
             bool compressible = contentType.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ||
