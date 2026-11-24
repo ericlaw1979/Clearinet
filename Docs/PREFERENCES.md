@@ -45,4 +45,7 @@ Below is a list of some preferences, their defaults, and what they control
 
 `proxy.ephemeral.use_httpclientbridge_transport`, `false` => Temporarily use the legacy HttpClientBridge Exchange transport instead of the capture-engine-first path.
 
+`app.ui.open_dialog.places_list` => Semi-colons-separated list of custom places to add to the Open dialog. e.g. `C:\MyFiles;C:\OtherFiles`.
+`app.ui.save_dialog.places_list` => Semi-colons-separated list of custom places to add to the Save dialog. e.g. `C:\MyFiles;C:\OtherFiles`.
+
 You can find all of the Preferences checked by Clearinet by [Searching the code](https://github.com/search?q=repo%3Aericlaw1979%2Fclearinet+%2FGet.*Pref%5C%28%2F&type=code)
