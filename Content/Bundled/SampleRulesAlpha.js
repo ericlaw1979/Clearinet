@@ -213,13 +213,13 @@ class Handlers
         if (m_RequestChinese && !XC.HTTPMethodIs("CONNECT")) {
             XC.RequestHeaders["Accept-Language"] = "zh-CN";
         }
-        
+
         // Break if the request's URL contains the string we said to break on...
         if ((null != bpRequestURL) && !XC.HTTPMethodIs("CONNECT") 
             && XC.urlContains(bpRequestURL)) {
             XC["x-breakrequest"]="QuickExec>bpu";
         }
-         
+
         // Break if the request's method is what we said to break on...
         if (XC.HTTPMethodIs(bpRequestMethod)) {
             XC["x-breakrequest"]="QuickExec>bpm";
@@ -235,12 +235,9 @@ class Handlers
                 XC.bBufferResponse="rules>bpafter";
                 XC["x-breakresponse"] = "rules>bpafter";
         }
-        
+
         if (XC.responseCode == bpResponseStatus) {
             XC["x-breakresponse"]="QuickExec>bps";
-        }  
-        else {
-            CApp.Log.Log(XC.responseCode.ToString());
         }
     }
 
@@ -367,7 +364,7 @@ class Handlers
                 if (sAction.StartsWith("http")) {
                     Utilities.LaunchHyperlink(sArgs[0]);
                     return true;
-    		    }
+                }
                 // fall through...
         }
         CApp.UI.SetStatusText("Unknown execaction: " + sAction);
