@@ -1183,7 +1183,7 @@ namespace Clearinet
             sbEx.Append($"{eX.GetType().Name}: {eX.Message}\n{eX.StackTrace}\n");
             if (null != eX.InnerException)
             {
-                sbEx.Append($"INNER EXCEPTION\n\"{{eX.GetType().Name}}: {{eX.Message}}");
+                sbEx.Append($"INNER EXCEPTION\n{eX.GetType().Name}: {eX.Message}");
             }
             return sbEx.ToString();
         }

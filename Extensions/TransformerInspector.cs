@@ -26,7 +26,7 @@ namespace Extensions
             if (!oX.ResponseBody.HasData()) return 0;
             // If there's a body and it's encoded, we're more relevant than the Header inspector,
             // but many Inspectors can now deal with decoding responses, so let's not get too aggressive. 
-            if (oX.ResponseHeaders.ExistsAny("Content-Encoding", "Transfer-Encoding")) return 21;
+            if (oX.ResponseHeaders?.ExistsAny("Content-Encoding", "Transfer-Encoding") == true) return 21;
             return 0;
         }
 

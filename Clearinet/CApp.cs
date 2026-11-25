@@ -887,6 +887,7 @@ namespace Clearinet
             {
                 return;
             }
+            // ISSUE: We should be parenting this to GetBestParentUIHandle
             if (CApp.UI != null && CApp.UI.InvokeRequired)
             {
                 CApp.UI.Invoke(new Action(() => ReportException(eX, sTitle, sCallerMessage)));

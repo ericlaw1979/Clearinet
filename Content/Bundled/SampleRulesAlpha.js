@@ -1,5 +1,5 @@
 // TEMPORARY FILE for testing the script engine. 
-// This file will be updated before v1.0. LAST UPDATED for v0.1.0.1
+// This file will be updated before v1.0. LAST UPDATED for v0.1.2.0
 import System;
 import System.Windows.Forms;
 import Clearinet;
@@ -42,10 +42,17 @@ class Handlers
     // so that its value will survive if the script is changed and recompiled.
     BindPref("cinscript.ephemeral.bpRequestURL")
     public static var bpRequestURL:String = null;
+    
+    BindPref("cinscript.ephemeral.bpRequestMethod")
+    public static var bpRequestMethod:String = null;
 
     BindPref("cinscript.ephemeral.bpResponseURL")
     public static var bpResponseURL:String = null;
     
+    BindPref("cinscript.ephemeral.bpResponseStatus")
+    public static var bpResponseStatus:Int32 = null;
+    
+   
 //
 // ============ EXTEND THE APP UI ============
 // By annotating a method with a BindUIColumn attribute you can
@@ -210,17 +217,30 @@ class Handlers
         // Break if the request's URL contains the string we said to break on...
         if ((null != bpRequestURL) && !XC.HTTPMethodIs("CONNECT") 
             && XC.urlContains(bpRequestURL)) {
-            XC["x-breakrequest"]="rules>bpu";
-        }       
+            XC["x-breakrequest"]="QuickExec>bpu";
+        }
+         
+        // Break if the request's method is what we said to break on...
+        if (XC.HTTPMethodIs(bpRequestMethod)) {
+            XC["x-breakrequest"]="QuickExec>bpm";
+        }  
     }
 
     static function OnPeekAtResponseHeaders(XC: Exchange) {
+        CApp.Log.Log("Script>OnPeekAtResponseHeaders for " + XC.ToString());
         // If the URL contains the string we said to break on...
         if ((null != bpResponseURL) && !XC.HTTPMethodIs("CONNECT") 
             && XC.urlContains(bpResponseURL)) {
                 // Ensure we don't stream the body until the user can modify it.
                 XC.bBufferResponse="rules>bpafter";
                 XC["x-breakresponse"] = "rules>bpafter";
+        }
+        
+        if (XC.responseCode == bpResponseStatus) {
+            XC["x-breakresponse"]="QuickExec>bps";
+        }  
+        else {
+            CApp.Log.Log(XC.responseCode.ToString());
         }
     }
 
@@ -239,13 +259,25 @@ class Handlers
             case "bpafter":
                 if (2>sArgs.Length) {bpResponseURL=null; CApp.UI.SetStatusText("ResponseURL breakpoint cleared"); return false;}
                 bpResponseURL = sArgs[1]; 
-                CApp.UI.SetStatusText("ResponseURL breakpoint for "+sArgs[1]);
+                CApp.UI.SetStatusText("ResponseURL breakpoint set for "+sArgs[1]);
             return true;
 
             case "bpu":
                 if (2>sArgs.Length) {bpRequestURL=null; CApp.UI.SetStatusText("RequestURL breakpoint cleared"); return false;}
                 bpRequestURL = sArgs[1]; 
-                CApp.UI.SetStatusText("RequestURL breakpoint for "+sArgs[1]);
+                CApp.UI.SetStatusText("RequestURL breakpoint set for "+sArgs[1]);
+            return true;
+            
+            case "bpm":
+                if (2>sArgs.Length) {bpRequestURL=null; CApp.UI.SetStatusText("Request Method breakpoint cleared"); return false;}
+                bpRequestMethod = sArgs[1]; 
+                CApp.UI.SetStatusText("RequestMethod breakpoint set for "+sArgs[1]);
+            return true;
+
+            case "bps":
+                if (2>sArgs.Length) {bpRequestURL=null; CApp.UI.SetStatusText("Response Status breakpoint cleared"); return false;}
+                bpResponseStatus = Int32.Parse(sArgs[1]);
+                CApp.UI.SetStatusText("ResponseStatus breakpoint set for "+sArgs[1]);
             return true;
             
             case "start":
