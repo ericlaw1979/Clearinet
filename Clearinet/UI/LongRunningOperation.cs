@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows.Forms;
 using static Clearinet.PlatformAPI;
 
@@ -71,6 +72,7 @@ namespace Clearinet
             if (dtFirstProgress == DateTime.MinValue) dtFirstProgress = DateTime.Now;
             if (sStatusText.HasText()) StatusText = sStatusText;
             iPercent = iPercent.Clamp(0, 100);
+            if (CApp.isTracing) Trace.WriteLine($"LRO:UpdateProgress({this.OperationName},{iPercent}%: {sStatusText}");
             if (null != ProgressUI)
             {
                 UpdateUIForProgress(iPercent);

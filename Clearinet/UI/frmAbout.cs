@@ -108,5 +108,10 @@ namespace Clearinet
         {
             Utilities.LaunchHyperlink(CONFIG.GetURL("Homepage"));
         }
+
+        private void lnkReleaseNotes_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Utilities.LaunchHyperlink(CONFIG.GetURL("ReleaseNotes"));
+        }
     }
 }

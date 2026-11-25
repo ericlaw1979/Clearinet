@@ -1,5 +1,8 @@
 #Requires -Version 5.1
-param([string]$BuildDirectory = (Join-Path $PSScriptRoot '..\Extensions\bin\Release'))
+param(
+    [string]$BuildDirectory = (Join-Path $PSScriptRoot '..\Extensions\bin\Release'),
+    [switch]$MenuExtensionsOnly
+)
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Desktop' -or [Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') {
     throw 'Run with powershell.exe -NoProfile -STA -File .\Test\ImageInspector.Tests.ps1'
@@ -11,6 +14,8 @@ $null = [Reflection.Assembly]::LoadFrom($corePath)
 $null = [Reflection.Assembly]::LoadFrom($extensionPath)
 $tests = @'
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
@@ -18,7 +23,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.CSharp;
+using Microsoft.Win32;
 using Clearinet;
 using Extensions;
 
@@ -356,14 +365,231 @@ public static class ImageInspectorTests
             Check(Metadata(view).Text == "" && Picture(view).Image == null, "Clear resets image and metadata");
         }
     }
-    public static void Run()
+    static void PumpUntil(Func<bool> done)
     {
-        RunPng(); RunJpeg(); RunGifAndWebP(); RunTiffAndText(); RunMalformed(); RunIntegration();
+        var watch = Stopwatch.StartNew();
+        while (!done())
+        {
+            if (watch.Elapsed.TotalSeconds > 20) throw new Exception("Image tool did not finish within 20 seconds");
+            Application.DoEvents();
+            Thread.Sleep(10);
+        }
+    }
+    static void OpenMenu(ImageView view)
+    {
+        typeof(ContextMenuStrip).GetMethod("OnOpening", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(Picture(view).ContextMenuStrip, new object[] { new System.ComponentModel.CancelEventArgs() });
+    }
+    static void RunTool(ImageInspector inspector, string command, string parameters, string options)
+    {
+        var task = (Task)typeof(ImageInspector).GetMethod("RunMenuExtension", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(inspector, new object[] { "Test image tool", command, parameters, options });
+        PumpUntil(() => task.IsCompleted);
+        task.GetAwaiter().GetResult();
+        FlushExchanges();
+    }
+    static void FlushExchanges()
+    {
+        CApp.UI.lvExchanges.GetType().GetMethod("FlushPending", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(CApp.UI.lvExchanges, null);
+    }
+    static void CheckToolFiles(string notification)
+    {
+        foreach (string prefix in new[] { "INPUT=", "OUTPUT=" })
+        {
+            string line = notification.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(s => s.StartsWith(prefix, StringComparison.Ordinal));
+            if (line != null) Check(!File.Exists(line.Substring(prefix.Length)), "Temporary tool file deleted: " + line);
+        }
+    }
+    static void RunMenuExtensions()
+    {
+        const string rootPath = @"Software\Clearinet\ImagesMenuExt";
+        string prefix = "Clearinet image tests " + Guid.NewGuid().ToString("N");
+        string folder = Path.Combine(Path.GetTempPath(), prefix);
+        string[] names = { prefix + " All", prefix + " Png", prefix + " Gif", prefix + " Invalid" };
+        bool hadRoot;
+        using (var root = Registry.CurrentUser.OpenSubKey(rootPath)) hadRoot = root != null;
+        const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic;
+        FieldInfo main = typeof(CApp).GetField("_frmMain", flags);
+        FieldInfo overrides = typeof(CONFIG).GetField("OVERRIDES", flags);
+        object oldMain = main.GetValue(null), oldOverrides = overrides.GetValue(null);
+        var oldEngine = CApp.scriptRules;
+        bool oldQuiet = CONFIG.isQuietMode;
+        var notifications = new List<string>();
+        EventHandler<CApp.NotificationEventArgs> notify = (sender, e) => notifications.Add(e.NotifyString);
+        frmViewer viewer = null;
+        var inspector = new ImageInspector();
+        using (var tab = new TabPage())
+        try
+        {
+            Directory.CreateDirectory(folder);
+            string executable = Path.Combine(folder, "Image Tool.exe");
+            using (var provider = new CSharpCodeProvider())
+            {
+                var settings = new System.CodeDom.Compiler.CompilerParameters(new[] { "System.dll" }, executable);
+                settings.GenerateExecutable = true;
+                var compiled = provider.CompileAssemblyFromSource(settings, @"
+using System;
+using System.IO;
+using System.Threading;
+class Tool
+{
+    static int Main(string[] args)
+    {
+        Thread.Sleep(200);
+        Console.WriteLine(""INPUT="" + args[1]);
+        Console.WriteLine(""DATA="" + Convert.ToBase64String(File.ReadAllBytes(args[1])));
+        if (args.Length > 2) Console.WriteLine(""OUTPUT="" + args[2]);
+        Console.Error.WriteLine(""Tool stderr"");
+        if (args[0] == ""fail"") return 7;
+        if (args[0] == ""verbose"")
+        {
+            Console.Out.Write(new string('O', 100000));
+            Console.Error.Write(new string('E', 100000));
+        }
+        if (args.Length > 2 && args[0] != ""missing"") File.Copy(args[1], args[2]);
+        return 0;
+    }
+}");
+                Check(!compiled.Errors.HasErrors, "Image tool fixture compiles: " + string.Join(";", compiled.Errors.Cast<object>()));
+            }
+            CONFIG.isQuietMode = true;
+            object disabled = overrides.GetValue(null);
+            disabled.GetType().GetField("DisableScript", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(disabled, true);
+            overrides.SetValue(null, disabled);
+            CApp.scriptRules = (JScriptEngine)Activator.CreateInstance(typeof(JScriptEngine), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { "unused" }, null);
+            viewer = new frmViewer();
+            IntPtr viewerHandle = viewer.Handle;
+            IntPtr listHandle = viewer.lvExchanges.Handle;
+            main.SetValue(null, viewer);
+            CApp.OnNotification += notify;
+            inspector.AddToTab(tab);
+            var view = (ImageView)tab.Controls[0];
+            var menu = Picture(view).ContextMenuStrip;
+            var tools = menu.Items.OfType<ToolStripMenuItem>().Single(i => i.Text == "&Tools");
+            OpenMenu(view);
+            Check(!menu.Enabled && !tools.Available, "No image keeps existing actions disabled and Tools hidden");
+            byte[] original = Saved(ImageFormat.Png);
+            byte[] png = Join(original.Take(original.Length - 12).ToArray(), Chunk("tEXt", Text("Comment\0preserved tool metadata")), Chunk("IEND", new byte[0]));
+            var headers = Headers("IMAGE/PNG; charset=binary"); headers["Content-Encoding"] = "gzip";
+            inspector.Assign(headers, Utilities.GzipCompress(png), true);
+            OpenMenu(view);
+            if (tools.DropDownItems.Count == 0) Check(!tools.Available, "No matching registrations hides Tools");
+            for (int i = 0; i < names.Length; i++)
+            {
+                using (var key = Registry.CurrentUser.CreateSubKey(rootPath + "\\" + names[i]))
+                {
+                    if (i != 3) key.SetValue("Command", executable);
+                    key.SetValue("Parameters", "copy \"{in}\" \"{out:png}\"");
+                    key.SetValue("Options", "<stdout><stderr>");
+                    if (i == 1) key.SetValue("Types", " image/jpeg ; image/png ");
+                    if (i == 2) key.SetValue("Types", "image/gif");
+                }
+            }
+            OpenMenu(view);
+            Check(menu.Enabled && tools.Available, "Matching tools enable Tools for a rendered image");
+            Check(tools.DropDownItems.Cast<ToolStripItem>().Count(i => names.Contains(i.Text)) == 2, "Untyped and PNG tools offered; GIF and invalid tools excluded");
+            var all = tools.DropDownItems.Cast<ToolStripItem>().Single(i => i.Text == names[0]);
+            OpenMenu(view);
+            Check(all.IsDisposed, "Refreshing the menu disposes old items");
+            Check(tools.DropDownItems.Cast<ToolStripItem>().Count(i => names.Contains(i.Text)) == 2, "Repeated opening does not duplicate tools");
+            all = tools.DropDownItems.Cast<ToolStripItem>().Single(i => i.Text == names[0]);
+            all.PerformClick();
+            Check(notifications.Count == 0, "Click starts tool without blocking the UI");
+            inspector.Assign(Headers("image/gif"), Gif(1, GifComment("new selection")), true);
+            PumpUntil(() => notifications.Count > 0);
+            Check(notifications.Count == 1, "One completion notification");
+            Contains(notifications[0], "DATA=" + Convert.ToBase64String(png), "Standard output:", "Standard error:", "Tool stderr");
+            CheckToolFiles(notifications[0]);
+            FlushExchanges();
+            Exchange[] exchanges = viewer.GetAllExchanges();
+            Check(exchanges.Length == 1 && exchanges[0].ResponseBody.SequenceEqual(png) && exchanges[0].ResponseHeaders["Content-Type"] == "image/png", "Click imports original decoded bytes with the requested output MIME despite a selection change");
+            OpenMenu(view);
+            Check(tools.DropDownItems.Cast<ToolStripItem>().Any(i => i.Text == names[2]) && !tools.DropDownItems.Cast<ToolStripItem>().Any(i => i.Text == names[1]), "Types follow the new image");
+            using (var key = Registry.CurrentUser.OpenSubKey(rootPath + "\\" + names[2], true)) key.SetValue("Types", "image/jpeg");
+            OpenMenu(view);
+            Check(!tools.DropDownItems.Cast<ToolStripItem>().Any(i => i.Text == names[2]), "Registry changes take effect on next opening");
+
+            notifications.Clear();
+            RunTool(inspector, executable, "verbose \"{in}\" \"{out:png}\"", "<stdout><stderr>");
+            Contains(notifications.Single(), new string('O', 100000), new string('E', 100000));
+            CheckToolFiles(notifications.Single());
+            int count = viewer.GetAllExchanges().Length;
+            notifications.Clear();
+            RunTool(inspector, executable, "copy \"{in}\"", "<stdout>");
+            Check(viewer.GetAllExchanges().Length == count, "Input-only tool creates no Exchange");
+            Check(!notifications.Single().Contains("Tool stderr"), "Unrequested stderr is not captured");
+            CheckToolFiles(notifications.Single());
+            notifications.Clear();
+            RunTool(inspector, executable, "copy \"{in}\" \"{out}\"", "<stderr>");
+            Contains(notifications.Single(), "Tool stderr");
+            Check(!notifications.Single().Contains("INPUT="), "Unrequested stdout is not captured");
+            Check(viewer.GetAllExchanges().Last().ResponseHeaders["Content-Type"] == "application/octet-stream", "Bare output token uses an unspecified binary MIME");
+            count = viewer.GetAllExchanges().Length;
+            foreach (string mode in new[] { "fail", "missing" })
+            {
+                notifications.Clear();
+                RunTool(inspector, executable, mode + " \"{in}\" \"{out:png}\"", "<stdout><stderr>");
+                Contains(notifications.Single(), "Unable to run image tool", "Tool stderr", "DATA=");
+                if (mode == "fail") Contains(notifications.Single(), "code 7");
+                CheckToolFiles(notifications.Single());
+                Check(viewer.GetAllExchanges().Length == count, "Failed tools do not create an Exchange");
+            }
+            notifications.Clear();
+            RunTool(inspector, Path.Combine(folder, "missing.exe"), "\"{in}\"", "");
+            Contains(notifications.Single(), "Unable to run image tool");
+            notifications.Clear();
+            RunTool(inspector, executable, "copy \"{in}\" \"{out:..\\bad}\"", "");
+            Contains(notifications.Single(), "Invalid {out:extension}");
+            inspector.Clear();
+            OpenMenu(view);
+            Check(!tools.Available && tools.DropDownItems.Count == 0, "Clear removes stale tools");
+            notifications.Clear();
+            RunTool(inspector, executable, "\"{in}\"", "");
+            Contains(notifications.Single(), "No image is selected");
+            foreach (string extension in new[] { "avif", "jxl", "tiff" })
+                Check(Utilities.MediaTypeFromFilename("output." + extension) == "image/" + extension, "Image tool output MIME: " + extension);
+            Check(Utilities.MediaTypeFromFilename("output.tif") == "image/tiff", "Short TIFF extension MIME");
+            inspector.Clear();
+            view.Dispose();
+            Check(menu.IsDisposed && tools.IsDisposed, "Disposing the image view disposes the tools menu");
+        }
+        finally
+        {
+            CApp.OnNotification -= notify;
+            if (viewer != null) viewer.Dispose();
+            main.SetValue(null, oldMain);
+            overrides.SetValue(null, oldOverrides);
+            CApp.scriptRules = oldEngine;
+            CONFIG.isQuietMode = oldQuiet;
+            using (var root = Registry.CurrentUser.OpenSubKey(rootPath, true))
+            {
+                if (root != null) foreach (string name in names) root.DeleteSubKeyTree(name, false);
+            }
+            if (!hadRoot)
+            {
+                using (var root = Registry.CurrentUser.OpenSubKey(rootPath))
+                    hadRoot = root != null && (root.SubKeyCount != 0 || root.ValueCount != 0);
+                if (!hadRoot) Registry.CurrentUser.DeleteSubKey(rootPath, false);
+            }
+            File.Delete(Path.Combine(folder, "Image Tool.exe"));
+            Directory.Delete(folder);
+        }
+    }
+    public static void Run(bool menuExtensionsOnly)
+    {
+        if (!menuExtensionsOnly) { RunPng(); RunJpeg(); RunGifAndWebP(); RunTiffAndText(); RunMalformed(); RunIntegration(); }
+        RunMenuExtensions();
         Console.WriteLine("Image inspector assertions passed: " + assertions);
     }
 }
 '@
 $compiler = New-Object CodeDom.Compiler.CompilerParameters
-$compiler.ReferencedAssemblies.AddRange([string[]]@('System.dll', 'System.Core.dll', 'System.Windows.Forms.dll', 'System.Drawing.dll', $corePath, $extensionPath))
+$compiler.ReferencedAssemblies.AddRange([string[]]@('System.dll', 'System.Core.dll', 'System.Windows.Forms.dll', 'System.Drawing.dll', 'Microsoft.CSharp.dll', $corePath, $extensionPath))
 Add-Type -TypeDefinition $tests -CompilerParameters $compiler
-[ImageInspectorTests]::Run()
+try {
+    [ImageInspectorTests]::Run($MenuExtensionsOnly.IsPresent)
+}
+catch {
+    Write-Output $_.Exception.ToString()
+    throw
+}

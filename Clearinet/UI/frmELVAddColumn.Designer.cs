@@ -32,7 +32,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.lnkHelp = new System.Windows.Forms.LinkLabel();
+            this.lnkHelp = new BetterLinkLabel();
             this.cbxSource = new System.Windows.Forms.ComboBox();
             this.txtName = new System.Windows.Forms.TextBox();
             this.txtTitle = new System.Windows.Forms.TextBox();
@@ -71,7 +71,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(247, 96);
+            this.label4.Location = new System.Drawing.Point(248, 96);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(83, 17);
             this.label4.TabIndex = 6;
@@ -109,7 +109,7 @@
             // 
             this.txtName.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Append;
             this.txtName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtName.Location = new System.Drawing.Point(251, 37);
+            this.txtName.Location = new System.Drawing.Point(251, 36);
             this.txtName.Name = "txtName";
             this.txtName.Size = new System.Drawing.Size(213, 24);
             this.txtName.TabIndex = 3;
@@ -161,9 +161,8 @@
             // 
             // frmELVAddColumn
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.AutoSize = true;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(495, 241);
             this.Controls.Add(this.btnAdd);
@@ -196,7 +195,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.LinkLabel lnkHelp;
+        private BetterLinkLabel lnkHelp;
         private System.Windows.Forms.ComboBox cbxSource;
         private System.Windows.Forms.TextBox txtName;
         private System.Windows.Forms.TextBox txtTitle;

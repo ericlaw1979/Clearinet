@@ -70,8 +70,29 @@ to the first 1,024 text bytes, with `...` when truncated; compressed text is bou
 DTDs/external entities and is limited to 1 MB. Malformed or incomplete metadata produces an explicit notice and no misleading
 complete byte total; metadata remains available even when the image renderer cannot open the file.
 
+### External image tools
+
+The image context menu includes a Tools submenu when matching extensions are registered under
+`HKEY_CURRENT_USER\Software\Clearinet\ImagesMenuExt`. Each subkey names a menu item (including optional `&` access keys).
+Registrations are refreshed whenever the context menu opens. Create these string values in each tool's subkey:
+
+- `Command` (required): executable path, without surrounding quotes.
+- `Parameters`: command-line arguments. `{in}` is replaced with a temporary file containing the original HTTP-decoded image,
+  not a re-encoded bitmap. `{out}` is replaced with a random output filename; `{out:webp}` gives it a `.webp` extension.
+  Quote filename tokens, for example `-m 6 "{in}" -o "{out:webp}"`. Use only one output filename/extension per invocation.
+- `Options`: include `<stdout>` and/or `<stderr>` to display the tool's captured text when it exits.
+- `Types`: optional semicolon-separated MIME types, for example `image/jpeg;image/gif;image/png`.
+  Matching ignores case, surrounding whitespace and the response's Content-Type parameters. Omit or leave empty to offer the tool for all rendered images.
+
+Tools run only when clicked, without blocking the UI. On successful exit, an `{out}` file is imported as a new Exchange;
+its extension determines the Content-Type (use `{out:png}` rather than `{out}` to identify a PNG).
+Temporary input/output files are deleted after the process exits, so tools must not hand work off to another process and exit early.
+Launch failures, nonzero exit codes and missing output files are reported; invalid registrations and cleanup failures are logged.
+Only register tools you trust: these commands execute locally with your permissions and receive the selected image's data.
+
 Run the Image inspector regressions after building the Extensions project:
-`powershell.exe -NoProfile -STA -File .\Test\ImageInspector.Tests.ps1`.
+`powershell.exe -NoProfile -STA -File .\Test\ImageInspector.Tests.ps1 -AutomatedTest`.
+Add `-MenuExtensionsOnly` to run just the registry tool regressions.
 
 ## WebView response inspector
 

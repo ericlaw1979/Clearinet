@@ -28,29 +28,27 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.txtName = new System.Windows.Forms.TextBox();
             this.txtValue = new System.Windows.Forms.TextBox();
-            this.lnkHeaderLookup = new System.Windows.Forms.LinkLabel();
             this.btnTemplates = new System.Windows.Forms.Button();
             this.lblName = new System.Windows.Forms.Label();
             this.lblValue = new System.Windows.Forms.Label();
-            this.mnuTemplates = new System.Windows.Forms.ContextMenuStrip();
-            this.tsmiSecurity = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmiTemplateSecurityCSP = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuTemplates.SuspendLayout();
+            this.mnuTemplates = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.lnkHeaderLookup = new Clearinet.BetterLinkLabel();
             this.SuspendLayout();
             // 
             // btnCancel
             // 
-            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(88, 244);
+            this.btnCancel.Location = new System.Drawing.Point(213, 162);
             this.btnCancel.Margin = new System.Windows.Forms.Padding(4);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(86, 35);
-            this.btnCancel.TabIndex = 6;
+            this.btnCancel.TabIndex = 7;
             this.btnCancel.Text = "&Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             // 
@@ -59,11 +57,11 @@
             this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSave.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnSave.Enabled = false;
-            this.btnSave.Location = new System.Drawing.Point(481, 244);
+            this.btnSave.Location = new System.Drawing.Point(307, 163);
             this.btnSave.Margin = new System.Windows.Forms.Padding(4);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(89, 35);
-            this.btnSave.TabIndex = 5;
+            this.btnSave.TabIndex = 6;
             this.btnSave.Text = "&Save";
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
@@ -73,10 +71,10 @@
             this.txtName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtName.Location = new System.Drawing.Point(88, 30);
+            this.txtName.Location = new System.Drawing.Point(64, 13);
             this.txtName.Margin = new System.Windows.Forms.Padding(4);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(482, 24);
+            this.txtName.Size = new System.Drawing.Size(307, 24);
             this.txtName.TabIndex = 1;
             this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
             // 
@@ -86,44 +84,30 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtValue.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtValue.Location = new System.Drawing.Point(88, 70);
+            this.txtValue.Location = new System.Drawing.Point(64, 48);
             this.txtValue.Margin = new System.Windows.Forms.Padding(4);
             this.txtValue.Multiline = true;
             this.txtValue.Name = "txtValue";
-            this.txtValue.Size = new System.Drawing.Size(482, 167);
+            this.txtValue.Size = new System.Drawing.Size(332, 107);
             this.txtValue.TabIndex = 3;
             this.txtValue.TextChanged += new System.EventHandler(this.txtValue_TextChanged);
             // 
-            // lnkHeaderLookup
-            // 
-            this.lnkHeaderLookup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lnkHeaderLookup.AutoSize = true;
-            this.lnkHeaderLookup.Font = new System.Drawing.Font("Tahoma", 14F);
-            this.lnkHeaderLookup.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkHeaderLookup.Location = new System.Drawing.Point(577, 31);
-            this.lnkHeaderLookup.Name = "lnkHeaderLookup";
-            this.lnkHeaderLookup.Size = new System.Drawing.Size(19, 23);
-            this.lnkHeaderLookup.TabIndex = 4;
-            this.lnkHeaderLookup.TabStop = true;
-            this.lnkHeaderLookup.Text = "?";
-            this.lnkHeaderLookup.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHeaderLookup_LinkClicked);
-            // 
             // btnTemplates
             // 
-            this.btnTemplates.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTemplates.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnTemplates.Enabled = false;
-            this.btnTemplates.Location = new System.Drawing.Point(211, 244);
+            this.btnTemplates.Location = new System.Drawing.Point(63, 162);
             this.btnTemplates.Name = "btnTemplates";
-            this.btnTemplates.Size = new System.Drawing.Size(235, 35);
-            this.btnTemplates.TabIndex = 7;
-            this.btnTemplates.Text = "Header Templates";
+            this.btnTemplates.Size = new System.Drawing.Size(113, 35);
+            this.btnTemplates.TabIndex = 5;
+            this.btnTemplates.Text = "&Templates";
             this.btnTemplates.UseVisualStyleBackColor = true;
             this.btnTemplates.Click += new System.EventHandler(this.btnTemplates_Click);
             // 
             // lblName
             // 
             this.lblName.AutoSize = true;
-            this.lblName.Location = new System.Drawing.Point(12, 33);
+            this.lblName.Location = new System.Drawing.Point(9, 15);
             this.lblName.Name = "lblName";
             this.lblName.Size = new System.Drawing.Size(48, 17);
             this.lblName.TabIndex = 0;
@@ -132,7 +116,7 @@
             // lblValue
             // 
             this.lblValue.AutoSize = true;
-            this.lblValue.Location = new System.Drawing.Point(12, 72);
+            this.lblValue.Location = new System.Drawing.Point(9, 50);
             this.lblValue.Name = "lblValue";
             this.lblValue.Size = new System.Drawing.Size(45, 17);
             this.lblValue.TabIndex = 2;
@@ -140,35 +124,31 @@
             // 
             // mnuTemplates
             // 
-            this.mnuTemplates.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmiSecurity});
-            this.mnuTemplates.Location = new System.Drawing.Point(0, 0);
             this.mnuTemplates.Name = "mnuTemplates";
-            this.mnuTemplates.Size = new System.Drawing.Size(617, 25);
-            this.mnuTemplates.TabIndex = 8;
+            this.mnuTemplates.Size = new System.Drawing.Size(61, 4);
             this.mnuTemplates.Text = "menuStrip1";
             // 
-            // tsmiSecurity
+            // lnkHeaderLookup
             // 
-            this.tsmiSecurity.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmiTemplateSecurityCSP});
-            this.tsmiSecurity.Name = "tsmiSecurity";
-            this.tsmiSecurity.Size = new System.Drawing.Size(65, 21);
-            this.tsmiSecurity.Text = "&Security";
-            // 
-            // tsmiTemplateSecurityCSP
-            // 
-            this.tsmiTemplateSecurityCSP.Name = "tsmiTemplateSecurityCSP";
-            this.tsmiTemplateSecurityCSP.Size = new System.Drawing.Size(209, 22);
-            this.tsmiTemplateSecurityCSP.Text = "Content-Security-Policy";
-            this.tsmiTemplateSecurityCSP.Click += new System.EventHandler(this.tsmiTemplateSecurityCSP_Click);
+            this.lnkHeaderLookup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lnkHeaderLookup.AutoSize = true;
+            this.lnkHeaderLookup.Font = new System.Drawing.Font("Tahoma", 14F);
+            this.lnkHeaderLookup.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.lnkHeaderLookup.Location = new System.Drawing.Point(378, 14);
+            this.lnkHeaderLookup.Name = "lnkHeaderLookup";
+            this.lnkHeaderLookup.Size = new System.Drawing.Size(19, 23);
+            this.lnkHeaderLookup.TabIndex = 4;
+            this.lnkHeaderLookup.TabStop = true;
+            this.lnkHeaderLookup.Text = "?";
+            this.lnkHeaderLookup.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkHeaderLookup_LinkClicked);
             // 
             // HeaderEditor
             // 
             this.AcceptButton = this.btnSave;
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(617, 311);
+            this.ClientSize = new System.Drawing.Size(409, 211);
             this.Controls.Add(this.lblValue);
             this.Controls.Add(this.lblName);
             this.Controls.Add(this.btnTemplates);
@@ -181,12 +161,10 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(500, 350);
+            this.MinimumSize = new System.Drawing.Size(425, 250);
             this.Name = "HeaderEditor";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Header Viewer";
-            this.mnuTemplates.ResumeLayout(false);
-            this.mnuTemplates.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -196,14 +174,12 @@
 
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnSave;
-        private System.Windows.Forms.LinkLabel lnkHeaderLookup;
+        private Clearinet.BetterLinkLabel lnkHeaderLookup;
         private System.Windows.Forms.Button btnTemplates;
         private System.Windows.Forms.Label lblName;
         private System.Windows.Forms.Label lblValue;
         public System.Windows.Forms.TextBox txtName;
         public System.Windows.Forms.TextBox txtValue;
         private System.Windows.Forms.ContextMenuStrip mnuTemplates;
-        private System.Windows.Forms.ToolStripMenuItem tsmiSecurity;
-        private System.Windows.Forms.ToolStripMenuItem tsmiTemplateSecurityCSP;
     }
 }

@@ -34,7 +34,7 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.cbxOutputTo = new System.Windows.Forms.ComboBox();
             this.btnSetInputFromOutput = new System.Windows.Forms.Button();
-            this.lnkEncodings = new System.Windows.Forms.LinkLabel();
+            this.lnkEncodings = new BetterLinkLabel();
             this.cbViewBytes = new System.Windows.Forms.CheckBox();
             this.cbxTransforms = new System.Windows.Forms.ComboBox();
             this.lblExplain = new System.Windows.Forms.Label();
@@ -52,7 +52,7 @@
             this.pnlFill.Location = new System.Drawing.Point(5, 196);
             this.pnlFill.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pnlFill.Name = "pnlFill";
-            this.pnlFill.Size = new System.Drawing.Size(969, 277);
+            this.pnlFill.Size = new System.Drawing.Size(724, 260);
             this.pnlFill.TabIndex = 0;
             // 
             // txtOutput
@@ -66,7 +66,7 @@
             this.txtOutput.Name = "txtOutput";
             this.txtOutput.ReadOnly = true;
             this.txtOutput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtOutput.Size = new System.Drawing.Size(969, 238);
+            this.txtOutput.Size = new System.Drawing.Size(724, 221);
             this.txtOutput.TabIndex = 5;
             this.txtOutput.TextChanged += new System.EventHandler(this.txtOutput_TextChanged);
             // 
@@ -81,7 +81,7 @@
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(969, 39);
+            this.panel2.Size = new System.Drawing.Size(724, 39);
             this.panel2.TabIndex = 2;
             // 
             // cbxOutputTo
@@ -94,7 +94,7 @@
             "Clipboard",
             "Fake Exchange",
             "File..."});
-            this.cbxOutputTo.Location = new System.Drawing.Point(595, 7);
+            this.cbxOutputTo.Location = new System.Drawing.Point(350, 7);
             this.cbxOutputTo.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.cbxOutputTo.Name = "cbxOutputTo";
             this.cbxOutputTo.Size = new System.Drawing.Size(155, 21);
@@ -104,7 +104,7 @@
             // btnSetInputFromOutput
             // 
             this.btnSetInputFromOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSetInputFromOutput.Location = new System.Drawing.Point(756, 4);
+            this.btnSetInputFromOutput.Location = new System.Drawing.Point(511, 4);
             this.btnSetInputFromOutput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnSetInputFromOutput.Name = "btnSetInputFromOutput";
             this.btnSetInputFromOutput.Size = new System.Drawing.Size(210, 28);
@@ -116,7 +116,7 @@
             // lnkEncodings
             // 
             this.lnkEncodings.AutoSize = true;
-            this.lnkEncodings.Location = new System.Drawing.Point(397, 10);
+            this.lnkEncodings.Location = new System.Drawing.Point(309, 10);
             this.lnkEncodings.Name = "lnkEncodings";
             this.lnkEncodings.Size = new System.Drawing.Size(88, 13);
             this.lnkEncodings.TabIndex = 2;
@@ -183,7 +183,7 @@
             this.lblExplain.Margin = new System.Windows.Forms.Padding(5);
             this.lblExplain.Name = "lblExplain";
             this.lblExplain.Padding = new System.Windows.Forms.Padding(4);
-            this.lblExplain.Size = new System.Drawing.Size(969, 28);
+            this.lblExplain.Size = new System.Drawing.Size(724, 28);
             this.lblExplain.TabIndex = 2;
             this.lblExplain.Text = "Textransform encodes and decodes text. Enter text and then select a transform fro" +
     "m the dropdown.";
@@ -198,7 +198,7 @@
             this.txtInput.Multiline = true;
             this.txtInput.Name = "txtInput";
             this.txtInput.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtInput.Size = new System.Drawing.Size(969, 157);
+            this.txtInput.Size = new System.Drawing.Size(724, 157);
             this.txtInput.TabIndex = 0;
             this.txtInput.TextChanged += new System.EventHandler(this.txtInput_TextChanged);
             // 
@@ -208,15 +208,15 @@
             this.splitInputOutput.Dock = System.Windows.Forms.DockStyle.Top;
             this.splitInputOutput.Location = new System.Drawing.Point(5, 190);
             this.splitInputOutput.Name = "splitInputOutput";
-            this.splitInputOutput.Size = new System.Drawing.Size(969, 6);
+            this.splitInputOutput.Size = new System.Drawing.Size(724, 6);
             this.splitInputOutput.TabIndex = 9;
             this.splitInputOutput.TabStop = false;
             // 
             // frmTextWizard
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(979, 478);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(734, 461);
             this.Controls.Add(this.pnlFill);
             this.Controls.Add(this.splitInputOutput);
             this.Controls.Add(this.txtInput);
@@ -248,7 +248,7 @@
         private System.Windows.Forms.TextBox txtOutput;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Button btnSetInputFromOutput;
-        private System.Windows.Forms.LinkLabel lnkEncodings;
+        private BetterLinkLabel lnkEncodings;
         private System.Windows.Forms.CheckBox cbViewBytes;
         private System.Windows.Forms.ComboBox cbxTransforms;
         private System.Windows.Forms.TextBox txtInput;

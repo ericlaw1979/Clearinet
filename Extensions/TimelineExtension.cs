@@ -294,8 +294,8 @@ namespace Extensions
             }
 
             int statusCode = row.Exchange.responseCode;
-            string statusSymbol = (statusCode >= 300 && statusCode < 400) ? (statusCode == 304 ? "\uD83D\uDCBE" : "\u21A9") :
-                (statusCode >= 400 && statusCode < 600 ? "\u26A0" : null);
+            string statusSymbol = (statusCode.InRange(300, 399) ? (statusCode == 304 ? "\uD83D\uDCBE" : "\u21A9") :
+                (statusCode.InRange(400, 599) ? "\u26A0" : null));
             if (statusSymbol != null)
             {
                 Color symbolColor = statusCode >= 400 ? Color.DarkRed : Color.DimGray;

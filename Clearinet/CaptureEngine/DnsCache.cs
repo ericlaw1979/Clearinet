@@ -34,9 +34,9 @@ namespace Clearinet
         public static event DnsLookupHandler OnLookup;
 
         /// <summary>
-        /// Return the list of IP Addresses for the target hostname
+        /// Returns the IP addresses for the target hostname. Empty DNS results are not cached.
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="hostname">The hostname to resolve.</param>
         /// <returns></returns>
         public static async Task<IPAddress[]> LookupAsync(string hostname)
         {
@@ -46,6 +46,11 @@ namespace Clearinet
             {
                 return RemoveIPv6IfDisabled(overrideAddresses);
             }
+
+            // This is ReplaceVirtualHostnames in the App. TODO: Offer a preference to disable built-in hostnames.
+            //if (hostname.OICEquals("localhost.fiddler")) return new IPAddress[] { IPAddress.IPv6Loopback, IPAddress.Loopback };
+            //if (hostname.OICEquals("ipv4.fiddler")) return new IPAddress[] { IPAddress.Loopback };
+            //if (hostname.OICEquals("ipv6.fiddler")) return new IPAddress[] { IPAddress.IPv6Loopback };
 
             if (TryGetCached(normalizedHost, out IPAddress[] cachedAddresses))
             {
@@ -126,6 +131,7 @@ namespace Clearinet
         {
             IPAddress[] addresses = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
             IPAddress[] cloned = CloneAddresses(addresses);
+            if (cloned.Length == 0) return cloned;
 
             int lifetimeMs = CaptureEnginePrefs.GetDnsCacheLifetimeMs();
             if (lifetimeMs > 0)

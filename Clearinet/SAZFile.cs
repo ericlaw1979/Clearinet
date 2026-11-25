@@ -97,7 +97,7 @@ namespace Clearinet
             return listRequests;
         }
 
-        internal static SAZFile LoadFrom(string filePath, string sPassword = null)
+        internal static SAZFile LoadFrom(string filePath, string sPassword = null, LongRunningOperation lro = null)
         {
             SAZFile sazFile = new SAZFile
             {
@@ -116,6 +116,10 @@ namespace Clearinet
 
                 List<ZipEntry> listRequests = GetExchangeRequests(zf);
                 if (listRequests.Count < 1) throw new Exception("The selected file does not contain any Exchanges.");
+
+                int cRequests = listRequests.Count;
+                int iLoaded = 0;
+                lro?.UpdateProgress(0, $"Loading {cRequests:N0} Exchanges...");
 
                 foreach (ZipEntry eRequest in listRequests)
                 {
@@ -160,7 +164,7 @@ namespace Clearinet
                             oldZIPStream.Dispose();
                         }
                         xcNew = CreateExchangeWithRequestFromStream(strmContent);
-                        if (CApp.Prefs.GetBoolPref("app.debugmode", false)) xcNew["X-Saz-Filename"] = eRequest.FileName;
+                        if (CApp.isTracing) xcNew["X-Saz-Filename"] = eRequest.FileName;
                         strmContent.Dispose();
                     }
                     catch
@@ -200,7 +204,7 @@ namespace Clearinet
                             }
                             else
                             {
-                                if (CApp.Prefs.GetBoolPref("app.debugmode", false))
+                                if (CApp.isTracing)
                                 {
                                     xcNew.ResponseHeaders = new HTTPResponseHeaders(0, "Clearinet Generated - SAZ Entry Response data corrupt", new[] { "Connection: close" });
                                     xcNew.ResponseBody = Encoding.ASCII.GetBytes("The SAZ file did not contain a readable response for this request. " + eX.Message);
@@ -253,6 +257,8 @@ namespace Clearinet
                         xcNew.SetBitFlag(ExchangeFlags.IsHTTPS);
                     }
                     sazFile.Exchanges.Add(xcNew);
+                    iLoaded++;
+                    lro?.UpdateProgress((100 * iLoaded) / cRequests, $"Read {iLoaded:N0}/{cRequests:N0} Exchanges...");
                 }
             }
             return sazFile;

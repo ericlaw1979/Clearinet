@@ -49,6 +49,14 @@ namespace Clearinet.CaptureEngine
             }
         }
 
+        public void ClearServerSocketPool()
+        {
+            lock (_syncRoot)
+            {
+                _listener?.ClearServerSocketPool();
+            }
+        }
+
         public void Start()
         {
             lock (_syncRoot)
@@ -116,7 +124,6 @@ namespace Clearinet.CaptureEngine
         private readonly ConcurrentDictionary<Guid, ClientPipe> _clientPipeReuseQueue =
             new ConcurrentDictionary<Guid, ClientPipe>();
         private readonly object _syncRoot = new object();
-        private readonly HostList _hlSkipDecryptFor;        // TODO: i'm not convinced this belongs here.
         private GigWorker.gig _socketPoolJanitorGig;
         private CancellationTokenSource _cts;
         private TcpListener _listener;
@@ -126,7 +133,6 @@ namespace Clearinet.CaptureEngine
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _hlSkipDecryptFor = new HostList(CApp.Prefs.GetStringPref("proxy.skip_decryption_list", String.Empty));
             _certificateProvider = new CertEnrollCertificateProvider();
             _socketPool = new SocketPool(
                 TimeSpan.FromMilliseconds(CaptureEnginePrefs.GetSocketPoolIdleMs()),
@@ -161,6 +167,11 @@ namespace Clearinet.CaptureEngine
         public void ClearWindowsLeafCerts()
         {
             _certificateProvider.ClearWindowsLeafCerts();
+        }
+
+        public void ClearServerSocketPool()
+        {
+            _socketPool.Clear();
         }
 
         public void Stop()
@@ -281,6 +292,7 @@ namespace Clearinet.CaptureEngine
                                 LocalProcessDescriptor = processIdentity
                             };
                             xc = BuildExchange(requestData.requestHeaders, requestData.requestBody, context);
+                            xc.RecordClientEndpoint(client.Client.RemoteEndPoint as IPEndPoint);
                             context.Exchange = xc;
                             await RunBuiltInRulesBeforeRequest(xc, clientPipe.Stream, token).ConfigureAwait(false);
 
@@ -345,19 +357,25 @@ namespace Clearinet.CaptureEngine
 
         private async Task<bool> ForwardUsingServerPipeAsync(Exchange xc, ClientPipe clientPipe, CancellationToken token)
         {
-            if (!TryComputeDestination(xc.RequestHeaders, out string host, out int port, out bool isTls))
+            if (!TryComputeDestination(xc, out string host, out int port, out bool isTls))
                 throw new InvalidDataException("The request does not refer to a valid HTTP(S) destination.");
+
+            if (CApp.isTracing)
+            {
+                Trace.WriteLine($"Request for {xc.id} will go to {host}:{port} isTls:{isTls}");
+            }
 
             string processIdentity = clientPipe.ProcessIdentity;
             var key = new ServerConnectionKey(host, port, isTls);
             ServerPipe serverPipe = null;
+
+            // Should the server pipe be returned to the pool when we're done with it?
             bool returnServerPipe = false;
             try
             {
                 if (_socketPool.TryRent(key, processIdentity, clientPipe.Id, out serverPipe))
                 {
                     xc.BitFlags |= ExchangeFlags.ServerPipeReused;
-                    //xc["x-serverpool-reused"] = "true";
                 }
                 else
                 {
@@ -367,7 +385,6 @@ namespace Clearinet.CaptureEngine
 
                 xc.Timers.ServerConnected = DateTime.Now;
                 HTTPRequestHeaders upstreamRequest = xc.RequestHeaders.Clone();
-                //await RunBuiltInRulesBeforeRequest(xc, clientPipe.Stream, token).ConfigureAwait(false);
 
                 PrepareRequestForServer(upstreamRequest, xc.RequestBody ?? Array.Empty<byte>());
                 await WriteHttpRequestAsync(serverPipe.Stream, upstreamRequest,
@@ -381,18 +398,28 @@ namespace Clearinet.CaptureEngine
                 xc.Timers.ServerDoneResponse = DateTime.Now;
 
                 returnServerPipe = response.pipeIsReusable && ShouldKeepAlive(upstreamRequest, response.responseHeaders) && serverPipe.IsConnected;
-                //if (!response.reusable && !xc.ResponseHeaders.Exists("Connection"))
-                //    xc.ResponseHeaders["Connection"] = "close";
+
+                await RunBuiltInRulesBeforeResponse(xc, token).ConfigureAwait(false);
 
                 xc.state = ExchangeState.AutoTamperResponseBefore;
                 byte[] clientBody = xc.ResponseBody ?? Array.Empty<byte>();
-                //NormalizeResponseLength(xc.RequestHeaders, xc.ResponseHeaders, clientBody);
+
                 xc.Timers.ClientBeginResponse = DateTime.Now;
                 await WriteHttpResponseAsync(clientPipe.Stream, xc.ResponseHeaders,
                     clientBody, token).ConfigureAwait(false);
                 xc.Timers.ClientDoneResponse = DateTime.Now;
                 xc.state = ExchangeState.Done;
                 UpdateUIForExchange(xc);
+
+                // Check for a WebSocket upgrade. If we see one, we need to relay the connection until the client or server closes it.
+                if (xc.ResponseHeaders.StatusCode == 101)
+                {
+                    returnServerPipe = false;
+                    if (HasHeaderWithToken(xc.ResponseHeaders, "Upgrade", "websocket"))
+                        xc.SetBitFlag(ExchangeFlags.IsWebSocketTunnel);
+                    await RelayUpgradedConnectionAsync(clientPipe, serverPipe, token).ConfigureAwait(false);
+                    return false;
+                }
                 return response.pipeIsReusable && ShouldKeepAlive(xc.RequestHeaders, xc.ResponseHeaders) && clientPipe.IsConnected;
             }
             finally
@@ -401,26 +428,47 @@ namespace Clearinet.CaptureEngine
                 {
                     if (returnServerPipe)
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Returning server pipe for {xc.id} to pool: {host}:{port} isTls:{isTls}");
                         _socketPool.Return(key, serverPipe, DateTime.UtcNow);
-                        //xc["x-serverpool-returned"] = "true";
                     }
                     else
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Disposing server pipe for {xc.id}: {host}:{port} isTls:{isTls}");
                         serverPipe.Dispose();
                     }
                 }
             }
         }
 
-        private static bool TryComputeDestination(HTTPRequestHeaders headers, out string host, out int port, out bool isTls)
+        /// <summary>
+        /// Compute the target of the request based on the Headers, unless X-OverrideHost or X-OverrideHostname
+        /// is set.
+        /// </summary>
+        private static bool TryComputeDestination(Exchange xc, out string host, out int port, out bool isTls)
         {
             host = null;
             port = 0;
             isTls = false;
-            if (headers == null) return false;
 
-            string scheme = headers.UriScheme;
-            string path = headers.RequestPath ?? string.Empty;
+            if (xc.oFlags.ContainsKey("x-overrideHost"))
+            {
+                isTls = xc.isFlagSet(ExchangeFlags.IsHTTPS);
+                port = (isTls ? 443 : 80);
+                Parser.CrackHost(xc.oFlags["x-overrideHost"], out host, ref port);
+                return true;
+            }
+            if (xc.oFlags.ContainsKey("x-overrideHostname"))
+            {
+                isTls = xc.isFlagSet(ExchangeFlags.IsHTTPS);
+                int iThrowaway = 0;
+                Parser.CrackHost(xc.oFlags["x-overrideHostname"], out host, ref iThrowaway);
+                return true;
+            }
+
+            if (xc.RequestHeaders == null) return false;
+
+            string scheme = xc.RequestHeaders.UriScheme;
+            string path = xc.RequestHeaders.RequestPath ?? string.Empty;
             Uri target;
             bool absoluteForm = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
@@ -428,12 +476,12 @@ namespace Clearinet.CaptureEngine
             {
                 if (!Uri.TryCreate(path, UriKind.Absolute, out target)) return false;
                 scheme = target.Scheme;
-                headers.RequestPath = string.IsNullOrEmpty(target.PathAndQuery) ? "/" : target.PathAndQuery;
+                xc.RequestHeaders.RequestPath = string.IsNullOrEmpty(target.PathAndQuery) ? "/" : target.PathAndQuery;
             }
             else
             {
                 if (path.Contains("://")) return false;
-                string authority = headers["Host"];
+                string authority = xc.RequestHeaders["Host"];
                 if (!Uri.TryCreate(scheme + "://" + authority + "/", UriKind.Absolute, out target)) return false;
             }
 
@@ -444,10 +492,70 @@ namespace Clearinet.CaptureEngine
             host = target.DnsSafeHost;
             port = target.Port;
             isTls = target.Scheme.OICEquals("https");
-            headers.UriScheme = target.Scheme;
-            headers["Host"] = target.Authority;
-            if (string.IsNullOrEmpty(headers.RequestPath)) headers.RequestPath = "/";
+            // xc.RequestHeaders.UriScheme = target.Scheme;
+            // xc.RequestHeaders["Host"] = target.Authority;
+            // if (string.IsNullOrEmpty(xc.RequestHeaders.RequestPath)) xc.RequestHeaders.RequestPath = "/";
             return port > 0 && port <= IPEndPoint.MaxPort;
+        }
+
+        // A CONNNECT request specifies its target as the RequestPath (e.g. "CONNECT www.example.com:443 HTTP/1.1").
+        // This method extracts the host and port from that path unless X-OverrideHost or X-OverrideHostname is set,
+        // in which case the specified override is used instead.
+        private static bool TryComputeCONNECTDestination(Exchange xc, out string host, out int port)
+        {
+            host = null;
+            port = 443;
+
+            if (xc.oFlags.ContainsKey("x-overrideHost"))
+            {
+                port = xc.port;
+                Parser.CrackHost(xc.oFlags["x-overrideHost"], out host, ref port);
+                return true;
+            }
+            if (xc.oFlags.ContainsKey("x-overrideHostname"))
+            {
+                int iThrowaway = 0;
+                Parser.CrackHost(xc.oFlags["x-overrideHostname"], out host, ref iThrowaway);
+                return true;
+            }
+
+            string target = xc.RequestHeaders?.RequestPath ?? string.Empty;
+            if (!target.HasText())
+            {
+                target = xc.RequestHeaders?["Host"] ?? string.Empty;
+            }
+
+            target = target.Trim();
+            if (!target.HasText()) return false;
+
+            if (target.StartsWith("[", StringComparison.Ordinal))
+            {
+                int end = target.IndexOf(']');
+                if (end <= 1) return false;
+
+                host = target.Substring(1, end - 1);
+                if (end + 1 < target.Length)
+                {
+                    if (target[end + 1] != ':') return false;
+                    if (!int.TryParse(target.Substring(end + 2), NumberStyles.Integer, CultureInfo.InvariantCulture, out port)) return false;
+                }
+                return true;
+            }
+
+            int ixColon = target.LastIndexOf(':');
+            if (ixColon < 0)
+            {
+                host = target;
+                return true;
+            }
+
+            host = target.Substring(0, ixColon);
+            if (!int.TryParse(target.Substring(ixColon + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out port))
+            {
+                return false;
+            }
+
+            return host.HasText();
         }
 
         /// <summary>
@@ -492,10 +600,18 @@ namespace Clearinet.CaptureEngine
             */
         }
 
-        // Clearinet includes some built-in rules. We will run those at the appropriate time.
-        private async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
+        // Clearinet includes some built-in rules. We will run those at the appropriate time. TODO: WHEN?
+        internal async Task RunBuiltInRulesBeforeRequest(Exchange xc, Stream stream, CancellationToken token)
         {
+            if (CApp.isTracing) Trace.WriteLine($"RunBuiltInRulesBeforeRequest for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
             if (CApp.isClosing) return;
+
+            if (CApp.Prefs.GetBoolPref("app.host_remapping.enabled", false))
+            {
+                ApplyHostRemapping(xc, CApp.Prefs.GetStringPref("app.host_remapping.rules", string.Empty));
+            }
+
+            ReplaceAnyVirtualHostname(xc);
 
             // If it's a CONNECT, see if we should decrypt it based on the Process Name or Hostname.
             if (xc.HTTPMethodIs("CONNECT"))
@@ -508,24 +624,10 @@ namespace Clearinet.CaptureEngine
                 }
 
                 // Should we decrypt the tunnel?
-                if (xc["x-no-decrypt"] == null)
-                {
-                    var commonBrowserProcesses = CApp.Prefs.GetStringPref("lists.common_browser_processes",
-                        DEFAULTS.sPopularBrowserProcessNames);
-                    if (!IsBrowserProcessName(xc.LocalProcess, commonBrowserProcesses))
-                    {
-                        xc["x-no-decrypt"] = "Rules > NonBrowserProcess";
-                    }
-
-                    // If the user has configured a list of hostnames to skip, we won't decrypt those.
-                    if (_hlSkipDecryptFor.Contains(xc.hostname))
-                    {
-                        xc["x-no-decrypt"] = "Options > HTTPS > SkipDecryptionFor";
-                    }
-                }
+                SetNoDecryptIfAppropriate(xc);
             }
 
-            // Toolbar's ProcessFilter        
+            // todo: Toolbar's ProcessFilter ?       
 
             if (CApp.Prefs.GetBoolPref("app.ui.rules.hide_images") &&
                 xc.url.OICEndsWithAny(".svg", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".ico"))
@@ -568,14 +670,179 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        private static bool IsBrowserProcessName(string processIdentity, string browserProcessList)
+        // TODO: PERF: Re-parsing this whole thing every time is ridiculous and wasteful.
+        // But we can cache the parsed rules in memory and only re-parse when the preference changes later.
+        internal static void ApplyHostRemapping(Exchange xc, string rules)
+        {
+            string hostname = xc.hostname;
+            using (var reader = new StringReader(rules))
+            {
+                string line;
+                int lineNumber = 0;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    lineNumber++;
+                    line = line.Trim();
+                    if (line.Length == 0 || line[0] == '#') continue; // Skip empty lines and comments.
+                    string[] tokens = line.Split((char[])null /*split on any whitespace*/, 3, StringSplitOptions.RemoveEmptyEntries);
+                    if (tokens.Length < 2)
+                    {
+                        CApp.Log.Log($"! Invalid host remapping rule on line {lineNumber}: expected a target and hostname.");
+                        continue;
+                    }
+
+                    bool bIsMatch = false;
+                    var sRuleHost = tokens[1];
+
+                    if (sRuleHost.StartsWith("*"))
+                    {
+                        sRuleHost = sRuleHost.Substring(1);
+                        bIsMatch = hostname.OICEndsWith(sRuleHost);
+                    }
+                    else
+                    {
+                        bIsMatch = hostname.OICEquals(sRuleHost);
+                    }
+
+                    if (bIsMatch)
+                    {
+                        if (CApp.isTracing) Trace.WriteLine($"!!! Host remapping rule matched for {hostname}: #{xc.id} will target {tokens[0]} instead.");
+
+                        if (tokens.Length == 3 && tokens[2].OICEquals("rewrite"))
+                        {
+                            // TODO: if this is a CONNECT, do we also need to change the request path?
+                            if (xc.HTTPMethodIs("CONNECT"))
+                            {
+                                xc.RequestHeaders.RequestPath = tokens[0] + ":" + xc.port.ToString(CultureInfo.InvariantCulture);
+                                xc["X-OverrideCertCN"] = hostname;
+                            }
+                            xc["ui-backcolor"] = "AliceBlue"; // TODO: Make this a preference.
+
+                            // Ensure we do this *after* to avoid corrupting the port.
+                            xc.host = tokens[0];
+                            return;
+                        }
+
+                        // The first token is the new target IP/Host.
+                        xc["x-overridehost"] = tokens[0];
+
+                        // If it's a CONNECT, we need to make sure that we don't complain that the server's
+                        // cert doesn't match the client's original hostname.
+                        if (xc.HTTPMethodIs("CONNECT"))
+                        {
+                            // TODO: We could tighten this up with a new flag that specifies the /expected/ CN?
+                            xc["X-IgnoreCertCNMismatch"] = "true";
+                        }
+                        xc["ui-backcolor"] = "AliceBlue"; // TODO: Make this a preference.
+
+                    }
+                }
+            }
+        }
+
+        private async Task RunBuiltInRulesBeforeResponse(Exchange xc, CancellationToken token)
+        {
+            if (CApp.isTracing) Trace.WriteLine($"RunBuiltInRulesBeforeResponse for #{xc.id} ({xc.RequestMethod} {xc.url.Ellipsize(64)})");
+            if (CApp.isClosing) return;
+
+            if (!xc.oFlags.ContainsKey("ui-hide") &&
+                CApp.Prefs.GetBoolPref("app.ui.rules.hide_images") &&
+                xc.MediaType.StartsWith("image/"))
+            {
+                xc["ui-hide"] = "Rules > HideImages (Content-Type)";
+            }
+
+            // Should we skip this if the Exchange is hidden/ignored?
+            if (CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress") &&
+                !xc.BitFlags.HasFlag(ExchangeFlags.IsRPCTunnel))
+            {
+                xc.utilDecodeResponse();
+            }
+        }
+
+        private void ReplaceAnyVirtualHostname(Exchange xc)
+        {
+            // TODO: Offer a preference to disable this replacement.
+
+            if (!xc.hostname.OICEndsWithAny(".clearinet", ".fiddler")) return;
+
+            var sOriginalHostname = xc.hostname;
+
+            if (xc.hostname.OICEqualsAny("localhost.clearinet", "localhost.fiddler"))
+            {
+                xc.hostname = "localhost";
+            }
+            else if (xc.hostname.OICEqualsAny("ipv4.clearinet", "ipv4.fiddler"))
+            {
+                xc.hostname = "127.0.0.1";
+            }
+            else if (xc.hostname.OICEqualsAny("ipv6.clearinet", "ipv6.fiddler"))
+            {
+                xc.hostname = "::1";
+            }
+            else
+            {
+                return; // unsupported label before our suffixes
+            }
+
+            xc["x-UsedVirtualHost"] = sOriginalHostname;
+
+            // We need to return the original hostname to the client in our ServerHello,
+            // otherwise the client will complain about a cert mismatch.
+            if (xc.HTTPMethodIs("CONNECT"))
+            {
+                xc["x-OverrideCertCN"] = sOriginalHostname;
+            }
+        }
+
+        private static void SetNoDecryptIfAppropriate(Exchange xc)
+        {
+            // If the user has already set x-no-decrypt, then respect that.
+            if (xc.oFlags.ContainsKey("x-no-decrypt")) return;
+
+            // If decryption is disabled, then don't decrypt.
+            if (!CApp.Prefs.GetBoolPref("proxy.decrypt_https", false))
+            {
+                xc["x-no-decrypt"] = "Tools > Options > HTTPS > 'Decrypt HTTPS' is unticked";
+                return;
+            }
+
+            CONFIG.ProcessFilter pfMode = (CONFIG.ProcessFilter)CApp.Prefs.GetInt32Pref("proxy.https.decrypt_process_filter", (int)CONFIG.ProcessFilter.All);
+            if (pfMode != CONFIG.ProcessFilter.All)
+            {
+                if (pfMode == CONFIG.ProcessFilter.Remote)
+                {
+                    xc["x-no-decrypt"] = "Tools > Options > HTTPS > only from remote";
+                    return;
+                }
+                if (pfMode == CONFIG.ProcessFilter.Browsers && !IsBrowserProcessName(xc.LocalProcess))
+                {
+                    xc["x-no-decrypt"] = "Tools > Options > HTTPS > only browsers";
+                    return;
+                }
+                else if (pfMode == CONFIG.ProcessFilter.NonBrowser && IsBrowserProcessName(xc.LocalProcess))
+                {
+                    xc["x-no-decrypt"] = "Tools > Options > HTTPS > only non-browsers";
+                    return;
+                }
+            }
+
+            // If the user has configured a list of hostnames, respect that
+            if (!CApp.ShouldDecryptHost(xc.hostname))
+            {
+                xc["x-no-decrypt"] = "Tools > Options > HTTPS > DecryptionList";
+                return;
+            }
+        }
+
+        private static bool IsBrowserProcessName(string processIdentity)
         {
             string normalizedProcessName = processIdentity.TrimAfter(":");
             if (!normalizedProcessName.HasText()) return false;
-            if (!browserProcessList.HasText()) return false;
 
             // TODO: Cache this somewhere
-            string[] processList = browserProcessList.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] processList = CApp.Prefs.GetStringPref("lists.common_browser_processes",
+                DEFAULTS.sPopularBrowserProcessNames).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < processList.Length; i++)
             {
                 string candidate = processList[i];
@@ -650,7 +917,7 @@ namespace Clearinet.CaptureEngine
                 {
                     Stopwatch oSW = Stopwatch.StartNew();
                     var tls = new SslStream(networkStream, false,
-                        (sender, certificate, chain, errors) => callbackValidateServerCertificate(host, sender, certificate, chain, errors));
+                        (sender, certificate, chain, errors) => callbackValidateServerCertificate(xc, host, sender, certificate, chain, errors));
                     serverStream = tls;
                     await tls.AuthenticateAsClientAsync(host, null, CONFIG.oAcceptedServerProtocols, false).ConfigureAwait(false);
                     oSW.Stop();
@@ -680,7 +947,7 @@ namespace Clearinet.CaptureEngine
             if (eX is AuthenticationException)
             {
                 statusCode = 525;
-                statusText = "TLS Handshake Failed";
+                statusText = "TLS Handshake Failed";                // TODO: Where on earth did this come from??
             }
             else if (eX is InvalidDataException || eX is FormatException)
             {
@@ -991,19 +1258,20 @@ namespace Clearinet.CaptureEngine
         private static bool ExchangeTargetsReflector(Exchange xc)
         {
             if (xc == null) return false;
-            if (xc.port == CONFIG.ListenPort)
-            {
-                if (xc.hostname.OICEqualsAny("localhost", "127.0.0.1", "::1")) return true;
-            }
+            if (xc.port != CONFIG.ListenPort) return false;
+
+            if (xc.hostname.OICEqualsAny("localhost", "127.0.0.1", "::1")) return true;
+
+            // TODO: can we get here?
             return xc.hostname.OICEqualsAny(
                 "localhost.clearinet", "ipv4.clearinet", "iv6.clearinet",
                 "localhost.fiddler", "ipv4.fiddler", "ipv6.fiddler");
         }
 
+        // TODO: This probably ought not work like this; we should insteaad look at the CONNECT BitFlags alone?
         private static bool ShouldDecryptTunnel(Exchange xc)
         {
             if (xc.BitFlags.HasFlag(ExchangeFlags.Ignored)) return false;
-            if (!CaptureEnginePrefs.ShouldDecryptHttps()) return false;
             if (xc["x-no-decrypt"] != null) return false;
             return true;
         }
@@ -1016,7 +1284,7 @@ namespace Clearinet.CaptureEngine
             if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
 
             // Validate that we got a valid CONNECT request.
-            if (!TryGetConnectTarget(xc, out string host, out int port))
+            if (!TryComputeCONNECTDestination(xc, out string host, out int port))
             {
                 xc.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
                 {
@@ -1031,9 +1299,16 @@ namespace Clearinet.CaptureEngine
                 return;
             }
 
-            _certificateProvider.EnsureRootTrust();     // ISSUE: This should not live here.
+            #region GetCertificateForServerHello
+            var sHostForCertificate = host;
+            if (xc["x-OverrideCertCN"] is string overrideCN && overrideCN.HasText())
+            {
+                sHostForCertificate = overrideCN;
+            }
+            // TODO: support CApp.Prefs.GetBoolPref("network.https.SetCNFromSNI") to pull from xc["https-Client-SNIHostname"]
 
-            X509Certificate2 leaf = _certificateProvider.GetCertificateForHost(host);
+            X509Certificate2 certServer = _certificateProvider.GetCertificateForHost(sHostForCertificate);
+            #endregion GetCertificateForServerHello
 
             Guid clientPipeId = clientPipe.Id;
             string processIdentity = clientPipe.ProcessIdentity;
@@ -1062,10 +1337,15 @@ namespace Clearinet.CaptureEngine
                 byte[] established = xc.ResponseHeaders.ToByteArray();
                 await clientStream.WriteAsync(established, 0, established.Length, token).ConfigureAwait(false);
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
+                xc.Timers.ClientDoneResponse = DateTime.Now;
+
                 UpdateUIForExchange(xc);
 
+                // At this point, we have sent the HTTP/200 Connected to the client, and we are ready
+                // to start TLS handshaking with the client using our generated interception certificate.
+
                 var clientTls = new SslStream(clientStream, false);
-                clientTls.AuthenticateAsServer(leaf, false, CONFIG.oAcceptedClientProtocols, false);
+                clientTls.AuthenticateAsServer(certServer, false, CONFIG.oAcceptedClientProtocols, false);
                 clientPipe.SetStream(clientTls);
                 {
                     var clientReader = clientPipe.Reader;
@@ -1074,38 +1354,54 @@ namespace Clearinet.CaptureEngine
                         var tunneledRequest = await clientReader.ReadRequestAsync(token).ConfigureAwait(false);
                         if (tunneledRequest.requestHeaders == null) break;
 
+                        // TODO: If there's any conflicting information in the request headers,
+                        // we should consider how to respond to that here. 
                         tunneledRequest.requestHeaders.UriScheme = "https";
-                        //if (!tunneledRequest.requestHeaders.Exists("Host"))
-                        //    tunneledRequest.requestHeaders["Host"] = port == 443 ? host : host + ":" + port;
 
                         var innerContext = new CaptureConnectionContext(client.Client) { LocalProcessDescriptor = processIdentity };
-                        Exchange inner = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
-                        inner.SetBitFlag(ExchangeFlags.IsHTTPS);
-                        inner.state = ExchangeState.AutoTamperRequestBefore;
+                        Exchange xcTunneled = BuildExchange(tunneledRequest.requestHeaders, tunneledRequest.requestBody, innerContext);
+                        xcTunneled.SetBitFlag(ExchangeFlags.IsHTTPS);
 
-                        HTTPRequestHeaders upstreamRequest = inner.RequestHeaders.Clone();
+                        // Propagate the client info.
+                        xcTunneled.RecordClientEndpoint(xc._ipepClient);
 
-                        PrepareRequestForServer(upstreamRequest, inner.RequestBody ?? Array.Empty<byte>());
-                        await WriteHttpRequestAsync(upstreamPipe.Stream, upstreamRequest,
-                            inner.RequestBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+                        await RunBuiltInRulesBeforeRequest(xcTunneled, clientPipe.Stream, token).ConfigureAwait(false);
 
-                        var upstreamResponse = await upstreamPipe.Reader.ReadResponseAsync(upstreamRequest.HTTPMethod, token).ConfigureAwait(false);
+                        xcTunneled.state = ExchangeState.AutoTamperRequestBefore;
+
+                        HTTPRequestHeaders headersToSend = xcTunneled.RequestHeaders.Clone();
+
+                        PrepareRequestForServer(headersToSend, xcTunneled.RequestBody ?? Array.Empty<byte>());
+                        await WriteHttpRequestAsync(upstreamPipe.Stream, headersToSend,
+                            xcTunneled.RequestBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+
+                        var upstreamResponse = await upstreamPipe.Reader.ReadResponseAsync(headersToSend.HTTPMethod, token).ConfigureAwait(false);
                         if (upstreamResponse.responseHeaders == null) break;
 
-                        inner.ResponseHeaders = upstreamResponse.responseHeaders;
-                        inner.ResponseBody = upstreamResponse.responseBody;
-                        inner.state = ExchangeState.AutoTamperResponseBefore;
-                        //if (!upstreamResponse.pipeIsReusable && !inner.ResponseHeaders.Exists("Connection"))
-                        //    inner.ResponseHeaders["Connection"] = "close";
-                        //NormalizeResponseLength(inner.RequestHeaders, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>());
-                        await WriteHttpResponseAsync(clientTls, inner.ResponseHeaders, inner.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+                        xcTunneled.ResponseHeaders = upstreamResponse.responseHeaders;
+                        xcTunneled.ResponseBody = upstreamResponse.responseBody;
 
-                        inner.Timers.ClientDoneResponse = DateTime.Now;
-                        inner.state = ExchangeState.Done;
-                        UpdateUIForExchange(inner);
+                        await RunBuiltInRulesBeforeResponse(xcTunneled, token).ConfigureAwait(false);
+
+                        xcTunneled.state = ExchangeState.AutoTamperResponseBefore;
+                        await WriteHttpResponseAsync(clientTls, xcTunneled.ResponseHeaders, xcTunneled.ResponseBody ?? Array.Empty<byte>(), token).ConfigureAwait(false);
+
+                        xcTunneled.Timers.ClientDoneResponse = DateTime.Now;
+                        xcTunneled.state = ExchangeState.Done;
+                        UpdateUIForExchange(xcTunneled);
+
+                        // Check for a WebSocket upgrade. If we see one, we need to relay the connection until the client or server closes it.
+                        if (xcTunneled.ResponseHeaders.StatusCode == 101)
+                        {
+                            keepAliveAllowed = false;
+                            if (HasHeaderWithToken(xcTunneled.ResponseHeaders, "Upgrade", "websocket"))
+                                xcTunneled.SetBitFlag(ExchangeFlags.IsWebSocketTunnel);
+                            await RelayUpgradedConnectionAsync(clientPipe, upstreamPipe, token).ConfigureAwait(false);
+                            break;
+                        }
                         keepAliveAllowed = upstreamResponse.pipeIsReusable &&
-                            ShouldKeepAlive(upstreamRequest, inner.ResponseHeaders) && upstreamPipe.IsConnected;
-                        if (!keepAliveAllowed || !ShouldKeepAlive(inner.RequestHeaders, inner.ResponseHeaders)) break;
+                            ShouldKeepAlive(headersToSend, xcTunneled.ResponseHeaders) && upstreamPipe.IsConnected;
+                        if (!keepAliveAllowed || !ShouldKeepAlive(xcTunneled.RequestHeaders, xcTunneled.ResponseHeaders)) break;
                     }
                 }
 
@@ -1117,11 +1413,12 @@ namespace Clearinet.CaptureEngine
                 {
                     if (returnUpstreamPipe)
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Returning server pipe for {xc.id} to pool: {host}:{port}");
                         _socketPool.Return(upstreamKey, upstreamPipe, DateTime.UtcNow);
-                        xc["x-serverpool-returned"] = "true";
                     }
                     else
                     {
+                        if (CApp.isTracing) Trace.WriteLine($"Disposing server pipe for {xc.id}: {host}:{port}");
                         upstreamPipe.Dispose();
                     }
                 }
@@ -1132,17 +1429,23 @@ namespace Clearinet.CaptureEngine
             UpdateUIForExchange(xc);
         }
 
-        private bool callbackValidateServerCertificate(string targetHost, object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private bool callbackValidateServerCertificate(Exchange xc, string targetHost, object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             // https://github.com/microsoft/referencesource/blob/main/System/net/System/Net/SecureProtocols/_SslState.cs
-
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
-            if (CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors"))
+
+            if (xc.oFlags.ContainsKey("X-IgnoreCertCNMismatch") && SslPolicyErrors.RemoteCertificateNameMismatch == sslPolicyErrors)
             {
-                CApp.Log.Log($"! Ignoring SSL validation error for connection to {targetHost}: {sslPolicyErrors}");
+                CApp.Log.Log($"! Ignoring TLS Certificate CN error for {xc.id}'s connection to {targetHost}: {sslPolicyErrors}");
                 return true;
             }
-            CApp.Log.Log($"Blocking connection to {targetHost} due to SSL validation error: {sslPolicyErrors}");
+
+            if (xc.oFlags.ContainsKey("X-IgnoreCertErrors") || CApp.Prefs.GetBoolPref("proxy.unsafe.ignore_cert_errors"))
+            {
+                CApp.Log.Log($"! Ignoring TLS validation error for {xc.id}'s connection to {targetHost}: {sslPolicyErrors}");
+                return true;
+            }
+            CApp.Log.Log($"Blocking Exchange {xc.id}'s connection to {targetHost} due to TLS validation error: {sslPolicyErrors}");
             return false;
         }
 
@@ -1152,7 +1455,7 @@ namespace Clearinet.CaptureEngine
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (clientStream == null) throw new ArgumentNullException(nameof(clientStream));
 
-            if (!TryGetConnectTarget(xc, out string host, out int port))
+            if (!TryComputeCONNECTDestination(xc, out string host, out int port))
             {
                 xc.ResponseHeaders = new HTTPResponseHeaders(400, "Invalid CONNECT Target", new[]
                 {
@@ -1179,12 +1482,18 @@ namespace Clearinet.CaptureEngine
                     "Connection: keep-alive"
                 });
 
+                // If we're not decrypting due to a flag, note that here.
+                if (xc.oFlags.ContainsKey("x-no-decrypt"))
+                {
+                    xc.ResponseHeaders.Add("X-Clearinet-Info",
+                        $"Tunnel not decrypted because Exchange.oFlags[\"x-no-decrypt\"]= \"{xc.oFlags["x-no-decrypt"]}\".");
+                }
+
                 xc.Timers.ClientBeginResponse = DateTime.Now;
                 await clientStream.WriteAsync(xc.ResponseHeaders.ToByteArray(), 0, xc.ResponseHeaders.ToByteArray().Length, token).ConfigureAwait(false);
                 await clientStream.FlushAsync(token).ConfigureAwait(false);
 
                 // TODO: Set the State properly.
-
                 UpdateUIForExchange(xc);
 
                 using (NetworkStream upstreamStream = upstream.GetStream())
@@ -1214,7 +1523,9 @@ namespace Clearinet.CaptureEngine
                                 if (!clientHelloParsed && clientToServerSniffLength >= TunnelSniffInitialParseThresholdBytes &&
                                     TryBuildTlsClientHelloSummary(clientToServerSniff, clientToServerSniffLength, out string summaryOfHandshake, out string sniffedSNI))
                                 {
-                                    xc.RequestBody = Encoding.UTF8.GetBytes(summaryOfHandshake);
+                                    xc.RequestBody = Encoding.UTF8.GetBytes("This is a CONNECT tunnel, through which unprocessed network traffic flows.\r\n"
+                                        + (xc.oFlags.ContainsKey("x-no-decrypt") ? $"\r\nThis tunnel was not decrypted because Exchange.oFlags[\"x-no-decrypt\"]= \"{xc.oFlags["x-no-decrypt"]}\".\r\n\r\n" : string.Empty)
+                                        + summaryOfHandshake);
                                     if (sniffedSNI.HasText()) xc["HTTPS-Client-SNIHostname"] = sniffedSNI;
                                     clientHelloParsed = true;
                                 }
@@ -1295,6 +1606,7 @@ namespace Clearinet.CaptureEngine
 
         private static async Task WriteHttpRequestAsync(Stream stream, HTTPRequestHeaders headers, byte[] body, CancellationToken token)
         {
+            if (CApp.isTracing) Trace.WriteLine("Sending request to server:\r\n" + headers.ToString() + "\r\n\r\n" + (body != null ? Utilities.ByteArrayToHexView(body, 0, 16, 1024, true) : string.Empty));
             byte[] headerBytes = headers.ToByteArray(false);
             // TODO: Set the correct timer.
             await stream.WriteAsync(headerBytes, 0, headerBytes.Length, token).ConfigureAwait(false);
@@ -1458,6 +1770,7 @@ namespace Clearinet.CaptureEngine
                         null).ConfigureAwait(false);
                     oSW.Stop();
                     xc.Timers.TCPConnectTime = (int)oSW.ElapsedMilliseconds;
+                    xc["x-hostIP"] = addresses[i].ToString();
                     return socket;
                 }
                 catch (Exception eX)
@@ -1470,48 +1783,44 @@ namespace Clearinet.CaptureEngine
             throw new SocketException((int)SocketError.HostUnreachable);
         }
 
-        private static bool TryGetConnectTarget(Exchange exchange, out string host, out int port)
+        internal static async Task RelayUpgradedConnectionAsync(ClientPipe clientPipe, ServerPipe serverPipe, CancellationToken token)
         {
-            host = null;
-            port = 443;
-
-            string target = exchange?.RequestHeaders?.RequestPath ?? string.Empty;
-            if (!target.HasText())
+            Stream clientStream = clientPipe.Reader.DetachUnreadStream();
+            Stream serverStream = serverPipe.Reader.DetachUnreadStream();
+            using (var relayCts = CancellationTokenSource.CreateLinkedTokenSource(token))
+            using (relayCts.Token.Register(() =>
             {
-                target = exchange?.RequestHeaders?["Host"] ?? string.Empty;
-            }
-
-            target = target.Trim();
-            if (!target.HasText()) return false;
-
-            if (target.StartsWith("[", StringComparison.Ordinal))
+                try { clientPipe.Dispose(); } finally { serverPipe.Dispose(); }
+            }))
             {
-                int end = target.IndexOf(']');
-                if (end <= 1) return false;
-
-                host = target.Substring(1, end - 1);
-                if (end + 1 < target.Length)
+                Task fromClient = CopyUpgradedStreamAsync(clientStream, serverStream, relayCts.Token);
+                Task fromServer = CopyUpgradedStreamAsync(serverStream, clientStream, relayCts.Token);
+                try
                 {
-                    if (target[end + 1] != ':') return false;
-                    if (!int.TryParse(target.Substring(end + 2), NumberStyles.Integer, CultureInfo.InvariantCulture, out port)) return false;
+                    await Task.WhenAny(fromClient, fromServer).ConfigureAwait(false);
                 }
-                return true;
+                finally
+                {
+                    // Framework stream reads may ignore cancellation until their sockets are closed.
+                    relayCts.Cancel();
+                    await Task.WhenAll(fromClient, fromServer).ConfigureAwait(false);
+                }
             }
+        }
 
-            int ixColon = target.LastIndexOf(':');
-            if (ixColon < 0)
+        private static async Task CopyUpgradedStreamAsync(Stream source, Stream destination, CancellationToken token)
+        {
+            try
             {
-                host = target;
-                return true;
+                await source.CopyToAsync(destination, 8192, token).ConfigureAwait(false);
             }
-
-            host = target.Substring(0, ixColon);
-            if (!int.TryParse(target.Substring(ixColon + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out port))
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+            catch (ObjectDisposedException) when (token.IsCancellationRequested) { }
+            catch (IOException eX)
             {
-                return false;
+                if (!token.IsCancellationRequested)
+                    CApp.Log.Log($"! Upgraded tunnel relay failed: {eX.Message}");
             }
-
-            return host.HasText();
         }
 
         private static async Task<long> PumpStreamAsync(Stream source, Stream destination, CancellationToken token, Action<byte[], int, long> onBytesPumped = null)
@@ -1657,8 +1966,9 @@ namespace Clearinet.CaptureEngine
             // /ECHO to echo back the request body as the response body with no modifications?
             // Each of these has interesting security implications.
 
-            sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />Originating Process: {xc.LocalProcess}<br />");
-
+            sbResponse.AppendLine($"Clearinet Version: {CApp.VersionString}<br />");
+            sbResponse.AppendLine($"Source Address: <code>{xc.clientIP}:{xc.clientPort}</code><br />");
+            sbResponse.AppendLine($"Originating Process: <code>{xc.LocalProcess}</code><br />");
             sbResponse.AppendLine("<hr /><ul><li>To configure Clearinet as a reverse proxy (instead of this service), see " +
                 $"<a href='{CONFIG.GetURL("HelpReverseProxy")}'>Reverse Proxy</a>");
             sbResponse.AppendLine("<li>You can also download the <a href='ClearinetRoot.cer'>Clearinet Root Certificate</a>");
@@ -1667,12 +1977,12 @@ namespace Clearinet.CaptureEngine
             sbResponse.AppendLine("</body></html>");
 
             xc.ResponseBody = Encoding.UTF8.GetBytes(sbResponse.ToString());
-            string sBody = sbResponse.ToString();
 
             xc.ResponseHeaders = new HTTPResponseHeaders(iStatusCode, "Generated", new[]
             {
                 "Connection: close",
                 "Content-Type: text/html; charset=utf-8",
+                "Cache-Control: no-cache, no-store, must-revalidate",
                 $"Content-Length: {xc.ResponseBody.Length}"
             });
 
@@ -1690,6 +2000,7 @@ namespace Clearinet.CaptureEngine
             xc.state = ExchangeState.Done;
         }
 
+        // TODO: Expose this!
         private static void AbortWithRst(TcpClient client)
         {
             if (client == null) return;

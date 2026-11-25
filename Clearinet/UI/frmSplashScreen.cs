@@ -10,12 +10,25 @@ namespace Clearinet
     {
         private static frmSplashScreen _Instance;
 
+        // Getting a Window Handle has to happen on the UI thread? Weird.
+        internal static IntPtr GetWindowHandleIfExists()
+        {
+            if (_Instance == null) return IntPtr.Zero;
+            if (_Instance.InvokeRequired)
+            {
+                return (IntPtr)_Instance.Invoke(
+                    new Func<IntPtr>(GetWindowHandleIfExists)
+                    );
+            }
+            return _Instance.Handle;
+        }
+
         internal frmSplashScreen()
         {
             InitializeComponent();
             Region = Region.FromHrgn(PlatformAPI.CreateRoundRectRgn(0, 0, Width, Height, 25, 25));
-            // TODO: Need to do something for DarkMode, as the white background is a /lot/.
-            this.Opacity = 0.90;
+            // TODO: Need to do something smarter for DarkMode, as the white background is a /lot/.
+            this.Opacity = CONFIG.isDarkMode ? 0.6 : 0.95;
         }
 
         protected override CreateParams CreateParams

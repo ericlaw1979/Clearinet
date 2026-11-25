@@ -20,6 +20,14 @@ namespace Clearinet
     /// </summary>
     public static class CONFIG
     {
+        public enum ProcessFilter
+        {
+            All = 0,
+            Browsers = 1,
+            NonBrowser = 2,
+            Remote = 3
+        }
+
         internal static readonly Color COLOR_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#F0FDF4"); // Slate:#F1F5F9 Greenish: #F0FDF4
         internal static readonly Color COLOR_DARK_DEFAULT_DISABLEDEDIT = ColorTranslator.FromHtml("#0A252C");
         internal static Color COLOR_DATA_RESPONSE = Color.DeepSkyBlue; // Color.OrangeRed; // ColorTranslator.FromHtml("#97F275");
@@ -213,13 +221,18 @@ namespace Clearinet
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/ExtensionGallery.md";
                 case "Help":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HELP.md";
+                case "HelpHostRemap":
+                    return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/HOSTREMAP.md";
                 case "HelpPrefs":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/PREFERENCES.md";
                 case "HelpReverseProxy":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/ReverseProxy.md";
                 case "HelpColumns":
                     return "https://github.com/ericlaw1979/Clearinet/blob/main/Docs/CustomColumns.md";
+                case "ReleaseNotes":
+                    return "https://github.com/ericlaw1979/Clearinet/releases";
             }
+            Debug.Assert(false, "Missing URL in CONFIG");
             Trace.WriteLine($"Failed to find URL `{sWhich}`.");
             return $"https://clearinet.app/?missing_GetURL_code={sWhich}";
         }
@@ -481,20 +494,24 @@ namespace Clearinet
         /// The Exchange coloring is mostly based on the response MIME type, although
         /// the request method is also used to remove less interesting exchanges.
         /// </summary>
-        /// <param name="exchange"></param>
+        /// <param name="xc"></param>
         /// <returns></returns>
-        public static Color GetExchangeColor(Exchange exchange)
+        public static Color GetExchangeColor(Exchange xc)
         {
-            if (exchange.HTTPMethodIs("CONNECT", "HEAD"))
+            if (xc.HTTPMethodIs("CONNECT", "HEAD") || 304 == xc.responseCode)
             {
-                return Color.Gray;
+                return Color.Gray;  // TODO: Configure this color via preferences.
+            }
+            if (xc.responseCode >= 500)
+            {
+                return Color.Red;
             }
 
-            string mediaType = exchange == null ? string.Empty : exchange.MediaType;
+            string mediaType = xc == null ? string.Empty : xc.MediaType;
 
-            if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            if (mediaType.StartsWith("image/"))
             {
-                return Color.DarkGray;
+                return Color.DarkGray;   // TODO: Configure this color via preferences, especially for DARK Mode.
             }
 
             if (mediaType.OICContains("javascript"))
@@ -502,7 +519,7 @@ namespace Clearinet
                 return Color.DarkGreen;
             }
 
-            if (string.Equals(mediaType, "text/css", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(mediaType, "text/css"))
             {
                 return Color.Purple;
             }

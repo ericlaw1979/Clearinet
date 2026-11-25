@@ -13,6 +13,22 @@ namespace Extensions
 
         public override string TabTitle => "Headers";
 
+        // Commit any changes made in the inspector to the provided Exchange object.
+        // BUG: TODO: This doesn't always fire, e.g. when the inspector is attached to bare headers
+        // rather than an Exchange object. But the user can simply unfocus the txtResponseLine box to trigger
+        // the validation event. 
+        public override bool CommitAnyChanges(Exchange oX)
+        {
+            if (true == hvViewer?.HasChanges)
+            {
+                // Ensure we trigger parsing of the headline to update the underlying headers.
+                txtRequestLine_Validating(null, null);
+                oX.RequestHeaders = headers;
+                return true;
+            }
+            return false;
+        }
+
         public override void AddToTab(TabPage tab)
         {
             hvViewer = new HeaderView(this);
@@ -24,7 +40,7 @@ namespace Extensions
 
         private void txtRequestLine_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (!hvViewer.bReadOnly && hvViewer.HasChanges && !CApp.isClosing)
+            if (!hvViewer.bReadOnly && hvViewer.txtFirstLine.Modified && !CApp.isClosing)
             {
                 try
                 {
@@ -100,6 +116,22 @@ namespace Extensions
         HeaderView hvViewer;
         public override string TabTitle => "Headers";
 
+        // Commit any changes made in the inspector to the provided Exchange object.
+        // BUG: TODO: This doesn't always fire, e.g. when the inspector is attached to bare headers
+        // rather than an Exchange object. But the user can simply unfocus the txtResponseLine box to trigger
+        // the validation event. 
+        public override bool CommitAnyChanges(Exchange oX)
+        {
+            if (true == hvViewer?.HasChanges)
+            {
+                // Ensure we trigger parsing of the headline to update the underlying headers.
+                txtResponseLine_Validating(null, null);
+                oX.ResponseHeaders = headers;
+                return true;
+            }
+            return false;
+        }
+
         public override void AddToTab(TabPage tab)
         {
             hvViewer = new HeaderView(this);
@@ -111,7 +143,7 @@ namespace Extensions
 
         private void txtResponseLine_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (!hvViewer.bReadOnly && hvViewer.HasChanges && !CApp.isClosing)
+            if (!hvViewer.bReadOnly && hvViewer.txtFirstLine.Modified && !CApp.isClosing)
             {
                 try
                 {
@@ -131,7 +163,6 @@ namespace Extensions
             }
         }
         public override void SetFontSize(float flSizeInPoints) => hvViewer?.SetFontSize(flSizeInPoints);
-
 
         public override int GetOrder()
         {

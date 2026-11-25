@@ -131,6 +131,52 @@ namespace CaptureEngine.Tests
             }
         }
 
+        [TestMethod]
+        public void SocketPool_Clear_DisposesIdlePipesAndRemainsUsable()
+        {
+            Socket listener = null;
+            Socket client = null;
+            Socket server = null;
+            Socket listener2 = null;
+            Socket client2 = null;
+            Socket server2 = null;
+            ServerPipe rented = null;
+            var pool = new SocketPool(TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+            try
+            {
+                CreateConnectedSockets(out listener, out client, out server);
+                var key = new ServerConnectionKey("localhost", ((IPEndPoint)listener.LocalEndPoint).Port, false);
+                var idle = new ServerPipe(client, new NetworkStream(client, false),
+                    ServerPipeBindingPolicy.Free, string.Empty, Guid.NewGuid());
+                client = null;
+                pool.Return(key, idle, DateTime.UtcNow);
+
+                pool.Clear();
+
+                Assert.IsFalse(idle.IsConnected);
+                Assert.IsFalse(pool.TryRent(key, string.Empty, Guid.NewGuid(), out _));
+
+                CreateConnectedSockets(out listener2, out client2, out server2);
+                var next = new ServerPipe(client2, new NetworkStream(client2, false),
+                    ServerPipeBindingPolicy.Free, string.Empty, Guid.NewGuid());
+                client2 = null;
+                pool.Return(key, next, DateTime.UtcNow);
+                Assert.IsTrue(pool.TryRent(key, string.Empty, Guid.NewGuid(), out rented));
+                Assert.AreSame(next, rented);
+            }
+            finally
+            {
+                pool.Dispose();
+                rented?.Dispose();
+                client?.Dispose();
+                server?.Dispose();
+                listener?.Dispose();
+                client2?.Dispose();
+                server2?.Dispose();
+                listener2?.Dispose();
+            }
+        }
+
         private static void AssertCanRent(ServerPipeBindingPolicy policy, string ownerProcess, Guid ownerClient,
             string requestProcess, Guid requestClient, bool expected)
         {

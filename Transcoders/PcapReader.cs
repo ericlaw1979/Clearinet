@@ -30,7 +30,7 @@ namespace TestExtensions
             this.progress = progress;
         }
 
-        internal void Read(Action<byte[], uint, DateTime, int, bool> packet)
+        internal void Read(Action<byte[], uint, DateTime, int, bool, int> packet)
         {
             progress(0, "Reading packet capture.");
             byte[] magic = ReadBytes(4, false);
@@ -65,15 +65,15 @@ namespace TestExtensions
             return input.CanSeek && input.Length > 0 ? (int)(consumed * 65 / input.Length) : 0;
         }
 
-        private void Emit(Action<byte[], uint, DateTime, int, bool> packet, byte[] data, uint link,
+        private void Emit(Action<byte[], uint, DateTime, int, bool, int> packet, byte[] data, uint link,
             DateTime time, int scope, bool truncated)
         {
             if (++packets > 1000000) throw new InvalidDataException("Capture packet count limit exceeded.");
             if (truncated) warn("Snap-length truncated packet");
-            packet(data, link, time, scope, truncated);
+            packet(data, link, time, scope, truncated, packets);
         }
 
-        private void ReadClassic(byte[] magic, Action<byte[], uint, DateTime, int, bool> packet)
+        private void ReadClassic(byte[] magic, Action<byte[], uint, DateTime, int, bool, int> packet)
         {
             uint m = U32(magic, 0, true);
             bool little = m == 0xa1b2c3d4 || m == 0xa1b23c4d;
@@ -97,7 +97,7 @@ namespace TestExtensions
             }
         }
 
-        private void ReadNg(byte[] first, Action<byte[], uint, DateTime, int, bool> packet)
+        private void ReadNg(byte[] first, Action<byte[], uint, DateTime, int, bool, int> packet)
         {
             bool little = true, haveSection = false;
             int nextScope = 0;

@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Windows.Forms" />
     <ProjectReference Include="..\Clearinet\Clearinet.csproj" />
+    <Compile Include="..\Extensions\PerformanceInspectors.cs" Link="PerformanceInspectors.cs" />
   </ItemGroup>
 </Project>

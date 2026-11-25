@@ -148,6 +148,7 @@ namespace Clearinet
 
         bool isValidName(string sName);
 
+        void AssignOrRemoveIfDefault(string sPrefName, Int32 iValue, Int32 iDefault);
         void AssignOrRemoveIfDefault(string sPrefName, bool bValue, bool bDefault);
         void AssignOrRemoveIfDefault(string sPrefName, string sValue, string sDefault);
     }
@@ -506,6 +507,18 @@ namespace Clearinet
             {
                 PrefChangeEventArgs oArgs = new PrefChangeEventArgs(sPrefName, null);
                 AsyncNotifyWatchers(oArgs);
+            }
+        }
+
+        public void AssignOrRemoveIfDefault(string sPrefName, Int32 iValue, Int32 iDefault)
+        {
+            if (iValue == iDefault)
+            {
+                RemovePref(sPrefName);
+            }
+            else
+            {
+                SetInt32Pref(sPrefName, iValue);
             }
         }
 

@@ -153,6 +153,20 @@ namespace Clearinet
             return true;
         }
 
+        public static bool WriteToClipboard(Image img)
+        {
+            try
+            {
+                Clipboard.SetImage(img);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to set clipboard image: {ex.Message}");
+                return false;
+            }
+            return true;
+        }
+
         public static bool RunningElevated()
         {
             using (WindowsIdentity identity = WindowsIdentity.GetCurrent())

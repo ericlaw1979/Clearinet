@@ -45,6 +45,21 @@ namespace TestExtensions
                 Check(items.Count == 1 && items[0].RequestBody.Length == 0, "Raw IP / VLAN Ethernet / 802.11");
                 if (ipv6) Check(items[0].ServerIP == "2001:db8::2", "IPv6 endpoint");
             }
+            foreach (uint link in new uint[] { 0, 108 })
+            foreach (bool ipv6 in new[] { false, true })
+            {
+                byte[][] pair = Pair(Request, Response, ipv6);
+                pair[0] = Loopback(pair[0], link == 0);
+                pair[1] = Loopback(pair[1], link == 0);
+                IList<PcapExchange> items = Decode(Classic(true, false, link, pair));
+                Check(items.Count == 1, "Null/loopback IPv4 and IPv6");
+                if (ipv6)            Check(items[0].ServerIP == "2001:db8::2", "Loopback IPv6 endpoint");
+            }
+            byte[][] bigEndianFamily = Pair(Request, Response);
+
+            bigEndianFamily[0] = Loopback(bigEndianFamily[0], false);
+            bigEndianFamily[1] = Loopback(bigEndianFamily[1], false);
+            Check(Decode(Classic(true, false, 0, bigEndianFamily)).Count == 1, "Big-endian DLT_NULL family");
             byte[] extension = Packet(true, 100, 0x18, Request, true);
             byte[] extended = new byte[extension.Length + 8];
             Buffer.BlockCopy(extension, 0, extended, 0, 40);
@@ -75,6 +90,11 @@ namespace TestExtensions
             Check(summary.Contains("no timestamp"), "Simple packet diagnostic");
             byte[] twoIfaces = Join(Section(true), Interface(true, 1, null), Interface(true, 101, null), Enhanced(true, Packet(true, 100, 24, Request), 1, 0), Enhanced(true, Packet(false, 200, 24, Response), 1, 1));
             Check(Decode(twoIfaces).Count == 1, "PCAPNG interface ID selection");
+            byte[][] loopbackPair = Pair(Request, Response);
+            loopbackPair[0] = Loopback(loopbackPair[0], true);
+            loopbackPair[1] = Loopback(loopbackPair[1], true);
+            byte[] loopbackNg = Join(Section(true), Interface(true, 0, null), Enhanced(true, loopbackPair[0], 0, 10123456), Enhanced(true, loopbackPair[1], 0, 11123456));
+            Check(Decode(loopbackNg).Count == 1, "PCAPNG DLT_NULL interface");
             byte[] truncated = Classic(true, false, 101, Pair(Request, Response));
             Put32(truncated, 36, (uint)(Packet(true, 100, 24, Request).Length + 10), true);
             Check(Decode(truncated).Count == 1 && summary.Contains("Snap-length"), "Original/captured length truncation diagnosed");
@@ -92,6 +112,18 @@ namespace TestExtensions
             };
             IList<PcapExchange> items = Decode(Classic(true, false, 101, ordered));
             Check(items.Count == 1 && Text(items[0].ResponseBody) == "abc", "Out-of-order and identical overlapping retransmission");
+            Check(String.Join(",", items[0].PacketIds) == "4,5,6", "Packet list follows the segments that contribute reassembled bytes");
+            items = Decode(Classic(true, false, 101, Packet(true, 100, 24, Request), Packet(true, 100, 24, Request), Packet(false, 200, 24, Response)));
+            Check(String.Join(",", items[0].PacketIds) == "1,3", "Fully redundant retransmission omitted from packet list");
+            byte[] longRequest = Text("POST / HTTP/1.1\r\nHost: example.test:8080\r\nContent-Length: 60\r\n\r\n" + new string('a', 60));
+            List<byte[]> packetList = new List<byte[]>();
+            for (int i = 0; i < longRequest.Length; i++)
+                packetList.Add(Packet(true, (uint)(100 + i), 24, new[] { longRequest[i] }));
+            packetList.Add(Packet(false, 200, 24, Response));
+            items = Decode(Classic(true, false, 101, packetList.ToArray()));
+            Check(items.Count == 1 && items[0].PacketIds.Length == 50, "Packet list is capped at 50 IDs");
+            for (int i = 0; i < items[0].PacketIds.Length; i++)
+                Check(items[0].PacketIds[i] == i + 1, "Packet list retains first capture IDs in order");
             byte[] conflict = (byte[])Request.Clone(); conflict[5] ^= 1;
             Check(Decode(Classic(true, false, 101, Packet(true, 100, 24, Request), Packet(true, 100, 24, conflict), Packet(false, 200, 24, Response))).Count == 0 && summary.Contains("Conflicting TCP"), "Conflicting overlap skips connection");
             byte[] header = Text("HTTP/1.1 200 OK\r\nContent-Length: 6\r\n\r\n");
@@ -230,6 +262,20 @@ namespace TestExtensions
             Check(items[0].Timers.ClientBeginRequest == Epoch.AddSeconds(10).AddTicks(1234560), "Imported request timing");
             Check(items[0].isFlagSet(ExchangeFlags.ImportedFromOtherTool) && items[0].responseCode == 200, "Imported flags/status");
             Check(progress[0] == 0 && progress[progress.Count - 1] == 100, "Fractional progress API reaches 100 percent");
+            Check(items[0]["X-PacketList"] == "1,2", "Imported packet list contains request and response packet IDs");
+            byte[] connectRequest = Text("CONNECT prod.example.test:443 HTTP/1.1\r\nHost: prod.example.test:443\r\n\r\n");
+            byte[] connectResponse = Text("HTTP/1.1 200 Connection Established\r\n\r\n");
+            byte[][] connectPair = Pair(connectRequest, connectResponse);
+            SetTcpPort(connectPair[0], false, 8888);
+            SetTcpPort(connectPair[1], true, 8888);
+            items = importer.ImportExchanges("Packet Capture", new Dictionary<string, object> { { "Content", Classic(true, false, 101, connectPair) } }, null);
+            Check(items.Length == 1 && items[0].port == 443 && items[0].host == "prod.example.test:443", "CONNECT target port preserved instead of proxy port");
+            Check(items[0]["x-pcap-serverport"] == "8888", "CONNECT proxy port retained as capture metadata");
+            byte[][] loopbackPair = Pair(Request, Response);
+            loopbackPair[0] = Loopback(loopbackPair[0], true);
+            loopbackPair[1] = Loopback(loopbackPair[1], true);
+            items = importer.ImportExchanges("Packet Capture", new Dictionary<string, object> { { "Content", Classic(true, false, 0, loopbackPair) } }, null);
+            Check(items.Length == 1 && items[0].clientIP == "10.0.0.1", "Actual importer handles DLT_NULL");
             File.WriteAllBytes(filename, capture);
             Check(importer.ImportExchanges("Packet Capture", new Dictionary<string, object> { { "Filename", filename } }, null).Length == 1, "Filename import");
             items = importer.ImportExchanges("Packet Capture", new Dictionary<string, object> { { "Content", Classic(true, false, 101, Packet(true, 100, 24, Request)) } }, null);
@@ -292,6 +338,19 @@ namespace TestExtensions
             Put16(packet, header, client ? 12345u : 8080u, false); Put16(packet, header + 2, client ? 8080u : 12345u, false);
             Put32(packet, header + 4, seq, false); packet[header + 12] = 0x50; packet[header + 13] = flags;
             Buffer.BlockCopy(payload, 0, packet, header + 20, payload.Length);
+            return packet;
+        }
+        private static void SetTcpPort(byte[] packet, bool source, uint port)
+        {
+            int ipHeader = packet[0] >> 4 == 6 ? 40 : (packet[0] & 15) * 4;
+            Put16(packet, ipHeader + (source ? 0 : 2), port, false);
+        }
+        private static byte[] Loopback(byte[] ip, bool familyLittle)
+        {
+            uint family = ip[0] >> 4 == 6 ? 24u : 2u;
+            byte[] packet = new byte[ip.Length + 4];
+            Put32(packet, 0, family, familyLittle);
+            Buffer.BlockCopy(ip, 0, packet, 4, ip.Length);
             return packet;
         }
         private static byte[] Ethernet(byte[] ip, bool vlan)

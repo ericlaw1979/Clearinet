@@ -1,9 +1,11 @@
 # Running the regression tests
 
-The regression tests live in `Test`. They are standalone PowerShell scripts,
+The standalone regression tests live in `Test`. They are PowerShell scripts,
 not Test Explorer projects: run the scripts rather than `dotnet test`. The
 `.Tests.cs` files are compiled by their matching `.Tests.ps1` wrappers; do not
-run them separately.
+run them separately. The `CaptureEngine.Tests` project contains separate MSTest
+tests, including performance inspector tests that compile the corresponding
+Extensions source as a linked file rather than referencing the Extensions project.
 
 All commands below assume the repository root is the current directory.
 
@@ -38,6 +40,12 @@ Building the solution builds Clearinet, Extensions, and Transcoders. The
 extension/transcoder post-build steps also copy outputs into
 `Documents\Clearinet\Extensions` and `Documents\Clearinet\ImportExport`.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for individual-project build details.
+
+Clearinet and Extensions use classic .NET Framework resource generation, which
+requires Visual Studio or .NET Framework MSBuild rather than `dotnet build`.
+After a successful build, run the MSTest project in Test Explorer or use
+`dotnet test .\CaptureEngine.Tests\CaptureEngine.Tests.csproj --no-build -c Release`.
+Rebuild before testing changes to avoid running stale binaries.
 
 ## Run one test
 
@@ -105,7 +113,7 @@ listed build directory with the single-test command above.
 | `ScriptColumnReload` | `Clearinet\bin\Release` | JScript.NET-bound columns across reloads, unique names, values, removal, sort indices, unrelated column preservation. Uses a temporary script. |
 | `DataInspector` | `Extensions\bin\Release` | JSON/XML/BSON trees, malformed data, search/expand/collapse, query strings, form bodies, compression/chunk decoding and state clearing. |
 | `DataViewContextMenu` | `Extensions\bin\Release` | Copy, Copy Subtree, Ctrl+C, right-click targeting, disabled actions, Textransformer handoff and menu disposal. Uses clipboard and shows tool windows. |
-| `ImageInspector` | `Extensions\bin\Release` | Image metadata and exact accounting/preview limits, PNG/JPEG/GIF/WebP/TIFF, EXIF/XMP, malformed inputs, decoding and inspector integration. This is not a dedicated fullscreen-viewer test. |
+| `ImageInspector` | `Extensions\bin\Release` | Image metadata and exact accounting/preview limits, PNG/JPEG/GIF/WebP/TIFF, EXIF/XMP, malformed inputs, decoding, registry tool menu filtering/refresh, external process capture/import/failures and cleanup. Temporarily adds uniquely named HKCU tool registrations and runs a generated local fixture executable. This is not a dedicated fullscreen-viewer test. |
 | `WebViewPreview` | `Extensions\bin\Release` | Passive document generation and inspector state by default; browser lifecycle/restrictions and unavailable fallbacks in the modes below. |
 | `HarImport` | `Transcoders\bin\Release` | HAR/JSON parsing, conversion and large-import progress callbacks. Wrapper compiles `HarImport.Tests.cs`. |
 | `NetLogImport` | `Transcoders\bin\Release` | Generated NetLog JSON/JSONL, gzip and ZIP fixtures, errors and import behavior. Wrapper compiles `NetLogImport.Tests.cs`; optional `-SamplePath` is described below. |

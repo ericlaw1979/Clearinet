@@ -116,7 +116,9 @@ the server.
 Pools are keyed by destination hostname, port, and whether the upstream
 connection uses TLS. The idle and maximum-age defaults are both five minutes and
 are configurable with `proxy.socketpool.idle_ms` and
-`proxy.socketpool.max_age_ms`.
+`proxy.socketpool.max_age_ms`. Pressing Ctrl+X in the Web Exchanges list clears
+its entries and closes idle server connections in the pool. Connections currently
+in use are not interrupted and may be pooled when their exchanges finish.
 
 ### TLS Decryption
 TLS decryption is provided by a "man-in-the-middle" approach where Clearinet
@@ -179,12 +181,12 @@ transport remains available for compatibility and diagnostics through the
 ephemeral `proxy.ephemeral.use_httpclientbridge_transport` preference, but is
 not selected by default by the Exchange state machine.
 
-In a future implementation, Clearinet will detect when a client is attempting
-to construct a connection to be used for WebSocket traffic and will handle
-these connections by processing the WebSocket messages and exposing them
-to the user via UI and extensions via APIs. For now, Clearinet will simply
-proxy the bytes on a WebSocket connection blindly from client to server without
-attempting to interpret them.
+After an HTTP 101 Switching Protocols response, Clearinet relays upgraded
+traffic blindly in both directions, including WebSocket upgrades inside decrypted
+CONNECT tunnels. Bytes buffered after the HTTP handshake are preserved. When
+either side closes or capture is cancelled, both connections are closed; neither
+pipe is returned to a reuse pool. WebSocket messages are not yet parsed or exposed
+through the UI or extension APIs.
 
 ## Sample Exchange Flow
 

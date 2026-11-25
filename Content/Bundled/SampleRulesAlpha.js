@@ -233,7 +233,6 @@ class Handlers
         var sAction = sArgs[0].toLowerCase();
         switch (sAction) {
             case "clear":
-            case "cls":
                 CApp.UI.actRemoveAllExchanges();
             return true;
 

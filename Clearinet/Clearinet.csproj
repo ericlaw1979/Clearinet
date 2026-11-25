@@ -1,88 +1,43 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{38557FAE-6DAD-4B56-878E-EADDC455D47B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
+    <TargetFramework>net481</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>Clearinet</RootNamespace>
     <AssemblyName>Clearinet</AssemblyName>
-    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <PreferNativeArm64>true</PreferNativeArm64>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-    <PreferNativeArm64>true</PreferNativeArm64>
-  </PropertyGroup>
-  <PropertyGroup>
     <ApplicationIcon>app.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <DebugType Condition="'$(Configuration)' == 'Debug'">full</DebugType>
+    <DebugType Condition="'$(Configuration)' == 'Release'">pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BrotliSharpLib, Version=0.3.2.0, Culture=neutral, PublicKeyToken=3f4e2a1cd615fcb7, processorArchitecture=MSIL">
-      <HintPath>packages\BrotliSharpLib.0.3.3\lib\net451\BrotliSharpLib.dll</HintPath>
-    </Reference>
-    <Reference Include="CBOR, Version=4.5.5.0, Culture=neutral, PublicKeyToken=9cd62db60ea5554c, processorArchitecture=MSIL">
-      <HintPath>packages\PeterO.Cbor.4.5.5\lib\net40\CBOR.dll</HintPath>
-    </Reference>
-    <Reference Include="Ionic.Zip.Reduced, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
-      <HintPath>packages\DotNetZip.Reduced.1.9.1.8\lib\net20\Ionic.Zip.Reduced.dll</HintPath>
-    </Reference>
+    <PackageReference Include="BrotliSharpLib" Version="0.3.3" />
+    <PackageReference Include="DotNetZip.Reduced" Version="1.9.1.8" />
+    <PackageReference Include="PeterO.Cbor" Version="4.5.5" />
+    <PackageReference Include="PeterO.Numbers" Version="1.8.2" />
+    <PackageReference Include="PeterO.URIUtility" Version="1.0.0" />
+    <PackageReference Include="System.Buffers" Version="4.6.1" />
+    <PackageReference Include="System.Memory" Version="4.6.3" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.8" />
     <Reference Include="Microsoft.JScript" />
-    <Reference Include="Numbers, Version=1.8.2.0, Culture=neutral, PublicKeyToken=9cd62db60ea5554c, processorArchitecture=MSIL">
-      <HintPath>packages\PeterO.Numbers.1.8.2\lib\net40\Numbers.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core" />
-    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
-    </Reference>
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
-    </Reference>
     <Reference Include="System.Web" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="URIUtility, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9cd62db60ea5554c, processorArchitecture=MSIL">
       <HintPath>packages\PeterO.URIUtility.1.0.0\lib\net40\URIUtility.dll</HintPath>
@@ -274,28 +229,16 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="app.ico" />
-    <Content Include="..\Content\Bundled\CallExecAction.ps1">
-      <Link>Tools\CallExecAction.ps1</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Content\Bundled\dwebp.exe">
-      <Link>Tools\dwebp.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Content\Bundled\SampleRulesAlpha.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <None Include="Resources\FindIcon.png" />
-    <None Include="Resources\PromptQuery.png" />
+    <Content Include="..\Content\Bundled\CallExecAction.ps1" Link="Tools\CallExecAction.ps1" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Content\Bundled\dwebp.exe" Link="Tools\dwebp.exe" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Content\Bundled\SampleRulesAlpha.js" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-  <!-- Auto-generate build date attribute before compilation -->
   <Target Name="GenerateAssemblyBuiltDate" BeforeTargets="CoreCompile">
     <PropertyGroup>
       <GeneratedText>
-				using System%3B
-				[assembly: Clearinet.AssemblyBuiltDate("$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))")]
-			</GeneratedText>
+        using System%3B
+        [assembly: Clearinet.AssemblyBuiltDate("$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))")]
+      </GeneratedText>
       <GeneratedFilePath>$(IntermediateOutputPath)GeneratedAssemblyBuiltDate.g.cs</GeneratedFilePath>
     </PropertyGroup>
     <WriteLinesToFile File="$(GeneratedFilePath)" Lines="$(GeneratedText)" Overwrite="true" />
@@ -303,5 +246,4 @@
       <Compile Include="$(GeneratedFilePath)" />
     </ItemGroup>
   </Target>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

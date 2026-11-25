@@ -105,7 +105,7 @@ namespace Clearinet.CaptureEngine
             }
         }
 
-        public void Dispose()
+        public void Clear()
         {
             lock (_syncRoot)
             {
@@ -113,6 +113,11 @@ namespace Clearinet.CaptureEngine
                     while (stack.Count > 0) stack.Pop().Pipe.Dispose();
                 _pool.Clear();
             }
+        }
+
+        public void Dispose()
+        {
+            Clear();
         }
 
         private bool IsUsable(PooledPipe pooledPipe, DateTime nowUtc)

@@ -794,16 +794,18 @@ namespace Clearinet
             splitterMain.SplitPosition = CApp.Prefs.GetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
             // Trace.WriteLine($"[Clearinet] Initialized UI from prefs: splitterMain.SplitPosition={splitterMain.SplitPosition}, splitRequestResponse.SplitPosition={splitRequestResponse.SplitPosition}");
 
+            // Set current state of RULES menu items. 
+            // ISSUE: Do we need this? We could do it in the DROPDOWN opening event?
             miRulesRequireAuth.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
             miRulesAutoDecode.Checked = tsbDecompress.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress");
             miRulesHideCONNECTs.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects");
             miRulesHideImages.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_images");
+            miRulesHosts.Checked = CApp.Prefs.GetBoolPref("app.host_remapping.enabled", false);
 
             miHelpTroubleshootFilters.Checked = CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true);
 
             txtQuickExec.BackColor = CONFIG.GetColor("app.ui.colors.quickexec", txtQuickExec.BackColor);
             txtQuickExec.ForeColor = CONFIG.GetColor("app.ui.colors.quickexectext", txtQuickExec.ForeColor);
-
 
             CApp.Prefs.AddWatcher("app.ui.", OnPrefChange);
 
@@ -888,6 +890,16 @@ namespace Clearinet
             miHelp.DropDownItems.Insert(3, miHelpTroubleshootFilters);
             miHelpTroubleshootFilters.CheckOnClick = true;
             miHelpTroubleshootFilters.CheckedChanged += miHelpTroubleshootFilters_CheckedChanged;
+
+            miRules.DropDownOpening += (s1, e1) =>
+            {
+                miRulesRequireAuth.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.ephemeral.require_proxy_auth");
+                miRulesAutoDecode.Checked = tsbDecompress.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.autodecompress");
+                miRulesHideCONNECTs.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_connects");
+                miRulesHideImages.Checked = CApp.Prefs.GetBoolPref("app.ui.rules.hide_images");
+                miRulesHosts.Checked = CApp.Prefs.GetBoolPref("app.host_remapping.enabled", false);
+
+            };
 
             // =========================== /End Move TODOs ===========================
             txtQuickExec.LoadHistory();
@@ -1177,9 +1189,16 @@ namespace Clearinet
                     }
                 }
 
+                if (!CApp.NotifyBeforeSaveSAZ(sFilename, arrExchanges))
+                {
+                    return false;
+                }
+
                 using (LongRunningOperation lro = new LongRunningOperation($"Saving {arrExchanges.Length:N0} Exchanges...", true))
                 {
                     Stopwatch oSW = Stopwatch.StartNew();
+                    CApp.UI.SetStatusText($"{(sPassword.HasText() ? "Encrypting" : "Saving")} {arrExchanges.Length:N0} Exchanges...");
+
                     SAZFile.SaveTo(sFilename, arrExchanges, sPassword, lro: lro);
                     oSW.Stop();
                     CApp.UI.mruRecents.PushFile(sFilename);
@@ -1193,6 +1212,10 @@ namespace Clearinet
 
         private void lvExchanges_DragEnter(object sender, DragEventArgs e)
         {
+            if (lvExchanges.IsDraggingExchanges)
+            {
+                e.Effect = DragDropEffects.None; return;
+            }
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 e.Effect = DragDropEffects.Link | DragDropEffects.Copy; return;
@@ -1203,6 +1226,7 @@ namespace Clearinet
 
         private void lvExchanges_DragDrop(object sender, DragEventArgs e)
         {
+            if (lvExchanges.IsDraggingExchanges) return;
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] arrFiles = (string[])e.Data.GetData("FileDrop", false);
@@ -1260,12 +1284,12 @@ namespace Clearinet
                 this.Invoke((MethodInvoker)actInspectExchange);
                 return;
             }
-            Exchange exch = GetFirstSelectedExchange();
-            if (null == exch) return;
+            Exchange xc = GetFirstSelectedExchange();
+            if (null == xc) return;
 
-            /* todo: Call anyone syncing the DoBeforeInspect event.*/
-            SelectBestInspector(tabsRequest, exch);
-            SelectBestInspector(tabsResponse, exch);
+            if (!CApp.NotifyBeforeExchangeInspect(xc)) return;
+            SelectBestInspector(tabsRequest, xc);
+            SelectBestInspector(tabsResponse, xc);
 
             tabsViews.SelectedTab = this.pageInspectors;
         }
@@ -1418,7 +1442,7 @@ namespace Clearinet
             {
                 using (var lro = new LongRunningOperation($"Loading {PlatformAPI.CompactPath(sPath, 32)}...", false))
                 {
-                    using (SAZFile sazFile = SAZFile.LoadFrom(sPath))
+                    using (SAZFile sazFile = SAZFile.LoadFrom(sPath, lro: lro))
                     {
                         CApp.Log.Log($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}. {sazFile.sComment}");
                         SetStatusText($"Loaded {sazFile.Exchanges.Count} Exchanges from {PlatformAPI.CompactPath(sPath, 32)}");
@@ -1432,6 +1456,8 @@ namespace Clearinet
                         }
 
                         addExchanges(sazFile.Exchanges);
+                        CApp.NotifyAfterLoadSAZ("WebExchangesList", sPath, sazFile.Exchanges.ToArray());
+
                     }
                     return true;
                 }
@@ -1448,9 +1474,6 @@ namespace Clearinet
             updateLVI(xc);
         }
 
-        // TODO: CLEANUP updateLVI and addExchangeToListView ************************************
-        // **************************************************************************************
-
         private void addExchanges(IEnumerable<Exchange> exchanges)
         {
             if (lvExchanges.InvokeRequired)
@@ -1459,20 +1482,15 @@ namespace Clearinet
                 return;
             }
 
-            foreach (Exchange exchange in exchanges) addExchange(exchange);
+            foreach (Exchange exchange in exchanges) addExchangeLVI(exchange);
         }
 
-        public void addExchange(Exchange xc)
+        public void addExchangeLVI(Exchange xc)
         {
-            if (lvExchanges.InvokeRequired)
-            {
-                lvExchanges.Invoke((Action<Exchange>)addExchange, xc);
-                return;
-            }
-
             // Already created.
             if (xc.ViewItem != null) return;
 
+            // If the item should be hidden, we will skip creating it except in troubleshooter mode.
             if (!xc.BitFlags.HasFlag(ExchangeFlags.ImportedFromOtherTool) &&
                 !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&
                 xc.ShouldHide())
@@ -1485,13 +1503,25 @@ namespace Clearinet
                 }
                 else
                 {
+                    if (CApp.isTracing) Trace.WriteLine($"Skipping creation of ListViewItem for #{xc.id} because it is hidden by rules.");
                     return; // skip creation.
                 }
-
             }
-            _materializeExchange(xc, false);
+
+            if (lvExchanges.InvokeRequired)
+            {
+                lvExchanges.Invoke((Action<Exchange, bool>)_materializeExchange, xc, false);
+            }
+            else
+            {
+                _materializeExchange(xc, false);
+            }
         }
 
+        // Called on the UI thread, this creates the ListViewItem and queues it for addition
+        // to the Exchanges ListView.
+        //
+        // TODO: bFinishedAlready is not yet used.
         private void _materializeExchange(Exchange xc, bool bFinishedAlready)
         {
             ListViewItem lvi = new ListViewItem(xc.id.ToString())
@@ -1500,7 +1530,7 @@ namespace Clearinet
             };
             xc.ViewItem = lvi;
 
-            // Fill the columns.
+            // Fill the built-in columns.
             lvi.SubItems.AddRange(
                 new string[]
                 {
@@ -1515,12 +1545,11 @@ namespace Clearinet
                     xc["ui-comments"] ?? String.Empty
                 });
 
-            // TODO: Should we cache a set of empty columns?
+            // TODO: Should we cache a set of empty columns and addRange on them?
             for (int i = 10; i < lvExchanges.Columns.Count; ++i)
             {
-                lvi.SubItems.Add(lvExchanges.PopulateColumn(i, xc));
+                lvi.SubItems.Add(lvExchanges.ComputeColumn(i, xc));
             }
-
 
             AddFormatting(lvi, xc);
             lvExchanges.EnqueueItem(lvi);
@@ -1530,15 +1559,17 @@ namespace Clearinet
         {
             if (CApp.isClosing) return;
 
+            // If the ViewItem doesn't exist yet, then we're
+            // adding, not updating. Go do that.
             if (null == xc.ViewItem)
             {
-                addExchange(xc);
+                addExchangeLVI(xc);
                 return;
             }
 
-
+            // If the item should be hidden based on rules. 
             if (!xc.BitFlags.HasFlag(ExchangeFlags.ImportedFromOtherTool) &&
-                !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&
+                !xc.BitFlags.HasFlag(ExchangeFlags.LoadedFromSAZ) &&  /* TODO: AND DOES NOT have HTTPErrors we need to show */
                 xc.ShouldHide())
             {
                 if (CApp.Prefs.GetBoolPref("app.ui.help.troubleshoot_filters", true))
@@ -1549,12 +1580,14 @@ namespace Clearinet
                 }
                 else
                 {
-                    return; // skip creation.
+                    xc.ViewItem.Remove();
+                    xc.ViewItem = null;     // I bet this breaks somebody. ::grimace::
+                    return; // skip the update.
                 }
 
             }
 
-
+            // Otherwise, update the columns.
             ListViewItem lvi = xc.ViewItem;
             SetLviSubItemText(lvi, 1, xc.bHasResponse ? xc.responseCode.ToString() : "-");
             SetLviSubItemText(lvi, 2, xc.RequestHeaders.HTTPMethod);
@@ -1566,17 +1599,19 @@ namespace Clearinet
             SetLviSubItemText(lvi, 8, xc["x-processinfo"] ?? String.Empty);
             SetLviSubItemText(lvi, 9, xc["ui-comments"] ?? String.Empty);
 
-            // Populate the custom columns (if any)
-            for (int i = 10; i < lvExchanges.Columns.Count; ++i)
+            // Populate the custom columns (if any).
+            for (int i = 10; i < lvi.SubItems.Count; ++i)
             {
-                SetLviSubItemText(lvi, i, lvExchanges.PopulateColumn(i, xc));
+                SetLviSubItemText(lvi, i, lvExchanges.ComputeColumn(i, xc));
             }
+            Debug.Assert(lvi.SubItems.Count == lvExchanges.Columns.Count, "WAT? The LVI doesn't have the required number of subitems!");
 
             AddFormatting(lvi, xc);
         }
 
         // Speculative fix to try to reduce wndproc overhead when updating the ListView.
-        // Unclear if this is actually any better, but Copilot suggested it and it doesn't seem crazy.
+        // Unclear if this is actually any better, but Copilot suggested it (and Gemini confirms)
+        // and it doesn't seem crazy.
         private static void SetLviSubItemText(ListViewItem lvi, int subItemIndex, string value)
         {
             var subItem = lvi.SubItems[subItemIndex];
@@ -1614,7 +1649,11 @@ namespace Clearinet
                     lvi.ForeColor = CONFIG.GetExchangeColor(xc);
                 }
             }
+
+            // TODO: Should we allow multiple styles to be applied at once? Currently, the last one wins.
+            // Also, should we be caching the Font objects instead of creating a new one each time? Probably.
             if (xc["ui-strikeout"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Strikeout);
+            if (xc["ui-italic"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Italic);
             if (xc["ui-bold"] != null) lvi.Font = new Font(lvExchanges.Font, FontStyle.Bold);
         }
 
@@ -1649,9 +1688,11 @@ namespace Clearinet
                 CONFIG.RemoveCleanupRegistryKey();
             }
 
+
+            // Freeze/skip any work else we can. TODO: Any more?
             timerReportUpdater.Stop();
             CApp.gwHoneyDew.Dispose();
-            // TODO: Freeze anything else we can.
+
 
             CApp.Prefs.SetInt32Pref("app.ui.inspector.splitter", splitRequestResponse.SplitPosition);
             CApp.Prefs.SetInt32Pref("app.ui.main.splitter", splitterMain.SplitPosition);
@@ -1663,7 +1704,7 @@ namespace Clearinet
             CApp.OnAppShutdown();
         }
 
-        // Called if Form Closure was done due to Windows shutdown.
+        // Called if Form Closure occurred due to Windows shutdown.
         private void HandleWindowsShutdown()
         {
             if (_didHandleWindowsShutdown) return;
@@ -1800,7 +1841,7 @@ namespace Clearinet
                 PromptText = "Enter a name for this viewer:",
                 DefaultValue = tsmiNameViewer.Text,
                 ReturnNullOnCancel = true,
-                Kind = frmPrompt.PromptKind.Password
+                Kind = frmPrompt.PromptKind.Default
             });
             if (sNewName.HasText()) tsmiNameViewer.Text = sNewName;
         }
@@ -2058,6 +2099,18 @@ namespace Clearinet
                 }
                 return;
             }
+            if (tabsViews.SelectedTab == pageEncore)
+            {
+                // Delay-load the encore UI
+                if (0 == pageEncore.Controls.Count)
+                {
+                    CApp.oEncore = new EncoreView();
+                    pageEncore.Controls.Add(CApp.oEncore);
+                    CApp.oEncore.Dock = DockStyle.Fill;
+                }
+                return;
+            }
+
             if (tabsViews.SelectedTab?.Tag is BindUITab bindtab)
             {
                 bindtab.RunDelegate(lvExchanges.GetSelectedExchanges());
@@ -2193,10 +2246,10 @@ namespace Clearinet
                 e.Handled = e.SuppressKeyPress = true;
                 return;
             }
-            if (e.KeyCode == Keys.D1 && e.Modifiers == Keys.Control)
+            if (e.KeyData == Keys.OemMinus)
             {
-                MarkExchanges(lvExchanges.GetSelectedExchanges());
-                e.SuppressKeyPress = e.Handled = true;
+                actMarkStrikeSelected();
+                e.Handled = e.SuppressKeyPress = true;
                 return;
             }
             if (e.KeyData == Keys.Enter)
@@ -2240,6 +2293,23 @@ namespace Clearinet
             {
                 switch (e.KeyCode)
                 {
+                    case Keys.D1:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Red");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+                    case Keys.D2:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Blue");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+                    case Keys.D3:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Green");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+                    case Keys.D4:
+                        MarkExchanges(lvExchanges.GetSelectedExchanges(), "Gold");
+                        e.SuppressKeyPress = e.Handled = true;
+                        break;
+
                     case Keys.A:
                         actSelectAll();
                         e.SuppressKeyPress = e.Handled = true;
@@ -2262,6 +2332,7 @@ namespace Clearinet
 
                     case Keys.X:
                         lvExchanges.ClearExchanges();
+                        CApp._captureEngineRuntime?.ClearServerSocketPool();
                         e.SuppressKeyPress = e.Handled = true;
                         break;
 
@@ -2413,12 +2484,12 @@ namespace Clearinet
             }
         }
 
-        internal void MarkExchanges(Exchange[] exchanges)
+        internal void MarkExchanges(Exchange[] exchanges, string color)
         {
             foreach (var xc in exchanges)
             {
-                xc.oFlags["ui-bold"] = "marked";
-                xc.oFlags["ui-color"] = "blue";
+                xc.oFlags["ui-bold"] = "Marked";
+                xc.oFlags["ui-color"] = color;
                 updateLVI(xc);
             }
         }
@@ -2463,6 +2534,10 @@ namespace Clearinet
                     byte[] body = File.ReadAllBytes(path);
                     string contentType = Utilities.MediaTypeFromFilename(path);
                     exResult = CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", contentType, body);
+                    if (exResult != null)
+                    {
+                        exResult.ResponseHeaders["Last-Modified"] = File.GetLastWriteTimeUtc(path).ToString("R");
+                    }
                 }
                 catch (Exception eX)
                 {
@@ -2521,10 +2596,10 @@ namespace Clearinet
             }
         }
 
-        internal Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
+        public Exchange AddFauxExchange(string sRequestPath, string sContentType, byte[] arrBody)
         {
             Exchange exchange = CreateFauxExchange(sRequestPath, sContentType, arrBody);
-            addExchange(exchange);
+            addExchangeLVI(exchange);
             return exchange;
         }
 
@@ -2578,7 +2653,7 @@ namespace Clearinet
                 exchNew.EnsureID();
                 exchNew.Timers.AssignNowToAll();
                 exchNew.state = ExchangeState.Done;
-                addExchange(exchNew);
+                addExchangeLVI(exchNew);
                 return true;
             }
             catch (Exception eX)
@@ -2942,26 +3017,38 @@ namespace Clearinet
                 if (arrExchanges.Length < 1) { CApp.DoNotifyUser("No Exchanges were selected.", "Nothing to Export"); return; }
                 for (int iX = 0; iX < arrExchanges.Length; ++iX)
                 {
-                    Exchange xc = arrExchanges[iX];
-                    if (!xc.bHasResponse) continue;
-                    string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", "Any file|*.*", null, xc.SuggestedFilename).sFilename;
-                    if (!sFilename.HasText()) return;
-                    byte[] arrBody = xc.ResponseBody;
-                    // TODO: Should we warn if the response body is non-200 (specifically, a HTTP/206 partial response?)
-                    if (xc.ResponseHeaders?.ExistsAny("Content-Encoding", "Transfer-Encoding") ?? false)
-                    {
-                        if (DialogResult.Yes == MessageBox.Show(CApp.UI, "Do you want to decode the response body before saving?", "Decode first?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question))
-                        {
-                            arrBody = Exchange.DecodeBodyFromHeaders(xc.ResponseHeaders, arrBody);
-                        }
-                    }
-                    File.WriteAllBytes(sFilename, arrBody);
+                    SaveExchangeResponseBody(arrExchanges[iX]);
                 }
             }
             catch (Exception eX)
             {
                 CApp.ReportException(eX, "Response dumping failed");
             }
+        }
+
+        private bool SaveExchangeResponseBody(Exchange xc)
+        {
+            if (!xc.bHasResponse) return false;
+
+            var sFilters = "Any file|*.*";
+            var sExt = Path.GetExtension(xc.SuggestedFilename).TrimStart('.');
+            if (sExt.HasText())
+            {
+                sFilters = $"{sExt.ToUpper()} files (*.{sExt})|*.{sExt}|{sFilters}";
+            }
+            string sFilename = Utilities.ObtainSaveFilenameAndType($"Export Exchange {xc.id} Response Body", sFilters, null, xc.SuggestedFilename).sFilename;
+            if (!sFilename.HasText()) return false;
+            byte[] arrBody = xc.ResponseBody;
+            // TODO: Should we warn if the response body is non-200 (specifically, a HTTP/206 partial response?)
+            if (xc.ResponseHeaders?.ExistsAny("Content-Encoding", "Transfer-Encoding") ?? false)
+            {
+                if (DialogResult.Yes == MessageBox.Show(CApp.UI, "Do you want to decode the response body before saving?", "Decode first?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question))
+                {
+                    arrBody = Exchange.DecodeBodyFromHeaders(xc.ResponseHeaders, arrBody);
+                }
+            }
+            File.WriteAllBytes(sFilename, arrBody);
+            return true;
         }
 
         private void miEditUndelete_Click(object sender, EventArgs e)
@@ -3044,7 +3131,7 @@ namespace Clearinet
             var ix = 0;
             for (; ix < arrExch.Length; ++ix)
             {
-                sbAllURIs.AppendLine(arrExch[ix].ResponseBodyAsDataURL());
+                sbAllURIs.AppendLine(arrExch[ix].GetResponseBodyAsDataURL());
             }
             if (1 == ix) sbAllURIs.Length -= Environment.NewLine.Length; // Remove trailing newline if only one exchange
             PlatformAPI.WriteToClipboard(sbAllURIs.ToString());
@@ -3174,27 +3261,51 @@ namespace Clearinet
 
         private void tsmiRemoveDuplicateResponseBodies_Click(object sender, EventArgs e)
         {
+            actRemoveDuplicateBodies();
+        }
+
+        // Remove any Exchanges that have duplicated response body bytes. Note that this code can
+        // fail "open" -- if the body is compressed or chunked, the bytes will be different even
+        // if the decompressed content is identical. That's generally going to be okay for our
+        // primary scenario ("Give me at least one copy of each asset, but avoid having a ton of dupes").
+        private void actRemoveDuplicateBodies()
+        {
             CApp.PauseReporting = true;
             lvExchanges.BeginUpdate();
             lvExchanges.SelectedItems.Clear();
-            var hasherMD5 = MD5.Create();
-            HashSet<string> setHashes = new HashSet<string>();
+            Stopwatch oSW = Stopwatch.StartNew();
+            var iDupes = 0;
+            var hasher = SHA256.Create();
+            Dictionary<int, byte[]> firstBodies = new Dictionary<int, byte[]>();
+            Dictionary<int, HashSet<string>> hashesByLength = new Dictionary<int, HashSet<string>>();
             Exchange[] arrXC = GetAllExchanges();
-            // For each exchange, if there's a response body, calculate its MD5 hash (collision is wildly implausible and
-            // basically harmless) and store it in a HashSet. If we see it again, then we found a duplicate and we
-            // should select it for removal.
+            // Defer hashing the first body of each length until another body has the same length.
             foreach (Exchange exch in arrXC)
             {
-                if (exch.ResponseBody?.Length > 0)
+                byte[] body = exch.ResponseBody;
+                if (body?.Length < 1) continue;
+                if (!hashesByLength.TryGetValue(body.Length, out HashSet<string> setHashes))
                 {
-                    byte[] hash = hasherMD5.ComputeHash(exch.ResponseBody);
-                    string hashString = Convert.ToBase64String(hash);
-
-                    if (!setHashes.Add(hashString))
+                    if (!firstBodies.TryGetValue(body.Length, out byte[] firstBody))
                     {
-                        ListViewItem lvi = exch.ViewItem;
-                        if (null != lvi) lvi.Selected = true;
+                        firstBodies.Add(body.Length, body);
+                        continue;
                     }
+
+                    setHashes = new HashSet<string>
+                    {
+                        Convert.ToBase64String(hasher.ComputeHash(firstBody))
+                    };
+                    hashesByLength.Add(body.Length, setHashes);
+                    firstBodies.Remove(body.Length);
+                }
+
+                string hashString = Convert.ToBase64String(hasher.ComputeHash(body));
+                if (!setHashes.Add(hashString))
+                {
+                    ListViewItem lvi = exch.ViewItem;
+                    if (null != lvi) lvi.Selected = true;
+                    ++iDupes;
                 }
             }
 
@@ -3202,28 +3313,31 @@ namespace Clearinet
             lvExchanges.EndUpdate();
             CApp.PauseReporting = false;
             actUpdateInspector(true, true);
-            CApp.Log.Log("Removed Exchanges with duplicate response bodies.");
+            CApp.UI.SetStatusText($"Removed {iDupes} duplicate response bodies in {oSW.ElapsedMilliseconds}ms.");
         }
 
         private void tsmiRemoveImages_Click(object sender, EventArgs e)
         {
             actSelectExchangesMatchingCriteria((exch) => exch.MediaType.OICStartsWith("image/"));
+            var icount = lvExchanges.SelectedCount;
             lvExchanges.RemoveSelected();
-            CApp.Log.Log("Removed Exchanges with image responses.");
+            CApp.Log.Log($"Removed {icount} image responses.");
         }
 
         private void tsmiNon200Response_Click(object sender, EventArgs e)
         {
             actSelectExchangesMatchingCriteria((exch) => exch.responseCode != 200);
+            var icount = lvExchanges.SelectedCount;
             lvExchanges.RemoveSelected();
-            CApp.Log.Log("Removed Exchanges with non-HTTP/200 responses.");
+            CApp.Log.Log($"Removed {icount} non-HTTP/200 responses.");
         }
 
         private void tsmiRemoveConnects_Click(object sender, EventArgs e)
         {
             actSelectExchangesMatchingCriteria((exch) => exch.RequestHeaders?.HTTPMethod.OICEquals("CONNECT"));
+            var icount = lvExchanges.SelectedCount;
             lvExchanges.RemoveSelected();
-            CApp.Log.Log("Removed Exchanges with HTTP CONNECT requests.");
+            CApp.Log.Log($"Removed {icount} HTTP CONNECT requests.");
         }
 
         private void miEditCopyCurl_Click(object sender, EventArgs e)
@@ -3243,27 +3357,50 @@ namespace Clearinet
 
         private void miEditMarkStrikeout_Click(object sender, EventArgs e)
         {
+            actMarkStrikeSelected();
+        }
 
+        private void actMarkStrikeSelected()
+        {
+            var toMark = GetSelectedExchanges();
+            foreach (var exch in toMark)
+            {
+                exch["ui-strikeout"] = "Edit > Mark > Strikeout";
+                updateLVI(exch);
+            }
         }
 
         private void miEditMarkRed_Click(object sender, EventArgs e)
         {
-            MarkExchanges(GetSelectedExchanges()); // TODO:Color
+            MarkExchanges(GetSelectedExchanges(), "Red");
         }
 
         private void miEditMarkBlue_Click(object sender, EventArgs e)
         {
-            MarkExchanges(GetSelectedExchanges());
+            MarkExchanges(GetSelectedExchanges(), "Blue");
+        }
+
+        private void miEditMarkGreen_Click(object sender, EventArgs e)
+        {
+            MarkExchanges(GetSelectedExchanges(), "Green");
         }
 
         private void miEditMarkGold_Click(object sender, EventArgs e)
         {
-            MarkExchanges(GetSelectedExchanges()); // TODO:Color
+            MarkExchanges(GetSelectedExchanges(), "Gold");
         }
 
         private void miEditMarkUnmark_Click(object sender, EventArgs e)
         {
-            // TODO: MarkExchanges(GetSelectedExchanges());
+            var toUnmark = GetSelectedExchanges();
+            foreach (var exch in toUnmark)
+            {
+                exch.oFlags.TryRemove("ui-strikeout", out _);
+                exch.oFlags.TryRemove("ui-bold", out _);
+                exch.oFlags.TryRemove("ui-color", out _);
+                // anything else?
+                updateLVI(exch);
+            }
         }
 
         private void tabsViews_DragOver(object sender, DragEventArgs e)
@@ -3593,6 +3730,12 @@ namespace Clearinet
         {
             CApp.Prefs.SetBoolPref("app.ui.help.troubleshoot_filters", miHelpTroubleshootFilters.Checked);
         }
+
+        private void miRulesHosts_Click(object sender, EventArgs e)
+        {
+            frmHostRemap.ConfigureHOSTS();
+        }
+
 
     }
 }

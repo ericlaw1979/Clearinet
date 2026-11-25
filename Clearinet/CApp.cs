@@ -38,6 +38,123 @@ namespace Clearinet
         internal static GigWorker gwHoneyDew = new GigWorker();
         internal static CaptureEngineRuntime _captureEngineRuntime;
 
+        internal static bool ShouldDecryptHost(string hostname)
+        {
+            bool bInList = _DecryptionHosts.Contains(hostname);
+            if (CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true)) return !bInList;
+            return bInList;
+        }
+        internal static void RefreshDecryptionHosts()
+        {
+            _DecryptionHosts = new HostList(CApp.Prefs.GetStringPref("proxy.https.decryption_list", string.Empty));
+        }
+        internal static HostList _DecryptionHosts = new HostList("");
+
+        internal static bool DecryptionHostListIsSkipMode { get { return CApp.Prefs.GetBoolPref("proxy.https.decryption_list.is_skip_mode", true); } }
+
+        /// <summary>
+        /// This event will fire immediately AFTER a SAZ file is loaded to
+        /// allow extensions to inspect the loaded exchanges and perform any additional processing.
+        /// </summary>
+        public static event EventHandler<ReadSAZEventArgs> OnLoadSAZ;
+
+
+        /// <summary>
+        /// Notify extensions BEFORE we're about to write a SAZ archive.
+        /// </summary>
+        public static event EventHandler<WriteSAZEventArgs> OnSaveSAZ;
+
+        public delegate void ExchangeStateHandler(Exchange xc);
+
+        public static event ExchangeStateHandler AfterExchangeComplete;
+
+        public class ReadSAZEventArgs : EventArgs
+        {
+            public string SAZFilename { get; private set; }
+            public Exchange[] arrExchanges { get; private set; }
+            public string sContext { get; private set; }
+
+            // Unclear that this needs to be public.
+            public ReadSAZEventArgs(string _SAZFilename, Exchange[] _arrExchanges, string _sLoadContext)
+            {
+                SAZFilename = _SAZFilename;
+                arrExchanges = _arrExchanges;
+                sContext = _sLoadContext;
+            }
+        }
+        public class WriteSAZEventArgs : CancelEventArgs
+        {
+            public string SAZFilename { get; set; }
+            public Exchange[] arrExchanges { get; set; }
+            public WriteSAZEventArgs(string _SAZFilename, Exchange[] _arrXC)
+            {
+                SAZFilename = _SAZFilename;
+                arrExchanges = _arrXC;
+            }
+        }
+
+        internal static void NotifyAfterLoadSAZ(string sContext, string sFilename, Exchange[] arrNewExchanges)
+        {
+            try
+            {
+                EventHandler<ReadSAZEventArgs> ehLoad = CApp.OnLoadSAZ;
+                if (null != ehLoad)
+                {
+                    ReadSAZEventArgs rsea = new ReadSAZEventArgs(sFilename, arrNewExchanges, sContext);
+                    ehLoad.Invoke(CApp.UI, rsea);
+                }
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "Error in OnLoadSAZ event handler");
+            }
+        }
+
+        internal static bool NotifyBeforeSaveSAZ(string sFilename, Exchange[] arrXC)
+        {
+            EventHandler<WriteSAZEventArgs> oEH = CApp.OnSaveSAZ;
+            if (null != oEH)
+            {
+                WriteSAZEventArgs wsea = new WriteSAZEventArgs(sFilename, arrXC);
+                oEH.Invoke(CApp.UI, wsea);
+                return !wsea.Cancel;
+            }
+            return true;
+        }
+
+        public static event CancelEventHandler BeforeInspectExchange;
+
+        internal static bool NotifyBeforeExchangeInspect(Exchange xc)
+        {
+            // Bail if nobody cares.
+            if (null == BeforeInspectExchange) return true;
+
+            CancelEventArgs cea = new CancelEventArgs();
+            try
+            {
+                BeforeInspectExchange(xc, cea);
+            }
+            catch (Exception eX)
+            {
+                CApp.ReportException(eX, "BeforeInspect handler threw.");
+            }
+            return !cea.Cancel;
+        }
+
+        internal static void NotifyAfterExchangeComplete(Exchange xc)
+        {
+            if (xc.isFlagSet(ExchangeFlags.Ignored)) return;
+
+            Debug.Assert(xc.state >= ExchangeState.Done);
+
+            if (null != AfterExchangeComplete)
+            {
+                AfterExchangeComplete(xc);
+            }
+
+            CApp.scriptRules?.RunOnExchangeCompleted(xc);
+        }
+
         public static bool isTracing { get; internal set; } = false;
 
         public static Extensions oExtensions;
@@ -48,6 +165,7 @@ namespace Clearinet
         public static JScriptEngine scriptRules;
 
         internal static ComposerView oComposer;
+        internal static EncoreView oEncore;
         internal static FindPanel oFindPanel;
         public static bool isBooted { get; private set; } = false;
         public static bool isClosing { get; private set; } = false;
@@ -111,14 +229,14 @@ namespace Clearinet
 
 
         /// <summary>
-        /// Asynchronously invoke on App's thread unless closing.
+        /// Asynchronously invoke on App's thread, unless closing.
         /// </summary>
-        internal static void UIInvokeAsync(Delegate oDel, object[] args)
+        public static void UIInvokeAsync(Delegate oDel, object[] args)
         {
             if (isClosing) return;
             _frmMain.BeginInvoke(oDel, args);
         }
-        internal static void UIInvokeAsync(Action oDel)
+        public static void UIInvokeAsync(Action oDel)
         {
             if (isClosing) return;
             _frmMain?.BeginInvoke(oDel);
@@ -145,7 +263,7 @@ namespace Clearinet
                     "Not Yet Implemented", MessageBoxIcon.Information);
             }
 
-            // TODO: Move this into the CaptureEngine
+            // TODO: Consider moving responsibility for setting the proxy into the CaptureEngine?
             CApp.Prefs.SetStringPref("proxy.prior_proxy", WinINETInterop.CaptureCurrentProxySettings());
             WinINETInterop.SetProxyForClearinet($"127.0.0.1:{CONFIG.ListenPort}",   // TODO: Allow pref to control hostname
                                                 CApp.Prefs.GetStringPref("proxy.bypass_list", "<-loopback>"));
@@ -158,7 +276,7 @@ namespace Clearinet
         {
             isAttached = false;
 
-            // TODO: Move this into the CaptureEngine
+            // TODO: Consider moving responsibility for resetting the proxy into the CaptureEngine?
             WinINETInterop.RestoreProxySettings(CApp.Prefs.GetStringPref("proxy.prior_proxy", string.Empty));
             OnProxyDetach();
             // --------------------------------------
@@ -286,7 +404,7 @@ namespace Clearinet
                         DateTime dt = DateTime.Now;
                         Exchange XC = frmViewer.CreateFauxExchange($"/SPAM/{uiInterval}/?{dt:HH-mm-ss.ffff}", "text/plain", Encoding.UTF8.GetBytes("Spam Exchange"));
                         XC.oFlags["ui-backcolor"] = "WhiteSmoke";
-                        CApp.UI.addExchange(XC);
+                        CApp.UI.addExchangeLVI(XC);
 
                     }, uiInterval);
                     return true;
@@ -310,11 +428,20 @@ namespace Clearinet
                     return true;
                 }
 
-                /*if ("!spew" == sCmd)
+                if ("!spew" == sCmd)    // Enable noisy trace output.
                 {
-                    Prefs.SetBoolPref("app.debug.ephemeral.spew". true);
-                }*/
-
+                    CApp.Prefs.SetBoolPref("app.debug.ephemeral.spew", true);
+                    CApp.isTracing = true;
+                    CApp.UI.SetStatusText("DebugSpew enabled. Use !unspew to disable.");
+                    return true;
+                }
+                if ("!unspew" == sCmd)
+                {
+                    CApp.Prefs.SetBoolPref("app.debug.ephemeral.spew", false);
+                    CApp.isTracing = false;
+                    CApp.UI.SetStatusText("DebugSpew disabled. Use !spew to enable.");
+                    return true;
+                }
                 if ("cls" == sCmd)
                 {
                     UI.lvExchanges.ClearExchanges();
@@ -632,7 +759,7 @@ namespace Clearinet
                 _captureEngineRuntime.Start();
                 if (CaptureEnginePrefs.IsCaptureTracingEnabled())
                 {
-                    Log.Log($"Capture tracing enabled. DecryptHTTPS={CaptureEnginePrefs.ShouldDecryptHttps()}, CaptureCONNECT={CaptureEnginePrefs.ShouldCaptureConnect()}, SocketPoolIdleMs={CaptureEnginePrefs.GetSocketPoolIdleMs()}, SocketPoolMaxAgeMs={CaptureEnginePrefs.GetSocketPoolMaxAgeMs()}");
+                    Log.Log($"Capture tracing enabled. CaptureCONNECT={CaptureEnginePrefs.ShouldCaptureConnect()}, SocketPoolIdleMs={CaptureEnginePrefs.GetSocketPoolIdleMs()}, SocketPoolMaxAgeMs={CaptureEnginePrefs.GetSocketPoolMaxAgeMs()}");
                 }
             }
             catch (Exception eX)
@@ -692,17 +819,47 @@ namespace Clearinet
 
         public static void alert(string sMessage)
         {
-            DoNotifyUser(null, sMessage, "Script Alert", MessageBoxIcon.Information);
+            DoNotifyUser(CApp.GetBestParentUIHandle(), sMessage, "Script Alert", MessageBoxIcon.Information);
+        }
+
+        private sealed class Win32WindowWrapper : IWin32Window
+        {
+            public Win32WindowWrapper(IntPtr handle)
+            {
+                Handle = handle;
+            }
+
+            public IntPtr Handle { get; }
+        }
+
+        // Returns the "best" UI handle to parent alert/notifications to.
+        // During startup, this is the Splashscreen. After that, it's the main UI window.
+        // If neither exists, returns null.
+        private static IWin32Window GetBestParentUIHandle()
+        {
+            IntPtr hwndSplash = frmSplashScreen.GetWindowHandleIfExists();
+            if (IntPtr.Zero != hwndSplash)
+            {
+                return new Win32WindowWrapper(hwndSplash);
+            }
+            if (null != CApp.UI)
+            {
+                return CApp.UI;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static void DoNotifyUser(string sMessage, string sTitle)
         {
-            DoNotifyUser(null, sMessage, sTitle, MessageBoxIcon.None);
+            DoNotifyUser(CApp.GetBestParentUIHandle(), sMessage, sTitle, MessageBoxIcon.None);
         }
 
         public static void DoNotifyUser(string sMessage, string sTitle, MessageBoxIcon oIcon)
         {
-            DoNotifyUser(null, sMessage, sTitle, oIcon);
+            DoNotifyUser(CApp.GetBestParentUIHandle(), sMessage, sTitle, oIcon);
         }
 
         public static void DoNotifyUser(IWin32Window hwndOwner, string sMessage, string sTitle, MessageBoxIcon oIcon)

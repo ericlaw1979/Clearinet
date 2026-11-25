@@ -42,7 +42,7 @@
             this.pbSplash.Image = ((System.Drawing.Image)(resources.GetObject("pbSplash.Image")));
             this.pbSplash.Location = new System.Drawing.Point(0, 0);
             this.pbSplash.Name = "pbSplash";
-            this.pbSplash.Size = new System.Drawing.Size(1010, 555);
+            this.pbSplash.Size = new System.Drawing.Size(500, 279);
             this.pbSplash.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbSplash.TabIndex = 0;
             this.pbSplash.TabStop = false;
@@ -52,9 +52,9 @@
             // 
             this.panel1.Controls.Add(this.lblStatus);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 555);
+            this.panel1.Location = new System.Drawing.Point(0, 234);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1010, 45);
+            this.panel1.Size = new System.Drawing.Size(500, 45);
             this.panel1.TabIndex = 1;
             // 
             // lblStatus
@@ -66,17 +66,17 @@
             this.lblStatus.Location = new System.Drawing.Point(0, 0);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Padding = new System.Windows.Forms.Padding(20, 10, 10, 10);
-            this.lblStatus.Size = new System.Drawing.Size(128, 44);
+            this.lblStatus.Size = new System.Drawing.Size(110, 39);
             this.lblStatus.TabIndex = 0;
             this.lblStatus.Text = "Loading...";
             this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // frmSplashScreen
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(30)))), ((int)(((byte)(52)))));
-            this.ClientSize = new System.Drawing.Size(1010, 600);
+            this.ClientSize = new System.Drawing.Size(500, 324);
             this.Controls.Add(this.pbSplash);
             this.Controls.Add(this.panel1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F);

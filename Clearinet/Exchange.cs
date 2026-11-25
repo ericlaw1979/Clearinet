@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,7 +17,7 @@ using System.Xml;
 namespace Clearinet
 {
     /// <summary>
-    /// The Exchange class represents a single HTTP exchange: the request, response, and metadata.
+    /// The Exchange class represents a single HTTP(S) exchange: the request, response, and metadata.
     /// </summary>
     [DebuggerDisplay("Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]")]
     public class Exchange
@@ -48,8 +49,8 @@ namespace Clearinet
         #endregion 'id' property
 
         /// <summary>
-        /// Should the bytes of the response body be streamed to the cleint as 
-        /// it is read from the server.
+        /// Should the bytes of the response body be streamed to the client as 
+        /// the response is read from the server?
         /// 
         /// For this setting to have any effect, set it in or before 
         /// PeekAtResponseHeaders.
@@ -59,15 +60,6 @@ namespace Clearinet
         public override string ToString()
         {
             return $"Exchange #{_id}: {_state} {fullUrl} [{BitFlags}]";
-        }
-
-        public string ResponseBodyAsDataURL()
-        {
-            if (!ResponseBody.HasData()) return "data:application/octet-stream;";
-            string sMime = this.MediaType;
-            if (!sMime.HasText()) sMime = "application/octet-stream";
-            string sBase64 = Convert.ToBase64String(GetResponseBodyAsDecodedBytes());
-            return $"data:{sMime};base64,{sBase64}";
         }
 
         public string ToLongString()
@@ -92,7 +84,7 @@ namespace Clearinet
 
         // Technically, UInt32 would be the right type, but
         // .NET doesn't do that.
-        private int _LocalProcessID;
+        private int _LocalProcessID;  //TODO: set this
         /// <summary>
         /// LEGACY API: Returns the process ID of the client that initiated this
         /// exchange. If the client is remote, this will be 0.
@@ -115,12 +107,12 @@ namespace Clearinet
         public string SummarizeResponse()
         {
             if (null == ResponseHeaders) return "(No response)";
-            if (responseCode >= 300 && responseCode < 400 && responseCode != 304)
+            if (responseCode.InRange(300, 399) && responseCode != 304)
             {
                 return $"{responseCode} to {ResponseHeaders["Location"]}";
             }
             if (ResponseBody.HasData() &&
-                responseCode >= 200 && responseCode < 300 && responseCode != 304 &&
+                responseCode.InRange(200, 299) &&
                 ResponseHeaders.Exists("Content-Type"))
             {
                 return $"{responseCode} with {ResponseBody.Length:N0} bytes of '{this.MediaType}'";
@@ -205,7 +197,7 @@ namespace Clearinet
         public bool utilDecodeResponse(bool bQuiet = true)
         {
             if (null == ResponseHeaders) return false;
-            if (!ResponseBody.HasData()) return true;
+            if (!ResponseBody.HasData()) return true;  // TODO: Should we strip the headers if there's no body? E.g. on a 304?
             if (!ResponseHeaders.ExistsAny("Content-Encoding", "Transfer-Encoding")) return true;
             try
             {
@@ -221,8 +213,19 @@ namespace Clearinet
             return true;
         }
 
-        // TODO: Add a convenience handler that tries to get a .NET URL from the string?
+        /// <summary>
+        /// An IPv6 literal host needs to be [bracketed] when it appears in either a URL
+        /// or a HTTP HOST Request header.
+        /// </summary>
+        private static string FormatHostForAuthority(string hostname)
+        {
+            if (!hostname.Contains(':')) return hostname;
 
+            return !(hostname.StartsWith("[") && hostname.EndsWith("]"))
+                ? "[" + hostname + "]" : hostname;
+        }
+
+        // TODO: Add a convenience handler that tries to get a .NET URL from the string?
         // For silly historical reasons, this is the schemeless-url.
         public string url
         {
@@ -230,6 +233,7 @@ namespace Clearinet
             {
                 if (null == RequestHeaders) return string.Empty;
                 if (RequestHeaders.UriScheme.OICEquals("data")) return "data:" + RequestHeaders.RequestPath;
+                if (RequestMethod == "CONNECT") return $"{RequestHeaders.RequestPath}";  // TODO: Should it be the host header?
                 return $"{RequestHeaders["Host"]}{RequestHeaders.RequestPath}";
             }
             set
@@ -237,7 +241,7 @@ namespace Clearinet
                 // TODO: We probably don't want to use the actual .NET URL parser here.
                 if (Uri.TryCreate(value, UriKind.Absolute, out Uri oUri))
                 {
-                    RequestHeaders["Host"] = oUri.Host;
+                    RequestHeaders["Host"] = FormatHostForAuthority(oUri.Host);
                     if (!oUri.IsDefaultPort)
                     {
                         RequestHeaders["Host"] += $":{oUri.Port}";
@@ -269,7 +273,7 @@ namespace Clearinet
                     throw new ArgumentException($"Invalid URL: {value}");
                 }
                 RequestHeaders.UriScheme = oUri.Scheme;
-                RequestHeaders["Host"] = oUri.Host;
+                RequestHeaders["Host"] = FormatHostForAuthority(oUri.Host);
                 if (!oUri.IsDefaultPort)
                 {
                     RequestHeaders["Host"] += $":{oUri.Port}";
@@ -287,7 +291,6 @@ namespace Clearinet
             }
         }
 
-
         public string hostname
         {
             get
@@ -299,16 +302,16 @@ namespace Clearinet
             }
             set
             {
-                int iOldPort = 0;
+                int iOldPort = port;
                 Parser.CrackHost(host, out _, ref iOldPort);
+                string formattedHost = FormatHostForAuthority(value);
                 if (iOldPort > 0)
                 {
-                    host = $"{value}:{iOldPort}";
-
+                    host = $"{formattedHost}:{iOldPort}";
                 }
                 else
                 {
-                    host = value;
+                    host = formattedHost;
                 }
             }
         }
@@ -322,11 +325,21 @@ namespace Clearinet
             }
             set
             {
-                host = $"{hostname}:{value}";
+                host = $"{FormatHostForAuthority(hostname)}:{value}";
             }
         }
 
-        public string clientIP { get; set; }  // TODO: Fill this. Use oFlags["x-clientip"] as a fallback if present?
+        public void RecordClientEndpoint(IPEndPoint ipepClient)
+        {
+            _ipepClient = ipepClient;
+            oFlags["x-clientip"] = ipepClient.Address.ToString();
+            oFlags["x-clientport"] = ipepClient.Port.ToString(CultureInfo.InvariantCulture);
+        }
+
+        internal IPEndPoint _ipepClient;
+        public string clientIP { get { return _ipepClient?.Address.ToString() ?? oFlags["x-clientip"]; } }
+        public int clientPort { get { return _ipepClient?.Port ?? int.Parse(oFlags["x-clientport"]); } }
+
         public int responseCode
         {
             get => ResponseHeaders?.StatusCode ?? 0;
@@ -445,7 +458,7 @@ namespace Clearinet
 
         internal void Abort()
         {
-            // TODO: Kill everything.
+            // TODO: Kill everything, including RST'ing the pipes.
             state = ExchangeState.Aborted;
         }
 
@@ -476,7 +489,6 @@ namespace Clearinet
                 /* TODO: Full state machine goes in here!!! We need to rewrite this to ASYNC */
                 switch (_state)
                 {
-
                     case ExchangeState.AutoTamperRequestBefore:
                         Timers.ClientDoneRequest = DateTime.Now;
 
@@ -563,12 +575,6 @@ namespace Clearinet
                     case ExchangeState.AutoTamperResponseBefore:
                         Timers.ServerDoneResponse = DateTime.Now;
 
-                        if (oFlags.ContainsKey("log-drop-request-body"))
-                        {
-                            this.BitFlags |= ExchangeFlags.RequestBodyDropped;
-                            this.RequestBody = Array.Empty<byte>();
-                        }
-
                         if (null != this["X-ReplyWithFile"])
                         {
                             doReplaceResponseWithFile();
@@ -626,10 +632,20 @@ namespace Clearinet
                             CApp.UI?.UpdateViewItem(this);
                         });
 
-                        if (oFlags.ContainsKey("log-drop-response-body"))
+                        CApp.NotifyAfterExchangeComplete(this);
+
+                        if (!this.isAnyFlagSet(ExchangeFlags.LoadedFromSAZ | ExchangeFlags.ImportedFromOtherTool))
                         {
-                            this.BitFlags |= ExchangeFlags.ResponseBodyDropped;
-                            this.ResponseBody = Array.Empty<byte>();
+                            if (oFlags.ContainsKey("log-drop-request-body"))
+                            {
+                                this.BitFlags |= ExchangeFlags.RequestBodyDropped;
+                                this.RequestBody = Array.Empty<byte>();
+                            }
+                            if (oFlags.ContainsKey("log-drop-response-body"))
+                            {
+                                this.BitFlags |= ExchangeFlags.ResponseBodyDropped;
+                                this.ResponseBody = Array.Empty<byte>();
+                            }
                         }
                         break;
                 }
@@ -733,6 +749,15 @@ namespace Clearinet
         {
             byte[] decompressed = DecodeBodyFromHeaders(ResponseHeaders, ResponseBody);
             return Encoding.UTF8.GetString(decompressed); // TODO: Use the charset from the Content-Type header if present.
+        }
+
+        public string GetResponseBodyAsDataURL()
+        {
+            if (!ResponseBody.HasData()) return "data:application/octet-stream;";
+            string sMime = this.MediaType;
+            if (!sMime.HasText()) sMime = "application/octet-stream";
+            string sBase64 = Convert.ToBase64String(GetResponseBodyAsDecodedBytes());
+            return $"data:{sMime};base64,{sBase64}";
         }
 
         public byte[] GetRequestBodyAsDecodedBytes()

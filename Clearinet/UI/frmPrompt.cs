@@ -89,7 +89,6 @@ namespace Clearinet
         {
             InitializeComponent();
             if (CONFIG.isDarkMode) ThemeManager.ApplyDarkMode(this);
-
         }
 
         private void txtResponse_TextChanged(object sender, EventArgs e)

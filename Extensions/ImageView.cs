@@ -7,8 +7,10 @@ namespace Extensions
 {
     public partial class ImageView : UserControl
     {
-        public ImageView()
+        ImageInspector _owner;
+        public ImageView(ImageInspector owner)
         {
+            _owner = owner;
             InitializeComponent();
             pbImage.MouseDoubleClick += pbImage_MouseDoubleClick;
             try
@@ -20,8 +22,13 @@ namespace Extensions
 
         private void pbImage_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (e.Button != MouseButtons.Left || pbImage.Image == null) return;
+            if (e.Button != MouseButtons.Left) return;
+            ShowFullScreen();
+        }
 
+        private void ShowFullScreen()
+        {
+            if (pbImage.Image == null) return;
             FullscreenImageForm viewer = null;
             try
             {
@@ -43,6 +50,37 @@ namespace Extensions
                 case 1: pbImage.SizeMode = PictureBoxSizeMode.CenterImage; break;       // No scaling
             }
             CApp.Prefs.SetInt32Pref("inspectors.ImageView.SizeMode", cbxSizing.SelectedIndex);
+        }
+
+        private void miCopyBitmap_Click(object sender, EventArgs e)
+        {
+            _owner.CopyAsImage();
+        }
+
+        private void copyAsDataURL_Click(object sender, EventArgs e)
+        {
+            _owner.CopyAsDataUrl();
+        }
+
+        private void miConvertToJPEG_Click(object sender, EventArgs e)
+        {
+            _owner.ConvertToJpegExchange();
+        }
+
+        private void mnuImage_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            mnuImage.Enabled = (pbImage.Image != null);
+            _owner.PopulateToolsMenu(miTools);
+        }
+
+        private void miSaveOnDesktop_Click(object sender, EventArgs e)
+        {
+            _owner.DumpImageToDesktop();
+        }
+
+        private void miShowFullscreen_Click(object sender, EventArgs e)
+        {
+            ShowFullScreen();
         }
     }
 }

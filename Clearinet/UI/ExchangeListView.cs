@@ -24,6 +24,23 @@ namespace Clearinet
         public string UserDataField;
     }
 
+
+    public class BetterLinkLabel : LinkLabel
+    {
+        protected override void WndProc(ref Message m)
+        {
+            // Treat rapid second click as a normal single click (WM_LBUTTONDOWN)
+            // Otherwise, double-clicking a link will copy the link's text to the clipboard
+            // because some dork checked that change into the static label control for Windows Vista
+            // and left the company before anybody noticed.
+            if (m.Msg == 0x0203) // WM_LBUTTONDBLCLK
+            {
+                m.Msg = 0x0201;
+            }
+
+            base.WndProc(ref m);
+        }
+    }
     /// <summary>
     /// This is a specialization of the ListView for the primary list of Exchanges at the left of the main UI.
     /// It is highly optimized for performance (including asynchronous batched updates), and it has a number
@@ -323,7 +340,7 @@ namespace Clearinet
                 if (item.SubItems.Count > index && counts[item.SubItems[index].Text] > 1 && item.Tag is Exchange exchange)
                     duplicates.Add(exchange);
             }
-            CApp.UI.MarkExchanges(duplicates.ToArray());
+            CApp.UI.MarkExchanges(duplicates.ToArray(), "Orange");
             CApp.UI.SetStatusText($"Flagged {duplicates.Count} Exchanges with duplicate '{column.Text}' values.");
         }
 
@@ -467,13 +484,38 @@ namespace Clearinet
             return Win32UI.IsScrolledToBottom(this);
         }
 
+        internal bool IsDraggingExchanges { get; private set; }
+
         private void ExchangeListView_ItemDrag(object sender, ItemDragEventArgs e)
         {
             var XC = GetSelectedExchanges();
-            DataObject dragData = new DataObject("Clearinet.Exchange[]", XC);
+            DataObject dragData;
+            try
+            {
+                dragData = ExchangeFileDrop.CreateDataObject(XC, System.IO.Path.GetTempPath(),
+                    ex => CApp.ReportException(ex, "Preparing response files for drop failed"));
+            }
+            catch (Exception ex)
+            {
+                CApp.ReportException(ex, "Preparing response files for drag failed");
+                dragData = new DataObject("Clearinet.Exchange[]", XC);
+            }
 
-            // Initiate drag
-            DoDragDrop(dragData, DragDropEffects.Copy);
+            RunExchangeDrag(() => DoDragDrop(dragData, DragDropEffects.Copy));
+        }
+
+        internal void RunExchangeDrag(Action drag)
+        {
+            bool wasDragging = IsDraggingExchanges;
+            IsDraggingExchanges = true;
+            try
+            {
+                drag();
+            }
+            finally
+            {
+                IsDraggingExchanges = wasDragging;
+            }
         }
 
         #region ColumnSorting
@@ -874,7 +916,7 @@ namespace Clearinet
             {
                 while (item.SubItems.Count < Columns.Count) item.SubItems.Add(string.Empty);
                 item.SubItems[newCol.Index].Text = item.Tag is Exchange exchange
-                    ? PopulateColumn(newCol.Index, exchange) : string.Empty;
+                    ? ComputeColumn(newCol.Index, exchange) : string.Empty;
             }
             return newCol;
         }
@@ -925,7 +967,7 @@ namespace Clearinet
         }
         #endregion
 
-        internal string PopulateColumn(int i, Exchange x)
+        internal string ComputeColumn(int i, Exchange x)
         {
             try
             {
@@ -936,7 +978,7 @@ namespace Clearinet
             }
             catch (Exception eX)
             {
-                CApp.Log.LogFormat($"Failed to populate column {i} for Exchange {x.id} due to {eX.Message}");
+                CApp.Log.LogFormat($"Failed to compute column {i} data for Exchange {x.id} due to {eX.Message}");
             }
             return string.Empty;
         }

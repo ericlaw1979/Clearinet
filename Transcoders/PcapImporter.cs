@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 
 namespace TestExtensions
 {
@@ -54,7 +55,7 @@ namespace TestExtensions
                 List<Exchange> exchanges = new List<Exchange>(captured.Count);
                 for (int i = 0; i < captured.Count; i++)
                 {
-                    if (!progress(95 + i * 5 / Math.Max(1, captured.Count), "Creating imported HTTP exchange " + (i + 1) + ".")) return null;
+                    if (!progress(96 + i * 4 / Math.Max(1, captured.Count), "Creating imported HTTP exchange " + (i + 1) + ".")) return null;
                     exchanges.Add(Build(captured[i]));
                 }
                 if (!progress(100, decoder.Summary)) return null;
@@ -98,12 +99,13 @@ namespace TestExtensions
             if (item.RequestIncomplete) flags |= ExchangeFlags.RequestBodyDropped;
             if (item.ResponseIncomplete) flags |= ExchangeFlags.ResponseBodyDropped;
             Exchange exchange = Exchange.BuildFromData(false, request, item.RequestBody, response, item.ResponseBody, flags);
-            exchange.clientIP = item.ClientIP;
-            exchange.port = item.ServerPort;
+            exchange.RecordClientEndpoint(new IPEndPoint(IPAddress.Parse(item.ClientIP), item.ClientPort));
+            if (item.Method != "CONNECT") exchange.port = item.ServerPort;
             exchange["x-imported-by"] = "Packet Capture";
             exchange["x-hostIP"] = item.ServerIP;
             exchange["x-clientport"] = item.ClientPort.ToString(CultureInfo.InvariantCulture);
             exchange["x-pcap-serverport"] = item.ServerPort.ToString(CultureInfo.InvariantCulture);
+            exchange["X-PacketList"] = String.Join(",", item.PacketIds);
             if (item.Informationals.Length > 0) exchange["x-pcap-informational"] = item.Informationals;
             if (item.RequestIncomplete || item.ResponseIncomplete)
                 exchange["ui-comments"] = "Incomplete packet capture: " + (item.RequestIncomplete ? "request body missing bytes; " : "") +
