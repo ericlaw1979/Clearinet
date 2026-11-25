@@ -725,6 +725,12 @@ namespace Clearinet
 
         internal static void CreateScriptEngine()
         {
+            if (!CONFIG.IsMsixBuild)
+            {
+                scriptRules = new JScriptEngine(CONFIG.GetPath("RulesScript"));
+                return;
+            }
+
             if (CONFIG.OVERRIDES.DisableScript)
             {
                 Log.Log("Script engine is disabled by command-line argument.");

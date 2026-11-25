@@ -13,6 +13,16 @@ namespace Clearinet.Tests
     [TestClass]
     public sealed class ScriptingTests
     {
+#if TEST_MSIX
+        private static readonly bool ExpectMsixBuild = true;
+#else
+        private static readonly bool ExpectMsixBuild = false;
+#endif
+        private const string SampleScript = @"import System;
+class Handlers {
+    public static function OnExecAction(args: String[]): boolean { return args[0] == ""sample-command""; }
+}";
+
         private readonly string _testDirectory = Path.Combine(Path.GetTempPath(), "Clearinet.Tests", Guid.NewGuid().ToString("N"));
         private readonly PreferenceBag _originalPreferences;
         private readonly bool _originalScriptDisabled;
@@ -53,19 +63,11 @@ namespace Clearinet.Tests
         }
 
         [TestMethod]
-        public void RulesScript_LegacyPreference_PreservesExplicitUserPath()
+        public void RulesScript_ConfiguredPreference_UsesExplicitUserPath()
         {
-            string path = Path.Combine(_testDirectory, "LegacyRules.js");
-            CApp.Prefs.SetStringPref("app.paths.rulesscript", path);
+            string path = Path.Combine(_testDirectory, "UserRules.js");
+            CApp.Prefs.SetStringPref("app.paths.rules.script", path);
             Assert.AreEqual(path, CONFIG.GetPath("RulesScript"));
-        }
-
-        [TestMethod]
-        public void RulesScript_CurrentPreference_TakesPrecedenceOverLegacyPath()
-        {
-            CApp.Prefs.SetStringPref("app.paths.rulesscript", Path.Combine(_testDirectory, "LegacyRules.js"));
-            CApp.Prefs.SetStringPref("app.paths.rules.script", "");
-            Assert.AreEqual("", CONFIG.GetPath("RulesScript"));
         }
 
         [TestMethod]
@@ -85,10 +87,13 @@ namespace Clearinet.Tests
                 CApp.CreateScriptEngine();
             }
 
-            Assert.IsNull(CApp.scriptRules);
+            if (ExpectMsixBuild) Assert.IsNull(CApp.scriptRules);
+            else Assert.IsNotNull(CApp.scriptRules);
+            Assert.IsFalse(CApp.RunExecAction("sample-command"));
             Assert.AreEqual("class Handlers {}", File.ReadAllText(path));
         }
 
+#if TEST_MSIX
         [TestMethod]
         [DataRow("", DisplayName = "Empty script path")]
         [DataRow(" ", DisplayName = "Whitespace script path")]
@@ -102,7 +107,58 @@ namespace Clearinet.Tests
             Assert.IsFalse(Directory.Exists(_testDirectory));
             Assert.IsFalse(CApp.RunExecAction("unknown-script-command"));
         }
+#endif
 
+        [STATestMethod]
+        [DataRow(true, DisplayName = "Delayed rules creation")]
+        [DataRow(false, DisplayName = "Immediate rules creation")]
+        public void CreateScriptEngine_MissingUserScript_UsesSampleOnlyWhenUnpackaged(bool delayCreate)
+        {
+            Directory.CreateDirectory(_testDirectory);
+            string scriptPath = Path.Combine(_testDirectory, "UserRules.js");
+            string samplePath = Path.Combine(_testDirectory, "SampleRules.js");
+            File.WriteAllText(samplePath, SampleScript);
+            CApp.Prefs.SetStringPref("app.paths.rules.script", scriptPath);
+            CApp.Prefs.SetStringPref("app.paths.rules.sample_script", samplePath);
+            CApp.Prefs.SetBoolPref("scripting.delay_create", delayCreate);
+
+            CApp.CreateScriptEngine();
+
+            Assert.AreEqual(!ExpectMsixBuild, CApp.RunExecAction("sample-command"));
+            if (!ExpectMsixBuild && !delayCreate)
+                Assert.AreEqual(SampleScript, File.ReadAllText(scriptPath));
+            else
+                Assert.IsFalse(File.Exists(scriptPath));
+        }
+
+        [STATestMethod]
+        public void CustomizeRules_MissingUserScript_OpensEditorAndCopiesSampleOnlyWhenUnpackaged()
+        {
+            Directory.CreateDirectory(_testDirectory);
+            string scriptPath = Path.Combine(_testDirectory, "My Rules.js");
+            string samplePath = Path.Combine(_testDirectory, "SampleRules.js");
+            File.WriteAllText(samplePath, SampleScript);
+            CApp.Prefs.SetStringPref("app.paths.rules.script", scriptPath);
+            CApp.Prefs.SetStringPref("app.paths.rules.sample_script", samplePath);
+            CApp.Prefs.SetBoolPref("scripting.delay_create", true);
+            CApp.Prefs.SetStringPref("user.paths.editors.code", "test-editor.exe");
+            CApp.CreateScriptEngine();
+            Assert.IsFalse(File.Exists(scriptPath));
+
+            int launches = 0;
+            frmViewer.CustomizeRules((editor, arguments) =>
+            {
+                launches++;
+                Assert.AreEqual("test-editor.exe", editor);
+                Assert.AreEqual($"\"{scriptPath}\"", arguments);
+                if (ExpectMsixBuild) Assert.IsFalse(File.Exists(scriptPath));
+                else Assert.AreEqual(SampleScript, File.ReadAllText(scriptPath));
+            });
+
+            Assert.AreEqual(1, launches);
+        }
+
+#if TEST_MSIX
         [TestMethod]
         [DataRow(false, DisplayName = "Missing script directory")]
         [DataRow(true, DisplayName = "Missing script file")]
@@ -119,6 +175,7 @@ namespace Clearinet.Tests
             Assert.AreEqual(directoryExists, Directory.Exists(_testDirectory));
             Assert.IsFalse(CApp.RunExecAction("unknown-script-command"));
         }
+#endif
 
         [TestMethod]
         [DataRow(false, DisplayName = "Shutdown allowed by subscriber")]
@@ -192,6 +249,7 @@ class Handlers {
             CollectionAssert.AreEqual(new[] { path }, Directory.GetFiles(_testDirectory));
         }
 
+#if TEST_MSIX
         [TestMethod]
         public void CreateScriptEngine_InvalidScript_ReportsCompilationFailure()
         {
@@ -220,19 +278,20 @@ class Handlers {
             }
             Assert.IsNull(CApp.scriptRules);
         }
+#endif
 
         [STATestMethod]
-        public void ReloadScript_DeletedUserScript_DoesNotLoadSampleOrCreateFiles()
+        public void ReloadScript_DeletedUserScript_UsesSampleOnlyWhenUnpackaged()
         {
             Directory.CreateDirectory(_testDirectory);
             string path = Path.Combine(_testDirectory, "UserRules.js");
             string samplePath = Path.Combine(_testDirectory, "SampleRules.js");
             const string script = @"import System;
 class Handlers {
-    public static function OnExecAction(args: String[]): boolean { return true; }
+    public static function OnExecAction(args: String[]): boolean { return args[0] == ""script-test""; }
 }";
             File.WriteAllText(path, script);
-            File.WriteAllText(samplePath, script);
+            File.WriteAllText(samplePath, SampleScript);
             CApp.Prefs.SetStringPref("app.paths.rules.script", path);
             CApp.Prefs.SetStringPref("app.paths.rules.sample_script", samplePath);
             CApp.CreateScriptEngine();
@@ -242,6 +301,7 @@ class Handlers {
             CApp.scriptRules.ReloadScript();
 
             Assert.IsFalse(CApp.RunExecAction("script-test"));
+            Assert.AreEqual(!ExpectMsixBuild, CApp.RunExecAction("sample-command"));
             Assert.IsFalse(File.Exists(path));
             CollectionAssert.AreEqual(new[] { samplePath }, Directory.GetFiles(_testDirectory));
         }

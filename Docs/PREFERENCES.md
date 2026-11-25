@@ -49,13 +49,3 @@ Below is a list of some preferences, their defaults, and what they control
 `app.ui.save_dialog.places_list` => Semi-colons-separated list of custom places to add to the Save dialog. e.g. `C:\MyFiles;C:\OtherFiles`.
 
 You can find all of the Preferences checked by Clearinet by [Searching the code](https://github.com/search?q=repo%3Aericlaw1979%2Fclearinet+%2FGet.*Pref%5C%28%2F&type=code)
-
-`app.paths.rules.script` defaults to `Documents\Clearinet\CustomRules_0_1_0_0.js`.
-The earlier `app.paths.rulesscript` preference is honored when the new preference
-is not set. The `-noscript` command-line option disables scripting regardless of
-the configured path. System policy can also disable scripting.
-Scripting is optional: a missing file or empty path disables scripting without
-preventing startup or shutdown. Clearinet does not install or generate a rules
-script. You can supply your own file or override this preference with its path.
-Invalid or unreadable scripts still report errors rather than being treated as
-absent.

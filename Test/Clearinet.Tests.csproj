@@ -6,6 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <PlatformTarget Condition="'$(ClearinetTestAppPath)' != ''">x64</PlatformTarget>
     <AppConfig Condition="'$(ClearinetTestAppPath)' != ''">$(ClearinetTestAppPath).config</AppConfig>
+    <DefineConstants Condition="'$(ClearinetTestAppPath)' != ''">$(DefineConstants);TEST_MSIX</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="PcapImport.Tests.cs;NetLogImport.Tests.cs;HarImport.Tests.cs" />

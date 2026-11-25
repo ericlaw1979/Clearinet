@@ -19,6 +19,7 @@
     <EnableMsixTooling Condition="'$(EnableMsixTooling)' == ''">false</EnableMsixTooling>
   </PropertyGroup>
   <PropertyGroup Condition="'$(EnableMsixTooling)' == 'true'">
+    <DefineConstants>$(DefineConstants);CLEARINET_MSIX</DefineConstants>
     <PlatformTarget>x64</PlatformTarget>
     <PreferNativeArm64>false</PreferNativeArm64>
     <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>

@@ -20,6 +20,12 @@ namespace Clearinet
     /// </summary>
     public static class CONFIG
     {
+#if CLEARINET_MSIX
+        internal static bool IsMsixBuild => true;
+#else
+        internal static bool IsMsixBuild => false;
+#endif
+
         public enum ProcessFilter
         {
             All = 0,
@@ -267,8 +273,7 @@ namespace Clearinet
                                                 $"{GetPath("UserFolder")}ImportExport{Path.DirectorySeparatorChar}");
                 case "RulesScript":          // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.script",
-                        CApp.Prefs.GetStringPref("app.paths.rulesscript",
-                                                $"{GetPath("UserFolder")}CustomRules_0_1_0_0.js"));
+                                                $"{GetPath("UserFolder")}CustomRules_0_1_0_0.js");
                 case "SampleRulesScript":    // TODO: REMOVE ALPHA for v1.0
                     return CApp.Prefs.GetStringPref("app.paths.rules.sample_script",
                                                 $"{Application.StartupPath}{Path.DirectorySeparatorChar}SampleRulesALPHA.js");

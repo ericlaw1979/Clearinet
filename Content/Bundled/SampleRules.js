@@ -7,10 +7,9 @@ import Clearinet;
 // This is the Clearinet Rules file, which creates some of the menu commands and
 // other features of the tool. You can edit this file to modify or add new commands.
 
-// This is an optional example, not installed or copied automatically. To use it,
-// copy it yourself to Documents\Clearinet\CustomRules_0_1_0_0.js, or set the
-// app.paths.rules.script preference to your own file. Without a script, Clearinet
-// runs normally with no script-provided features.
+// If you ever mess CustomRules.js up too badly to fix it, you can just delete the
+// CustomRules file and the tool will automatically copy over the default SampleRules.js
+// file included with Clearinet.
 //
 // Eventually, we'll ship a custom editor for this file, but for now you can use Visual
 // Studio Code or any similar tool. Ensure your tool saves this file using UTF-8 Encoding.

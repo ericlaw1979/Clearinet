@@ -71,26 +71,31 @@ directory is a supported state, including normal startup, built-in features,
 and shutdown cancellation through app events.
 
 Users can supply a script at `Documents\Clearinet\CustomRules_0_1_0_0.js` or
-override `app.paths.rules.script`. The earlier `app.paths.rulesscript` override
-is honored if the new preference is not set. An empty override or the
-`-noscript` command-line option disables scripting.
-User-supplied scripts are not overwritten. Invalid or unreadable scripts
-still surface errors. See [preferences](PREFERENCES.md).
+set `app.paths.rules.script` to a different path. In the MSIX build,
+**Rules > Customize** opens the configured path in the editor even if the
+file is missing; Clearinet does not create it or copy a template. Create the
+file in the editor and restart Clearinet if it was missing at startup.
+An empty path, `-noscript`, or system policy disables scripting. Invalid or
+unreadable scripts still surface errors. Unpackaged builds retain their
+sample fallback and `scripting.delay_create` behavior.
 
 ## Validation and deployment boundaries
 
-Run focused scripting regressions independently of packaging:
+Build with Visual Studio MSBuild so WinForms uses classic .NET Framework
+resource generation, then run the focused unpackaged scripting tests:
 
 ```powershell
-dotnet test .\Test\Clearinet.Tests.csproj -c Release '/bl:{}'
+MSBuild.exe .\Test\Clearinet.Tests.csproj /restore /p:Configuration=Release '/bl:{}'
+dotnet test .\Test\Clearinet.Tests.csproj -c Release --no-build '/bl:{}'
 ```
 
-After packaging, run the same regressions against the x64 executable used
-in the MSIX, rather than rebuilding the unpackaged app:
+After packaging, build and run the MSIX-mode tests against the x64 executable
+used in the MSIX, rather than rebuilding the unpackaged app:
 
 ```powershell
 $packagedApp = (Resolve-Path .\Clearinet\bin\msix\x64\Release\Clearinet.exe).Path
-dotnet test .\Test\Clearinet.Tests.csproj -c Release "/p:ClearinetTestAppPath=$packagedApp" '/bl:{}'
+MSBuild.exe .\Test\Clearinet.Tests.csproj /restore /p:Configuration=Release "/p:ClearinetTestAppPath=$packagedApp" '/bl:{}'
+dotnet test .\Test\Clearinet.Tests.csproj -c Release --no-build "/p:ClearinetTestAppPath=$packagedApp" '/bl:{}'
 ```
 
 The alternate test build uses the packaged executable's runtime DLLs and

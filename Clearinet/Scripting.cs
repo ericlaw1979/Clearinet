@@ -77,10 +77,8 @@ namespace Clearinet
 
         internal void EnsureUserScriptExists()
         {
-            if (!File.Exists(_scriptPath))
+            if (!CONFIG.IsMsixBuild && !string.IsNullOrEmpty(_scriptPath) && !File.Exists(_scriptPath))
             {
-                string directory = Path.GetDirectoryName(_scriptPath);
-
                 CApp.Log.Log($"Creating: `{_scriptPath}` from SampleRules.");
                 File.Copy(CONFIG.GetPath("SampleRulesScript"), _scriptPath);
             }
@@ -99,32 +97,50 @@ namespace Clearinet
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(scriptPath))
-                throw new ArgumentNullException(nameof(scriptPath));
-
-            _scriptPath = Path.GetFullPath(scriptPath);
-            string directory = Path.GetDirectoryName(_scriptPath);
-            string fileName = Path.GetFileName(_scriptPath);
-
-            // Initial failures propagate to the caller; reload failures use script reporting.
-            CompileScript(false);
             try
             {
-                _watcher = new FileSystemWatcher(directory, fileName)
-                {
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
-                    SynchronizingObject = CApp.UI, // Ensure events are raised on the UI thread
-                    EnableRaisingEvents = true
-                };
+                _scriptPath = Path.GetFullPath(scriptPath);
+                string directory = Path.GetDirectoryName(_scriptPath);
+                string fileName = Path.GetFileName(_scriptPath);
 
-                // FileSystemWatcher frequently fires multiple events for a single save.
-                // We handle this using a debounced event handler.
-                _watcher.Changed += OnScriptFileChanged;
+                if (CONFIG.IsMsixBuild)
+                {
+                    CompileScript(reportErrors: false);
+                }
+                else if (!File.Exists(_scriptPath))
+                {
+                    if (CApp.Prefs.GetBoolPref("scripting.delay_create", true))
+                        Directory.CreateDirectory(directory);
+                    else
+                        EnsureUserScriptExists();
+                }
+
+                try
+                {
+                    _watcher = new FileSystemWatcher(directory, fileName)
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
+                        SynchronizingObject = CApp.UI, // Ensure events are raised on the UI thread
+                        EnableRaisingEvents = true
+                    };
+
+                    // FileSystemWatcher frequently fires multiple events for a single save.
+                    // We handle this using a debounced event handler.
+                    _watcher.Changed += OnScriptFileChanged;
+                }
+                catch (Exception ex)
+                {
+                    CApp.ReportException(ex, "Failed to initialize script file watcher",
+                        $"There was a problem initializing the script file watcher for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
+                }
+
+                if (!CONFIG.IsMsixBuild)
+                    CompileScript();
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!CONFIG.IsMsixBuild)
             {
-                CApp.ReportException(ex, "Failed to initialize script file watcher",
-                    $"There was a problem initializing the script file watcher for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
+                CApp.ReportException(ex, "Failed to initialize script engine",
+                    $"There was a problem initializing the script engine for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
             }
         }
 
@@ -220,13 +236,18 @@ namespace Clearinet
         {
             try
             {
-                var _sActualPath = _scriptPath;
+                string actualPath = _scriptPath;
+                if (!CONFIG.IsMsixBuild && !File.Exists(actualPath))
+                {
+                    actualPath = CONFIG.GetPath("SampleRulesScript");
+                    CApp.Log.Log($"User's script doesn't exist; using default script: `{actualPath}`.");
+                }
 
-                CApp.Log.Log($"CompileScript(`{_sActualPath}`)");
+                CApp.Log.Log($"CompileScript(`{actualPath}`)");
                 // Clear any prior script state before compiling the new script.
                 UnloadScript();
                 string scriptContent;
-                using (var stream = new FileStream(_sActualPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var stream = new FileStream(actualPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var reader = new StreamReader(stream))
                 {
                     scriptContent = reader.ReadToEnd();
@@ -286,7 +307,8 @@ namespace Clearinet
                     _RunMainMethod();
                 }
             }
-            catch (IOException ex) when (reportErrors && (ex is FileNotFoundException || ex is DirectoryNotFoundException))
+            catch (IOException ex) when (reportErrors && CONFIG.IsMsixBuild &&
+                                         (ex is FileNotFoundException || ex is DirectoryNotFoundException))
             {
                 CApp.Log.Log($"Script file not found: {_scriptPath}; scripting is disabled.");
             }
