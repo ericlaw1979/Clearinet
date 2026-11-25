@@ -35,7 +35,7 @@ try {
         'Ionic.Zip.Reduced.dll', 'BrotliSharpLib.dll', 'ZstdSharp.dll',
         'System.Buffers.dll', 'System.Memory.dll', 'System.Numerics.Vectors.dll',
         'System.Runtime.CompilerServices.Unsafe.dll', 'System.Threading.Tasks.Extensions.dll',
-        'System.Resources.Extensions.dll', 'Credits.txt', 'LICENSE',
+        'Credits.txt', 'LICENSE',
         'Microsoft.Web.WebView2.Core.dll',
         'Microsoft.Web.WebView2.WinForms.dll', 'runtimes/win-x64/native/WebView2Loader.dll',
         'CBOR.dll', 'Numbers.dll', 'URIUtility.dll',
@@ -44,6 +44,9 @@ try {
     )
     $missing = @($required | Where-Object { $_ -notin $names })
     Assert-Package 'RequiredPayload' ($missing.Count -eq 0) "Missing: $($missing -join ', ')"
+    Assert-Package 'ClassicResources' (
+        -not ($names | Where-Object { $_ -match '(^|/)System\.Resources\.Extensions\.dll$' })
+    ) 'Classic WinForms resource generation should not ship System.Resources.Extensions.dll.'
     Assert-Package 'UnsignedArtifact' ('AppxSignature.p7x' -notin $names) 'A package signature is present.'
     $forbidden = @($names | Where-Object { $_ -match '\.(js|pfx|pdb)$' })
     Assert-Package 'NoRulesScriptsOrSigningMaterial' ($forbidden.Count -eq 0) "Unexpected files: $($forbidden -join ', ')"
