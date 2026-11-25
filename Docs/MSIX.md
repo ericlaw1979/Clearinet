@@ -22,10 +22,11 @@ MSBuild.exe .\Clearinet\Clearinet.csproj /restore /p:Configuration=Release /p:Pl
 ```
 
 The SDK-style plugin projects are restored automatically before their packaging
-builds, using isolated NuGet build imports and intermediates.
-`NuGet.Config` limits restore to the public NuGet feed. If that feed's v3
-endpoint is unavailable in your environment, its official v2 endpoint can be
-selected explicitly with MSBuild's `/p:RestoreSources=https://www.nuget.org/api/v2/`.
+builds, using isolated NuGet build imports and intermediates. Restore uses your
+configured NuGet sources. If those sources are unavailable, add
+`/p:RestoreSources=https://api.nuget.org/v3/index.json` to the MSBuild command
+to use only NuGet.org for that invocation. If its v3 endpoint is unavailable,
+use `/p:RestoreSources=https://www.nuget.org/api/v2/` instead.
 
 The reported package path is normally
 `Clearinet\AppPackages\Clearinet_<version>_x64_Test\Clearinet_<version>_x64.msix`.
