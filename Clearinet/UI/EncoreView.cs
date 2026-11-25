@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Clearinet.UI
 {
     public partial class EncoreView : UserControl
     {
+        // The list of Rules.
+        private ReaderWriterLockSlim _rwlRuleLock = new ReaderWriterLockSlim();
+        private List<EncoreRule> _listRules = new List<EncoreRule>();
+
         public EncoreView()
         {
             InitializeComponent();
@@ -23,9 +29,7 @@ namespace Clearinet.UI
                 var XCs = (Clearinet.Exchange[])e.Data.GetData(typeof(Clearinet.Exchange[]));
                 foreach (var xc in XCs)
                 {
-                    var item = lvRules.Items.Add(xc.fullUrl);
-                    item.SubItems.Add($"Exchange #{xc.id}");
-                    item.Tag = xc;
+                    CreateRuleForExchange(xc);
                 }
             }
         }
@@ -74,15 +78,24 @@ namespace Clearinet.UI
                 var saz = SAZFile.LoadFrom(sFilename);
                 foreach (var xc in saz.Exchanges)
                 {
-                    var item = lvRules.Items.Add(xc.fullUrl);
-                    item.SubItems.Add($"Exchange #{xc.id}");
-                    item.Tag = xc;
+                    CreateRuleForExchange(xc);
                 }
             }
             catch (Exception ex)
             {
                 CApp.ReportException(ex, $"Failed to load SAZ file {sFilename}");
             }
+        }
+
+        private void CreateRuleForExchange(Exchange xc)
+        {
+            var ER = new EncoreRule();
+            ER._sMatch = xc.fullUrl;
+            // Display-text only. No impact on actual response.
+            ER._sAction = $"Return HTTP/{xc.ResponseHeaders.StatusCode} ({xc?.ResponseBody?.Length ?? 0} bytes)";
+            ER._headersResponse = xc.ResponseHeaders.Clone();
+            ER._arrResponseBody = xc.ResponseBody.FastClone();
+            UpdateRuleViewItem(ER);
         }
 
         private void btnGroup_Click(object sender, EventArgs e)
@@ -128,6 +141,18 @@ namespace Clearinet.UI
                 e.Handled = e.SuppressKeyPress = true;
                 return;
             }
+            if (e.KeyData == Keys.OemMinus)
+            {
+                // Promote rule
+                e.Handled = e.SuppressKeyPress = true;
+                return;
+            }
+            if (e.KeyData == Keys.Oemplus)
+            {
+                // Demote rule
+                e.Handled = e.SuppressKeyPress = true;
+                return;
+            }
         }
 
         private void cbEnableLatency_CheckedChanged(object sender, EventArgs e)
@@ -135,6 +160,65 @@ namespace Clearinet.UI
             var bLatencyEnabled = cbEnableLatency.Checked;
             CApp.Prefs.SetBoolPref("app.encore.latency_enabled", bLatencyEnabled);
             lvRules.Columns[2].Width = bLatencyEnabled ? 100 : 0;
+        }
+
+        internal void UpdateRuleViewItem(EncoreRule ER)
+        {
+            if (null == ER.ViewItem)
+            {
+                var item = lvRules.Items.Add(ER._sMatch);
+                item.Checked = ER.IsEnabled;
+                item.SubItems.Add(ER._sAction);
+                item.SubItems.Add(ER._msLatency.ToString());
+                item.SubItems.Add(ER.sRuleComment);
+                item.Tag = ER;
+            }
+        }
+    }
+
+
+
+    internal class EncoreRule
+    {
+        // Is the rule enabled?
+        internal bool IsEnabled { get; set; } = true;
+
+        // Is the rule a match?
+        internal string _sMatch;
+
+        // What should happen?
+        internal string _sAction;
+
+        // Should action/response be delayed?
+        internal int _msLatency;
+
+        // Should the rule be disabled after a match?
+        internal bool _bDisableAfterMatch;
+
+        // The response body to return for this rule.
+        internal byte[] _arrResponseBody;
+
+        // The headers to return for this rule.
+        internal HTTPResponseHeaders _headersResponse;
+
+        // The ListViewItem associated with this rule in the EncoreView.
+        internal ListViewItem ViewItem;
+
+        // The comment for this rule, if any. 
+        internal string sRuleComment
+        {
+            get;
+            set;
+        }
+
+        // Does the ACTION refer to a response that we should just return? If so, then the sAction text
+        // is just for the user to read, but the actual Action is "Return _headersResponse and _arrResponseBody".
+        internal bool hasResponse
+        {
+            get
+            {
+                return (_headersResponse != null);
+            }
         }
     }
 }
