@@ -64,21 +64,18 @@ the package does not force a default or run the NSIS registry writes.
 The app project's bundled `Tools\dwebp.exe` and `Tools\CallExecAction.ps1`
 are included in the MSIX as well.
 
-## No installed rules script
+## Rules scripting
 
-Neither the package nor first launch installs, generates, or copies
-`CustomRulesALPHA.js`, `SampleRules.js`, `SampleRulesAlpha.js`, or `poc.js`. A missing script or script
-directory is a supported state, including normal startup, built-in features,
-and shutdown cancellation through app events.
+The MSIX includes the same `SampleRulesAlpha.js` beside `Clearinet.exe` as
+the unpackaged build. No user rules file is installed. Both builds load the
+sample when no user script exists. By default, Clearinet creates the user
+copy only when you choose **Rules > Customize**, before opening it in the
+editor. Set `scripting.delay_create` to `false` to create the copy on startup
+instead. Existing user scripts are not overwritten.
 
-Users can supply a script at `Documents\Clearinet\CustomRules_0_1_0_0.js` or
-set `app.paths.rules.script` to a different path. In the MSIX build,
-**Rules > Customize** opens the configured path in the editor even if the
-file is missing; Clearinet does not create it or copy a template. Create the
-file in the editor and restart Clearinet if it was missing at startup.
-An empty path, `-noscript`, or system policy disables scripting. Invalid or
-unreadable scripts still surface errors. Unpackaged builds retain their
-sample fallback and `scripting.delay_create` behavior.
+The default user script is `Documents\Clearinet\CustomRules_0_1_0_0.js`.
+Set `app.paths.rules.script` to use a different writable path. `-noscript`
+and system policy can disable scripting in both builds.
 
 ## Validation and deployment boundaries
 
@@ -90,7 +87,7 @@ MSBuild.exe .\Test\Clearinet.Tests.csproj /restore /p:Configuration=Release '/bl
 dotnet test .\Test\Clearinet.Tests.csproj -c Release --no-build '/bl:{}'
 ```
 
-After packaging, build and run the MSIX-mode tests against the x64 executable
+After packaging, build and run the same tests against the x64 executable
 used in the MSIX, rather than rebuilding the unpackaged app:
 
 ```powershell
@@ -101,8 +98,8 @@ dotnet test .\Test\Clearinet.Tests.csproj -c Release --no-build "/p:ClearinetTes
 
 The alternate test build uses the packaged executable's runtime DLLs and
 configuration, with separate intermediates and outputs. These tests check
-scripting absence, lifecycle cancellation, user-supplied scripting, and
-invalid/unreadable script errors, but do not register the package or prove
+scripting restrictions, sample fallback, user-script creation, and reload,
+but do not register the package or prove
 Explorer activation or MSIX registry virtualization.
 
 Check the produced archive without signing, extracting, or installing it:
@@ -111,8 +108,8 @@ Check the produced archive without signing, extracting, or installing it:
 .\Test\Test-MsixPackage.ps1 -PackagePath .\Clearinet\AppPackages\Clearinet_0.1.2.0_x64_Test\Clearinet_0.1.2.0_x64.msix
 ```
 
-This checks the payload, unsigned state, absence of rules scripts/signing
-material, identity, manifest and binary architecture, minimum OS, full-trust entry point,
+This checks the payload (including the sample and no user rules scripts),
+unsigned state, identity, manifest and binary architecture, minimum OS, full-trust entry point,
 file associations, generated runtime configuration, and visual asset dimensions.
 MakeAppx also validates the package manifest during the build.
 

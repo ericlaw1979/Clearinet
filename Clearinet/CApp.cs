@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -725,42 +724,7 @@ namespace Clearinet
 
         internal static void CreateScriptEngine()
         {
-            if (!CONFIG.IsMsixBuild)
-            {
-                scriptRules = new JScriptEngine(CONFIG.GetPath("RulesScript"));
-                return;
-            }
-
-            if (CONFIG.OVERRIDES.DisableScript)
-            {
-                Log.Log("Script engine is disabled by command-line argument.");
-                return;
-            }
-
-            if (CONFIG.POLICIES.DisableScript)
-            {
-                Log.Log("Script engine is disabled by system policy.");
-                return;
-            }
-
-            string sScriptPath = CONFIG.GetPath("RulesScript");
-            if (string.IsNullOrWhiteSpace(sScriptPath))
-            {
-                Log.Log("No rules script configured; scripting is disabled.");
-                return;
-            }
-
-            try
-            {
-                File.GetAttributes(sScriptPath);
-            }
-            catch (IOException eX) when (eX is FileNotFoundException || eX is DirectoryNotFoundException)
-            {
-                Log.LogFormat("No rules script found at {0}; scripting is disabled.", sScriptPath);
-                return;
-            }
-
-            scriptRules = new JScriptEngine(sScriptPath);
+            scriptRules = new JScriptEngine(CONFIG.GetPath("RulesScript"));
         }
 
         internal static void OnProxyAttach()

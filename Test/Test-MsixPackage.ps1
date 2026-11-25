@@ -30,7 +30,7 @@ function Read-PackageText {
 try {
     $names = @($archive.Entries.FullName)
     $required = @(
-        'Clearinet.exe', 'Clearinet.exe.config', 'Extensions/CAE-Default.dll',
+        'Clearinet.exe', 'Clearinet.exe.config', 'SampleRulesAlpha.js', 'Extensions/CAE-Default.dll',
         'ImportExport/CAT-Default.dll', 'Svg.dll', 'ExCSS.dll',
         'Ionic.Zip.Reduced.dll', 'BrotliSharpLib.dll', 'ZstdSharp.dll',
         'System.Buffers.dll', 'System.Memory.dll', 'System.Numerics.Vectors.dll',
@@ -48,8 +48,8 @@ try {
         -not ($names | Where-Object { $_ -match '(^|/)System\.Resources\.Extensions\.dll$' })
     ) 'Classic WinForms resource generation should not ship System.Resources.Extensions.dll.'
     Assert-Package 'UnsignedArtifact' ('AppxSignature.p7x' -notin $names) 'A package signature is present.'
-    $forbidden = @($names | Where-Object { $_ -match '\.(js|pfx|pdb)$' })
-    Assert-Package 'NoRulesScriptsOrSigningMaterial' ($forbidden.Count -eq 0) "Unexpected files: $($forbidden -join ', ')"
+    $forbidden = @($names | Where-Object { $_ -ne 'SampleRulesAlpha.js' -and $_ -match '\.(js|pfx|pdb)$' })
+    Assert-Package 'NoExtraScriptsOrSigningMaterial' ($forbidden.Count -eq 0) "Unexpected files: $($forbidden -join ', ')"
 
     [xml] $manifest = Read-PackageText 'AppxManifest.xml'
     Assert-Package 'PackageIdentity' (

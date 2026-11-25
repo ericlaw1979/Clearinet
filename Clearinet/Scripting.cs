@@ -77,8 +77,9 @@ namespace Clearinet
 
         internal void EnsureUserScriptExists()
         {
-            if (!CONFIG.IsMsixBuild && !string.IsNullOrEmpty(_scriptPath) && !File.Exists(_scriptPath))
+            if (!string.IsNullOrEmpty(_scriptPath) && !File.Exists(_scriptPath))
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(_scriptPath));
                 CApp.Log.Log($"Creating: `{_scriptPath}` from SampleRules.");
                 File.Copy(CONFIG.GetPath("SampleRulesScript"), _scriptPath);
             }
@@ -103,11 +104,7 @@ namespace Clearinet
                 string directory = Path.GetDirectoryName(_scriptPath);
                 string fileName = Path.GetFileName(_scriptPath);
 
-                if (CONFIG.IsMsixBuild)
-                {
-                    CompileScript(reportErrors: false);
-                }
-                else if (!File.Exists(_scriptPath))
+                if (!File.Exists(_scriptPath))
                 {
                     if (CApp.Prefs.GetBoolPref("scripting.delay_create", true))
                         Directory.CreateDirectory(directory);
@@ -134,10 +131,9 @@ namespace Clearinet
                         $"There was a problem initializing the script file watcher for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
                 }
 
-                if (!CONFIG.IsMsixBuild)
-                    CompileScript();
+                CompileScript();
             }
-            catch (Exception ex) when (!CONFIG.IsMsixBuild)
+            catch (Exception ex)
             {
                 CApp.ReportException(ex, "Failed to initialize script engine",
                     $"There was a problem initializing the script engine for {PlatformAPI.CompactPath(_scriptPath, 50)}.");
@@ -232,12 +228,12 @@ namespace Clearinet
             ReloadScript();
         }
 
-        private void CompileScript(bool reportErrors = true)
+        private void CompileScript()
         {
             try
             {
                 string actualPath = _scriptPath;
-                if (!CONFIG.IsMsixBuild && !File.Exists(actualPath))
+                if (!File.Exists(actualPath))
                 {
                     actualPath = CONFIG.GetPath("SampleRulesScript");
                     CApp.Log.Log($"User's script doesn't exist; using default script: `{actualPath}`.");
@@ -307,12 +303,7 @@ namespace Clearinet
                     _RunMainMethod();
                 }
             }
-            catch (IOException ex) when (reportErrors && CONFIG.IsMsixBuild &&
-                                         (ex is FileNotFoundException || ex is DirectoryNotFoundException))
-            {
-                CApp.Log.Log($"Script file not found: {_scriptPath}; scripting is disabled.");
-            }
-            catch (Exception ex) when (reportErrors)
+            catch (Exception ex)
             {
                 _isReadyForCalls = false;
                 _clearCachedHandlerMethods();

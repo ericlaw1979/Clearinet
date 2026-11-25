@@ -20,12 +20,6 @@ namespace Clearinet
     /// </summary>
     public static class CONFIG
     {
-#if CLEARINET_MSIX
-        internal static bool IsMsixBuild => true;
-#else
-        internal static bool IsMsixBuild => false;
-#endif
-
         public enum ProcessFilter
         {
             All = 0,
