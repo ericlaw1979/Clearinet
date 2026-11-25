@@ -2534,6 +2534,10 @@ namespace Clearinet
                     byte[] body = File.ReadAllBytes(path);
                     string contentType = Utilities.MediaTypeFromFilename(path);
                     exResult = CreateFauxExchange($"/clipboard/{Path.GetFileName(path)}", contentType, body);
+                    if (exResult != null)
+                    {
+                        exResult.ResponseHeaders["Last-Modified"] = File.GetLastWriteTimeUtc(path).ToString("R");
+                    }
                 }
                 catch (Exception eX)
                 {
