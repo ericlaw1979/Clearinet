@@ -247,7 +247,7 @@ namespace Extensions
         private void miLookupHeader_Click(object sender, EventArgs e)
         {
             string sName = CurrentHeaderName();
-            Utilities.LaunchHyperlink(CApp.Prefs.GetStringPref("inspector.headers.searchurl",
+            Utilities.LaunchHyperlink(CApp.Prefs.GetStringPref("inspectors.headers.searchurl",
                    "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/$W$").Replace("$W$", sName));
         }
 

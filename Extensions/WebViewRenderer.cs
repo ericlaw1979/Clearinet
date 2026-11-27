@@ -1,3 +1,4 @@
+using Clearinet;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using System;
@@ -39,8 +40,13 @@ namespace Extensions
                         "--autoplay-policy=user-gesture-required --host-resolver-rules=\"MAP * ~NOTFOUND\""
                 };
                 string dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Clearinet", "WebViewPreview");
-                // TODO: This can take a terribly long time.
-                Clearinet.Utilities.AddToCleanupOnExit(dataFolder);
+
+                // NOTE: Cleanup can take a very long time, and it's also not safe to do it if
+                // there's another instance of WebView running.
+                if (CApp.Prefs.GetBoolPref("inspectors.webview.cleanup_on_exit", false))
+                {
+                    Clearinet.Utilities.AddToCleanupOnExit(dataFolder);
+                }
 
                 environment = await CoreWebView2Environment.CreateAsync(null, dataFolder, options);
                 if (IsDisposed || Disposing) return;

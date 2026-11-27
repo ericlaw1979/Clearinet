@@ -49,7 +49,7 @@ namespace Extensions
 
         private void lnkHeaderLookup_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Utilities.LaunchHyperlink(CApp.Prefs.GetStringPref("inspector.headers.searchurl",
+            Utilities.LaunchHyperlink(CApp.Prefs.GetStringPref("inspectors.headers.searchurl",
                  "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/$W$").Replace("$W$", txtName.Text));
         }
 
