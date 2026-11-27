@@ -77,10 +77,9 @@ namespace Clearinet
 
         internal void EnsureUserScriptExists()
         {
-            if (!File.Exists(_scriptPath))
+            if (!string.IsNullOrEmpty(_scriptPath) && !File.Exists(_scriptPath))
             {
-                string directory = Path.GetDirectoryName(_scriptPath);
-
+                Directory.CreateDirectory(Path.GetDirectoryName(_scriptPath));
                 CApp.Log.Log($"Creating: `{_scriptPath}` from SampleRules.");
                 File.Copy(CONFIG.GetPath("SampleRulesScript"), _scriptPath);
             }
@@ -98,31 +97,19 @@ namespace Clearinet
                 CApp.Log.Log($"Script engine is disabled by system policy.");
                 return;
             }
+
             try
             {
-                Debug.Assert(scriptPath.HasText());
                 _scriptPath = Path.GetFullPath(scriptPath);
                 string directory = Path.GetDirectoryName(_scriptPath);
                 string fileName = Path.GetFileName(_scriptPath);
 
-                // If we boot and the script file doesn't exist, ensure that its folder exists so that
-                // we can watch for any new script file that may be created later.
-                // If the script file doesn't exist, we will either load the sample script or copy it
-                // to the target folder, depending on the "scripting.delay_create" preference.
-                //
                 if (!File.Exists(_scriptPath))
                 {
-                    if (!CApp.Prefs.GetBoolPref("scripting.delay_create", true))
-                    {
-                        EnsureUserScriptExists();
-                    }
-                    else
-                    {
-                        // Ensure we still create the directory so we can watch the path
-                        // for changes.
-                        // else adding the watcher will fail with a DirectoryNotFoundException.
+                    if (CApp.Prefs.GetBoolPref("scripting.delay_create", true))
                         Directory.CreateDirectory(directory);
-                    }
+                    else
+                        EnsureUserScriptExists();
                 }
 
                 try
@@ -245,21 +232,18 @@ namespace Clearinet
         {
             try
             {
-                // If the user doesn't have their own customrules.js file, we'll just load the
-                // sample rules. If the user later uses Rules > Customize, we'll create it at that
-                // time.
-                var _sActualPath = _scriptPath;
-                if (!File.Exists(_sActualPath))
+                string actualPath = _scriptPath;
+                if (!File.Exists(actualPath))
                 {
-                    _sActualPath = CONFIG.GetPath("SampleRulesScript");
-                    CApp.Log.Log($"User's script doesn't exist; using default script: `{_sActualPath}`.");
+                    actualPath = CONFIG.GetPath("SampleRulesScript");
+                    CApp.Log.Log($"User's script doesn't exist; using default script: `{actualPath}`.");
                 }
 
-                CApp.Log.Log($"CompileScript(`{_sActualPath}`)");
+                CApp.Log.Log($"CompileScript(`{actualPath}`)");
                 // Clear any prior script state before compiling the new script.
                 UnloadScript();
                 string scriptContent;
-                using (var stream = new FileStream(_sActualPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var stream = new FileStream(actualPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var reader = new StreamReader(stream))
                 {
                     scriptContent = reader.ReadToEnd();

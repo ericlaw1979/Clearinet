@@ -3221,9 +3221,13 @@ namespace Clearinet
 
         public void actCustomizeRules()
         {
-            CApp.scriptRules.EnsureUserScriptExists();
-            Utilities.LaunchNative(CONFIG.GetPath("Editor.Code"),
-                $"\"{CONFIG.GetPath("RulesScript")}\"");
+            CustomizeRules(Utilities.LaunchNative);
+        }
+
+        internal static void CustomizeRules(Action<string, string> launchEditor)
+        {
+            CApp.scriptRules?.EnsureUserScriptExists();
+            launchEditor(CONFIG.GetPath("Editor.Code"), $"\"{CONFIG.GetPath("RulesScript")}\"");
         }
 
         private void tsbComment_Click(object sender, EventArgs e)

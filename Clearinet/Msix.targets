@@ -1,0 +1,55 @@
+<Project>
+  <PropertyGroup>
+    <BuildClearinetMsixPluginsDependsOn>CopyFilesToOutputDirectory</BuildClearinetMsixPluginsDependsOn>
+  </PropertyGroup>
+  <Target Name="ValidateClearinetMsixConfiguration" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Platform)' != 'x64'" Text="Clearinet MSIX packaging supports only Platform=x64." />
+    <Error Condition="'$(AppxPackageSigningEnabled)' != 'false'" Text="Clearinet MSIX packages must be unsigned." />
+    <Error Condition="'$(AppxBundle)' != 'Never'" Text="Clearinet MSIX packaging does not build bundles." />
+  </Target>
+  <Target Name="BuildClearinetMsixPlugins" BeforeTargets="_ComputeAppxPackagePayload"
+          DependsOnTargets="$(BuildClearinetMsixPluginsDependsOn)">
+    <PropertyGroup>
+      <_ClearinetPluginBuildRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'plugins'))</_ClearinetPluginBuildRoot>
+      <_ClearinetPluginBuildProperties>Configuration=$(Configuration);Platform=AnyCPU;PlatformTarget=x64;EnableMsixTooling=false;ClearinetPackageBuild=true;ClearinetTargetPath=$(TargetPath);ClearinetTargetDirectory=$(TargetDir);PreferNativeArm64=false</_ClearinetPluginBuildProperties>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ClearinetPluginProject Include="..\Extensions\Extensions.csproj">
+        <AdditionalProperties>OutputPath=$(_ClearinetPluginBuildRoot)Extensions\bin\;IntermediateOutputPath=$(_ClearinetPluginBuildRoot)Extensions\obj\;MSBuildProjectExtensionsPath=$(_ClearinetPluginBuildRoot)Extensions\obj\</AdditionalProperties>
+        <RestoreBeforeBuild>true</RestoreBeforeBuild>
+      </_ClearinetPluginProject>
+      <_ClearinetPluginProject Include="..\Transcoders\Transcoders.csproj">
+        <AdditionalProperties>OutputPath=$(_ClearinetPluginBuildRoot)Transcoders\bin\;IntermediateOutputPath=$(_ClearinetPluginBuildRoot)Transcoders\obj\;MSBuildProjectExtensionsPath=$(_ClearinetPluginBuildRoot)Transcoders\obj\</AdditionalProperties>
+        <RestoreBeforeBuild>true</RestoreBeforeBuild>
+      </_ClearinetPluginProject>
+      <_ClearinetPluginRestoreProject Include="@(_ClearinetPluginProject)"
+                                     Condition="'%(_ClearinetPluginProject.RestoreBeforeBuild)' == 'true'" />
+    </ItemGroup>
+    <!-- A distinct restore evaluation lets the build import newly restored NuGet targets. -->
+    <MSBuild Projects="@(_ClearinetPluginRestoreProject)" Targets="Restore"
+             Properties="$(_ClearinetPluginBuildProperties);ExcludeRestorePackageImports=true" />
+    <MSBuild Projects="@(_ClearinetPluginProject)" Targets="GetClearinetPackagePayload"
+             Properties="$(_ClearinetPluginBuildProperties)"
+             BuildInParallel="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_ClearinetPluginPayload" />
+    </MSBuild>
+    <ItemGroup>
+      <!-- The app's resolved dependencies take precedence over plugin copies. -->
+      <_ClearinetAppPayload Include="@(ReferenceCopyLocalPaths)"
+                           TargetPath="%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)" />
+      <_ClearinetAppPayload Include="$(TargetPath)" TargetPath="$(TargetFileName)" />
+      <_ClearinetAppPayload Include="$(TargetPath).config" TargetPath="$(TargetFileName).config" />
+      <_ClearinetPluginPayload Remove="@(_ClearinetAppPayload)" MatchOnMetadata="TargetPath" MatchOnMetadataOptions="PathLike" />
+      <AppxPackagePayload Include="@(_ClearinetPluginPayload)" />
+    </ItemGroup>
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output TaskParameter="Assemblies" ItemName="_ClearinetAssembly" />
+    </GetAssemblyIdentity>
+    <XmlPeek XmlInputPath="$(MSBuildProjectDirectory)\Package.appxmanifest"
+             Query="/*[local-name()='Package']/*[local-name()='Identity']/@Version">
+      <Output TaskParameter="Result" PropertyName="_ClearinetPackageVersion" />
+    </XmlPeek>
+    <Error Condition="'$(_ClearinetPackageVersion)' != '%(_ClearinetAssembly.Version)'"
+           Text="The MSIX manifest version must match Clearinet's AssemblyVersion (%(_ClearinetAssembly.Version))." />
+  </Target>
+</Project>

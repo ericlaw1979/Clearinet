@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup Condition="'$(EnableMsixTooling)' == 'true'">
+    <BaseIntermediateOutputPath>obj\msix\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\msix\</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**;AppPackages\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+[assembly: InternalsVisibleTo("Clearinet.Tests")]
+
 [assembly: AssemblyTitle("Clearinet")]
 [assembly: AssemblyProduct("Clearinet")]
 [assembly: AssemblyDescription("Web Debugging Utility")]

@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup Condition="'$(ClearinetTestAppPath)' != ''">
+    <BaseIntermediateOutputPath>obj\msix-payload\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\msix-payload\</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

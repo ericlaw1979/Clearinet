@@ -112,12 +112,34 @@
       <DependentUpon>RawText.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(ClearinetPackageBuild)' != 'true'">
     <ProjectReference Include="..\Clearinet\Clearinet.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ClearinetPackageBuild)' == 'true'">
+    <Reference Include="Clearinet">
+      <HintPath>$(ClearinetTargetPath)</HintPath>
+    </Reference>
+    <Reference Include="System.Buffers;System.Memory;System.Numerics.Vectors;System.Runtime.CompilerServices.Unsafe">
+      <HintPath>$(ClearinetTargetDirectory)%(Identity).dll</HintPath>
+    </Reference>
   </ItemGroup>
   <!-- Resolve TargetPath before expanding the post-build event. -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(ClearinetPackageBuild)' != 'true'">
     <PostBuildEvent>powershell -Command "$destDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Clearinet\Extensions'; if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }; Copy-Item -Path '$(TargetPath)',  '$(TargetDir)Microsoft.Web.WebView2.Core.dll', '$(TargetDir)Microsoft.Web.WebView2.WinForms.dll' -Destination $destDir -Force; Copy-Item -Path '$(TargetDir)runtimes' -Destination $destDir -Recurse -Force"</PostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <ClearinetPackagePayloadDependsOn>Build</ClearinetPackagePayloadDependsOn>
+  </PropertyGroup>
+  <Target Name="GetClearinetPackagePayload" DependsOnTargets="$(ClearinetPackagePayloadDependsOn)"
+          Returns="@(_ClearinetPackagePayload)">
+    <ItemGroup>
+      <_ClearinetPackagePayload Include="$(TargetPath)" TargetPath="Extensions\$(TargetFileName)" />
+      <_ClearinetPackagePayload Include="@(ReferenceCopyLocalPaths)"
+                               TargetPath="%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)"
+                               Condition="'%(ReferenceCopyLocalPaths.Extension)' != '.xml' and '%(ReferenceCopyLocalPaths.Extension)' != '.pdb'" />
+      <_ClearinetPackagePayload Include="@(ContentWithTargetPath)" TargetPath="%(ContentWithTargetPath.TargetPath)"
+                               Condition="'%(ContentWithTargetPath.CopyToOutputDirectory)' == 'Always' or '%(ContentWithTargetPath.CopyToOutputDirectory)' == 'PreserveNewest'" />
+    </ItemGroup>
+  </Target>
 </Project>

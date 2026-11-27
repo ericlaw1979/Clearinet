@@ -913,8 +913,11 @@ namespace Clearinet
 
         internal static bool OnBeforeShutdown()
         {
-            scriptRules.CallMethod("OnBeforeShutdown", null, out object oRes);
-            if ((null != oRes) && (false == (bool)oRes)) return false;
+            if (scriptRules != null)
+            {
+                scriptRules.CallMethod("OnBeforeShutdown", null, out object oRes);
+                if ((null != oRes) && (false == (bool)oRes)) return false;
+            }
 
             CancelEventHandler evtBeforeShutdown = BeforeAppShutdown;
             if (null != evtBeforeShutdown)

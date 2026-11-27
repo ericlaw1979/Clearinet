@@ -47,6 +47,19 @@ Where possible, we should aim to fix some of the [Fiddler Mistakes](https://text
 
 To aid in AI-powered porting/modernization of code, an [AGENTS.md](/Docs/AGENTS.md) file is available.
 
+## Building an unsigned MSIX
+
+The Windows app supports opt-in, single-project MSIX packaging from
+`Clearinet\Clearinet.csproj`, without a separate packaging project or a WinUI
+conversion. See [MSIX packaging](Docs/MSIX.md) for prerequisites and the local
+build command. The package is x64, requires Windows 10 21H2 or later with .NET
+Framework 4.8.1, and includes the default extensions and transcoders.
+
+Packages are currently unsigned. Building does not sign, install, or register
+the app or change certificate trust. The MSIX includes the same sample rules
+as the unpackaged build, but no user rules file. The NSIS installer remains
+separate.
+
 ## Commentary and Motivation
 This application is the _spiritual_ successor to the Fiddler Web Debugger, a tool which was acquired by Telerik in 2012 with the promise that it would remain free forever. Progress Software acquired Telerik at the end of 2014. In 2016, Fiddler's maintainer left Telerik/Progress and the Fiddler Web Debugger, later renamed to Fiddler Classic, saw few updates over the following 10 years. In August 2026, Progress announced that they were reneging on earlier promises and changing the tool's license to preclude any commercial use. They also refuse to offer for sale any license for such use. More discussion can be found in the [Fiddler in 2026 blog post](https://textslashplain.com/2026/08/05/fiddler-in-2026/).
 

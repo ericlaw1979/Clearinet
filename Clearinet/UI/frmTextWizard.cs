@@ -311,7 +311,8 @@ namespace Clearinet
                         break;
 
                     default:
-                        if (!CApp.scriptRules.RunTextCodec(cbxTransforms.Text, sText, out sOutput, out arrLatestOutput))
+                        if (CApp.scriptRules == null ||
+                            !CApp.scriptRules.RunTextCodec(cbxTransforms.Text, sText, out sOutput, out arrLatestOutput))
                         {
                             sOutput = $"Error: No text codec found for '{cbxTransforms.Text}'";
                         }
@@ -416,7 +417,8 @@ namespace Clearinet
             txtOutput.Font = new Font(txtOutput.Font.FontFamily, CONFIG.flFontSize);
             txtOutput.BackColor = CONFIG.colorDisabledEdit;
             txtOutput.ForeColor = CONFIG.colorDisabledEditForeColor;
-            cbxTransforms.Items.AddRange(CApp.scriptRules.AvailableTextCodecs());
+            if (CApp.scriptRules != null)
+                cbxTransforms.Items.AddRange(CApp.scriptRules.AvailableTextCodecs());
 
             try
             {

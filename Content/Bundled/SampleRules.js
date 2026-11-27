@@ -8,7 +8,7 @@ import Clearinet;
 // other features of the tool. You can edit this file to modify or add new commands.
 
 // If you ever mess CustomRules.js up too badly to fix it, you can just delete the
-// CustomRules file and the tool will automatically copy over the default SampleRules.js 
+// CustomRules file and the tool will automatically copy over the default SampleRules.js
 // file included with Clearinet.
 //
 // Eventually, we'll ship a custom editor for this file, but for now you can use Visual

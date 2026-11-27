@@ -23,12 +23,28 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(ClearinetPackageBuild)' != 'true'">
     <ProjectReference Include="..\Clearinet\Clearinet.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ClearinetPackageBuild)' == 'true'">
+    <Reference Include="Clearinet">
+      <HintPath>$(ClearinetTargetPath)</HintPath>
+    </Reference>
   </ItemGroup>
   <!-- Resolve TargetPath before expanding the post-build event. -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(ClearinetPackageBuild)' != 'true'">
     <PostBuildEvent>powershell -Command "$destDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Clearinet\ImportExport'; New-Item -ItemType Directory -Path $destDir -Force | Out-Null; Copy-Item -Path '$(TargetPath)' -Destination $destDir -Force"</PostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <ClearinetPackagePayloadDependsOn>Build</ClearinetPackagePayloadDependsOn>
+  </PropertyGroup>
+  <Target Name="GetClearinetPackagePayload" DependsOnTargets="$(ClearinetPackagePayloadDependsOn)"
+          Returns="@(_ClearinetPackagePayload)">
+    <ItemGroup>
+      <_ClearinetPackagePayload Include="$(TargetPath)" TargetPath="ImportExport\$(TargetFileName)" />
+      <_ClearinetPackagePayload Include="@(ReferenceCopyLocalPaths)" TargetPath="%(Filename)%(Extension)"
+                               Condition="'%(ReferenceCopyLocalPaths.Extension)' != '.xml' and '%(ReferenceCopyLocalPaths.Extension)' != '.pdb'" />
+    </ItemGroup>
+  </Target>
 </Project>
