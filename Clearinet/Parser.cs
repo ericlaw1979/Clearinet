@@ -19,6 +19,13 @@ namespace Clearinet
             while (ixHeader < arrHeaderLines.Length)
             {
                 ixToken = arrHeaderLines[ixHeader].IndexOf(':');
+                if (ixToken == 0)
+                {
+                    if ((headers.HTTPVersion == "HTTP/2"))
+                        // HTTP/2 allows pseudo-headers like ":method" and ":path" which don't
+                        // have a colon separating name and value.
+                        ixToken = 1 + arrHeaderLines[ixHeader].Substring(1).IndexOf(':');
+                }
 
                 // Per RFC2616, name must be at least one character, but value can be empty.
                 if (ixToken > 0)
@@ -26,6 +33,12 @@ namespace Clearinet
                     oNewHeader = headers.Add(
                         arrHeaderLines[ixHeader].Substring(0, ixToken),
                         arrHeaderLines[ixHeader].Substring(ixToken + 1).TrimStart(new[] { ' ', '\t' }));
+
+                    // hack. Tracked as Issue #20, fixes #76 for now.
+                    if (oNewHeader.Name == ":authority")
+                    {
+                        headers.Add("host", oNewHeader.Value);
+                    }
                 }
                 else
                 {
@@ -44,6 +57,7 @@ namespace Clearinet
                         }
                         bResult = false;
                         oNewHeader = headers.Add(arrHeaderLines[ixHeader], string.Empty);
+
                         sErrors += String.Format("Header missing colon #{0}, {1}\n", 1 + ixHeader - iStartFrom, arrHeaderLines[ixHeader]);
                     }
                 }
