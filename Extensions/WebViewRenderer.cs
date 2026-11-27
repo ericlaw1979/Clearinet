@@ -39,6 +39,9 @@ namespace Extensions
                         "--autoplay-policy=user-gesture-required --host-resolver-rules=\"MAP * ~NOTFOUND\""
                 };
                 string dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Clearinet", "WebViewPreview");
+                // TODO: This can take a terribly long time.
+                Clearinet.Utilities.AddToCleanupOnExit(dataFolder);
+
                 environment = await CoreWebView2Environment.CreateAsync(null, dataFolder, options);
                 if (IsDisposed || Disposing) return;
                 CoreWebView2ControllerOptions controller = environment.CreateCoreWebView2ControllerOptions();
@@ -51,6 +54,7 @@ namespace Extensions
                 CoreWebView2Settings settings = core.Settings;
                 settings.IsScriptEnabled = false;
                 settings.AreDefaultScriptDialogsEnabled = false;
+
                 settings.IsWebMessageEnabled = false;
                 settings.AreHostObjectsAllowed = false;
                 settings.AreDevToolsEnabled = false;

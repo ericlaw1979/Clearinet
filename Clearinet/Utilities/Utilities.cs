@@ -565,7 +565,7 @@ namespace Clearinet
         {
             string tempDirectory = Path.Combine(Path.GetTempPath(), "Clearinet-Diff-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(tempDirectory);
-            Utilities.CleanupOnExit(tempDirectory);
+            Utilities.AddToCleanupOnExit(tempDirectory);
             try
             {
                 string path1 = Path.Combine(tempDirectory, x1.id + ".exchange");
@@ -600,7 +600,10 @@ namespace Clearinet
         }
 
         static List<string> directoriesToRemove = new List<string>();
-        public static void CleanupOnExit(string tempDirectory)
+        /// <summary>
+        /// Add a folder to be wiped on exit.
+        /// </summary>
+        public static void AddToCleanupOnExit(string tempDirectory)
         {
             lock (directoriesToRemove)
             {
@@ -610,16 +613,20 @@ namespace Clearinet
 
         public static void CleanupTempDirectories()
         {
-            lock (directoriesToRemove)
+            CApp.UI.SetStatusText("Cleaning up temporary directories...");
+            using (LongRunningOperation lroCleanup = new LongRunningOperation("Cleanup temporary directories", true))
             {
+                int iX = 0;
                 foreach (var dir in directoriesToRemove)
                 {
+
                     try
                     {
                         if (Directory.Exists(dir))
                         {
                             Directory.Delete(dir, recursive: true);
                         }
+                        lroCleanup.UpdateProgress((int)(iX / (float)directoriesToRemove.Count) * 100);
                     }
                     catch (Exception ex)
                     {
@@ -627,6 +634,7 @@ namespace Clearinet
                     }
                 }
             }
+            CApp.UI.SetStatusText("Done cleaning up.");
         }
 
         public static void LaunchHyperlink(string sURL)
