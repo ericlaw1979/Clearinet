@@ -398,8 +398,7 @@ namespace Clearinet
         {
             var (sHeaderBlock, body) = Parser.CrackHttpMessage(strmContent);
             var (method, path, version, headerList, origin) = Parser.ParseRequestHeaders(sHeaderBlock);
-            HTTPRequestHeaders rqh = new HTTPRequestHeaders(path, headerList);
-            rqh.HTTPVersion = version;
+            HTTPRequestHeaders rqh = new HTTPRequestHeaders(method, path, version, headerList);
             rqh.HTTPMethod = method;
             if ((origin != null) && origin.Contains(":"))
             {

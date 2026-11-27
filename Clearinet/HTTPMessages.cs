@@ -163,9 +163,14 @@ namespace Clearinet
         private string _RequestPath = String.Empty;
 
         public HTTPRequestHeaders() { }
-        public HTTPRequestHeaders(string sRequestPath, string[] arrHeaderLines)
+
+        // TODO: Deprecate this one.
+        public HTTPRequestHeaders(string sRequestPath, string[] arrHeaderLines) : this("GET", sRequestPath, "HTTP/1.1", arrHeaderLines) { }
+
+        public HTTPRequestHeaders(string sMethod, string sRequestPath, string sVersion, string[] arrHeaderLines)
         {
-            this.HTTPMethod = "GET";
+            this.HTTPMethod = sMethod;
+            this.HTTPVersion = sVersion; // Ensure you do this BEFORE parsing header lines because of H2 pseudo headers.
             this.RequestPath = sRequestPath.Trim();  // Trim for convenience
             if (null != arrHeaderLines)
             {
