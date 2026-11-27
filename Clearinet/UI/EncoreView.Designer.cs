@@ -224,6 +224,7 @@
             this.lvRules.DragDrop += new System.Windows.Forms.DragEventHandler(this.lvRules_DragDrop);
             this.lvRules.DragEnter += new System.Windows.Forms.DragEventHandler(this.lvRules_DragEnter);
             this.lvRules.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvRules_KeyDown);
+            this.lvRules.CheckBoxes = true;
             // 
             // colCondition
             // 
