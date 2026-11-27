@@ -315,6 +315,10 @@ namespace Extensions
                 case "upgrade":
                 case "via":
                 case "forwarded":
+                case ":authority":
+                case ":method":
+                case ":path":
+                case ":scheme":
                     return "Transport";
 
                 case "authorization":
