@@ -33,7 +33,7 @@ namespace Extensions
             {
                 throw new NotSupportedException($"Unsupported encoding '{encoding}'.");
             }
-            result = Exchange.DecodeBodyFromHeaders(headers, body);
+            result = HTTPParser.DecodeBodyFromHeaders(headers, body);
             if (!enabled)
             {
                 content.RemoveAll(token => token == encoding);

@@ -173,7 +173,7 @@ namespace Clearinet
             {
                 HTTPRequestHeaders transferHeaders = headers.Clone();
                 transferHeaders.Remove("Content-Encoding");
-                body = Exchange.DecodeBodyFromHeaders(transferHeaders, body);
+                body = HTTPParser.DecodeBodyFromHeaders(transferHeaders, body);
             }
             bool isHead = headers.HTTPMethod.OICEquals("HEAD");
             return body.Length > 0 || (!isHead && headers.ExistsAny("Content-Length", "Transfer-Encoding"));

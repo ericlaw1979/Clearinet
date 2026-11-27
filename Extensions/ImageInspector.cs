@@ -76,7 +76,7 @@ namespace Extensions
                 // trying to render it.
                 if (bHasEncoding && sContentType.OICStartsWith("image/"))
                 {
-                    arrBody = Exchange.DecodeBodyFromHeaders(headers, arrBody);
+                    arrBody = HTTPParser.DecodeBodyFromHeaders(headers, arrBody);
                 }
                 imageBytes = arrBody;
 

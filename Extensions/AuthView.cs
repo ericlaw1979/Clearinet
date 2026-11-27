@@ -316,7 +316,7 @@ namespace Extensions
             byte[] decodedBytes;
             try
             {
-                decodedBytes = Exchange.DecodeBodyFromHeaders(headers, bodyBytes);
+                decodedBytes = HTTPParser.DecodeBodyFromHeaders(headers, bodyBytes);
             }
             catch
             {

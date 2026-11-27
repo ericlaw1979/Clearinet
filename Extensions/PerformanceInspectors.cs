@@ -243,7 +243,7 @@ namespace Extensions
                 {
                     // Compute the compression effectiveness.
                     int iDeliverySize = body?.Length ?? 0;
-                    var bodyOriginal = Exchange.DecodeBodyFromHeaders(headers, body);
+                    var bodyOriginal = HTTPParser.DecodeBodyFromHeaders(headers, body);
                     sCompressionRatio = $"Compressed to {100 * iDeliverySize / (bodyOriginal?.Length > 0 ? bodyOriginal.Length : 1f):N2}% of original ({iDeliverySize:N0}/{bodyOriginal.Length:N0})";
                 }
 

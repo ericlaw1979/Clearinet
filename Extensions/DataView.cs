@@ -165,7 +165,7 @@ namespace Extensions
                 MediaTypeHeaderValue type = null;
                 if (!string.IsNullOrWhiteSpace(contentType) && !MediaTypeHeaderValue.TryParse(contentType, out type))
                     throw new FormatException("Invalid Content-Type: " + contentType);
-                byte[] decoded = headers == null ? body : Exchange.DecodeBodyFromHeaders(headers, body);
+                byte[] decoded = headers == null ? body : HTTPParser.DecodeBodyFromHeaders(headers, body);
                 if (IsBson(type?.MediaType))
                 {
                     TreeNode root = BsonDocument.Parse(decoded);

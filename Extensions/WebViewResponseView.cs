@@ -81,7 +81,7 @@ namespace Extensions
             }
             try
             {
-                document = WebPreviewDocument.Create(contentType, Exchange.DecodeBodyFromHeaders(headers, body));
+                document = WebPreviewDocument.Create(contentType, HTTPParser.DecodeBodyFromHeaders(headers, body));
             }
             catch (Exception ex) when (ex is IOException || ex is InvalidDataException || ex is ArgumentException || ex is NotSupportedException || ex is FormatException)
             {

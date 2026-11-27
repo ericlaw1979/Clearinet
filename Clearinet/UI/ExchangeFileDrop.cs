@@ -73,7 +73,7 @@ namespace Clearinet
                             throw new IOException("The temporary drag folder already exists: " + candidate);
                         Directory.CreateDirectory(candidate);
                         directory = candidate;
-                        Utilities.CleanupOnExit(directory);
+                        Utilities.AddToCleanupOnExit(directory);
                     }
 
                     string suggested = xc.SuggestedFilename;

@@ -360,7 +360,7 @@ namespace Clearinet
             {
                 HTTPRequestHeaders transferHeaders = headers.Clone();
                 transferHeaders.Remove("Content-Encoding");
-                body = Exchange.DecodeBodyFromHeaders(transferHeaders, body);
+                body = HTTPParser.DecodeBodyFromHeaders(transferHeaders, body);
             }
             if (body.Length > 0 || (!isHead && headers.ExistsAny("Content-Length", "Transfer-Encoding")))
             {
@@ -3044,7 +3044,7 @@ namespace Clearinet
             {
                 if (DialogResult.Yes == MessageBox.Show(CApp.UI, "Do you want to decode the response body before saving?", "Decode first?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question))
                 {
-                    arrBody = Exchange.DecodeBodyFromHeaders(xc.ResponseHeaders, arrBody);
+                    arrBody = HTTPParser.DecodeBodyFromHeaders(xc.ResponseHeaders, arrBody);
                 }
             }
             File.WriteAllBytes(sFilename, arrBody);
